@@ -1,0 +1,11 @@
+root: .
+ignore_directories:
+  - bin
+  - obj
+  - node_modules
+  - dist
+  - .git
+ignore_extensions:
+  - .dll
+  - .exe
+  - .pdb
