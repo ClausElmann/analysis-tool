@@ -319,3 +319,140 @@ The following rules guarantee same input → same output on every run:
 5. **Merge order is deterministic.** When merging duplicate functions, the merge processes files in sorted path order.
 6. **v2-selection.json write-once.** If the file exists, it is not regenerated; output is stable across re-runs.
 7. **Description generation is rule-based.** No LLM calls; no probabilistic steps; all derivation is regex + token counting + lexicographic tie-breaking.
+
+---
+
+## 8. Hierarchical Entry Model (Phase 4.5 – Use Case Extraction)
+
+Source of truth for the use case lifecycle: AI_ANALYSIS_MASTER_SPEC.md, Section [PHASE 4.5 – USE CASE EXTRACTION].
+
+This section documents how `UseCaseExtractor` maps Angular signals to the three-level navigation hierarchy **Menu → Tab → Component** and derives API relationships from there.
+
+---
+
+### 8.1 Hierarchical Entry Fields
+
+Every use case analysis record carries three positional fields that locate it in the UI hierarchy:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `menu` | string | yes | Top-level navigation label. Derived from route path or component name. Never empty; use `"UNKNOWN"` if not inferrable. |
+| `tab` | string | no (default `""`) | Tab label if Angular tab components are detected in the file. Empty string when no tabs exist. Never null. |
+| `component` | string | yes | Angular component class name verbatim from `key_elements.classes`. |
+
+These three fields are stored **in addition to** the existing `entry_point`, `flow_steps`, `functions`, `module`, `description`, and `confidence` fields. They do NOT replace any existing field.
+
+---
+
+### 8.2 Tab Detection Rules
+
+Tabs are detected by `AngularAnalyzer` and stored in `key_elements.tabs` (ordered list, no duplicates, first-seen order preserved).
+
+**Recognized patterns (searched in file content):**
+
+| Pattern | Source element | Extracted value |
+|---|---|---|
+| `<mat-tab label="...">` | Angular Material | label attribute value |
+| `<mat-tab [label]="...">` | Angular Material (bound) | attribute value (verbatim) |
+| `<p-tabPanel header="...">` | PrimeNG | header attribute value |
+| `label: '...'` / `label: "..."` | Tab array object literal | label property value |
+
+**Rules:**
+- Only explicit string literals are extracted. Bound expressions (e.g., `[label]="someVar"`) are skipped unless the value is a plain string literal.
+- Duplicate labels within the same file are deduplicated (first occurrence wins).
+- An empty label string is silently skipped.
+- If none of the patterns match, `key_elements.tabs` is an empty list.
+
+---
+
+### 8.3 Extraction Flow
+
+```
+Menu (from route or component name)
+  └─ Tab (from mat-tab / p-tabPanel / tab array labels)
+       └─ Component (from key_elements.classes)
+            └─ API calls (from key_elements.http_calls → capabilities.json match)
+```
+
+**Rule: no-tabs fallback**
+
+If `key_elements.tabs` is empty, the component is placed directly under the menu. The `tab` field is set to `""`. The use case name omits the tab segment.
+
+**Rule: multiple components per tab**
+
+If a file contains both tabs and multiple component classes, one use case is created for each `(tab, component)` pair. Tabs are **never merged**.
+
+---
+
+### 8.4 Naming Format
+
+Format: `"{Verb} {Menu} {Tab}"`
+
+- `Verb` — inferred from HTTP call verbs or component name keywords (see verb map in `UseCaseExtractor._VERB_MAP`). Default: `"View"`.
+- `Menu` — title-cased menu label.
+- `Tab` — tab label as-is from the extracted signal. Omitted if `tab == ""`.
+
+**Examples:**
+
+| Menu | Tab | Verb | Resulting name |
+|---|---|---|---|
+| Customers | Overview | View | `"View Customers Overview"` |
+| Customer | Details | Edit | `"Edit Customer Details"` |
+| Orders | — | View | `"View Orders"` |
+| Products | Stock | View | `"View Products Stock"` |
+
+---
+
+### 8.5 ID Generation with Hierarchy
+
+The `id` field is computed per the existing spec (Section 4.5.1.1):
+
+```
+id = normalize(entry_point) + "__" + normalize(first_api_step)
+```
+
+The `menu` and `tab` fields do **not** influence the `id`. This preserves ID stability when menu labels or tab labels change.
+
+---
+
+### 8.6 UseCaseExtractor – Class Contract
+
+**Location:** `core/use_case_extractor.py`
+
+**Constructor inputs:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `angular_results` | `List[FileAnalysis]` | Output of `AngularAnalyzer` for all angular files |
+| `capabilities` | `dict` | Parsed `capabilities.json` |
+| `modules` | `dict` | Parsed `modules.json` |
+
+**Public method:**
+
+```python
+def extract(self) -> List[Dict]:
+    ...
+```
+
+Returns a list of use case analysis records sorted by `id`, ready for serialization into `use-cases.analysis.json`.
+
+**Processing order (deterministic):**
+1. Angular results are processed in lexicographic order of `entry_point`.
+2. Within a file: tabs are processed in source order; components within each tab in sorted order.
+3. IDs are assigned after sorting, before name deduplication.
+4. Names are deduplicated after IDs are stable.
+
+---
+
+### 8.7 Edge Cases
+
+| Situation | Behaviour |
+|---|---|
+| No tabs in file | `tab = ""`, name = `"{Verb} {Menu}"` |
+| No components in file | No use cases generated from that file |
+| No API calls in component | `flow_steps` = `[{UI, component}]`; all API steps = UNKNOWN; `confidence = 10` (30 − 20) |
+| Route has no first segment | `menu = "UNKNOWN"` |
+| Component name has no meaningful tokens | `menu = "UNKNOWN"` |
+| Tab label is empty string | Tab is silently skipped |
+| Two use cases produce the same `id` | Second is suffixed `__2`, third `__3`, etc. |
+| Two use cases produce the same `name` | Second is suffixed ` (2)`, third ` (3)`, etc. |

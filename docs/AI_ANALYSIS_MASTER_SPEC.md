@@ -900,6 +900,162 @@ Phase 4 requires:
 * All arrays are sorted
 * Descriptions are present for all functions and modules (or "UNKNOWN" if not inferrable)
 
+---
+
+## [PHASE 4.2 – DATA MODEL EXTRACTION]
+
+**Goal:** Extract the actual data model and its usage patterns from SQL DDL files and SQL strings embedded in C# (Dapper-style) repositories. Output enables redesign of the database for V2.
+
+---
+
+### 4.2.1 Table Model
+
+Each table entry in `data-model.json` must include all of the following fields (all required, no nulls):
+
+```json
+{
+  "name": string,
+  "columns": [string],
+  "relationships": [{ "related_table": string }],
+  "used_in_functions": [string],
+  "used_in_use_cases": [string],
+  "usage_count": number
+}
+```
+
+**Field rules:**
+
+* `name` — table name verbatim as found in the DDL or query signal. Casing from DDL source; lowercase normalisation applied only as the internal deduplication key.
+* `columns` — sorted list of column names inferred from `CREATE TABLE` DDL patterns or column-type declarations. Empty list `[]` if not determinable.
+* `relationships` — sorted list of related tables inferred from `JOIN … ON` clauses. Each entry carries only `related_table` (the right-hand table of the join). No guessing; only explicit join signals. Deduplication: one entry per unique `related_table` value.
+* `used_in_functions` — sorted list of C# method names found in the same file as an embedded SQL query that references this table.
+* `used_in_use_cases` — sorted list of use case names (from `use-cases.analysis.json`) whose `flow_steps` include a DB step whose name overlaps with this table name.
+* `usage_count` — integer; count of distinct embedded SQL queries (in C# files) that reference this table. SQL DDL references in `.sql` files are not counted here. Zero if the table is only known from DDL.
+
+---
+
+### 4.2.2 Signal Sources
+
+The extractor fuses signals from two source types:
+
+#### SQL Files (`type = "sql"`)
+
+| Signal | Source field | Used for |
+|---|---|---|
+| Table definitions | `key_elements.tables_created` | Seed table registry |
+| Referenced tables | `key_elements.tables_referenced` | Extend table registry |
+| Column names | `domain_signals.columns_detected`, `raw_extract` | Populate `columns` |
+
+Column names are extracted from the `raw_extract` field using the pattern: column name followed immediately by a SQL type keyword (`int`, `nvarchar`, `varchar`, `datetime`, `bit`, `decimal`, `uniqueidentifier`, etc.).
+
+#### C# Files (`type = "csharp"`)
+
+SQL strings embedded in C# source are extracted from `key_elements.embedded_sql` (populated by `CSharpAnalyzer`). Each embedded SQL record has:
+
+* `operations` — sorted list of DML verbs (`SELECT`, `INSERT`, `UPDATE`, `DELETE`)
+* `tables` — table names referenced in `FROM`, `JOIN`, `INTO`, `UPDATE … SET`, `DELETE FROM`
+* `joins` — list of `{left_column, right_table, right_column}` from `JOIN … ON` clauses
+
+**Extraction patterns for embedded SQL (applied to string literals in C# source):**
+
+| Construct | Pattern matched |
+|---|---|
+| SELECT source | `FROM <table>` |
+| JOIN | `JOIN <table>` |
+| INSERT target | `INSERT INTO <table>` |
+| UPDATE target | `UPDATE <table>` |
+| DELETE source | `DELETE FROM <table>` |
+| Relationship | `JOIN <right> ON <left>.<col> = <right>.<col>` |
+
+Only string literals that begin (after optional whitespace) with `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `WITH`, `EXEC`, or `EXECUTE` are considered SQL. All other strings are skipped.
+
+---
+
+### 4.2.3 Query Extraction Rules
+
+* Both verbatim string literals (`@"…"` in C#) and regular double-quoted string literals are scanned.
+* Schema-qualified names (`dbo.TableName`, `[dbo].[TableName]`) are normalised: schema prefix is stripped, brackets removed.
+* Table name matching uses lowercase normalisation for deduplication only; the stored `name` preserves the DDL casing (first seen).
+* Noise tokens (`WHERE`, `SET`, `VALUES`, `SELECT`, `ON`, empty string) are excluded from table name lists.
+* Relationship inference is one-directional per query: the right-hand table of the `JOIN` is recorded as `related_table`. The same signal also registers a reverse entry on the right-hand table.
+
+---
+
+### 4.2.4 Usage Mapping
+
+#### Table → Functions
+
+For each embedded SQL query in a C# file, all method names found in `key_elements.methods` of that same file are attributed to every table the query references.
+
+Rationale: Dapper queries are typically inside repository methods. Associating all methods in the file with the query's tables is an upper-bound signal — it may include helper methods. This is consistent with signal-extraction (not full-parse) semantics.
+
+#### Table → Use Cases
+
+The extractor joins tables to use cases by substring matching: if a use case's `flow_steps` contains a DB step whose `name` (lowercased) contains or is contained by the table key (lowercased), the use case is attributed to that table.
+
+This is a best-effort heuristic because DB step names may be stored procedure names, not table names directly.
+
+---
+
+### 4.2.5 Output Contract
+
+#### `data-model.json`
+
+```json
+{
+  "tables": [
+    {
+      "name": "Customer",
+      "columns": ["created_date", "customer_id", "name", "status"],
+      "relationships": [
+        { "related_table": "order" }
+      ],
+      "used_in_functions": ["GetCustomer", "UpdateCustomer"],
+      "used_in_use_cases": ["View Customer Details"],
+      "usage_count": 4
+    }
+  ]
+}
+```
+
+* `tables` array sorted lexicographically by `name` (case-insensitive key).
+* All nested arrays sorted lexicographically.
+* All fields always present; no nulls; empty list `[]` if no data.
+* `usage_count` is a non-negative integer.
+* File is **always regenerated** on every run (no write-once protection).
+
+---
+
+### 4.2.6 Determinism Rules
+
+* Files are processed in lexicographic path order.
+* Sets are converted to sorted lists before output.
+* Lowercase normalisation is applied only as a deduplication key; the stored `name` uses the casing of the first occurrence (by lexicographic path order).
+* Tie-breaking is always lexicographic.
+* No random values, no timestamps.
+
+---
+
+### 4.2.7 Phase 4.2 Dependencies
+
+* Phase 2 complete (`CSharpAnalyzer`, `SqlAnalyzer`)
+* `analysis-index.json` must exist in `output_root`
+* `use-cases.analysis.json` is optional; if absent the `used_in_use_cases` field is empty for all tables
+
+---
+
+### 4.2.8 Phase 4.2 Definition of Done
+
+* `data-model.json` exists after every run
+* `tables` array is sorted lexicographically
+* Every table has all six required fields; no nulls
+* `columns` contains only names derived from explicit DDL or column-type patterns; no guessing
+* `relationships` contains only entries derived from explicit `JOIN … ON` signals
+* `usage_count` is ≥ 0 for all tables
+* All nested arrays sorted lexicographically
+
+---
+
 ## [PHASE 4.5 – USE CASE EXTRACTION]
 
 **Goal:** Derive real user-facing flows by tracing paths from Angular entry points through the backend to the database. Output is designed for non-technical product owners to understand what the system actually does for its users.
@@ -919,6 +1075,9 @@ Always regenerated. Contains volatile analysis data.
   "id": string,
   "name": string,
   "entry_point": string,
+  "menu": string,
+  "tab": string,
+  "component": string,
   "flow_steps": [
     { "type": "UI" | "API" | "Service" | "DB", "name": string }
   ],
@@ -932,8 +1091,11 @@ Always regenerated. Contains volatile analysis data.
 **Field rules:**
 
 * `id` — stable deterministic identifier. Computed per Section 4.5.1.1. Never changes unless the use case disappears completely. Join key.
-* `name` — plain-language display name derived from the entry point (see Section 4.5.5). Max 5 words. Display-only; may change between runs.
+* `name` — plain-language display name. Format: `"{Verb} {Menu} {Tab}"` (tab omitted when empty). Max 5 words. Display-only; may change between runs.
 * `entry_point` — the Angular component name or route that initiates the flow. Verbatim from AngularAnalyzer output.
+* `menu` — top-level navigation label. Derived from the first route segment or component name. Never null; use `"UNKNOWN"` if not inferrable.
+* `tab` — tab label extracted from Angular tab components (`mat-tab`, `p-tabPanel`, or tab array). Empty string `""` when no tabs are present. Never null.
+* `component` — Angular component class name verbatim from `key_elements.classes`. Matches `entry_point` when the entry point is a component.
 * `flow_steps` — ordered list of steps traced from entry point to termination. Each step has:
   * `type` — one of: `"UI"`, `"API"`, `"Service"`, `"DB"`
   * `name` — the component, endpoint, service, or procedure name. Verbatim. Never invented.
@@ -1000,14 +1162,30 @@ Use case extraction MUST start from Angular only. No use cases are invented from
 2. Angular routes (from `key_elements.routes`)
 3. Inferred user actions from component names using the pattern keywords: `view`, `list`, `create`, `edit`, `update`, `delete`, `submit`, `search`, `load`, `upload`, `download`, `login`, `logout`
 
-**For each Angular starting point:**
-1. Find all API calls made by that component or its associated service (from `key_elements.api_calls`)
-2. Match each API call to a backend endpoint in capabilities.json by URL pattern or method name similarity
-3. From each matched endpoint, find the associated service/repository calls (from `key_elements.methods` and `dependencies`)
-4. From each service, find associated SQL procedures, tables, or views (from SqlAnalyzer output)
-5. Stop tracing when reaching: a DB operation, an external API call (URL not in the solution), or a batch trigger
+**Hierarchy: Menu → Tab → Component → API**
 
-**If a step cannot be resolved:** record it as a partial step with `name` = `"UNKNOWN"` and continue.
+For each Angular file:
+
+1. **Determine menu** — derive from the first segment of `key_elements.routes[0]` (title-cased, slashes and IDs stripped). If no route: derive from the component name with generic words removed (`Component`, `Module`, `Page`, `View`, `Container`). If still not determinable: `"UNKNOWN"`.
+
+2. **Detect tabs** — scan file content for Angular tab components using these patterns:
+   * `<mat-tab label="...">` — Angular Material tab label
+   * `<mat-tab [label]="'...'">` — Angular Material bound label (string literals only)
+   * `<p-tabPanel header="...">` — PrimeNG tab header
+   * `label: '...'` / `label: "..."` — tab object array entries
+
+   Extracted labels are stored in `key_elements.tabs` (first-seen order, deduplicated). Empty labels are skipped.
+
+3. **Map components to tabs** — if tabs are found: produce one use case per `(tab, component)` pair. **Tabs are never merged.** If no tabs: component is placed directly under menu.
+
+4. **For each component**, trace API calls:
+   * Find all API calls made by that component (from `key_elements.http_calls`)
+   * Match each call to a backend endpoint in capabilities.json by URL pattern or method name similarity
+   * From each matched endpoint, find associated service/repository calls
+   * From each service, find associated SQL procedures, tables, or views
+   * Stop tracing at: a DB operation, an external API call, or a batch trigger
+
+**If a step cannot be resolved:** record it as `name = "UNKNOWN"` and continue.
 
 ---
 
@@ -1061,12 +1239,24 @@ Every use case receives a `confidence` score computed deterministically from its
 
 ### 4.5.5 Naming Rules
 
-Use case names are derived in this order of priority:
+Use case names follow the format **`"{Verb} {Menu} {Tab}"`**.
 
-1. If a route exists: use the route path, convert to Title Case, remove slashes and IDs (e.g., `/customer/edit/:id` → `Edit Customer`)
-2. If no route: use the component name, split by CamelCase, remove generic words (`Component`, `View`, `Page`, `Container`), title case the rest (e.g., `CustomerEditComponent` → `Edit Customer`)
-3. If still ambiguous: use the primary API endpoint name, split by CamelCase, prefix with action verb inferred from HTTP method (`HttpGet`→`View`, `HttpPost`→`Create`, `HttpPut`→`Update`, `HttpDelete`→`Delete`)
-4. If all above fail: name = `"UNKNOWN"`
+* `Verb` — inferred in priority order:
+  1. From HTTP verbs in `key_elements.http_calls`: `get`→`View`, `post`→`Create`, `put`/`patch`→`Edit`, `delete`→`Delete`.
+  2. From action keywords in the component name: `list`/`view`/`detail`→`View`, `create`/`add`→`Create`, `edit`/`update`→`Edit`, `delete`/`remove`→`Delete`, `search`→`Search`, `upload`→`Upload`, `download`→`Download`.
+  3. Default: `"View"`.
+* `Menu` — title-cased, derived per Section 4.5.2 step 1.
+* `Tab` — tab label as-is from extraction. **Omitted** (with its preceding space) when `tab == ""`.
+
+**Examples:**
+
+| Menu | Tab | Verb | Name |
+|---|---|---|---|
+| Customers | Overview | View | `"View Customers Overview"` |
+| Customer | Details | Edit | `"Edit Customer Details"` |
+| Orders | — | View | `"View Orders"` |
+
+Use case names derived from the old priority-order rules (route → component → endpoint) are superseded by the format above when `menu` or `tab` is determinable.
 
 **Deduplication:** If two use cases generate the same name, suffix the second with ` (2)`, third with ` (3)`, etc.
 
@@ -1083,8 +1273,11 @@ Always recomputed on every run. Never preserved between runs.
   "use_cases": [
     {
       "id": "customerdetailcomponent__getcustomer",
-      "name": "View Customer",
+      "name": "View Customer Details",
       "entry_point": "CustomerDetailComponent",
+      "menu": "Customer",
+      "tab": "Details",
+      "component": "CustomerDetailComponent",
       "flow_steps": [
         { "type": "UI", "name": "CustomerDetailComponent" },
         { "type": "API", "name": "GetCustomer" },
@@ -1123,6 +1316,7 @@ Write-once. Generated on first run only. Never overwritten.
 * `flow_steps` in analysis file ordered as traced (not sorted).
 * `functions` sorted lexicographically.
 * All fields always present; no nulls; empty list or empty string if not applicable.
+* `menu`, `tab`, and `component` always present in the analysis file; `tab` defaults to `""` when no tabs are detected.
 * `id` exists in BOTH files and is the primary join key.
 * `confidence` exists ONLY in use-cases.analysis.json. Never in selection file.
 * `keep` and `reason` exist ONLY in use-cases.selection.json. Never in analysis file.
@@ -1167,6 +1361,7 @@ Write-once. Generated on first run only. Never overwritten.
 * At least one use case is derived per Angular component found
 * Every use case has a non-empty `id` computed per Section 4.5.1.1
 * Every use case has a non-empty `entry_point`
+* Every use case has `menu`, `tab`, and `component` fields present (tab may be `""`)
 * Every use case has at least one `flow_steps` entry
 * Every use case is assigned to a module
 * No null values in any field
@@ -1186,3 +1381,114 @@ Write-once. Generated on first run only. Never overwritten.
 * `confidence`, `entry_point`, `flow_steps`, `functions`, `module`, and `description` fields are NOT present in this file
 * File is never overwritten once created
 * `id` values are stable across runs unless the underlying `entry_point` or primary endpoint changes
+
+---
+
+## [PHASE 4.6 – COVERAGE ANALYSIS]
+
+**Goal:** Measure how much of the discovered system surface area (UI components, API endpoints, SQL objects) is actually exercised by identified use cases. Output is designed for both product owners and developers to see gaps and prioritise use case discovery work.
+
+---
+
+### 4.6.1 Overview
+
+The `CoverageAnalyzer` reads two pre-existing output files and produces a single `coverage.json` report. It never modifies its inputs.
+
+**Input files** (read from `output_root`):
+
+| File | Source |
+|---|---|
+| `analysis-index.json` | Pipeline (Phases 1–2) |
+| `use-cases.analysis.json` | Phase 4.5 UseCaseExtractor |
+
+**Output file:** `coverage.json` — always regenerated on every run.
+
+---
+
+### 4.6.2 Coverage Domains
+
+#### UI Coverage
+
+* **Pool:** Unique Angular component class names from files classified as `"angular"` (`key_elements.classes`).
+* **Covered:** Component names that appear as `entry_point` in at least one use case record.
+* **Uncovered:** Pool minus covered.
+
+Rationale: Components are the identity unit of the use case model (`entry_point` = component name). Routes are used for naming only and are not the coverage unit.
+
+#### API Coverage
+
+* **Pool:** Unique method names from C# files that contain at least one HTTP endpoint attribute (`key_elements.endpoints` is non-empty). Source: `key_elements.methods` in those files.
+* **Used:** Distinct `name` values from `flow_steps` entries where `type == "API"` and name is not a sentinel (`UNKNOWN`, `[CIRCULAR]`, `[DEPTH LIMIT]`).
+* **Uncovered:** Pool minus used.
+
+Note: Because `CSharpAnalyzer` does not pair method names with their HTTP attributes, the pool includes all methods from files that contain endpoint annotations. This may include helper/private methods; it is an upper-bound estimate. The count is still deterministic and uses only real signals.
+
+#### SQL Coverage
+
+* **Pool:** Unique names from `key_elements.procedures_created` and `key_elements.tables_created` across all files classified as `"sql"`.
+* **Used:** Distinct `name` values from `flow_steps` entries where `type == "DB"` and name is not a sentinel.
+* **Uncovered:** Pool minus used.
+
+---
+
+### 4.6.3 Output Contract
+
+```json
+{
+  "ui":  { "total": number, "covered": number },
+  "api": { "total": number, "used":    number },
+  "sql": { "total": number, "used":    number },
+  "uncovered": {
+    "ui":  [string],
+    "api": [string],
+    "sql": [string]
+  }
+}
+```
+
+**Field rules:**
+
+* All fields always present; no nulls.
+* `ui.total` = `ui.covered` + `len(uncovered.ui)`.
+* `api.used` and `sql.used` may exceed the pool size (names from flow_steps not in the static pool are still counted as used). `uncovered` lists only names within the pool.
+* All `uncovered.*` arrays sorted lexicographically.
+* `total` and `covered`/`used` are non-negative integers.
+* If either input file is missing, the affected domain shows `total: 0`, `covered/used: 0`, `uncovered: []`.
+
+---
+
+### 4.6.4 Determinism Rules
+
+* All set operations use only the values present in the input files at the time of the run.
+* No random values, no timestamps, no UUIDs.
+* `uncovered` arrays are always sorted lexicographically.
+* Given the same `analysis-index.json` and `use-cases.analysis.json`, the output is always identical.
+
+---
+
+### 4.6.5 Sentinel Values
+
+The following step name values are **not** counted as real API or DB objects and are excluded from the `used` sets:
+
+* `"UNKNOWN"` — step could not be resolved
+* `"[CIRCULAR]"` — circular reference detected
+* `"[DEPTH LIMIT]"` — trace depth limit reached
+
+---
+
+### 4.6.6 File Lifecycle
+
+* `coverage.json` is **always regenerated** on every run (like `use-cases.analysis.json`).
+* It is never preserved between runs.
+* It has no counterpart selection/write-once file.
+
+---
+
+### 4.6.7 Phase 4.6 Definition of Done
+
+* `coverage.json` exists after every run
+* All three domains (`ui`, `api`, `sql`) are present with correct field names
+* `uncovered.*` arrays are sorted lexicographically
+* No null values anywhere
+* `total = covered/used + len(uncovered)` holds for the UI domain
+* If input files are missing, report is still produced (with zeros)
