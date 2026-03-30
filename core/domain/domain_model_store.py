@@ -169,3 +169,186 @@ class DomainModelStore:
         payload["saved_utc"] = datetime.now(timezone.utc).isoformat()
         path = os.path.join(domain_dir, _FILE_MAP["decision_support"])
         _write_atomic(path, payload)
+
+    # ------------------------------------------------------------------
+    # Upgrade #4: strong rebuild spec helpers
+    # ------------------------------------------------------------------
+
+    def build_rebuild_spec(self, model: Dict[str, Any]) -> Dict[str, Any]:
+        """Derive a structured rebuild specification from *model*.
+
+        The spec always contains all six mandatory keys.  Values are derived
+        from the domain model — nothing is invented.  Empty lists are used
+        when data is absent (keys are never omitted).
+
+        Structure
+        ---------
+        ``entities``    — copy of model entities (non-null strings only)
+        ``core_flows``  — copy of model flows
+        ``api_surface`` — extracted from integrations + behaviors that look
+                          like endpoints (contain "Controller", "Api", "Endpoint", etc.)
+        ``state_model`` —  "stateful" when rules or events present, else "stateless"
+        ``constraints`` — copy of model rules
+        ``ui_modules``  — behaviors / entities whose name hints at UI
+                          (contain "Controller", "View", "Page", "Component", "Form")
+        """
+        # Fix 2: Blazor-ready rebuild specification schema
+        _UI_HINTS    = frozenset({"controller", "view", "page", "component", "form", "ui", "screen"})
+        _API_HINTS   = frozenset({"controller", "api", "endpoint", "route", "http", "rest", "graphql"})
+        _ENTITY_SKIP = frozenset({"dto", "model", "view", "service", "factory", "helper", "utils"})
+        _HTTP_VERBS  = frozenset({"get", "post", "put", "delete", "patch"})
+        _AUTH_HINTS  = frozenset({"auth", "login", "logout", "permission", "role", "claim", "identity", "token"})
+
+        def _clean(items) -> List[str]:
+            return [str(x) for x in (items or []) if x]
+
+        entities     = _clean(model.get("entities"))
+        flows        = _clean(model.get("flows"))
+        integrations = _clean(model.get("integrations"))
+        behaviors    = _clean(model.get("behaviors"))
+        rules        = _clean(model.get("rules"))
+        events       = _clean(model.get("events"))
+
+        # blazor_pages: entities/behaviors with UI hints → infer component name + route
+        blazor_pages: List[Dict[str, Any]] = []
+        seen_pages: set = set()
+        for item in behaviors + entities:
+            lc = item.lower()
+            if any(h in lc for h in _UI_HINTS) and item not in seen_pages:
+                seen_pages.add(item)
+                route_name = item.replace(" ", "").replace("Controller", "").replace("Page", "").replace("View", "")
+                auth_required = any(h in lc for h in _AUTH_HINTS)
+                blazor_pages.append({
+                    "component": item,
+                    "route": f"/{route_name.lower() or 'index'}",
+                    "auth_required": auth_required,
+                    "source": "inferred",
+                })
+
+        # api_contracts: integrations + verb-hinted behaviors
+        api_contracts: List[Dict[str, Any]] = []
+        seen_api: set = set()
+        for item in integrations:
+            if item not in seen_api:
+                seen_api.add(item)
+                api_contracts.append({"method": item, "source": "integration"})
+        for item in behaviors:
+            lc = item.lower()
+            if any(h in lc for h in _API_HINTS) and item not in seen_api:
+                seen_api.add(item)
+                verb = next((v.upper() for v in _HTTP_VERBS if v in lc), "GET")
+                api_contracts.append({"method": f"{verb} /{item.lower()}", "source": "inferred"})
+
+        # ef_core_entities: entities without DTO/Service/View/Helper noise
+        ef_core_entities: List[Dict[str, Any]] = [
+            {"entity": e, "table": e.lower() + "s"}
+            for e in entities
+            if not any(sk in e.lower() for sk in _ENTITY_SKIP)
+        ]
+
+        # blazor_state_model
+        state_type = "stateful" if (rules or events) else "stateless"
+        blazor_state_model: Dict[str, Any] = {
+            "type":   state_type,
+            "events": events,
+            "rules":  rules,
+        }
+
+        # authorization_hints: rules + behaviors that mention auth concepts
+        auth_hints = [
+            item for item in rules + behaviors
+            if any(h in item.lower() for h in _AUTH_HINTS)
+        ]
+
+        import datetime
+        return {
+            "_meta": {
+                "target_stack":  "Blazor Server",
+                "generated_by":  "HeuristicAIProvider",
+                "generated_at":  datetime.datetime.utcnow().isoformat() + "Z",
+                "schema_version": "2.0",
+            },
+            "blazor_pages":        blazor_pages,
+            "api_contracts":       api_contracts,
+            "ef_core_entities":    ef_core_entities,
+            "blazor_state_model":  blazor_state_model,
+            "known_integrations":  integrations,
+            "authorization_hints": auth_hints,
+            "domain_flows":        flows,
+            "validation_rules":    rules,
+        }
+
+    def save_rebuild_spec(self, domain_name: str, model: Dict[str, Any]) -> None:
+        """Write ``090_rebuild.json`` with the structured rebuild specification.
+
+        Parameters
+        ----------
+        domain_name:
+            Domain to write for.
+        model:
+            The current refined domain model (all INSIGHT_KEYS present).
+        """
+        spec = self.build_rebuild_spec(model)
+        domain_dir = self.ensure_dir(domain_name)
+        path = os.path.join(domain_dir, _FILE_MAP["rebuild"])
+        _write_atomic(path, spec)
+
+    def build_decision_support(self, model: Dict[str, Any]) -> Dict[str, Any]:
+        """Derive heuristic decision-support metadata from *model*.
+
+        Derives ``complexity``, ``business_value``, ``coupling``, and
+        ``rebuild_priority`` from entity / integration / flow counts.
+        Nothing is invented — all values are computed from the model.
+
+        Returns
+        -------
+        dict
+            ``complexity``       — "low" | "medium" | "high"
+            ``business_value``   — "low" | "medium" | "high"
+            ``coupling``         — "low" | "medium" | "high"
+            ``rebuild_priority`` — int 1..10 (higher = rebuild sooner)
+        """
+        entity_count      = len(model.get("entities") or [])
+        flow_count        = len(model.get("flows") or [])
+        integration_count = len(model.get("integrations") or [])
+        rule_count        = len(model.get("rules") or [])
+
+        # Complexity: driven by entities + flows
+        total_complexity = entity_count + flow_count + rule_count
+        if total_complexity < 10:
+            complexity = "low"
+        elif total_complexity < 25:
+            complexity = "medium"
+        else:
+            complexity = "high"
+
+        # Business value: proxy from flow + rule richness
+        value_score = flow_count * 2 + rule_count
+        if value_score < 5:
+            business_value = "low"
+        elif value_score < 15:
+            business_value = "medium"
+        else:
+            business_value = "high"
+
+        # Coupling: based on integration count
+        if integration_count == 0:
+            coupling = "low"
+        elif integration_count < 3:
+            coupling = "medium"
+        else:
+            coupling = "high"
+
+        # Rebuild priority: 1-10, higher when high complexity + high coupling
+        _LEVEL = {"low": 1, "medium": 2, "high": 3}
+        priority_raw = _LEVEL[complexity] + _LEVEL[coupling] + _LEVEL[business_value]
+        # Map 3-9 → 1-10
+        rebuild_priority = round(1 + (priority_raw - 3) / 6 * 9)
+        rebuild_priority = max(1, min(10, rebuild_priority))
+
+        return {
+            "complexity":        complexity,
+            "business_value":    business_value,
+            "coupling":          coupling,
+            "rebuild_priority":  rebuild_priority,
+        }

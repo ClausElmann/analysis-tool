@@ -1,0 +1,133 @@
+{
+  "domain": "identity_access",
+  "analysis_date": "2026-03-30",
+  "analyst": "manual enrichment from source code reading",
+
+  "complexity": {
+    "score": 8,
+    "max": 10,
+    "rationale": "Multiple parallel auth flows (password, Azure AD/EntraId via MSAL, SAML2, 2FA via SMS/email/TOTP), stateful UI slide-machine in login component, token refresh concurrency concern, impersonation nested context, per-customer SAML/SCIM configuration",
+    "high_complexity_areas": [
+      "2FA flow state machine — 5 distinct slide states with branching HTTP status codes (300, 428+authenticatorApp)",
+      "Token refresh — access token 15min, refresh token 30min, concurrency must be handled (parallel requests near expiry)",
+      "SAML2 per-customer SSO — EntityId + MetadataUrl + EmailClaim configuration per tenant",
+      "Impersonation — nested JWT identity with 'impersonateFromUserId' claim, original identity recovery"
+    ]
+  },
+
+  "business_value": {
+    "score": 10,
+    "max": 10,
+    "rationale": "Foundation domain. Every other domain in the system depends on authenticated user identity for authorization, personalization, and audit trails. Zero-downtime migration is mandatory.",
+    "critical_dependencies": [
+      "messaging — cannot send without authenticated user + profile",
+      "customer_administration — user-customer binding is core",
+      "recipient_management — all recipient writes require userId on audit",
+      "subscriptions — subscription ownership linked to user",
+      "reporting — all reports scoped to customerId from user context"
+    ]
+  },
+
+  "coupling": {
+    "inbound_coupling_score": 10,
+    "inbound_count_approx": 47,
+    "key_dependents": [
+      "messaging",
+      "customer_administration",
+      "recipient_management",
+      "subscriptions",
+      "reporting",
+      "monitoring",
+      "statistics",
+      "job_management"
+    ],
+    "outbound_integrations": [
+      "Azure AD / Microsoft Entra ID (MSAL — @azure/msal-angular)",
+      "SAML2 Identity Provider (per customer — CustomerSamlSettings)",
+      "SCIM 2.0 provisioning (ScimUsersController, ScimGroupsController)",
+      "Email service (password reset, 2FA pin, SAML user provisioning emails)",
+      "SMS gateway (2FA pin via SMS)",
+      "TwoFactorAuthNet / TOTP RFC 6238 (AuthenticatorSecret on User)"
+    ],
+    "note": "Highest inbound coupling of all 49 domains. Every authenticated request passes through this domain's token validation."
+  },
+
+  "rebuild_risk": {
+    "score": 9,
+    "max": 10,
+    "rationale": "Any regression in authentication or authorization instantly breaks all user-facing functionality across all domains. The 2FA flow state machine is intricate and easy to break silently.",
+    "top_risks": [
+      { "risk": "JWT claim structure change breaks all downstream authorization", "mitigation": "Do NOT change claim names or structure during Blazor migration. Keep existing token shape." },
+      { "risk": "Token refresh race condition if multiple concurrent API calls near expiry", "mitigation": "Implement SemaphoreSlim(1,1) lock around refresh call in IHttpClientFactory DelegatingHandler" },
+      { "risk": "SAML2 customer SSO config regression silently locks out entire customer", "mitigation": "Add per-tenant integration test with mock IdP before migration go-live" },
+      { "risk": "SCIM provisioning break disables IdP-synced user accounts", "mitigation": "Smoke test ScimUsersController + ScimGroupsController after each deployment" }
+    ]
+  },
+
+  "rebuild_order": 1,
+  "rebuild_priority": 1,
+  "rebuild_strategy": "Strangler Fig — replace one auth flow at a time while keeping the existing ASP.NET Core backend API intact. Migration sequence: (1) email/password login + token storage in Blazor, (2) token refresh interceptor, (3) 2FA flows, (4) Azure AD / MSAL, (5) SAML2, (6) SCIM. Do NOT migrate backend until all Blazor frontend auth is verified end-to-end.",
+
+  "estimated_effort_days": 12,
+
+  "technical_debt_to_address": [
+    {
+      "id": "TD_001",
+      "severity": "medium",
+      "description": "Access token TTL (15 min) and refresh token TTL (30 min) are hardcoded TimeSpan constants in UserController — not environment-configurable",
+      "fix": "Extract to IOptions<TokenSettings> and configure via appsettings.json"
+    },
+    {
+      "id": "TD_002",
+      "severity": "high",
+      "description": "Logout does NOT invalidate the JWT access token server-side — only deletes UserRefreshToken. A logged-out user retains a valid JWT for up to 15 minutes.",
+      "fix": "Implement short-lived token denylist (Redis or DB table with TTL) checked in JWT middleware, or reduce access token TTL to 2-5 minutes"
+    },
+    {
+      "id": "TD_003",
+      "severity": "medium",
+      "description": "UpdateUser endpoint always returns BadRequest — missing return Ok() after successful update",
+      "fix": "Add return Ok() at end of success branch in UserController.UpdateUser()"
+    },
+    {
+      "id": "TD_004",
+      "severity": "low",
+      "description": "isRunningInIE() check still present in BiLoginComponent — IE is end-of-life since June 2022",
+      "fix": "Remove all IE detection code during Blazor rebuild"
+    },
+    {
+      "id": "TD_005",
+      "severity": "medium",
+      "description": "AuthenticatorSecret stored as plain string on User entity — no indication of encryption at rest",
+      "fix": "Encrypt with IDataProtectionProvider before persisting; decrypt on read"
+    },
+    {
+      "id": "TD_006",
+      "severity": "low",
+      "description": "No MFA recovery codes documented — user permanently locked out if 2FA device is lost",
+      "fix": "Implement one-time recovery codes (hashed, stored in separate table) as fallback"
+    }
+  ],
+
+  "test_coverage_recommendation": {
+    "unit_tests": [
+      "UserController.Login() — happy path, wrong password, lockout threshold, multi-profile (300), 2FA required (428)",
+      "UserController.RefreshAccessToken() — valid token, expired token, not-found token",
+      "UserController.Logout() — authenticated, not authenticated",
+      "IAuthenticationService.GenerateSHA256Hash() — deterministic output",
+      "TokenRefresh concurrency — two simultaneous calls near expiry must not issue two refresh tokens"
+    ],
+    "integration_tests": [
+      "Full email/password login → access protected endpoint → refresh → logout",
+      "2FA SMS flow end-to-end",
+      "TOTP authenticator enable + verify",
+      "Impersonation → protected endpoint → cancel → original identity restored",
+      "SCIM: create user via POST /scim/users → verify User created in DB"
+    ],
+    "e2e_tests": [
+      "Blazor LoginPage — submit valid credentials → redirect to home",
+      "Blazor LoginPage — wrong password 5x → locked message",
+      "Blazor 2FA flow — slide 0 → 428 → slide 1 → submit code → logged in"
+    ]
+  }
+}

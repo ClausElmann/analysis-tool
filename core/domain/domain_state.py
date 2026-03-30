@@ -19,21 +19,46 @@ from typing import Any, Dict, List, Optional
 
 DOMAIN_SEEDS: List[str] = [
     "identity_access",
-    "customer_administration",
-    "messaging",
-    "recipient_management",
-    "subscriptions",
-    "reporting",
-    "monitoring",
+    "localization",
+    "customer_management",
+    "profile_management",
+    "address_management",
+    "phone_numbers",
+    "positive_list",
+    "lookup",
+    "templates",
+    "sms_group",
+    "delivery",
+    "subscription",
+    "enrollment",
+    "standard_receivers",
+    "conversation",
     "benchmark",
-    "pipeline_sales",
-    "integrations",
+    "webhook",
+    "web_messages",
+    "voice",
+    "eboks_integration",
+    "email",
+    "data_import",
+    "activity_log",
+    "logging",
+    "monitoring",
+    "job_management",
+    "statistics",
+    "reporting",
+    "finance",
+    "pipeline_crm",
 ]
 
 # Status constants
 STATUS_PENDING = "pending"
 STATUS_IN_PROGRESS = "in_progress"
 STATUS_STABLE = "stable"
+
+# Protocol v1 status constants (additive — do not remove existing ones)
+STATUS_BLOCKED = "blocked"
+STATUS_STABLE_CANDIDATE = "stable_candidate"
+STATUS_COMPLETE = "complete"
 
 
 # ---------------------------------------------------------------------------
@@ -59,6 +84,13 @@ class DomainProgress:
     last_significant_change: str = ""
     current_focus: str = ""
     evidence_balance: Dict[str, int] = field(default_factory=dict)
+
+    # Protocol v1 fields (additive — safe defaults keep old records valid)
+    no_op_iterations: int = 0
+    last_change_at: str = ""
+    consistency_score: float = 0.0
+    saturation_score: float = 0.0
+    last_processed_assets: List[str] = field(default_factory=list)
 
     # ------------------------------------------------------------------
 
@@ -86,6 +118,12 @@ class DomainProgress:
             last_significant_change=d.get("last_significant_change", ""),
             current_focus=d.get("current_focus", ""),
             evidence_balance=dict(d.get("evidence_balance", {})),
+            # Protocol v1 fields — safe defaults when loading older records
+            no_op_iterations=int(d.get("no_op_iterations", 0)),
+            last_change_at=d.get("last_change_at", ""),
+            consistency_score=float(d.get("consistency_score", 0.0)),
+            saturation_score=float(d.get("saturation_score", 0.0)),
+            last_processed_assets=list(d.get("last_processed_assets", [])),
         )
 
 
@@ -95,12 +133,25 @@ class DomainProgress:
 
 
 class DomainState:
-    """Loads and saves all domain progress from ``domains/domain_state.json``."""
+    """Loads and saves all domain progress from ``domains/domain_state.json``.
+
+    Protocol v1 additions
+    ---------------------
+    ``active_domain``      — name of the domain currently being processed
+                             (``None`` when no domain is active).
+    ``iteration_counter``  — global iteration count across all domains.
+
+    Both fields are stored under the reserved ``"_global"`` key in the JSON
+    file, keeping the existing per-domain format intact.
+    """
 
     def __init__(self, domains_root: str) -> None:
         self._domains_root = os.path.abspath(domains_root)
         self._state_path = os.path.join(self._domains_root, "domain_state.json")
         self._domains: Dict[str, DomainProgress] = {}
+        # Protocol v1 global fields
+        self.active_domain: Optional[str] = None
+        self.iteration_counter: int = 0
 
     # ------------------------------------------------------------------
     # Persistence
@@ -111,18 +162,30 @@ class DomainState:
         No-op (empty state) if the file does not exist.
         """
         self._domains = {}
+        self.active_domain = None
+        self.iteration_counter = 0
         try:
             with open(self._state_path, "r", encoding="utf-8") as fh:
                 data = json.load(fh)
         except (OSError, json.JSONDecodeError):
             return
         for name, d in data.items():
-            self._domains[name] = DomainProgress.from_dict(d)
+            if name == "_global":
+                # Protocol v1 global fields stored under reserved key
+                self.active_domain = d.get("active_domain")
+                self.iteration_counter = int(d.get("iteration_counter", 0))
+            else:
+                self._domains[name] = DomainProgress.from_dict(d)
 
     def save(self) -> None:
         """Atomically write state to disk."""
         os.makedirs(self._domains_root, exist_ok=True)
-        data = {name: prog.to_dict() for name, prog in sorted(self._domains.items())}
+        data: Dict[str, Any] = {name: prog.to_dict() for name, prog in sorted(self._domains.items())}
+        # Protocol v1: persist global fields under reserved key
+        data["_global"] = {
+            "active_domain": self.active_domain,
+            "iteration_counter": self.iteration_counter,
+        }
         tmp = self._state_path + ".tmp"
         with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(data, fh, indent=2, ensure_ascii=False)

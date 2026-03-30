@@ -23,11 +23,14 @@ must hold for **2 consecutive iterations** before marking stable
 from __future__ import annotations
 
 import hashlib
+import os
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from core.domain.ai.domain_mapper import merge
 from core.domain.ai.refiner import refine
+from core.domain.domain_quality_gate import gate_failures, is_domain_complete
 from core.domain.ai.semantic_analyzer import INSIGHT_KEYS
 from core.domain.ai_reasoner import AIReasoner
 from core.domain.domain_memory import DomainMemory
@@ -271,6 +274,32 @@ class DomainLearningLoop:
         )
         new_streak = (prev_streak + 1) if is_convergent else 0
 
+        # ── No-op detection (upgrade #3) ─────────────────────────────────
+        # Count new items since the old model to detect stagnant iterations.
+        new_entities_count = max(
+            len(refined.get("entities") or []) - len(old_model.get("entities") or []), 0
+        )
+        new_flows_count = max(
+            len(refined.get("flows") or []) - len(old_model.get("flows") or []), 0
+        )
+        if new_entities_count == 0 and new_flows_count == 0:
+            if progress is not None:
+                progress.no_op_iterations = getattr(progress, "no_op_iterations", 0) + 1
+        else:
+            if progress is not None:
+                progress.no_op_iterations = 0
+
+        # When stuck for ≥3 no-op iterations, signal broadened search next time
+        no_op_count = getattr(progress, "no_op_iterations", 0) if progress else 0
+        if no_op_count >= 3 and progress is not None:
+            # Clear processed_asset_ids so the next iteration can revisit assets,
+            # effectively "broadening" the search scope.
+            progress.processed_asset_ids = []
+            self._log(
+                f"[LearningLoop:{domain_name}] no-op limit reached "
+                f"({no_op_count}) — resetting asset cooldown"
+            )
+
         # 10. Determine status and update DomainProgress
         status = "in_progress"
         if self.should_mark_stable(
@@ -280,6 +309,7 @@ class DomainLearningLoop:
                 "saturation_score": saturation,
                 "new_information_score": new_info,
                 "stable_streak": new_streak,
+                "_current_model": refined,   # passed for quality-gate check
             }
         ):
             status = "stable"
@@ -312,6 +342,27 @@ class DomainLearningLoop:
             "gaps_count": len(gaps),
         }
         self._store.save_model(domain_name, refined, meta=meta)
+        # Upgrade #4: write structured rebuild spec and decision support
+        self._store.save_rebuild_spec(domain_name, refined)
+        ds_data = self._store.build_decision_support(refined)
+        self._store.save_decision_support(domain_name, ds_data)
+        self._log(f"[095] decision_support generated for {domain_name}")
+
+        # Quality gate — promote stable → complete when files pass gate
+        domain_path = Path(self._store._domains_root) / domain_name
+        if status == "stable" and progress is not None:
+            failures = gate_failures(domain_path)
+            if not failures:
+                progress.status = "complete"
+                status = "complete"
+                self._log(f"[QUALITY] {domain_name} passed gate → COMPLETE")
+                self._log(f"[STATE] domain_state.json updated: {domain_name}=complete")
+            else:
+                self._log(
+                    f"[QUALITY] {domain_name} failed gate → continue  "
+                    + "; ".join(failures)
+                )
+
         self._memory.save()
         self._state.save()
 
@@ -326,7 +377,34 @@ class DomainLearningLoop:
             "gaps_found": len(gaps),
             "stable_streak": new_streak,
             "status": status,
+            "no_op_iterations": no_op_count,
         }
+
+    # ------------------------------------------------------------------
+    # Quality gate (upgrade #2)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def is_domain_good_enough(model: Dict[str, Any]) -> bool:
+        """Return True only when the domain model meets minimum quality bars.
+
+        Rules
+        -----
+        * At least 5 entities
+        * At least 2 flows
+        * At least 3 rules
+        * At least 1 integration
+
+        A domain MUST pass all four conditions before it may be marked
+        stable or complete.  This is checked inside ``run_iteration`` and
+        guards ``should_mark_stable``.
+        """
+        return (
+            len(model.get("entities") or []) >= 5
+            and len(model.get("flows") or []) >= 2
+            and len(model.get("rules") or []) >= 3
+            and len(model.get("integrations") or []) >= 1
+        )
 
     # ------------------------------------------------------------------
     # Stop conditions
@@ -352,12 +430,20 @@ class DomainLearningLoop:
 
         The consistency/saturation keys default to 1.0 so callers that only
         pass the legacy completeness/new_info/streak keys still work.
+
+        Also enforces the domain quality gate — a domain is NEVER marked
+        stable when ``is_domain_good_enough`` returns False.
         """
         completeness = float(domain_state.get("completeness_score", 0.0))
         consistency = float(domain_state.get("consistency_score", 1.0))
         saturation = float(domain_state.get("saturation_score", 1.0))
         new_info = float(domain_state.get("new_information_score", 1.0))
         streak = int(domain_state.get("stable_streak", 0))
+
+        # Quality gate: current model must meet structural minimums
+        current_model: Dict[str, Any] = domain_state.get("_current_model", {})
+        if current_model and not self.is_domain_good_enough(current_model):
+            return False
 
         return (
             completeness >= COMPLETENESS_THRESHOLD_V2

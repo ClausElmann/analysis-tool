@@ -1,1 +1,88 @@
-[]
+[
+  {
+    "id": "RULE_001",
+    "name": "PasswordLockout",
+    "type": "FACT",
+    "source": "UserController.cs line ~30 + Login() method",
+    "rule": "User is locked out if: IsLockedOut=true OR (FailedLoginCount > 5 AND (UtcNow - DateLastFailedLoginUtc).Minutes < (FailedLoginCount - 5)). Lock is time-scaled: more failures = longer lockout.",
+    "constants": "_FAILED_LOCK_COUNT = 5",
+    "reset": "Admin calls POST /api/user/resetfailedloginandunlock → FailedLoginCount=0, IsLockedOut=false"
+  },
+  {
+    "id": "RULE_002",
+    "name": "AccessTokenTTL",
+    "type": "FACT",
+    "source": "UserController.cs — private const TimeSpan",
+    "rule": "Access token expires after 15 minutes. Refresh token expires after 30 minutes (sliding on each refresh use).",
+    "technical_debt": "TD_001: TTL is hardcoded in UserController, not configurable via appsettings.json"
+  },
+  {
+    "id": "RULE_003",
+    "name": "AutoProfileSelection",
+    "type": "FACT",
+    "source": "UserController.Login() — profile auto-select block",
+    "rule": "If user.CurrentProfileId == 0 AND user has exactly 1 accessible profile → auto-set CurrentProfileId to that profile. If multiple profiles → return HTTP 300 (client must prompt user to select)."
+  },
+  {
+    "id": "RULE_004",
+    "name": "PasswordHashing",
+    "type": "FACT",
+    "source": "IAuthenticationService.GenerateSHA256Hash() + CreateSalt()",
+    "rule": "Passwords are stored as SHA256(password + salt). Salt is unique per user. Never store plaintext password.",
+    "technical_debt": "TD: SHA256 is not a password-specific KDF. Should migrate to bcrypt or Argon2id."
+  },
+  {
+    "id": "RULE_005",
+    "name": "ProfileAccessControl",
+    "type": "FACT",
+    "source": "UserService.CanUserAccessUser() + ProfileService.CanUserAccessProfile()",
+    "rule": "User can only access their own data or data of users they manage. Profile access is checked before every profile-scoped operation."
+  },
+  {
+    "id": "RULE_006",
+    "name": "SoftDelete",
+    "type": "FACT",
+    "source": "UserService.DeleteUser() + User.Deleted field",
+    "rule": "Users are never hard-deleted. User.Deleted=true + DateDeletedUtc=now. Deleted users are excluded from normal queries (inclDeleted=false by default). Can be reactivated via ReactivateUser()."
+  },
+  {
+    "id": "RULE_007",
+    "name": "LanguageCountryEquality",
+    "type": "FACT",
+    "source": "User.UpdateFromForm() — CountryId = languageId assignment",
+    "rule": "CountryId and LanguageId on User hold the same value. This is a known design quirk. Do NOT separate them during rebuild without careful migration.",
+    "valid_values": "Danish (1), Swedish, English, Finnish, Norwegian — from CountryConstants"
+  },
+  {
+    "id": "RULE_008",
+    "name": "2FADeliveryMethod",
+    "type": "FACT",
+    "rule": "If User.ResetPhone is set: SMS 2FA available. If User.AuthenticatorSecret is set: TOTP available. Email 2FA always available as fallback (uses User.Email). HTTP 428 response triggers 2FA, 300 triggers method selection."
+  },
+  {
+    "id": "RULE_009",
+    "name": "UserInitDefaults",
+    "type": "FACT",
+    "source": "User.InitForCreate()",
+    "rule": "New user inherits LanguageId + CountryId + TimeZoneId from their Customer. Default: Danish language, 'Romance Standard Time' timezone. FailedLoginCount=0, IsLockedOut=false."
+  },
+  {
+    "id": "RULE_010",
+    "name": "NudgingBlock",
+    "type": "FACT",
+    "rule": "A nudge is shown if UserNudgingBlocksDto.broadcastBlocks[NudgeType] = false. User can block permanently (neverAgain=true) or postpone (Survey: 1 hour, stored in localStorage). AuthenticatorApp nudge is specific to identity_access domain."
+  },
+  {
+    "id": "RULE_011",
+    "name": "SCIMAuthToken",
+    "type": "FACT",
+    "source": "Customer.ScimTokenUUID",
+    "rule": "SCIM 2.0 endpoints authenticated via per-customer bearer token (Customer.ScimTokenUUID). One token per customer. Token validated via IAuthenticationService.ValidateScimCustomerToken()."
+  },
+  {
+    "id": "RULE_012",
+    "name": "PasswordResetTokenExpiry",
+    "type": "FACT",
+    "rule": "PasswordResetToken (Guid) stored on User with DatePasswordResetTokenExpiresUtc. Token validated on /new-password submission. Expired or missing token → rejected."
+  }
+]

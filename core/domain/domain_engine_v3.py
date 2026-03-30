@@ -239,16 +239,68 @@ class DomainEngineV3:
         results: List[Dict[str, Any]] = []
         for domain_name in ordered:
             prog = self._state.get(domain_name)
-            if prog is not None and prog.status == "stable" and resume:
-                self._log(f"{domain_name} ← already stable, skipping")
-                results.append({"domain": domain_name, "status": "stable", "skipped": True})
+
+            # Never downgrade — skip domains already complete or stable
+            if prog is not None and prog.status in ("complete", "stable") and resume:
+                self._log(
+                    f"{domain_name} ← already {prog.status}, skipping"
+                )
+                results.append(
+                    {"domain": domain_name, "status": prog.status, "skipped": True}
+                )
                 continue
 
             result = self._run_domain_to_saturation(domain_name, all_assets)
             results.append(result)
 
-        self._log("run complete")
+        # Stop condition — emit summary and return when all are done
+        all_done = all(
+            (self._state.get(n) or object).__dict__.get("status", "") in ("complete", "stable")
+            for n in ordered
+        )
+        if all_done:
+            self._log("[STATE] All domains complete — engine stopping")
+        else:
+            pending_count = sum(
+                1 for n in ordered
+                if (self._state.get(n) or object).__dict__.get("status", "") not in ("complete", "stable")
+            )
+            self._log(f"[STATE] Run complete — {pending_count} domain(s) still pending")
+
         return results
+
+    # ------------------------------------------------------------------
+    # Protocol v1: single-iteration entrypoint
+
+    def run_one_iteration(
+        self,
+        all_assets: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Execute ONE Domain Completion Protocol v1 iteration.
+
+        Selects the active (or next highest-priority) domain, runs a single
+        learning iteration, updates scores, checks anti-loop conditions,
+        evaluates completion, and persists state.
+
+        Parameters
+        ----------
+        all_assets:
+            Full asset corpus.  When ``None``, ``self._scanner`` is used.
+
+        Returns
+        -------
+        dict
+            See ``run_protocol_iteration`` return contract for full schema.
+            Key fields: ``domain``, ``iteration``, ``status_before``,
+            ``status_after``, ``scores_before``, ``scores_after``,
+            ``changes``, ``no_op_iterations``, ``gap_stagnation``,
+            ``next_command``.
+        """
+        from core.domain.domain_completion_protocol import run_protocol_iteration
+
+        return run_protocol_iteration(self, all_assets=all_assets)
+
+    # ------------------------------------------------------------------
 
     def _run_domain_to_saturation(
         self, domain_name: str, all_assets: List[Dict[str, Any]]
@@ -281,10 +333,14 @@ class DomainEngineV3:
             last_result = result
             last_result["iterations_run"] = iteration + 1
 
-            if result["status"] == "stable":
+            final_status = result["status"]
+            if final_status in ("complete", "stable"):
                 self._log(
-                    f"{domain_name} → STABLE after {iteration + 1} iteration(s)  "
+                    f"{domain_name} → {final_status.upper()} after {iteration + 1} iteration(s)  "
                     f"completeness={result.get('completeness_score', 0):.4f}"
+                )
+                self._log(
+                    f"[STATE] domain_state.json updated: {domain_name}={final_status}"
                 )
                 break
 

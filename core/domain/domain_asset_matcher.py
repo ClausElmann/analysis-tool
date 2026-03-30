@@ -19,11 +19,135 @@ _DOMAIN_KEYWORDS: Dict[str, List[str]] = {
     "identity_access": [
         "identity", "auth", "login", "logout", "token", "jwt", "oauth",
         "permission", "role", "claim", "user", "password", "credential",
-        "otp", "mfa", "sso", "openid",
+        "otp", "mfa", "sso", "openid", "saml", "scim", "2fa", "totp",
+    ],
+    "localization": [
+        "localization", "localisation", "locale", "language", "translation",
+        "resource", "string", "culture", "i18n", "l10n", "multilingual",
+    ],
+    "customer_management": [
+        "customer", "account", "organisation", "organization", "company",
+        "tenant", "client", "crm", "customer_setting", "api_key", "ftp",
+        "saml", "logo",
     ],
     "customer_administration": [
         "customer", "account", "organisation", "organization", "company",
         "tenant", "profile", "address", "contact", "crm", "client",
+    ],
+    "profile_management": [
+        "profile", "profile_role", "profile_user", "profile_level",
+        "profileaccess", "profilerole", "userprofil",
+    ],
+    "address_management": [
+        "address", "street", "geography", "geo", "municipality",
+        "owner", "addressaccess", "dk", "no", "se", "fi", "lookup",
+    ],
+    "phone_numbers": [
+        "phone", "phonenumber", "mobilenumber", "operator", "network",
+        "provider", "import", "msisdn", "carrier", "prefix",
+    ],
+    "positive_list": [
+        "positivelist", "positive_list", "supply_number", "levelcombination",
+        "muncipality", "levelfilter", "level_combination",
+    ],
+    "lookup": [
+        "lookup", "addresslookup", "ownerlookup", "prelookup", "coded_lookup",
+        "document_lookup", "lookupresult", "lookuprequest",
+    ],
+    "templates": [
+        "template", "messagetemplate", "mergefields", "merge_field",
+        "templateversion", "sms_template", "email_template", "voice_template",
+    ],
+    "sms_group": [
+        "smsgroup", "sms_group", "groupmessage", "smsstencil", "smsbatch",
+        "smslog", "smsstatistic", "approval", "schedule",
+    ],
+    "delivery": [
+        "delivery", "gatewayapi", "infobip", "sendgrid", "eboks",
+        "voice_message", "web_message", "sms_gateway", "deliverystatus",
+    ],
+    "subscription": [
+        "subscription", "subscribe", "unsubscribe", "supplysubscription",
+        "selfenrollment", "subscriberlist", "subscriptionnotification",
+    ],
+    "enrollment": [
+        "enrollment", "enrolment", "selfenrollment", "citizenenrollment",
+        "enrollmentstep", "enrolladdress",
+    ],
+    "standard_receivers": [
+        "standardreceiver", "standard_receiver", "receivergroup",
+        "receiverkeyword", "inboundrouting", "scim",
+    ],
+    "conversation": [
+        "conversation", "conversationphonenumber", "twoway", "two_way",
+        "inbound_sms", "replysms", "conversationstatus",
+    ],
+    "benchmark": [
+        "benchmark", "performance", "throughput", "latency", "load",
+        "stress", "measure", "kpi", "sla", "infoportal", "kvhx",
+    ],
+    "webhook": [
+        "webhook", "webhookdelivery", "webhookregistration", "webhookretry",
+        "outboundwebhook", "callback",
+    ],
+    "web_messages": [
+        "webmessage", "web_message", "webmessagemodule", "profilewebmessage",
+    ],
+    "voice": [
+        "voice", "voicemessage", "virtualphone", "infobip_voice",
+        "voicedelivery", "text_to_speech",
+    ],
+    "eboks_integration": [
+        "eboks", "digitalpost", "eboksstatistic", "eboksexample",
+        "digitalletter",
+    ],
+    "email": [
+        "email", "emailmessage", "emailtemplate", "emailattachment",
+        "sendgrid", "mailsend", "smtp",
+    ],
+    "data_import": [
+        "dataimport", "data_import", "importmapping", "importrow",
+        "importconfig", "importfile",
+    ],
+    "activity_log": [
+        "activitylog", "activity_log", "audittrail", "audit_log",
+        "useraudit", "systemaudit",
+    ],
+    "logging": [
+        "log", "systemlog", "fatalerror", "requestlog", "querylog",
+        "logentry", "logtable",
+    ],
+    "monitoring": [
+        "monitor", "health", "alert", "heartbeat", "watchdog",
+        "diagnostic", "uptime", "databasecheck", "versioncheck",
+    ],
+    "job_management": [
+        "job", "backgroundjob", "jobschedule", "quartznet", "quartz",
+        "scheduler", "jobtracking", "hangfire",
+    ],
+    "statistics": [
+        "statistic", "statistics", "phonestatistic", "addressstatistic",
+        "requeststatistic", "mapstatistic",
+    ],
+    "reporting": [
+        "report", "analytic", "dashboard", "chart", "bisearch",
+        "operationalreport", "pdf_capability", "summary",
+    ],
+    "finance": [
+        "finance", "economic", "invoice", "billing", "balance",
+        "budget", "economicinvoice", "payment",
+    ],
+    "pipeline_crm": [
+        "pipeline", "crm", "prospect", "salesforce", "opportunity",
+        "deal", "sales_history",
+    ],
+    "pipeline_sales": [
+        "sales", "pipeline", "lead", "deal", "opportunity",
+        "funnel", "stage", "prospect", "conversion",
+    ],
+    "integrations": [
+        "integration", "api", "webhook", "endpoint", "connector",
+        "sync", "bridge", "adapter", "provider", "gateway", "http",
     ],
     "messaging": [
         "message", "sms", "email", "notification", "send", "deliver",
@@ -37,26 +161,6 @@ _DOMAIN_KEYWORDS: Dict[str, List[str]] = {
     "subscriptions": [
         "subscription", "subscribe", "unsubscribe", "plan", "billing",
         "invoice", "payment", "renew", "trial", "tier", "licence", "license",
-    ],
-    "reporting": [
-        "report", "statistic", "analytic", "dashboard", "chart",
-        "export", "csv", "summary", "aggregate", "metric",
-    ],
-    "monitoring": [
-        "monitor", "health", "alert", "heartbeat", "watchdog",
-        "log", "trace", "diagnostic", "uptime", "status",
-    ],
-    "benchmark": [
-        "benchmark", "performance", "throughput", "latency", "load",
-        "stress", "measure", "kpi", "sla",
-    ],
-    "pipeline_sales": [
-        "sales", "pipeline", "lead", "deal", "opportunity",
-        "funnel", "stage", "prospect", "conversion",
-    ],
-    "integrations": [
-        "integration", "api", "webhook", "endpoint", "connector",
-        "sync", "bridge", "adapter", "provider", "gateway", "http",
     ],
 }
 

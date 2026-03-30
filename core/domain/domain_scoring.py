@@ -44,6 +44,18 @@ _SECTION_TARGETS: Dict[str, int] = {
 
 _WEIGHT: float = 1.0 / len(_SECTION_TARGETS)
 
+# Fix 6: weighted scoring — integrations worth more than entities/behaviors
+# because they are the hardest to detect automatically.
+# Weights sum to exactly 1.0 so a fully-covered model always scores 1.0.
+_SECTION_WEIGHTS: Dict[str, float] = {
+    "entities":     0.12,
+    "behaviors":    0.12,
+    "flows":        0.17,
+    "events":       0.17,
+    "rules":        0.12,
+    "integrations": 0.30,
+}  # sum = 1.0
+
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -53,13 +65,15 @@ _WEIGHT: float = 1.0 / len(_SECTION_TARGETS)
 def compute_completeness(model: Dict[str, Any]) -> float:
     """Return a completeness score in [0.0, 1.0].
 
-    Each scored section contributes equally.  A section reaches its full
-    contribution when ``len(items) >= target``.
+    Fix 6: weighted scoring — integrations and flows/events are weighted
+    higher than entities/behaviors/rules because they are harder to detect
+    and more valuable for rebuild planning.
     """
     score = 0.0
-    for key, target in _SECTION_TARGETS.items():
+    for key, weight in _SECTION_WEIGHTS.items():
+        target = _SECTION_TARGETS.get(key, 1)
         count = len(model.get(key) or [])
-        score += min(count / target, 1.0) * _WEIGHT
+        score += min(count / target, 1.0) * weight
     return min(score, 1.0)
 
 

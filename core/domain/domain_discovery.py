@@ -338,14 +338,80 @@ class DomainDiscoveryEngine:
         """Identify all domain candidates from *assets*.
 
         Returns a sorted, deduplicated list of ``DomainCandidate`` objects.
-        Output is deterministic for the same input.
+        Noise domains are dropped and aliased domains are merged into their
+        canonical counterparts before returning.  Output is deterministic
+        for the same input.
         """
         if not assets:
             return []
 
         phase1 = self._discover_from_vocabulary(assets)
         phase2 = self._discover_from_paths(assets)
-        return self._merge_candidates(phase1, phase2)
+        raw = self._merge_candidates(phase1, phase2)
+
+        # Normalize: drop noise, merge aliases → canonical domains
+        from core.domain.domain_normalizer import is_noise_domain, suggest_merge
+
+        # Build a lookup so we can accumulate merged candidates
+        by_domain: dict = {c.domain: c for c in raw}
+        cleaned: list = []
+
+        for c in raw:
+            if is_noise_domain(c.domain):
+                # emit structured log if verbose is accessible via print
+                print(
+                    f"[NORMALIZE] dropped noise domain: {c.domain}"
+                )
+                continue
+
+            target = suggest_merge(c.domain)
+            if target is not None:
+                print(
+                    f"[NORMALIZE] merged domain {c.domain} \u2192 {target}"
+                )
+                if target in by_domain:
+                    existing = by_domain[target]
+                    by_domain[target] = DomainCandidate(
+                        domain=target,
+                        confidence=max(existing.confidence, c.confidence),
+                        keywords=sorted(set(existing.keywords) | set(c.keywords)),
+                        sources=sorted(set(existing.sources) | set(c.sources)),
+                        estimated_size=(
+                            existing.estimated_size
+                            if existing.confidence >= c.confidence
+                            else c.estimated_size
+                        ),
+                        reasoning=list(
+                            dict.fromkeys(
+                                existing.reasoning
+                                + [f"merged from alias '{c.domain}'"]
+                            )
+                        ),
+                    )
+                else:
+                    by_domain[target] = DomainCandidate(
+                        domain=target,
+                        confidence=c.confidence,
+                        keywords=sorted(c.keywords),
+                        sources=sorted(c.sources),
+                        estimated_size=c.estimated_size,
+                        reasoning=c.reasoning + [f"merged from alias '{c.domain}'"],
+                    )
+                continue
+
+            cleaned.append(by_domain[c.domain])
+
+        # Add any merge targets that weren't in the original `cleaned` list
+        canonical_in_cleaned = {c.domain for c in cleaned}
+        for c in raw:
+            target = suggest_merge(c.domain)
+            if target and target not in canonical_in_cleaned:
+                if target in by_domain:
+                    cleaned.append(by_domain[target])
+                    canonical_in_cleaned.add(target)
+
+        # Final stable sort: confidence desc, then domain name asc
+        return sorted(cleaned, key=lambda c: (-c.confidence, c.domain))
 
     def save(self, candidates: List[DomainCandidate], path: str) -> None:
         """Atomically write *candidates* to *path* as JSON."""

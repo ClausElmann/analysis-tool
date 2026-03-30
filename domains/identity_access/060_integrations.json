@@ -1,1 +1,131 @@
-[]
+[
+  {
+    "id": "INT_001",
+    "name": "Azure AD / Microsoft Entra ID (MSAL)",
+    "type": "identity_provider",
+    "direction": "outbound",
+    "protocol": "OIDC / OAuth2",
+    "library": "@azure/msal-angular, @azure/msal-browser",
+    "trigger": "User clicks 'Sign in with Microsoft' on BiLoginComponent",
+    "flow": [
+      "MsalBroadcastService.msalSubject$ emits LOGIN_SUCCESS or ACQUIRE_TOKEN_SUCCESS",
+      "idToken extracted from AuthenticationResult.account",
+      "POST /api/user/loginad { token: idToken, smsGroupId? } → TokenDto",
+      "On 300: user has multiple profiles — slide to Choose Profile view",
+      "On 428: 2FA required (SMS or authenticatorApp) — slide to pin code view",
+      "On success: eventsManager.loginEvent.next(newUser)"
+    ],
+    "persistence": "LocalStorageItemNames.adLogin = '1' stored to allow silent SSO on next load",
+    "source_refs": [
+      "bi-login.component.ts:doAdLogin()",
+      "UserController.cs:LoginAD (inferred from loginAD() call chain)"
+    ]
+  },
+  {
+    "id": "INT_002",
+    "name": "SAML2 SSO (Customer-Level IdP)",
+    "type": "identity_provider",
+    "direction": "outbound",
+    "protocol": "SAML 2.0",
+    "config_entity": "CustomerSamlSettings",
+    "config_fields": {
+      "EntityId": "IdP entity identifier URI",
+      "MetadataUrl": "URL to IdP SAML metadata XML",
+      "EmailClaim": "Claim attribute name for user email in assertion"
+    },
+    "email_templates_triggered": [
+      "EmailTemplateName.NewSAMLUser — first-time SAML user provisioned",
+      "EmailTemplateName.ResetSAMLUser — SAML user password/account reset"
+    ],
+    "flow": [
+      "Customer configures SAML via CustomerSamlSettings (EntityId + MetadataUrl)",
+      "User logs in via IdP-initiated or SP-initiated redirect",
+      "Service validates assertion, extracts email from EmailClaim",
+      "User record created/matched; JWT issued same as standard login"
+    ],
+    "scope": "Per-customer — each Customer can have its own SAML IdP",
+    "source_refs": [
+      "ServiceAlert.Core/Domain/Customers/Entities/SamlSettings/CustomerSamlSettings.cs",
+      "ServiceAlert.Core/Domain/Mails/EmailTemplateName.cs (ResetSAMLUser, NewSAMLUser)"
+    ]
+  },
+  {
+    "id": "INT_003",
+    "name": "SCIM 2.0 User/Group Provisioning",
+    "type": "provisioning",
+    "direction": "inbound",
+    "protocol": "SCIM 2.0 (RFC 7644)",
+    "auth_method": "Bearer token (Customer.ScimTokenUUID)",
+    "endpoints": [
+      "ScimUsersController — CRUD on users via SCIM /Users",
+      "ScimGroupsController — CRUD on groups via SCIM /Groups"
+    ],
+    "entity_mapping": {
+      "StandardReceiver.ScimExternalId": "External IdP user ID",
+      "StandardReceiverGroup.ScimExternalId": "External IdP group ID",
+      "Customer.ScimTokenUUID": "Per-customer bearer token for SCIM access"
+    },
+    "flow": [
+      "External IdP sends SCIM requests to /scim/users or /scim/groups",
+      "Bearer token validated against Customer.ScimTokenUUID",
+      "Users/groups created, updated, or deprovisioned in ServiceAlert"
+    ],
+    "source_refs": [
+      "ServiceAlert.Core/Domain/Customers/Customer.cs (ScimTokenUUID)",
+      "ServiceAlert.Core/Domain/StandardReceiver/StandardReceiver.cs (ScimExternalId)",
+      "ServiceAlert.Core/Domain/StandardReceiver/StandardReceiverGroup.cs (ScimExternalId)"
+    ]
+  },
+  {
+    "id": "INT_004",
+    "name": "Email Service (Password Reset + SAML Provisioning)",
+    "type": "notification",
+    "direction": "outbound",
+    "protocol": "SMTP (abstracted via IEmailService)",
+    "triggers": [
+      "User requests password reset — email contains link with PasswordResetToken (Guid) + expiry",
+      "New SAML user provisioned — EmailTemplateName.NewSAMLUser",
+      "SAML user reset — EmailTemplateName.ResetSAMLUser",
+      "2FA pin code via email — UserService.send2FaCodeByEmail()"
+    ],
+    "token_storage": "User.PasswordResetToken (Guid, nullable) + User.DatePasswordResetTokenExpiresUtc",
+    "source_refs": [
+      "UserService.send2FaCodeByEmail() → GET /api/user/sendpincodebyemail",
+      "ServiceAlert.Core/Domain/Mails/EmailTemplateName.cs"
+    ]
+  },
+  {
+    "id": "INT_005",
+    "name": "TOTP Authenticator App (RFC 6238)",
+    "type": "mfa",
+    "direction": "internal",
+    "protocol": "TOTP RFC 6238",
+    "library": "TwoFactorAuthNet (inferred from behavior; QR code generation + 6-digit code validation)",
+    "storage": "User.AuthenticatorSecret (base32 seed, stored on User entity)",
+    "flow": [
+      "GET /api/user/getauthenticatorsecretqr → returns base64 QR code image",
+      "User scans QR in authenticator app (Google Authenticator, Authy, etc.)",
+      "POST /api/user/confirmauthenticatorapp { code } → activates 2FA on account",
+      "On subsequent logins: if user has authenticatorApp flag, slide to code=5 in BiLoginComponent",
+      "POST /api/user/twofactor { methodUsed: 'authenticatorApp', authenticatorCode } → TokenDto"
+    ],
+    "source_refs": [
+      "UserService.getAuthenticatorSecretQR(), confirmAuthenticatorApp()",
+      "bi-login.component.ts:slideContainerValue = 5 (authenticator flow)",
+      "User.cs:AuthenticatorSecret"
+    ]
+  },
+  {
+    "id": "INT_006",
+    "name": "SMS Gateway (2FA PIN via SMS)",
+    "type": "notification",
+    "direction": "outbound",
+    "protocol": "HTTP to SMS gateway (abstracted via ISmsService)",
+    "trigger": "User requests 2FA code via SMS on login or UserService.send2FaCodeBySms()",
+    "api_endpoint": "GET /api/user/sendpincodebysms?email={email}",
+    "source_refs": [
+      "UserService.send2FaCodeBySms()",
+      "bi-login.component.ts:sendPinCodeByEmail/sendPinCodeBySms logic"
+    ]
+  }
+]

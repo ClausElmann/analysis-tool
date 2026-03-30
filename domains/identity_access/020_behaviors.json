@@ -1,1 +1,157 @@
-[]
+[
+  {
+    "id": "BEH_001",
+    "name": "EmailPasswordLogin",
+    "source": "UserController.Login() + UserService.GetApiUserByEmail()",
+    "type": "FACT",
+    "description": "Authenticates user with email + password. Returns JWT access token + refresh token, or HTTP error codes for 2FA/profile-selection flows.",
+    "steps": [
+      "1. Lookup user by email via UserService.GetApiUserByEmail()",
+      "2. Check lockout: if IsLockedOut=true OR (FailedLoginCount > 5 AND time-based delay not expired) → return HTTP 403",
+      "3. Hash submitted password with PasswordSalt using SHA256 → compare to stored Password",
+      "4. On match: reset FailedLoginCount=0, IsLockedOut=false, DateLastLoginUtc=now",
+      "5. If CurrentProfileId==0 AND user has exactly 1 profile → auto-set CurrentProfileId",
+      "6. If CurrentProfileId==0 AND user has multiple profiles → return HTTP 300 (client must show profile selector)",
+      "7. Create/extend RefreshToken (30 min), generate AccessToken JWT (15 min)",
+      "8. Return TokenDto",
+      "9. On mismatch: increment FailedLoginCount, update DateLastFailedLoginUtc → return HTTP 401"
+    ],
+    "lockout_rule": "FACT: FailedLoginCount > 5 AND (UtcNow - DateLastFailedLoginUtc).Minutes < (FailedLoginCount - 5) → locked. Auto-lockout is time-scaled (harder to unlock as count grows)."
+  },
+  {
+    "id": "BEH_002",
+    "name": "RefreshAccessToken",
+    "source": "UserController.RefreshAccessToken()",
+    "type": "FACT",
+    "description": "Exchanges a valid refresh token for a new access token. Extends refresh token expiry on use.",
+    "steps": [
+      "1. GET /api/user/refreshaccesstoken?refreshToken=<token>",
+      "2. Lookup UserRefreshToken by token string (only non-expired)",
+      "3. If not found or expired → HTTP 401",
+      "4. Load User by token.UserId",
+      "5. Generate new AccessToken JWT (15 min)",
+      "6. ExtendRefreshToken (sliding window, 30 min from now)",
+      "7. Return new TokenDto (same RefreshTokenModel, new AccessToken)"
+    ]
+  },
+  {
+    "id": "BEH_003",
+    "name": "Logout",
+    "source": "UserController.Logout() → IAuthenticationService.Logout(userId)",
+    "type": "FACT",
+    "description": "Invalidates user session server-side. GAP_001 was wrong — logout IS implemented.",
+    "steps": [
+      "1. POST /api/user/logout (authorized)",
+      "2. Check _workContext.IsLoggedIn",
+      "3. Call _authenticationService.Logout(_workContext.CurrentUser.Id)",
+      "4. Return HTTP 200"
+    ],
+    "note": "Logout invalidates refresh token server-side. Access token remains valid until 15-min TTL expires (by design — short-lived JWT)."
+  },
+  {
+    "id": "BEH_004",
+    "name": "AzureADLogin (Entra ID / MSAL)",
+    "source": "bi-login.component.ts:doAdLogin() + UserController.LoginAD()",
+    "type": "FACT",
+    "description": "Azure AD / Entra ID login via MSAL. Extracts idToken from MSAL result and exchanges for ServiceAlert JWT.",
+    "steps": [
+      "1. MsalBroadcastService emits LOGIN_SUCCESS or ACQUIRE_TOKEN_SUCCESS",
+      "2. Extract idToken from AuthenticationResult",
+      "3. POST /api/user/loginad { token: idToken, smsGroupId? }",
+      "4. On success: store adLogin='1' in localStorage for silent SSO on next load",
+      "5. On HTTP 300: show profile selector (slideContainerValue=2)",
+      "6. On HTTP 428 + authenticatorApp=true: show TOTP input (slideContainerValue=5)",
+      "7. On HTTP 428 + authenticatorApp=false: send pin code by email",
+      "8. On subsequent loads: attempt ssoSilent() first; if fails, remove adLogin flag"
+    ]
+  },
+  {
+    "id": "BEH_005",
+    "name": "TwoFactorAuthentication",
+    "source": "UserService.send2FaCodeByEmail/Sms() + UserController (2FA endpoints)",
+    "type": "FACT",
+    "description": "2FA flow with 3 delivery methods: SMS pin, email pin, or TOTP authenticator app.",
+    "http_status_trigger": "HTTP 428 from login endpoint triggers 2FA",
+    "methods": [
+      "sms: pin sent to User.ResetPhone + User.PhoneCode",
+      "email: pin sent to User.Email via UserService.send2FaCodeByEmail()",
+      "authenticatorApp: user reads TOTP from app (no dispatch needed). Validated via ValidateAuthenticatorCode(code, User.AuthenticatorSecret, DateTime)"
+    ],
+    "pin_storage": "In-memory or short-lived (NOT in DB for SMS/email pins). Only AuthenticatorSecret stored on User.",
+    "slide_states": {
+      "0": "Email + Password form",
+      "1": "Enter SMS/email PIN",
+      "2": "Choose delivery method (SMS vs Email)",
+      "3": "Forgot password — enter email",
+      "4": "Forgot password — confirmation",
+      "5": "Enter TOTP authenticator app code"
+    }
+  },
+  {
+    "id": "BEH_006",
+    "name": "PasswordReset",
+    "source": "UserController + UserService",
+    "type": "FACT",
+    "description": "User requests password reset via email. Token (Guid) stored on User entity with expiry.",
+    "steps": [
+      "1. User submits reset email in slide state 3",
+      "2. POST /api/user/passwordresetrequest → generates Guid token, sets User.PasswordResetToken + User.DatePasswordResetTokenExpiresUtc",
+      "3. Email sent with link containing token",
+      "4. User clicks link → GET /new-password?token=<guid>",
+      "5. On submit: POST /api/user/newpassword → validates token + expiry, calls SetNewPassword()",
+      "6. SetNewPassword(): validates password rules via IsPasswordValid(), generates new salt + hash"
+    ],
+    "security_note": "PasswordResetToken is Guid — predictable length. TD: use 256-bit CryptoRandom instead."
+  },
+  {
+    "id": "BEH_007",
+    "name": "UserNudging",
+    "source": "UserNudgingService.ts + backend nudging endpoints",
+    "type": "FACT",
+    "description": "System prompts users with contextual suggestions. Users can dismiss permanently (neverAgain=true) or postpone.",
+    "nudge_types": [
+      "AuthenticatorApp — prompts user to set up 2FA authenticator app (identity_access domain)",
+      "MessageSendToOwner — prompts to send message to property owners (messaging domain)",
+      "Eboks — prompts to enable e-Boks digital post (messaging domain)",
+      "Voice — prompts to enable voice calls (messaging domain)",
+      "Survey — customer satisfaction survey prompt (cross-domain)"
+    ],
+    "api": [
+      "GET nudging/blocks?smsGroupId → UserNudgingBlocksDto (map of NudgeType → bool blocked)",
+      "PUT nudging/response → SaveUserNudgingResponseCommand { nudgeType, neverAgain, response, smsGroupId }",
+      "PUT nudging/survey → customer survey response",
+      "GET nudging/report → download nudging report"
+    ],
+    "local_storage": "surveyNudgePostponeDateTimeUtc stored in localStorage for 1-hour postpone"
+  },
+  {
+    "id": "BEH_008",
+    "name": "Impersonation",
+    "source": "IAuthenticationService.GenerateAccessToken(..., impersonateFromUserId)",
+    "type": "FACT",
+    "description": "Admin can impersonate another user. Original user identity preserved in JWT claim.",
+    "jwt_claim": "impersonateFromUserId claim added to access token when impersonating",
+    "entity_field": "User.ImpersonatingUserId (int?, nullable) — also stored on User entity",
+    "note": "INFERRED: Super admin feature. Original user session must be restored on exit."
+  },
+  {
+    "id": "BEH_009",
+    "name": "SCIMProvisioning",
+    "source": "ScimUsersController + ScimGroupsController",
+    "type": "FACT",
+    "description": "SCIM 2.0 inbound user/group provisioning from external IdPs (e.g., Azure AD, Okta).",
+    "auth": "Bearer token validated against Customer.ScimTokenUUID",
+    "entity_mapping": {
+      "SCIM User → StandardReceiver.ScimExternalId": "External IdP user ID",
+      "SCIM Group → StandardReceiverGroup.ScimExternalId": "External IdP group ID"
+    }
+  },
+  {
+    "id": "BEH_010",
+    "name": "GetCurrentUser",
+    "source": "UserController.Get() + GetUserInformation()",
+    "type": "FACT",
+    "description": "Returns current user data from WorkContext. Two endpoints: full UserDto (GET /user) and lightweight UserInfoDto (GET /user/info).",
+    "access_control": "CanUserAccessUser(currentUserId, requestedId) — users can only access themselves or users they manage"
+  }
+]

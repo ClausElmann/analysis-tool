@@ -1,0 +1,33 @@
+{
+  "GAP_001": {
+    "status": "CLOSED",
+    "gap_was": "No explicit logout / token revocation endpoint documented",
+    "finding": "POST /api/user/logout IS implemented in UserController.Logout(). Calls _authenticationService.Logout(userId) which invalidates refresh token server-side. Access token remains valid until 15-min TTL (by design).",
+    "copilot_enriched": true
+  },
+  "GAP_002": {
+    "status": "CLOSED",
+    "gap_was": "Password reset token storage mechanism not clear in schema",
+    "finding": "PasswordResetToken (Guid?) and DatePasswordResetTokenExpiresUtc (DateTime?) stored directly on the User entity. No separate table.",
+    "remaining_concern": "Guid is predictable length — TD: use 256-bit CryptoRandom token instead for stronger reset URLs"
+  },
+  "GAP_003": {
+    "status": "CLOSED",
+    "gap_was": "TOTP secret key storage location not visible in schema",
+    "finding": "AuthenticatorSecret is a string property on User entity (User.cs). Stored as plain string — no encryption at rest.",
+    "remaining_concern": "TD_005: Should encrypt with IDataProtectionProvider before persisting — rebuild must address this."
+  },
+  "GAP_004": {
+    "status": "INFERRED_LOW_CONFIDENCE",
+    "gap": "MFA fallback if user loses 2FA device",
+    "finding": "No explicit recovery code mechanism found in source code. NudgeType.AuthenticatorApp exists (prompts setup). ResetPhone/PhoneCode on User allows SMS fallback if authenticatorApp was configured separately.",
+    "inferred": "Admin can manually reset 2FA by clearing AuthenticatorSecret on User entity (via admin panel). No code-level recovery flow found.",
+    "rebuild_recommendation": "Implement explicit recovery codes (array of one-time-use codes) stored hashed on User entity for production rebuild."
+  },
+  "GAP_005": {
+    "status": "CLOSED",
+    "gap_was": "UserNudging cross-domain usage not mapped",
+    "finding": "All 5 NudgeType values mapped from nudgeType.ts: MessageSendToOwner (messaging), Eboks (messaging), Voice (messaging), Survey (cross-domain), AuthenticatorApp (identity_access). See BEH_007 for full API and behavior.",
+    "copilot_enriched": true
+  }
+}

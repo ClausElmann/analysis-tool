@@ -65,6 +65,42 @@ _SYNONYMS: Dict[str, List[str]] = {
     "monitor":       ["alert", "health", "log", "trace", "uptime"],
 }
 
+# ---------------------------------------------------------------------------
+# Gap type → preferred source asset-type hints (Protocol v1 upgrade #1)
+# ---------------------------------------------------------------------------
+
+GAP_TO_SOURCE: Dict[str, List[str]] = {
+    "MISSING_RULE":        ["wiki", "work_items", "csharp"],
+    "MISSING_FLOW":        ["angular", "csharp"],
+    "PARTIAL_ENTITY":      ["sql", "csharp"],
+    "UNLINKED_EVENT":      ["events", "webhooks", "batch"],
+    "ORPHAN_BATCH":        ["batch", "csharp"],
+    "UI_WITHOUT_BACKEND":  ["csharp"],
+    "BACKEND_WITHOUT_UI":  ["angular"],
+}
+
+# Normalised lookup: lowercase keys so callers need not worry about casing
+_GAP_TO_SOURCE_LOWER: Dict[str, List[str]] = {
+    k.lower(): v for k, v in GAP_TO_SOURCE.items()
+}
+
+# Also map existing snake_case gap types used internally
+_GAP_TO_SOURCE_LOWER.update({
+    "missing_rule":        ["wiki_section", "work_items_batch", "code_file"],
+    "missing_flow":        ["angular", "code_file"],
+    "partial_entity":      ["sql_table", "sql_procedure", "code_file"],
+    "unlinked_event":      ["event", "webhook", "background"],
+    "orphan_batch":        ["batch", "code_file"],
+    "ui_without_backend":  ["code_file"],
+    "backend_without_ui":  ["angular"],
+})
+
+
+def _preferred_sources_for_gap(gap_type: str) -> List[str]:
+    """Return preferred asset-type hints for *gap_type*, or [] if unknown."""
+    return list(_GAP_TO_SOURCE_LOWER.get(gap_type.lower(), []))
+
+
 # Gap type → default intent template (fallback when no suggested_terms)
 _GAP_TYPE_INTENTS: Dict[str, str] = {
     "missing_entity":         "entity class interface model definitions",
@@ -153,6 +189,7 @@ class DomainAutonomousSearch:
         assets: List[Dict[str, Any]],
         gap_types: Optional[List[str]] = None,
         max_results: int = 20,
+        preferred_sources: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """Return assets ranked by how well they match *intent*.
 
@@ -170,6 +207,10 @@ class DomainAutonomousSearch:
             ``_score_asset``.
         max_results:
             Maximum number of results to return.
+        preferred_sources:
+            Optional list of asset type / path hints from ``GAP_TO_SOURCE``.
+            Assets whose type or path contains any of these strings receive a
+            small bonus, making them surface before generic matches.
 
         Returns
         -------
@@ -181,6 +222,7 @@ class DomainAutonomousSearch:
             return []
 
         terms = self._intent_to_terms(intent)
+        preferred = [p.lower() for p in (preferred_sources or [])]
         scored: List[tuple] = []
 
         for asset in assets:
@@ -191,6 +233,12 @@ class DomainAutonomousSearch:
                 processed_ids=set(),   # treat all as unprocessed for ranking
                 gap_types=gap_types,
             )
+            # Apply preferred-source bonus from GAP_TO_SOURCE hints
+            if preferred:
+                asset_type = (asset.get("type") or "").lower()
+                asset_path = (asset.get("path") or asset.get("id") or "").lower()
+                if any(p in asset_type or p in asset_path for p in preferred):
+                    score += 0.25
             scored.append((score, asset.get("id", ""), asset))
 
         scored.sort(key=lambda x: (-x[0], x[1]))
@@ -247,8 +295,12 @@ class DomainAutonomousSearch:
         best_score: Dict[str, float] = {}
 
         for gap in gaps[:max_gaps]:
-            gap_types = [gap.get("type", "")] if gap.get("type") else []
+            gap_type  = gap.get("type", "")
+            gap_types = [gap_type] if gap_type else []
             intents   = self.gap_to_intents(gap, domain_name)
+
+            # Use GAP_TO_SOURCE to bias asset selection toward preferred types
+            preferred_sources = _preferred_sources_for_gap(gap_type)
 
             for intent in intents:
                 results = self.search(
@@ -257,6 +309,7 @@ class DomainAutonomousSearch:
                     assets=assets,
                     gap_types=gap_types,
                     max_results=max_per_gap,
+                    preferred_sources=preferred_sources,
                 )
                 for r in results:
                     aid   = r["asset_id"]

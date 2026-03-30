@@ -1,1 +1,108 @@
-[]
+[
+  {
+    "id": "FLOW_001",
+    "name": "Standard Email/Password Login",
+    "type": "FACT",
+    "trigger": "User submits email + password on LoginPage",
+    "happy_path": [
+      "Angular BiLoginComponent.login() called",
+      "POST /api/user/login { email, password, smsGroupId? }",
+      "UserController.Login() → SHA256 verify → TokenDto returned",
+      "TokenAuthenticationService stores AccessToken + RefreshToken",
+      "GlobalStateAndEventsService.loginEvent.next(newUser)",
+      "Router navigates to routeAfterLogin OR dashboard"
+    ],
+    "branch_300": "HTTP 300 → slideContainerValue=2 (choose 2FA delivery method)",
+    "branch_428_email_sms": "HTTP 428 → sendPinCodeByEmail/Sms() → slideContainerValue=1 (enter pin)",
+    "branch_428_totp": "HTTP 428 + authenticatorApp=true → slideContainerValue=5 (enter TOTP)",
+    "branch_error": "HTTP 401/403 → handleFailedLogin() shows error message"
+  },
+  {
+    "id": "FLOW_002",
+    "name": "Azure AD / Entra ID Login (MSAL)",
+    "type": "FACT",
+    "trigger": "User clicks 'Sign in with Microsoft' button OR silent SSO on load (adLogin flag in localStorage)",
+    "happy_path": [
+      "MSAL handles redirect/popup and emits LOGIN_SUCCESS on MsalBroadcastService",
+      "bi-login.component.ts doAdLogin(idToken) called",
+      "POST /api/user/loginad { token: idToken, smsGroupId? }",
+      "Server validates Entra ID token, maps to ServiceAlert user",
+      "localStorage.adLogin='1' → enables silent SSO next load",
+      "Same token issuance as standard login"
+    ],
+    "silent_sso_flow": [
+      "On page load: if localStorage has adLogin flag",
+      "MsalService.ssoSilent({ scopes: [] })",
+      "On success: doAdLogin(result.idToken)",
+      "On failure: remove adLogin flag, show login form"
+    ]
+  },
+  {
+    "id": "FLOW_003",
+    "name": "2FA PIN Verification Flow",
+    "type": "FACT",
+    "trigger": "Login returns HTTP 428",
+    "steps": [
+      "Pin sent via SMS (SavePinCode to PhoneNumber+PhoneCode) or email",
+      "User enters 6-digit pin in twoFAFormControl",
+      "POST /api/user/twofactor { pin, method }",
+      "ValidatePinCode() checks pin against saved code (in-memory/cache)",
+      "On success: full TokenDto returned, same as standard login",
+      "On fail: error shown, user can retry or change method"
+    ]
+  },
+  {
+    "id": "FLOW_004",
+    "name": "Token Refresh Flow",
+    "type": "FACT",
+    "trigger": "AccessToken nearing expiry (15 min TTL) — detected by TokenAuthenticationService interceptor",
+    "steps": [
+      "Angular HTTP interceptor detects token expiry",
+      "GET /api/user/refreshaccesstoken?refreshToken=<token>",
+      "UserController.RefreshAccessToken() validates DB token",
+      "New AccessToken generated, RefreshToken extended (sliding 30 min)",
+      "Original request retried with new token"
+    ],
+    "concurrency_risk": "Multiple parallel requests near expiry can all trigger refresh simultaneously. Mitigation: SemaphoreSlim(1,1) lock in DelegatingHandler (recommended but verify implementation)."
+  },
+  {
+    "id": "FLOW_005",
+    "name": "Password Reset Flow",
+    "type": "FACT",
+    "trigger": "User clicks 'Forgot password' on login page (slideContainerValue → 3)",
+    "steps": [
+      "User enters email in resetPassEmailControl",
+      "POST /api/user/passwordresetrequest { email }",
+      "Server: generate Guid token, store on User.PasswordResetToken + User.DatePasswordResetTokenExpiresUtc",
+      "Email sent with /new-password?token=<guid> link",
+      "slideContainerValue → 4 (confirmation shown)",
+      "User clicks link, navigates to /new-password",
+      "User enters new password",
+      "POST /api/user/newpassword { token, newPassword }",
+      "Server: validate token + expiry, SetNewPassword() called",
+      "New salt + SHA256 hash stored, PasswordResetToken cleared"
+    ]
+  },
+  {
+    "id": "FLOW_006",
+    "name": "SAML2 SSO Login Flow",
+    "type": "FACT",
+    "trigger": "Customer has CustomerSamlSettings configured; user logs in via IdP redirect",
+    "steps": [
+      "IdP-initiated or SP-initiated SAML assertion received",
+      "Server validates SAML assertion against CustomerSamlSettings.MetadataUrl",
+      "Email extracted from CustomerSamlSettings.EmailClaim attribute",
+      "User matched or created (new user → EmailTemplateName.NewSAMLUser email sent)",
+      "Same JWT token issuance as standard login"
+    ],
+    "scope": "Per-customer configuration"
+  },
+  {
+    "id": "FLOW_007",
+    "name": "ManagedIdentity Service-to-Service Auth",
+    "source": "ManagedIdentityAuthenticationHandler.cs",
+    "type": "FACT",
+    "trigger": "Inbound API call from Azure-hosted service using Managed Identity token",
+    "description": "Custom ASP.NET Core AuthenticationHandler. Validates Azure Managed Identity Bearer tokens for internal service-to-service calls. NOT for end-user login."
+  }
+]

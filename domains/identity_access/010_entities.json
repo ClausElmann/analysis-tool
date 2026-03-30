@@ -1,9 +1,117 @@
 [
-  "LoginEmailPasswordDto",
-  "ProfileAccessModel",
-  "ProfileRoleAccessModel",
-  "TokenDto",
-  "UpdateUserCommand",
-  "UserDto",
-  "UserInfoDto"
+  {
+    "name": "User",
+    "source": "ServiceAlert.Core/Domain/Users/User.cs",
+    "type": "FACT",
+    "fields": [
+      "Id (int, PK)",
+      "Email (string)",
+      "Name (string)",
+      "Password (string, SHA256-hashed)",
+      "PasswordSalt (string)",
+      "PasswordResetToken (Guid?, nullable)",
+      "DatePasswordResetTokenExpiresUtc (DateTime?, nullable)",
+      "FailedLoginCount (short)",
+      "IsLockedOut (bool)",
+      "ResetPhone (long?, nullable — phone for 2FA SMS)",
+      "PhoneCode (int?, nullable — country code for 2FA SMS)",
+      "DateLastFailedLoginUtc (DateTime?, nullable)",
+      "DateLastLoginUtc (DateTime?, nullable)",
+      "DateDeletedUtc (DateTime?, nullable)",
+      "DateCreatedUtc (DateTime)",
+      "DateLastUpdatedUtc (DateTime)",
+      "Deleted (bool — soft delete)",
+      "TestMode (bool)",
+      "ReceiveNewsletter (bool)",
+      "TimeZoneId (string)",
+      "CountryId (int — same value as LanguageId, shared field)",
+      "LanguageId (int)",
+      "CurrentProfileId (int, FK → Profile)",
+      "CurrentCustomerId (int, FK → Customer)",
+      "ImpersonatingUserId (int?, nullable — set when another user is impersonating this user)",
+      "AuthenticatorSecret (string — TOTP secret, stored unencrypted — TD_005)"
+    ],
+    "note": "CountryId and LanguageId hold the same value (design quirk, do not change during migration)"
+  },
+  {
+    "name": "UserRefreshToken",
+    "source": "ServiceAlert.Core/Domain/Users/UserRefreshToken.cs",
+    "type": "FACT",
+    "fields": [
+      "Id (int, PK)",
+      "UserId (int, FK → User)",
+      "Token (string)",
+      "DateCreatedUtc (DateTime)",
+      "DateExpiresUtc (DateTime)"
+    ],
+    "ttl": "30 minutes (hardcoded TimeSpan in UserController)",
+    "note": "Extended on each use via ExtendRefreshToken(). Stored in DB table."
+  },
+  {
+    "name": "LoginEmailPasswordDto",
+    "source": "ServiceAlert.Api/Models/User/LoginEmailPasswordDto.cs",
+    "type": "FACT",
+    "fields": ["Email (string)", "Password (string)"]
+  },
+  {
+    "name": "TokenDto",
+    "source": "ServiceAlert.Api/Models/User/TokenDto.cs",
+    "type": "FACT",
+    "fields": [
+      "AccessToken (string — JWT, 15 min)",
+      "RefreshTokenModel (UserRefreshToken — 30 min)",
+      "RequestedAt (DateTime)",
+      "ExpiresAt (DateTime)"
+    ]
+  },
+  {
+    "name": "UpdateUserCommand",
+    "source": "ServiceAlert.Api/Models/User/UpdateUserCommand.cs",
+    "type": "FACT",
+    "fields": ["Id (int)", "Name (string)", "Email (string)", "PhoneNumber (long?)", "TimeZoneId (string)", "LanguageId (int)", "ReceiveNewsletter (bool)", "TestMode (bool)"]
+  },
+  {
+    "name": "UserDto",
+    "source": "ServiceAlert.Api/Models/User/UserDto.cs",
+    "type": "FACT",
+    "note": "Read model returned from GET /api/user. Subset of User entity fields."
+  },
+  {
+    "name": "UserInfoDto",
+    "source": "ServiceAlert.Api/Models/User/UserInfoDto.cs",
+    "type": "FACT",
+    "fields": ["Name (string)", "MobileNumber (string)", "Email (string)", "LanguageId (int)"]
+  },
+  {
+    "name": "CustomerSamlSettings",
+    "source": "ServiceAlert.Core/Domain/Customers/Entities/SamlSettings/CustomerSamlSettings.cs",
+    "type": "FACT",
+    "fields": ["EntityId (string — IdP entity URI)", "MetadataUrl (string — IdP SAML metadata URL)", "EmailClaim (string — attribute name for email in SAML assertion)"],
+    "scope": "Per-customer — each customer can configure its own SAML IdP"
+  },
+  {
+    "name": "NudgeType (enum)",
+    "source": "ServiceAlert.Web/ClientApp/app-globals/openapi-models/model/nudgeType.ts",
+    "type": "FACT",
+    "values": ["MessageSendToOwner", "Eboks", "Voice", "Survey", "AuthenticatorApp"],
+    "note": "AuthenticatorApp nudge: prompts user to set up 2FA authenticator app. Other nudges are cross-domain (messaging/eboks/voice)."
+  },
+  {
+    "name": "UserNudgingBlocksDto",
+    "source": "ServiceAlert.Web/ClientApp/app-globals/openapi-models/model/userNudgingBlocksDto.ts",
+    "type": "FACT",
+    "note": "Map of NudgeType → bool (true = user has blocked nudge, false = nudge still active). Returned by GET nudging endpoint."
+  },
+  {
+    "name": "ProfileAccessModel / ProfileRoleAccessModel / UserRoleAccessModel",
+    "source": "ServiceAlert.Contracts/Models/Profiles/ + Users/",
+    "type": "FACT",
+    "note": "Access control read models. Used across all domains to check profile/user/role combinations."
+  },
+  {
+    "name": "ManagedIdentityAuthenticationHandler",
+    "source": "ServiceAlert.Services/Authentication/ManagedIdentityAuthenticationHandler.cs",
+    "type": "FACT",
+    "note": "Custom ASP.NET Core AuthenticationHandler for Azure Managed Identity. Used for service-to-service calls (NOT user login). Validates Azure MSI tokens on inbound service requests."
+  }
 ]

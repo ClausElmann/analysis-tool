@@ -1,3 +1,163 @@
 [
-  "UpdateUserCommand"
+  {
+    "event": "UserLoggedIn",
+    "trigger": "POST /api/user/login with valid credentials",
+    "payload": ["userId", "email", "customerId", "profileId", "accessToken", "refreshToken", "timestampUtc"],
+    "side_effects": ["User.DateLastLoginUtc updated", "User.FailedLoginCount reset to 0", "User.IsLockedOut = false", "UserRefreshToken record created/updated"],
+    "source": "UserController.Login()"
+  },
+  {
+    "event": "LoginFailed",
+    "trigger": "POST /api/user/login with wrong password",
+    "payload": ["email", "failedLoginCount", "timestampUtc"],
+    "side_effects": ["User.FailedLoginCount incremented", "User.DateLastFailedLoginUtc updated"],
+    "note": "After 5 failures the same user triggers UserLockedOut",
+    "source": "UserController.Login() — failure branch"
+  },
+  {
+    "event": "UserLockedOut",
+    "trigger": "FailedLoginCount > _FAILED_LOCK_COUNT (5) — next login attempt with delay check",
+    "payload": ["userId", "email", "failedLoginCount", "timestampUtc"],
+    "side_effects": ["User.IsLockedOut = true", "HTTP 403 ForbidWithMessage returned to client"],
+    "source": "UserController.Login() — lockout branch"
+  },
+  {
+    "event": "UserUnlocked",
+    "trigger": "POST /api/user/resetfailedloginandunlock by admin",
+    "payload": ["userId", "adminUserId", "timestampUtc"],
+    "side_effects": ["User.FailedLoginCount = 0", "User.IsLockedOut = false"],
+    "source": "UserController.ResetFailedLoginAndUnlock() (inferred from UserService.resetFailedLoginAndUnlock)"
+  },
+  {
+    "event": "AdLoginSucceeded",
+    "trigger": "MSAL ACQUIRE_TOKEN_SUCCESS or LOGIN_SUCCESS event, followed by POST /api/user/loginad",
+    "payload": ["userId", "email", "entraIdToken", "smsGroupId?", "timestampUtc"],
+    "side_effects": ["LocalStorage: adLogin = '1' set for silent SSO", "Same token issuance as standard login"],
+    "source": "bi-login.component.ts:doAdLogin()"
+  },
+  {
+    "event": "TwoFactorCodeRequested",
+    "trigger": "Login returns HTTP 428 (2FA required) or user explicitly requests",
+    "payload": ["email", "method (sms|email|authenticatorApp)", "timestampUtc"],
+    "side_effects": ["PIN sent to user's mobile or email; no DB write for the PIN itself (in-memory or short-lived)"],
+    "note": "authenticatorApp method needs no code dispatch — user reads from app",
+    "source": "UserService.send2FaCodeByEmail(), send2FaCodeBySms()"
+  },
+  {
+    "event": "TwoFactorVerified",
+    "trigger": "POST /api/user/twofactor with valid pin or authenticator code",
+    "payload": ["userId", "methodUsed", "smsGroupId?", "timestampUtc"],
+    "side_effects": ["Full access token + refresh token issued — same as standard login"],
+    "source": "UserService.logInTwoFactor() → authService.twoFactorAuthentication()"
+  },
+  {
+    "event": "ProfileSelected",
+    "trigger": "Login returns HTTP 300 (must select profile) and user picks a profile",
+    "payload": ["userId", "profileId", "customerId", "timestampUtc"],
+    "side_effects": ["User.CurrentProfileId updated", "New access token issued with profileId claim"],
+    "source": "bi-login.component.ts:slideContainerValue = 2 branch"
+  },
+  {
+    "event": "TokenRefreshed",
+    "trigger": "GET /api/user/refreshaccesstoken?refreshToken=...",
+    "payload": ["userId", "newAccessToken", "tokenExpiresAt", "timestampUtc"],
+    "side_effects": ["UserRefreshToken.DateExpiresUtc extended (_refreshTokenExpiresSpan from requestedAt)"],
+    "source": "UserController.RefreshAccessToken()"
+  },
+  {
+    "event": "UserLoggedOut",
+    "trigger": "POST /api/user/logout",
+    "payload": ["userId", "timestampUtc"],
+    "side_effects": ["UserRefreshToken deleted for user", "JWT access token continues until natural expiry (not invalidated server-side)"],
+    "note": "Gap: no server-side JWT revocation — access token remains valid up to 15 min after logout",
+    "source": "UserController.Logout() → _authenticationService.Logout(userId)"
+  },
+  {
+    "event": "PasswordResetRequested",
+    "trigger": "User clicks 'Forgot password' in BiLoginComponent and submits email",
+    "payload": ["email", "resetToken (Guid)", "tokenExpiresAt", "timestampUtc"],
+    "side_effects": [
+      "User.PasswordResetToken = new Guid()",
+      "User.DatePasswordResetTokenExpiresUtc set",
+      "Email dispatched with reset link containing token"
+    ],
+    "source": "bi-login.component.ts:showResetPassContent branch; UserController reset password endpoint"
+  },
+  {
+    "event": "PasswordResetCompleted",
+    "trigger": "User submits new password with valid PasswordResetToken link",
+    "payload": ["userId", "timestampUtc"],
+    "side_effects": ["User.Password updated to hash of new password", "User.PasswordResetToken = null", "User.DatePasswordResetTokenExpiresUtc = null", "User.PasswordSalt regenerated"],
+    "source": "UserController reset password confirm endpoint (inferred)"
+  },
+  {
+    "event": "AuthenticatorAppEnabled",
+    "trigger": "POST /api/user/confirmauthenticatorapp with valid TOTP code",
+    "payload": ["userId", "timestampUtc"],
+    "side_effects": ["User.AuthenticatorSecret persisted (base32 TOTP seed)", "2FA method = authenticatorApp active"],
+    "source": "UserService.confirmAuthenticatorApp()"
+  },
+  {
+    "event": "ImpersonationStarted",
+    "trigger": "Admin/SuperAdmin triggers impersonation of another user",
+    "payload": ["adminUserId", "targetUserId", "newAccessToken", "timestampUtc"],
+    "side_effects": ["User.ImpersonatingUserId = adminUserId on session context", "New access token issued with impersonated user's claims and impersonateFromUserId claim"],
+    "source": "TokenAuthenticationService.impersonateUser(userId)"
+  },
+  {
+    "event": "ImpersonationEnded",
+    "trigger": "Admin cancels impersonation",
+    "payload": ["adminUserId", "previousTargetUserId", "newAccessToken", "timestampUtc"],
+    "side_effects": ["Access token re-issued for original admin identity"],
+    "source": "TokenAuthenticationService.cancelImpersonation()"
+  },
+  {
+    "event": "UserCreated",
+    "trigger": "Admin creates a new user (POST /api/user or via SCIM provisioning)",
+    "payload": ["userId", "email", "customerId", "createdByAdminId?", "scimExternalId?", "timestampUtc"],
+    "side_effects": ["User record inserted with DateCreatedUtc", "Welcome/invite email sent if applicable"],
+    "source": "UserController (create endpoint, inferred); ScimUsersController"
+  },
+  {
+    "event": "UserUpdated",
+    "trigger": "PATCH /api/user/updateuser with UpdateUserCommand",
+    "payload": ["userId", "changedFields", "timestampUtc"],
+    "side_effects": ["User entity fields updated: Name, Email, PhoneNumber, LanguageId, TimeZoneId, TestMode, ReceiveNewsletter"],
+    "note": "Bug in current code: returns BadRequest even on valid input if outer null check passes but inner block fails",
+    "source": "UserController.UpdateUser()"
+  },
+  {
+    "event": "UserDeleted",
+    "trigger": "DELETE /api/user?id={id} by admin",
+    "payload": ["userId", "deletedByAdminId", "timestampUtc"],
+    "side_effects": ["User.Deleted = true", "User.DateDeletedUtc set (soft delete)"],
+    "source": "UserController delete endpoint → UserService.DeleteUser()"
+  },
+  {
+    "event": "UserReactivated",
+    "trigger": "POST /api/user/reactivateuser?id={id} by admin",
+    "payload": ["userId", "reactivatedByAdminId", "timestampUtc"],
+    "side_effects": ["User.Deleted = false", "User.DateDeletedUtc = null"],
+    "source": "UserController.ReactivateUser()"
+  },
+  {
+    "event": "SamlUserProvisioned",
+    "trigger": "First-time SAML SSO login by a user not yet in the system",
+    "payload": ["email", "customerId", "samlEntityId", "timestampUtc"],
+    "side_effects": ["User record created", "EmailTemplateName.NewSAMLUser email sent to user"],
+    "source": "CustomerSamlSettings config; EmailTemplateName.NewSAMLUser"
+  },
+  {
+    "event": "UserNudgeTriggered",
+    "trigger": "UserNudgingService detects a pending nudge for user post-login",
+    "payload": ["userId", "nudgeType (NudgeType enum)", "timestampUtc"],
+    "side_effects": ["Modal or banner shown in UI after login redirect"],
+    "note": "NudgeType values not fully mapped — see GAP_005. Injected into BiLoginComponent as UserNudgingService.",
+    "source": "bi-login.component.ts UserNudgingService injection; UserNudgingResponse model"
+  },
+  {
+    "event": "UpdateUserCommand",
+    "trigger": "See UserUpdated event — this is the command DTO, not a separate event",
+    "note": "Legacy entry from old pipeline scan. Superseded by UserUpdated event above."
+  }
 ]

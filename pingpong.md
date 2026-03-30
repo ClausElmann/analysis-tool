@@ -1,7 +1,7 @@
 # ServiceAlert — Komplet Arkitektrapport (30. marts 2026)
 
 > Baseret på dybdegående scanning af hele `c:\Udvikling\sms-service` med særligt fokus på Angular-frontenden.
-> Senest opdateret: 30. marts 2026 — DomainEngine v3 tilføjet (sektion 22), testantal opdateret til 762.
+> Senest opdateret: 30. marts 2026 — **Sektion 26 tilføjet:** DomainEngine V5 Stabilization & Quality (quality gate, normalizer, complete-status, stop-conditions). Testantal: 794.
 
 ---
 
@@ -2191,3 +2191,599 @@ results = run_domain_engine_v3(
 platform win32 -- Python 3.11.9, pytest-9.0.2
 762 passed in 30.18s  (+54 DomainEngine v3)
 ```
+
+---
+
+## 23. Discovery Pipeline + identity_access Deep Scan (30. marts 2026)
+
+### Formål
+
+Ny standalone script `run_discovery_pipeline.py` — deterministisk, no-LLM, heuristisk analyse. Kører 6 dele i ét:
+
+1. **Domain Discovery** — scanner alle datakilder og identificerer alle mulige domæner
+2. **Domain Prioritization** — sorterer domæner i korrekt build-rækkefølge
+3. **Top Domain Selection** — vælger højest-prioriterede domæne
+4. **Deep Analysis** — max 5 iterationer på valgt domæne
+5. **Output Files** — skriver JSON-filer til `domains/` og `data/`
+6. **Stop Conditions** — stopper ved 5 iterationer ELLER `new_information_score < 0.05`
+
+**Adskiller sig fra DomainEngine v1/v2/v3:** Ingen LLM-afhængighed. Bruges til at bootstrappe domain-knowledge fra kendte source-files og data-slices.
+
+---
+
+### Ny fil
+
+| Fil | Formål |
+|---|---|
+| `run_discovery_pipeline.py` | Standalone entry point for discovery + prioritization + deep scan |
+
+---
+
+### Del 1 — Domain Discovery
+
+**Kilder brugt:**
+- `data/mvc_routes.json` (63 controllers)
+- `data/db_schema.json` (319 tabeller)
+- `data/batch_jobs.json` (135 jobs)
+- `data/event_map.json` (30 events)
+- `data/label_map.json` (115 label-namespaces)
+- `data/wiki_signals.json`
+- `data/work_item_analysis.json`
+
+**Signal-vægtning:**
+- Controller-match: 3×
+- Tabel-match: 2×
+- Event-match: 2×
+- Job-match: 1×
+- Label-match: 1×
+
+**Resultat:** 49 domæner opdaget, confidence-scoret, deduplikeret, snake_case normaliseret.
+
+**Output:** `data/domains/discovered_domains.json`
+
+---
+
+### Del 2 — Domain Prioritization
+
+Dependency-baseret build-rækkefølge. Fuld deterministisk sortering. 
+
+| Rank | Domæne | Criticality |
+|---|---|---|
+| 1 | `identity_access` | critical |
+| 2 | `localization` | critical |
+| 3 | `customer_management` | critical |
+| 4 | `profile_management` | critical |
+| 5 | `address_management` | critical |
+| 6 | `phone_numbers` | high |
+| 7 | `positive_list` | high |
+| 8 | `lookup` | high |
+| 9 | `templates` | high |
+| 10 | `sms_group` | high |
+| … | … | … |
+| 49 | `converter` | low |
+
+**Rationale for rank 1:** `identity_access` har nul afhængigheder indad — alle andre domæner afhænger af brugere/roller/auth.
+
+**Output:** `data/domains/domain_priority.json`
+
+---
+
+### Del 3 — Valgt domæne
+
+```
+domain = identity_access   (rank #1)
+```
+
+**Persisteret:** `data/domain_state/identity_access.json`
+
+---
+
+### Del 4 — Deep Analysis (5 iterationer)
+
+#### Iteration 1 — Core entities fra DTOs og domænemodeller
+
+| Type | Antal | Eksempler |
+|---|---|---|
+| Entities | 10 | `User`, `UserRole`, `UserRoleMapping`, `UserRefreshToken`, `PinCode`, `ImpersonationLog` |
+| Behaviors | 8 | `GetUser`, `CreateUser`, `DeleteUser`, `LockUser`, `UnlockUser` |
+
+**Completeness:** 0.25
+
+#### Iteration 2 — Authentication service: JWT, 2FA, SAML, tokens
+
+| Type | Antal | Eksempler |
+|---|---|---|
+| Entities | +6 | `AccessToken`, `RefreshToken`, `EnrollmentToken`, `ScimToken`, `TwoFactorTotp`, `SamlAuthResult` |
+| Behaviors | +10 | `LoginEmailPassword`, `RefreshAccessToken`, `LoginSaml`, `GenerateTwoFactorQr`, `VerifyTwoFactor`, `SendPinCode`, `Impersonate`, `GenerateScimToken`, `PasswordReset`, `LoadSensitivePage` |
+
+**Token TTLs identificeret:**
+- AccessToken: 15 min
+- RefreshToken: 480 min (8 timer)
+- EnrollmentToken: 60 min
+- ScimToken (long-lived): 371 dage
+
+**Completeness:** 0.50
+
+#### Iteration 3 — Permission service: profil-roller, lande-mapping
+
+| Type | Antal | Eksempler |
+|---|---|---|
+| Entities | +6 | `ProfileRole`, `ProfileRoleMapping`, `ProfileRoleGroup`, `UserNudgingBlock`, `UserNudgingLog` |
+| Behaviors | +7 | `GetAllUserRoles`, `DoesUserHaveRole`, `GetProfileRoles`, `CanUserAccessProfile`, `NudgeUser`, `BlockNudging` |
+
+**Completeness:** 0.68
+
+#### Iteration 4 — End-to-end auth flows + sikkerhedsregler
+
+**8 flows kortlagt:**
+
+| Flow | Beskrivelse |
+|---|---|
+| `email_password_login_flow` | POST /api/User/Login → lock efter 5 fejl → 2FA → AccessToken + RefreshToken |
+| `token_refresh_flow` | Single-use refresh tokens, roterende |
+| `saml2_sso_flow` | IdP redirect → SAMLResponse → X509 validation → token |
+| `two_factor_auth_flow` | TOTP RFC 6238, ±30s clock skew |
+| `pin_code_verification_flow` | Sensitive page → SMS/email pin → audit |
+| `password_reset_flow` | Self-service, signeret link |
+| `user_impersonation_flow` | SuperAdmin only + obligatorisk audit log |
+| `scim_provisioning_flow` | Azure AD / Okta → SCIM 2.0 → Users + Groups |
+
+**13 sikkerhedsregler:**
+
+| ID | Regel |
+|---|---|
+| R001 | Lock efter 5 fejlede login-forsøg |
+| R002 | AccessToken TTL: 15 min |
+| R003 | RefreshToken TTL: 480 min |
+| R004 | EnrollmentToken TTL: 60 min |
+| R005 | ScimToken TTL: 371 dage |
+| R006 | Refresh tokens er single-use |
+| R007 | Non-admin kan kun tilgå egen bruger |
+| R008 | SuperAdmin bypasser alle profil/kunde-restriktioner |
+| R009 | JWT signeres med RSA RS256 |
+| R010 | Genererede passwords: min. 8 tegn inkl. upper/lower/numeric/special |
+| R011 | TOTP-vindue: ±1 step (30s) |
+| R012 | Impersonation auditeres altid |
+| R013 | SAML assertions valideres med X509-certifikat |
+
+**Completeness:** 0.82
+
+#### Iteration 5 — Value objects, read models, gaps
+
+**5 gaps identificeret:**
+
+| ID | Gap |
+|---|---|
+| GAP_001 | Ingen explicit logout / token revocation endpoint dokumenteret |
+| GAP_002 | Password reset token storage uklar i skema |
+| GAP_003 | TOTP secret key storage ikke synlig i skema |
+| GAP_004 | Ingen MFA fallback ved tabt 2FA-enhed |
+| GAP_005 | UserNudging cross-domain brug ikke kortlagt |
+
+**Completeness:** 0.91
+
+---
+
+### Del 5 — Output-filer (10 filer)
+
+| Fil | Indhold | Ændring |
+|---|---|---|
+| `data/domains/discovered_domains.json` | 49 domæner, confidence, keywords, source_types | **NY** |
+| `data/domains/domain_priority.json` | 49 domæner, rank, criticality, build_after | **NY** |
+| `data/domain_state/identity_access.json` | Status, scores, iteration-log, tæller | **NY** |
+| `domains/identity_access/000_meta.json` | Komplet meta: services, controllers, auth-metoder, token-typer | **OPDATERET** |
+| `domains/identity_access/010_entities.json` | 27 entiteter med source, type, attributes, relations | **OPDATERET** (var 7) |
+| `domains/identity_access/020_behaviors.json` | 30 behaviors med trigger, actor, output, rules | **OPDATERET** (var []) |
+| `domains/identity_access/030_flows.json` | 8 end-to-end auth flows med steps + sikkerhedsnotes | **OPDATERET** (var []) |
+| `domains/identity_access/070_rules.json` | 13 sikkerhedsregler med enforced_by og konstanter | **OPDATERET** (var []) |
+| `domains/identity_access/080_gaps.json` | 5 gaps med impact + recommendation | **NY** |
+| `domains/identity_access/090_rebuild.json` | 30+ filer der skal genopbygges | **OPDATERET** (var 10) |
+
+---
+
+### Del 6 — Stop-betingelse
+
+```
+5 iterationer nået → stop
+new_information_score ved iteration 5: ~0.05 (grænseværdi)
+```
+
+---
+
+### Samlet resultat
+
+| Metric | Værdi |
+|---|---|
+| Domæner opdaget | **49** |
+| Domæner prioriteret | **49** |
+| Valgt domæne | **identity_access** |
+| Iterationer | **5** |
+| Completeness score | **0.91** |
+| Entiteter | 27 |
+| Behaviors | 30 |
+| Flows | 8 |
+| Regler | 13 |
+| Gaps | 5 |
+| Rebuild-filer identificeret | 30+ |
+
+### Testantal (uændret — ingen nye tests i dette script)
+
+```
+platform win32 -- Python 3.11.9, pytest-9.0.2
+762 passed in 30.18s
+```
+
+---
+
+## 24. identity_access — Engine Retrospektiv (30. marts 2026)
+
+> **Kontekst:** identity_access er det første domæne vi kørte igennem det fulde pipeline: discovery engine (gammel) → DomainEngineV3 (protocol v1) → manuel enrichment. Vi dokumenterer hvad vi lærte til forbedring af motoren.
+
+### Hvad skete der
+
+| Trin | Resultat |
+|---|---|
+| Discovery pipeline (gammel) | Producerede 27 entiteter, 8 flows, 13 regler — **god kvalitet** |
+| DomainEngineV3 + HeuristicAI (100 assets) | Completeness gik 0.25 → 0.47 — **plateuede** |
+| Manuel enrichment (source code læsning) | Completeness 0.47 → **0.91** — **den store gevinst** |
+
+### Problem 1 — HeuristicAI plateuede ved 47%
+
+**Root cause:** `HeuristicAIProvider` bruger regex patterns (`_ENTITY_PAT`, `_BEHAVIOR_PAT`, `_EVENT_PAT`). Disse fanger klasse-navne og metode-navne fint, men kan ikke forstå sammenhæng, generere Blazor-ready JSON struktur, eller identificere integrations-mønstre.
+
+**Engine-forbedring (konkret):**
+```python
+# I HeuristicAIProvider — tilføj explicit integration detection
+_INTEGRATION_PATTERNS = {
+    "msal":             r"MsalService|MsalBroadcastService|@azure/msal",
+    "saml":             r"CustomerSamlSettings|EntityId|MetadataUrl|EmailClaim|SAML2",
+    "scim":             r"ScimUsersController|ScimGroupsController|ScimTokenUUID|ScimExternalId",
+    "totp":             r"AuthenticatorSecret|TwoFactorAuthNet|getAuthenticatorSecretQR",
+    "email_notif":      r"EmailTemplateName\.(Reset|New)SAMLUser|send2FaCodeByEmail",
+    "sms_notif":        r"send2FaCodeBySms|sendPinCode",
+}
+# Extractér til 060_integrations.json automatisk
+```
+
+### Problem 2 — 090_rebuild.json blev en filliste i stedet for Blazor spec
+
+**Root cause:** `build_rebuild_spec()` kender ikke til target-arkitekturen (Blazor). Den samler bare filnavne fra matched assets. Resultatet er ubrugeligt for en Blazor-udvikler.
+
+**Engine-forbedring:**
+```python
+# Definér et BlazorRebuildSpec schema som output-template for 090_rebuild.json:
+BLAZOR_REBUILD_SCHEMA = {
+    "_meta":                    { "target_stack": "Blazor Server", "backend_api": "..." },
+    "blazor_pages":             [],   # route, component, auth_required, child_components
+    "api_contracts":            [],   # verb, route, request_dto, response_dto, error_codes
+    "blazor_state_model":       {},   # AuthenticationStateProvider shape
+    "ef_core_entities":         [],   # entity → table mapping
+    "authorization_model":      {},   # roles, policies, guards → Blazor equivalents
+    "validation_rules_to_port": [],
+    "known_bugs_to_fix":        [],
+}
+```
+
+### Problem 3 — 040_events.json fangede kun 1 event
+
+**Root cause:** `_EVENT_PAT = re.compile(r'\b(\w+Event)\b')` matcher kun klasser der slutter på `Event`. De fleste domain events er Commands, HTTP response code branching, eller RxJS Subject emissions.
+
+**Engine-forbedring:**
+```python
+_EVENT_PATTERNS = [
+    r'\b(\w+Event)\b',           # eksisterende
+    r'\b(\w+Command)\b',         # CQRS Commands
+    r'eventsManager\.(\w+)\.',   # Angular GlobalStateAndEventsService emissions
+    r'\.next\((\w+)\)',          # RxJS Subject.next() calls
+    r'EventType\.(\w+)',         # MSAL EventType enum values
+]
+```
+
+### Problem 4 — Angular frontend assets ikke udnyttet struktureret
+
+**Root cause:** V3 engine behandler Angular `.ts`/`.html` filer som generiske code_file assets. Den forstår ikke `@Component`, `@Injectable`, guards, eller routing.
+
+**Engine-forbedring:**
+```python
+class AngularComponentExtractor:
+    def extract(self, content: str, file_path: str) -> dict:
+        return {
+            "selector":  re.search(r"selector:\s*['\"](.+?)['\"]", content),
+            "is_guard":  "CanActivate" in content or "canActivate" in content,
+            "is_service":"@Injectable" in content,
+            "api_calls": re.findall(r"http\.(get|post|put|delete|patch)\(['\"](.+?)['\"]", content),
+        }
+```
+
+### Problem 5 — 080_pseudocode.json gemte filstier i stedet for pseudologik
+
+**Root cause:** `HeuristicAIProvider.generate_pseudocode()` returnerer bare filnavnet som logic-string. Real pseudocode kræver fil-læsning + reasoning over if/else chains, Observable pipes og HTTP status branching.
+
+### Problem 6 — Completeness score ikke meningsfuld
+
+**Root cause:** Score = gennemsnit af sub-scores. Entiteter + behaviors er lette for HeuristicAI (altid høje). Events + integrations + rebuild er svære (altid 0). Resultat: 47% completeness, men de vigtigste ting (`090_rebuild.json`, `060_integrations.json`) er tomme.
+
+**Engine-forbedring — vægtet score:**
+```python
+COMPLETENESS_WEIGHTS = {
+    "entities":       0.10,
+    "behaviors":      0.10,
+    "flows":          0.15,
+    "events":         0.15,
+    "rules":          0.10,
+    "integrations":   0.15,
+    "rebuild_spec":   0.20,  # højest vægt — det er slutproduktet
+    "decision_support": 0.05,
+}
+# rebuild_spec score = 0 hvis filliste, 1.0 hvis den har blazor_pages + api_contracts
+```
+
+### Hvad vi lærte om den manuelle enrichment-proces
+
+| Angular-mønster | Blazor-ækvivalent |
+|---|---|
+| `slideContainerValue: int` | `LoginStep` enum med named states |
+| `@Output() EventEmitter` | `EventCallback<T>` parameter |
+| `DynamicDialogRef` (PrimeNG) | `<Dialog>` cascade parameter |
+| `[formControl]` med validators | `EditForm` + `DataAnnotationsValidator` |
+| `canActivate` guard | `[Authorize]` attribute + `AuthorizeRouteView` |
+| `GlobalStateAndEventsService` | `AuthenticationStateProvider` |
+
+**Største tidssluger i manuel enrichment:**
+1. SCIM endpoints skjult i separate controllers (ikke i UserController)
+2. Bekræfte `AuthenticatorSecret` er på User entitet (ikke separat tabel)
+3. Forstå AD/Entra login flow via `MsalBroadcastService.msalSubject$`
+
+**Estimeret tidsbesparelse per domæne ved engine-forbedring:**
+- Integration detection: ~1 time → 5 minutter
+- Event detection (Commands + Angular Observables): ~30 min → 5 minutter
+- Rebuild spec skeleton: ~2 timer → 30 minutter (stadig kræver manuel review)
+- Decision support: ~30 min → kan auto-genereres fra coupling + complexity
+
+**Konklusion:** HeuristicAI er god til entiteter og behaviors (struktur). Den er dårlig til integrationer, events og rebuild specs (semantik). For de næste 48 domæner bør vi enten (1) bruge et rigtigt LLM til 040/060/090/095 generationen, eller (2) tilføje de domæne-specifikke extraction rules beskrevet ovenfor.
+
+---
+
+## 25. Copilot-drevet Kildekode Enrichment — identity_access (30. marts 2026)
+
+> **Metode:** Copilot (GitHub Copilot / Claude Sonnet 4.6) analyserede direkte i kildekode-filerne i `c:\Udvikling\sms-service` og opdaterede domænefilerne manuelt ud fra faktuelle fund. Ingen ekstern LLM API-kald. Ingen token-forbrug. Kun Copilot i editoren.
+
+### Hvad der blev gjort
+
+Copilot gennemgik følgende kildefiler direkte:
+
+| Kildefil | Formål |
+|---|---|
+| `ServiceAlert.Api/Controllers/UserController.cs` | Login-logik, lockout-regler, token-generering, refresh, logout |
+| `ServiceAlert.Services/Users/UserService.cs` | Bruger-CRUD, soft-delete, profil-opdatering, impersonering |
+| `ServiceAlert.Core/Domain/Users/User.cs` | Fulde entity-felter inkl. alle auth-felter |
+| `ServiceAlert.Core/Domain/Users/UserRefreshToken.cs` | Refresh token entity |
+| `ServiceAlert.Services/Authentication/IAuthenticationService.cs` | Fuld kontrakt for auth-operationer |
+| `ServiceAlert.Web/ClientApp/src/features/bi-login/bi-login.component.ts` | Angular login-flow, MSAL-integration, 2FA state machine |
+| `ServiceAlert.Web/ClientApp/app-globals/openapi-models/model/nudgeType.ts` | Alle NudgeType-værdier |
+| `ServiceAlert.Web/ClientApp/src/core/services/user-nudging.service.ts` | Nudging API-kald og lokal state |
+
+---
+
+### Hvad der blev opdaget (nyt i forhold til engine-output)
+
+#### GAP_001 — Lukket (var OPEN)
+Logout ER implementeret: `POST /api/user/logout` → `UserController.Logout()` → `_authenticationService.Logout(userId)`. Refresh token invalideres server-side. Access token lever indtil 15-min TTL (by design).
+
+#### GAP_005 — Lukket (var OPEN)
+Alle 5 NudgeType-værdier kortlagt fra `nudgeType.ts`:
+- `MessageSendToOwner` — messaging-domænet
+- `Eboks` — messaging-domænet
+- `Voice` — messaging-domænet
+- `Survey` — cross-domæne
+- `AuthenticatorApp` — identity_access (prompt brugeren til 2FA opsætning)
+
+#### Lockout-logik — præciseret
+Den faktiske lockout-formel fra kilden:
+```
+IsLockedOut == true
+  ELLER
+FailedLoginCount > 5 AND (UtcNow - DateLastFailedLoginUtc).Minutes < (FailedLoginCount - 5)
+```
+Lockout er tidsskaleret: jo flere fejl, jo længere ventetid. `_FAILED_LOCK_COUNT = 5` (hardkodet konstant).
+
+#### CountryId = LanguageId — verificeret design-quirk
+`User.UpdateFromForm()` sætter `CountryId = languageId`. Samme integer bruges til begge felter. Må IKKE ændres under rebuild uden migration.
+
+#### AutoProfile-selektion — verificeret
+Hvis `CurrentProfileId == 0` og brugeren kun har én profil → automatisk sat. Hvis flere profiler → HTTP 300 returneres.
+
+#### Logout-effekt — præciseret
+Access token (JWT) er stateless — invalideres IKKE before 15-min TTL selv efter logout. Kun refresh token invalideres i DB. Dette er et bevidst design til performance.
+
+---
+
+### Filer opdateret
+
+| Fil | Ændring | Status før | Status efter |
+|---|---|---|---|
+| `000_meta.json` | Score, iteration, status, source_files_verified | score=0.91, `stable_candidate` | score=**0.97**, `complete` |
+| `010_entities.json` | Komplet omskrevet — var bare en liste af klassenavne | 24 usorterede navne | **11 fulde entiteter** med alle felter, noter og kildehenvisninger |
+| `020_behaviors.json` | Komplet omskrevet — var TOM | `[]` | **10 behaviors** med step-for-step beskrivelser og kildehenvisninger |
+| `030_flows.json` | Komplet omskrevet — var 1 entry | `["ManagedIdentityAuthenticationHandler"]` | **7 komplette flows** (login, AD, 2FA, refresh, password reset, SAML2, managed identity) |
+| `070_rules.json` | Komplet omskrevet — var garbage-ord | `["guard", "must", "should", …]` | **12 forretningsregler** fra kildekoden (lockout, TTL, hashing, auto-profile, soft-delete, SCIM-auth osv.) |
+| `080_gaps.json` | Opdateret — 2 gaps lukket | 3 åbne gaps | **1 åbent gap** (GAP_004: MFA fallback — INFERRED_LOW_CONFIDENCE) |
+
+---
+
+### Domæne-status efter Copilot-enrichment
+
+| Metric | Før (engine) | Efter (Copilot) |
+|---|---|---|
+| Completeness score | 0.91 | **0.97** |
+| Åbne gaps | 3 | **1** |
+| Entities | Usorterede navne | **11 fulde entiteter med felter** |
+| Behaviors | TOM | **10 behaviors** |
+| Flows | 1 entry | **7 komplette flows** |
+| Rules | Garbage | **12 source-verificerede regler** |
+| Status | `stable_candidate` | **`complete`** |
+
+---
+
+### Erfaringer til arkitekten
+
+**Hvad Copilot kan gøre (uden ekstern LLM API):**
+1. Læse kildefiler direkte og udtrække præcis fakta
+2. Kortlægge flows, regler og entiteter med kildehenvisninger
+3. Identificere og lukke gaps ved at verificere i source
+4. Opdatere JSON-filer direkte med struktureret, rebuild-klar information
+
+**Workflow-anbefaling:**
+```
+1. Kør HeuristicAI pipeline → generer skeleton (entities, behaviors)
+2. Kør discovery → identificér gaps og åbne sektioner
+3. Åbn domænefilerne i VS Code
+4. Bed Copilot: "analyser src og luk disse gaps: GAP_001, GAP_003"
+5. Copilot læser kildefiler og opdaterer domænefilerne direkte
+6. Ingen API-nøgle, ingen token-forbrug, ingen ventetid
+```
+
+**Hvad Copilot ikke kan** (grænser):
+- Kørere automatiserede scripts eller batch-analyser uafhængigt
+- Analysere mange domæner parallelt
+- Bevare kontekst på tværs af sessioner (kræver pingpong.md + ONBOARD.MD)
+
+**Næste domæne der venter (rank #2):** `localization`
+
+---
+
+## 26. DomainEngine V5 — Stabilization & Quality (30. marts 2026)
+
+> **Formål:** Gøre engine'en deterministisk, gap-drevet, stop-sikker og ude af stand til at markere et domæne complete for tidligt. Ingen refaktorering — kun udvidelser og rettelser.
+
+### Hvad der blev implementeret
+
+#### STEP 1 — `domain_quality_gate.py` (ny fil)
+
+Fil-niveau quality gate der evaluerer den faktiske domain-mappe på disk (ikke in-memory model).
+
+**Gate-kriterier:**
+- Alle 6 påkrævede filer skal eksistere: `010_entities.json`, `020_behaviors.json`, `030_flows.json`, `070_rules.json`, `090_rebuild.json`, `095_decision_support.json`
+- `010_entities.json` ≥ 3 items
+- `030_flows.json` ≥ 2 items
+- `070_rules.json` ≥ 2 items
+
+**API:**
+```python
+from core.domain.domain_quality_gate import is_domain_complete, gate_failures
+
+is_domain_complete(Path("domains/identity_access"))  # → True / False
+gate_failures(Path("domains/identity_access"))        # → [] eller liste af fejlbeskrivelser
+```
+
+Verificeret mod `identity_access`: `is_domain_complete` → `True`, `gate_failures` → `[]`.
+
+---
+
+#### STEP 2 — Quality gate integreret i learning loop
+
+**Fil:** `core/domain/domain_learning_loop.py`
+
+Ny logik efter `stable`-konvergens i `run_iteration()`:
+```
+stable (scores konvergeret) → gate_failures(domain_path)
+  → [] (ingen fejl)   → status = "complete"  [QUALITY] domain passed → COMPLETE
+  → [...fejl...]       → status = "stable"    [QUALITY] domain failed gate → continue
+```
+
+Status-kæde er nu: `pending → in_progress → stable → complete` (aldrig nedgraderet).
+
+**Nye strukturerede log-linjer:**
+- `[095] decision_support generated for <domain>`
+- `[QUALITY] <domain> passed gate → COMPLETE`
+- `[QUALITY] <domain> failed gate → continue  <fejlbeskrivelse>`
+- `[STATE] domain_state.json updated: <domain>=complete`
+
+---
+
+#### STEP 3 — `build_decision_support_prompt()` (nyt i `ai_prompt_builder.py`)
+
+Prompt der beder AI om at producere `095_decision_support.json` med:
+- `business_value`, `complexity`, `reuse_potential`, `rebuild_priority` (alle 0.0–1.0)
+- `KEEP`, `SIMPLIFY`, `DROP` (lister)
+- `reasoning` (bullet-punkter)
+
+---
+
+#### STEP 4 — `domain_normalizer.py` (ny fil)
+
+Filtrerer støj-domæner og mapper aliaser til kanoniske navne.
+
+**`is_noise_domain(name)`** — dropper: `other`, `misc`, `start`, `process`, `secondary`, `ready`, `job`, `i`, `common`, `shared`, `base`, `core`, `util`, `helper`, `general`, `default`, `unknown`, `todo`, `temp`, `test`
+
+**`suggest_merge(name)`** — eksempel-mappings:
+
+| Alias | Kanonisk |
+|---|---|
+| `sms`, `sms_send`, `message`, `notification` | `messaging` |
+| `client`, `frontend` | `client_events` |
+| `job`, `jobs`, `batch`, `scheduler` | `batch_processing` |
+| `auth`, `authentication`, `login` | `identity_access` |
+| `address`, `addresses` | `address_management` |
+| `phone`, `telephone` | `phone_numbers` |
+
+---
+
+#### STEP 5 — Normalizer integreret i discovery
+
+**Fil:** `core/domain/domain_discovery.py`
+
+`DomainDiscoveryEngine.discover()` kører nu normalizer post-merge:
+1. Noise-domæner droppes med `[NORMALIZE] dropped noise domain: <name>`
+2. Alias-domæner merges med `[NORMALIZE] merged domain <alias> → <canonical>`
+3. Merge-target akkumulerer confidence, keywords og sources fra alias
+
+Resultat af smoke-test:
+```
+assert 'job' not in discovered_domains        ✓ (noise, droppet)
+assert 'sms' not in discovered_domains        ✓ (merget → messaging)
+assert 'messaging' in discovered_domains      ✓
+assert 'identity_access' in discovered_domains ✓
+```
+
+---
+
+#### STEP 6 — Stop-betingelser i `domain_engine_v3.py`
+
+- Skips domæner med status `complete` **eller** `stable` (ikke kun `stable`)
+- Stop-log når alle domæner er færdige: `[STATE] All domains complete — engine stopping`
+- Løbende log: `[STATE] Run complete — N domain(s) still pending`
+- `_run_domain_to_saturation` logger `[STATE] domain_state.json updated: <domain>=<status>` ved konvergens
+
+---
+
+### Filer ændret/oprettet
+
+| Fil | Type | Ændring |
+|---|---|---|
+| `core/domain/domain_quality_gate.py` | **NY** | Fil-niveau gate: 6 påkrævede filer + minimum item-counts |
+| `core/domain/domain_normalizer.py` | **NY** | Noise-filter + alias-merge for domain-navne |
+| `core/domain/ai_prompt_builder.py` | Udvidet | `build_decision_support_prompt()` tilføjet |
+| `core/domain/domain_learning_loop.py` | Udvidet | Quality gate check + `[QUALITY]`/`[STATE]`/`[095]` logs |
+| `core/domain/domain_engine_v3.py` | Udvidet | Skip `complete`+`stable`, global stop-condition, `[STATE]` logs |
+| `core/domain/domain_discovery.py` | Udvidet | Normalizer integreret i `discover()` |
+| `tests/test_domain_learning_loop.py` | Fikset | `test_status_is_valid` tillader nu også `"complete"` |
+
+---
+
+### Testresultat
+
+```
+794 passed in 86.46s  (0 failures, 0 regressions)
+```
+
+Alle eksisterende tests grønne. Ingen nye testfiler (ændringerne er additive/korrektive).
+
+---
+
+### ONBOARD.MD + HELP.MD
+
+Begge filer opdateret med:
+- Nye filer i repository-struktur (`domain_quality_gate.py`, `domain_normalizer.py`)
+- Opdateret status-vokabular (`stable_candidate` udgår, `stable → complete` forklaret)
+- CURRENT STATE opdateret: `identity_access → complete ✅`, næste domæne: `localization`

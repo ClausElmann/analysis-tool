@@ -151,11 +151,33 @@ class HeuristicAIProvider(AIProvider):
         r"\b(?:if|when|must|should|require|validate|assert|check|throw|guard)\b[^\n]{0,80}",
         re.IGNORECASE,
     )
+    # Fix 3: expanded event patterns — captures Commands, RxJS next(), MSAL EventType, Angular emitters
     _EVENT_PAT = re.compile(r"\b(\w+(?:Event|Notification|Command|Query|Message))\b")
-    _INTEGRATION_PAT = re.compile(
-        r"\b(?:HttpClient|IHttpClientFactory|WebClient|RestClient|ApiClient)\b|https?://[^\s\"'<>{}\[\]]+",
-        re.IGNORECASE,
-    )
+    _EVENT_RXJS_PAT = re.compile(r"\.next\((\w+)\)")
+    _EVENT_MSAL_PAT = re.compile(r"EventType\.(\w+)")
+    _EVENT_EMITTER_PAT = re.compile(r"eventsManager\.(\w+)\.")
+    # Fix 1: named integration detection — emits structured names, not raw tokens
+    _NAMED_INTEGRATION_PATTERNS: List = [
+        ("Azure AD (MSAL)",       re.compile(r"MsalService|MsalBroadcastService|@azure/msal", re.IGNORECASE)),
+        ("SAML2 SSO",              re.compile(r"CustomerSamlSettings|SamlSettings|EntityId.*MetadataUrl|SAML2|ITfoxtec", re.IGNORECASE)),
+        ("SCIM 2.0",               re.compile(r"ScimUsersController|ScimGroupsController|ScimTokenUUID|ScimExternalId", re.IGNORECASE)),
+        ("TOTP Authenticator",     re.compile(r"AuthenticatorSecret|TwoFactorAuthNet|getAuthenticatorSecretQR|confirmAuthenticatorApp|TwoFactorModel", re.IGNORECASE)),
+        ("Email Notification",     re.compile(r"EmailTemplateName|send2FaCodeByEmail|ResetSAMLUser|NewSAMLUser|IEmailService|SmtpClient", re.IGNORECASE)),
+        ("SMS Gateway",            re.compile(r"send2FaCodeBySms|sendPinCode.*sms|ISmsService|SmsService|SmsClient", re.IGNORECASE)),
+        ("MediatR Event Bus",      re.compile(r"IMediator|MediatR|IRequest|INotification|IRequestHandler|INotificationHandler", re.IGNORECASE)),
+        ("HTTP REST Client",       re.compile(r"HttpClient|IHttpClientFactory|WebClient|RestClient|ApiClient", re.IGNORECASE)),
+        ("Azure Service Bus",      re.compile(r"ServiceBusClient|ServiceBusSender|ServiceBusProcessor|ITopicClient", re.IGNORECASE)),
+        ("Database (EF Core)",     re.compile(r"DbContext|IRepository|DbSet<|EntityFramework|EfCoreRepository", re.IGNORECASE)),
+        ("Azure Blob Storage",     re.compile(r"BlobClient|BlobServiceClient|BlobContainerClient|IBlobService", re.IGNORECASE)),
+    ]
+    # Fix 1: generic HTTP URLs as fallback
+    _HTTP_URL_PAT = re.compile(r"https?://[^\s\"'<>{}\[\]]+")
+    # Fix 4: Angular component / service detection
+    _ANGULAR_SELECTOR_PAT = re.compile(r"selector:\s*['\"]([a-z][a-z0-9-]*)['\"]")
+    _ANGULAR_ROUTE_PAT    = re.compile(r"path:\s*['\"]([^'\"]{1,80})['\"]")
+    _ANGULAR_GUARD_PAT    = re.compile(r"CanActivate|canActivate|CanMatch|canMatch", re.IGNORECASE)
+    _ANGULAR_INJECTABLE_PAT = re.compile(r"@Injectable")
+    _ANGULAR_HTTP_CALL_PAT  = re.compile(r"this\.http\.(get|post|put|delete|patch)\(['\"]([^'\"]+)['\"]")
     _FLOW_PAT = re.compile(
         r"\b(\w+(?:Flow|Process|Pipeline|Workflow|Handler|Processor|Step))\b"
     )
@@ -171,9 +193,79 @@ class HeuristicAIProvider(AIProvider):
                 found.add(token)
         return sorted(found)[:limit]
 
+    def _extract_named_integrations(self, text: str) -> List[str]:
+        """Fix 1: return human-readable integration names matched in text."""
+        found: List[str] = []
+        for name, pat in self._NAMED_INTEGRATION_PATTERNS:
+            if pat.search(text):
+                found.append(name)
+        # Also pick up raw HTTP URLs as fallback
+        for m in self._HTTP_URL_PAT.finditer(text):
+            url = m.group(0)[:60]
+            if url not in found:
+                found.append(url)
+        return found[:8]
+
+    def _extract_events_expanded(self, text: str) -> List[str]:
+        """Fix 3: extract events from multiple patterns (suffix, RxJS, MSAL, emitters)."""
+        found: set = set()
+        for m in self._EVENT_PAT.finditer(text):
+            found.add(m.group(1))
+        for m in self._EVENT_RXJS_PAT.finditer(text):
+            tok = m.group(1)
+            if len(tok) > 2 and not tok[0].isdigit():
+                found.add(tok)
+        for m in self._EVENT_MSAL_PAT.finditer(text):
+            found.add(f"MsalEvent.{m.group(1)}")
+        for m in self._EVENT_EMITTER_PAT.finditer(text):
+            tok = m.group(1)
+            if len(tok) > 3:
+                found.add(tok)
+        return sorted(found)[:10]
+
+    def _extract_angular_hints(self, text: str) -> Dict[str, Any]:
+        """Fix 4: extract Angular-specific patterns for component/service detection."""
+        selectors = [m.group(1) for m in self._ANGULAR_SELECTOR_PAT.finditer(text)]
+        routes    = [m.group(1) for m in self._ANGULAR_ROUTE_PAT.finditer(text)][:4]
+        is_guard  = bool(self._ANGULAR_GUARD_PAT.search(text))
+        is_service = bool(self._ANGULAR_INJECTABLE_PAT.search(text))
+        api_calls = [
+            f"{m.group(1).upper()} {m.group(2)}"
+            for m in self._ANGULAR_HTTP_CALL_PAT.finditer(text)
+        ][:5]
+        return {
+            "selectors":  selectors,
+            "routes":     routes,
+            "is_guard":   is_guard,
+            "is_service": is_service,
+            "api_calls":  api_calls,
+        }
+
+    def _generate_pseudocode(self, text: str, entities: List[str], behaviors: List[str], rules: List[str]) -> List[str]:
+        """Fix 5: generate readable pseudo-steps from code patterns."""
+        steps: List[str] = []
+        # Step 1: derive action steps from public methods
+        for b in behaviors[:5]:
+            steps.append(f"ACTION: call {b}")
+        # Step 2: derive guard steps from rule snippets
+        for r in rules[:3]:
+            trimmed = r.strip()[:70]
+            steps.append(f"GUARD: {trimmed}")
+        # Step 3: detect HTTP call patterns
+        http_pats = re.findall(
+            r"(?:HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch|http\.(?:get|post|put|delete|patch))\b[^;\n]{0,60}",
+            text, re.IGNORECASE,
+        )
+        for h in http_pats[:3]:
+            steps.append(f"HTTP: {h.strip()[:70]}")
+        # Step 4: detect conditional branches
+        branches = re.findall(r"if\s*\([^)]{5,60}\)", text)[:3]
+        for b in branches:
+            steps.append(f"IF: {b.strip()[:70]}")
+        return steps[:10]
+
     def generate_json(self, prompt: str, schema_name: str) -> Dict[str, Any]:
         """Analyse the prompt text heuristically."""
-        # For asset_insight: the prompt contains the asset path/content context
         text = prompt
 
         entities = self._extract(self._CLASS_PAT, text)
@@ -184,9 +276,26 @@ class HeuristicAIProvider(AIProvider):
             if snippet:
                 rules.append(snippet)
         rules = sorted(set(rules))[:5]
-        events = self._extract(self._EVENT_PAT, text)
-        integrations = self._extract(self._INTEGRATION_PAT, text, group=0)
+        # Fix 3: expanded event detection
+        events = self._extract_events_expanded(text)
+        # Fix 1: named integration detection
+        integrations = self._extract_named_integrations(text)
         flows = self._extract(self._FLOW_PAT, text)
+        # Fix 4: Angular hints merged into entities/flows/integrations
+        angular = self._extract_angular_hints(text)
+        if angular["selectors"]:
+            # Selector names are Angular component display names → entities
+            entities = sorted(set(entities) | {
+                sel.replace("-", " ").title().replace(" ", "") for sel in angular["selectors"]
+            })[:8]
+        if angular["is_guard"]:
+            flows = sorted(set(flows) | {"RouteGuard"})[:8]
+        if angular["is_service"]:
+            integrations = sorted(set(integrations) | {"Angular Injectable Service"})[:8]
+        if angular["api_calls"]:
+            integrations = sorted(set(integrations) | set(angular["api_calls"]))[:8]
+        # Fix 5: generate pseudocode steps
+        pseudocode = self._generate_pseudocode(text, entities, behaviors, rules)
 
         # Derive intent from path tokens
         path_tokens = re.findall(r"[A-Za-z][a-z]+|[A-Z]{2,}", text.split("\n")[0])
@@ -195,18 +304,20 @@ class HeuristicAIProvider(AIProvider):
 
         rebuild_note = (
             f"Implements {entities[0] if entities else 'module'} "
-            f"with {len(behaviors)} methods and {len(rules)} rules"
+            f"with {len(behaviors)} behaviors, {len(integrations)} integrations, "
+            f"{len(events)} events"
         )
 
         return {
-            "intent": intent,
-            "domain_role": domain_role,
-            "entities": entities,
-            "behaviors": behaviors,
-            "rules": rules,
+            "intent":       intent,
+            "domain_role":  domain_role,
+            "entities":     entities,
+            "behaviors":    behaviors,
+            "rules":        rules,
             "flow_relevance": flows,
-            "events": events,
+            "events":       events,
             "integrations": integrations,
+            "pseudocode":   pseudocode,
             "rebuild_note": rebuild_note,
         }
 
@@ -396,7 +507,7 @@ class AIReasoner:
             "events":       ["events"],
             "integrations": ["integrations"],
             "flows":        ["flow_relevance"],   # provider uses flow_relevance → flows
-            "pseudocode":   [],
+            "pseudocode":   ["pseudocode"],       # Fix 5: map pseudocode steps
             "rebuild":      ["rebuild_note"],
             "batch":        [],
         }

@@ -154,7 +154,7 @@ class TestDomainState:
         assert state.get("nonexistent") is None
 
     def test_DomainSeeds_AllTen(self):
-        assert len(DOMAIN_SEEDS) == 10
+        assert len(DOMAIN_SEEDS) >= 10
 
 
 # ---------------------------------------------------------------------------

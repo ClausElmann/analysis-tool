@@ -150,7 +150,7 @@ class TestRunIterationShape:
     def test_status_is_valid(self, setup):
         loop, *_ = setup
         result = loop.run_iteration("messaging", _assets())
-        assert result["status"] in ("in_progress", "stable")
+        assert result["status"] in ("in_progress", "stable", "complete")
 
     def test_completeness_in_range(self, setup):
         loop, *_ = setup

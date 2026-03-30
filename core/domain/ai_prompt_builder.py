@@ -286,3 +286,41 @@ def build_cross_analysis_prompt(
         "integrations_sample": _sample(domain_model.get("integrations") or []),
     }
     return template.format_map(ctx)
+
+
+def build_decision_support_prompt(domain: str) -> str:
+    """Build an AI prompt for generating 095_decision_support.json.
+
+    Asks the AI to evaluate the domain on four dimensions and produce
+    actionable KEEP / SIMPLIFY / DROP recommendations.
+
+    Parameters
+    ----------
+    domain:
+        The domain name being evaluated (e.g. ``"identity_access"``).
+
+    Returns
+    -------
+    str
+        A prompt string requesting structured JSON decision support output.
+    """
+    return f"""\
+Analyze the business domain: {domain}
+
+Output ONLY valid JSON with this exact structure:
+{{
+  "business_value": <0.0-1.0 float: how critical this domain is to core business>,
+  "complexity": <0.0-1.0 float: estimated implementation complexity>,
+  "reuse_potential": <0.0-1.0 float: how reusable this domain is across products>,
+  "rebuild_priority": <0.0-1.0 float: how urgently should this domain be rebuilt>,
+  "KEEP": ["<feature or behaviour to preserve as-is>", ...],
+  "SIMPLIFY": ["<feature or behaviour to keep but simplify>", ...],
+  "DROP": ["<feature or behaviour to remove in the rebuild>", ...],
+  "reasoning": ["<short bullet: key reason for the above decisions>", ...]
+}}
+Rules:
+- All float values must be in [0.0, 1.0].
+- Each list item must be a plain-English phrase, ≤ 80 chars.
+- Omit a key only if truly empty (use empty list, not null).
+- No code snippets, no raw identifiers.
+"""

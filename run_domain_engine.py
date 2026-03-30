@@ -1,18 +1,18 @@
-"""run_domain_engine.py — CLI entry point for DomainEngine v1.
+"""run_domain_engine.py — CLI entry point for DomainEngine v3 + Protocol v1.
 
 Runs the autonomous domain analysis loop from core/domain/.
-Processes one domain per call (--once) or all domains until convergence
-(default / --all).
+Uses DomainEngineV3 + run_protocol_iteration (Domain Completion Protocol v1).
+Processes one domain per call (--once) or runs until convergence (default).
 
 Usage
 -----
-    # Run one iteration (next pending/in_progress domain)
+    # Run one protocol iteration (next pending/in_progress domain)
     python run_domain_engine.py --once
 
-    # Run all domains to convergence
+    # Run all domains to convergence (protocol gates)
     python run_domain_engine.py
 
-    # Limit assets processed per domain per run
+    # Limit assets processed per domain per iteration
     python run_domain_engine.py --max-assets 50
 
     # Use a subset of seed domains
@@ -30,7 +30,7 @@ Usage
 Paths
 -----
     domains/    Domain state + model section files (written here)
-    data/       Existing asset scanner outputs (read-only)
+    data/       Existing asset scanner outputs + run_log.jsonl (written here)
 """
 
 from __future__ import annotations
@@ -45,7 +45,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from core.asset_scanner import AssetScanner
-from core.domain.domain_engine import DomainEngine
+from core.domain.domain_completion_protocol import run_protocol_iteration
+from core.domain.domain_engine_v3 import DomainEngineV3
 from core.domain.domain_state import DOMAIN_SEEDS, DomainState
 
 # ---------------------------------------------------------------------------
@@ -65,7 +66,7 @@ _SOLUTION_ROOT = Path(r"C:\Udvikling\sms-service")
 
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="DomainEngine v1 — autonomous domain analysis loop"
+        description="DomainEngine v3 + Protocol v1 — autonomous domain analysis loop"
     )
     p.add_argument(
         "--once",
@@ -171,39 +172,40 @@ def main() -> int:
     # -- Build engine
     print(f"[DomainEngine] domains_root={domains_root}")
     print(f"[DomainEngine] seeds={seeds}")
-    print(f"[DomainEngine] max_assets_per_domain={args.max_assets or 'unlimited'}")
+    print(f"[DomainEngine] max_assets_per_iter={args.max_assets or 'unlimited'}")
 
     scanner = _build_scanner()
-    engine = DomainEngine(
+    engine = DomainEngineV3(
         scanner=scanner,
         domains_root=domains_root,
+        data_root=str(_DATA_ROOT),
         seed_list=seeds,
-        max_assets_per_domain=args.max_assets,
+        max_assets_per_iter=args.max_assets or 30,
         verbose=not args.quiet,
     )
 
     # -- Run
     if args.once:
-        result = engine.run_once()
-        if result is None:
-            print("[DomainEngine] All domains stable — nothing to do.")
-        else:
-            print(json.dumps(result, indent=2))
+        result = engine.run_one_iteration()
+        print(json.dumps(result, indent=2))
     else:
-        results = engine.run_all()
-        print(f"\n[DomainEngine] Finished. {len(results)} iteration(s) run.")
-        print(f"\n{'Domain':<30} {'Status':<15} {'Iter':>5} {'Completeness':>13} {'NewInfo':>9}")
-        print("-" * 78)
-        # Summarise final state per domain
-        final: dict = {}
-        for r in results:
-            final[r["domain"]] = r
-        for name in sorted(final):
-            r = final[name]
+        # Run until all domains are complete/blocked or max iterations reached
+        _MAX_TOTAL = 500
+        runs = 0
+        while runs < _MAX_TOTAL:
+            result = engine.run_one_iteration()
+            runs += 1
+            status_after = result.get("status_after", "")
+            domain = result.get("domain")
             print(
-                f"{r['domain']:<30} {r['status']:<15} {r['iteration']:>5} "
-                f"{r['completeness_score']:>13.4f} {r['new_information_score']:>9.4f}"
+                f"[{runs:>3}] {str(domain):<30} → {status_after}  "
+                f"completeness={result.get('scores_after', {}).get('completeness', 0):.3f}"
             )
+            if status_after == "all_complete":
+                print("[DomainEngine] All domains complete or blocked — done.")
+                break
+        else:
+            print(f"[DomainEngine] Reached max iterations ({_MAX_TOTAL}).")
 
     return 0
 

@@ -1,0 +1,23 @@
+{
+  "domains": [
+    {
+      "name": "identity_access",
+      "status": "pending",
+      "iteration": 0,
+      "stable_iterations": 0,
+      "no_op_iterations": 0,
+      "completeness_score": 0.0,
+      "consistency_score": 0.0,
+      "saturation_score": 0.0,
+      "new_information_score": 1.0,
+      "evidence_balance_score": 0.0,
+      "current_focus": "",
+      "last_significant_change": "",
+      "matched_asset_ids": [],
+      "processed_asset_ids": [],
+      "gaps": [],
+      "blocked_reason": "",
+      "last_updated_utc": ""
+    }
+  ]
+}
