@@ -1,0 +1,23 @@
+{
+  "domain": "Pin",
+  "events": [
+    {
+      "event": "PinCodeEmailRequestedNotification",
+      "publishers": [
+        "ServiceAlert.Services/Users/UserService.cs"
+      ],
+      "handlers": [
+        "PinCodeEmailRequestedNotificationHandler"
+      ]
+    },
+    {
+      "event": "PinCodeSmsRequestedNotification",
+      "publishers": [
+        "ServiceAlert.Services/Users/UserService.cs"
+      ],
+      "handlers": [
+        "PinCodeSmsRequestedNotificationHandler"
+      ]
+    }
+  ]
+}

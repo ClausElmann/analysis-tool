@@ -1,0 +1,23 @@
+{
+  "domain": "Inbound",
+  "events": [
+    {
+      "event": "InboundMessageEvent",
+      "publishers": [
+        "ServiceAlert.Api/Controllers/Webhooks/GatewayApiController.cs"
+      ],
+      "handlers": [
+        "InboundMessageEventListener"
+      ]
+    },
+    {
+      "event": "InboundParseEvent",
+      "publishers": [
+        "ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs"
+      ],
+      "handlers": [
+        "InboundParseEventHandler"
+      ]
+    }
+  ]
+}

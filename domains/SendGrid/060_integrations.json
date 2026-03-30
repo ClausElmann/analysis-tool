@@ -1,0 +1,11 @@
+{
+  "domain": "SendGrid",
+  "integrations": [],
+  "webhooks": [
+    {
+      "controller": "SendgridController",
+      "source": "SendGrid"
+    }
+  ],
+  "background_services": []
+}

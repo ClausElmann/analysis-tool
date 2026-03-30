@@ -1,0 +1,23 @@
+{
+  "domain": "Unsubscribe",
+  "events": [
+    {
+      "event": "UnsubscribeEvent",
+      "publishers": [
+        "ServiceAlert.Services/Subscriptions/SubscriptionService.cs"
+      ],
+      "handlers": [
+        "UnsubscribeEventHandler"
+      ]
+    },
+    {
+      "event": "UnsubscribeMessageReceivedEvent",
+      "publishers": [
+        "ServiceAlert.Api/Controllers/Webhooks/NineteenNineteenController.cs"
+      ],
+      "handlers": [
+        "UnsubscribeMessageReceivedEventHandler"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+[
+  "Rebuild: ServiceAlert.Api/ModelFactories/User/IUserFactory.cs",
+  "Rebuild: ServiceAlert.Api/ModelFactories/User/UserFactory.cs",
+  "Rebuild: ServiceAlert.Api/Models/User/LoginEmailPasswordDto.cs",
+  "Rebuild: ServiceAlert.Api/Models/User/TokenDto.cs",
+  "Rebuild: ServiceAlert.Api/Models/User/UpdateUserCommand.cs",
+  "Rebuild: ServiceAlert.Api/Models/User/UserDto.cs",
+  "Rebuild: ServiceAlert.Api/Models/User/UserInfoDto.cs",
+  "Rebuild: ServiceAlert.Api/Tools/Auth/UserRoleAuth.cs",
+  "Rebuild: ServiceAlert.Contracts/Models/Profiles/ProfileAccessModel.cs",
+  "Rebuild: ServiceAlert.Contracts/Models/Profiles/ProfileRoleAccessModel.cs"
+]

@@ -1,0 +1,12 @@
+[
+  "// ServiceAlert.Api/ModelFactories/User/IUserFactory.cs",
+  "// ServiceAlert.Api/ModelFactories/User/UserFactory.cs",
+  "// ServiceAlert.Api/Models/User/LoginEmailPasswordDto.cs",
+  "// ServiceAlert.Api/Models/User/TokenDto.cs",
+  "// ServiceAlert.Api/Models/User/UpdateUserCommand.cs",
+  "// ServiceAlert.Api/Models/User/UserDto.cs",
+  "// ServiceAlert.Api/Models/User/UserInfoDto.cs",
+  "// ServiceAlert.Api/Tools/Auth/UserRoleAuth.cs",
+  "// ServiceAlert.Contracts/Models/Profiles/ProfileAccessModel.cs",
+  "// ServiceAlert.Contracts/Models/Profiles/ProfileRoleAccessModel.cs"
+]

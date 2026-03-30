@@ -31,7 +31,7 @@ import re
 import sys
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from core.solution_scanner import SolutionScanner
 from core.git_analyzer import analyze_git
@@ -3846,6 +3846,108 @@ class ExecutionEngine:
             json.dump(data, fh, indent=2, ensure_ascii=False)
         print(f"[WRITE] {path}")
         return path
+
+    # ------------------------------------------------------------------
+    # Domain engine
+    # ------------------------------------------------------------------
+
+    def run_domain_engine(
+        self,
+        domains_root: str = "domains",
+        seed_list: Optional[List[str]] = None,
+        max_assets_per_domain: int = 0,
+        verbose: bool = True,
+    ) -> Dict:
+        """Run one autonomous domain engine iteration.
+
+        Picks the next pending or in-progress domain, processes its
+        matched assets, and persists progress.  Safe to call repeatedly
+        (idempotent, resumable).
+
+        Parameters
+        ----------
+        domains_root:
+            Root directory for domain state and model files.
+        seed_list:
+            Domain names to bootstrap.  ``None`` uses ``DOMAIN_SEEDS``.
+        max_assets_per_domain:
+            Max assets to process this call.  ``0`` = unlimited.
+        verbose:
+            Print progress messages.
+
+        Returns
+        -------
+        dict
+            Result summary, or ``{"status": "all_stable", "domain": None}``
+            when all domains are already stable.
+        """
+        from core.asset_scanner import AssetScanner as _AssetScanner
+        from core.domain.domain_engine import DomainEngine as _DomainEngine
+
+        scanner = _AssetScanner(
+            data_root=self.data_root,
+            wiki_root=self.wiki_root,
+            raw_root=self.raw_root,
+            solution_root=self.solution_root,
+        )
+        engine = _DomainEngine(
+            scanner=scanner,
+            domains_root=domains_root,
+            seed_list=seed_list,
+            max_assets_per_domain=max_assets_per_domain,
+            verbose=verbose,
+        )
+        result = engine.run_once()
+        return result if result is not None else {"status": "all_stable", "domain": None}
+
+    def run_domain_engine_v2(
+        self,
+        domains_root: str = "domains",
+        seed_list: Optional[List[str]] = None,
+        max_assets_per_domain: int = 0,
+        verbose: bool = True,
+    ) -> Dict:
+        """Run one v2 autonomous domain engine iteration.
+
+        Uses gap-driven asset selection and AI-backed reasoning via
+        ``DomainLearningLoop``.  Safe to call repeatedly (idempotent,
+        resumable).
+
+        Parameters
+        ----------
+        domains_root:
+            Root directory for domain state and model files.
+        seed_list:
+            Domain names to bootstrap.  ``None`` uses ``DOMAIN_SEEDS``.
+        max_assets_per_domain:
+            Max assets to process this call.  ``0`` = unlimited.
+        verbose:
+            Print progress messages.
+
+        Returns
+        -------
+        dict
+            Iteration summary, or ``{"status": "all_stable", "domain": None}``
+            when all domains are already stable.
+        """
+        from core.asset_scanner import AssetScanner as _AssetScanner
+        from core.domain.domain_engine import DomainEngine as _DomainEngine
+
+        scanner = _AssetScanner(
+            data_root=self.data_root,
+            wiki_root=self.wiki_root,
+            raw_root=self.raw_root,
+            solution_root=self.solution_root,
+        )
+        engine = _DomainEngine(
+            scanner=scanner,
+            domains_root=domains_root,
+            seed_list=seed_list,
+            max_assets_per_domain=max_assets_per_domain,
+            verbose=verbose,
+        )
+        result = engine.run_once_v2(data_root=self.data_root)
+        return result if result is not None else {"status": "all_stable", "domain": None}
 
 
 # ---------------------------------------------------------------------------

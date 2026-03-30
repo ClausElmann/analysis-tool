@@ -1,0 +1,12 @@
+{
+  "domain": "Map",
+  "integrations": [],
+  "webhooks": [],
+  "background_services": [
+    {
+      "name": "MapRequestLogger",
+      "type": "logger",
+      "host": "ServiceAlert.Services"
+    }
+  ]
+}

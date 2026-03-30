@@ -1,0 +1,65 @@
+{
+  "domain": "Maintenance",
+  "batch_jobs": [
+    {
+      "job": "recheck_missing_bfes",
+      "category": "maintenance"
+    },
+    {
+      "job": "recheck_bfes",
+      "category": "maintenance"
+    },
+    {
+      "job": "stage_provider_phonenumbers",
+      "category": "maintenance"
+    },
+    {
+      "job": "swap_provider_phonenumbers",
+      "category": "maintenance"
+    },
+    {
+      "job": "update_benchmark_statistics",
+      "category": "maintenance"
+    },
+    {
+      "job": "update_smslogs_status",
+      "category": "maintenance"
+    },
+    {
+      "job": "coded_lookup",
+      "category": "maintenance"
+    },
+    {
+      "job": "update_database_size_log",
+      "category": "maintenance"
+    },
+    {
+      "job": "document_lookup",
+      "category": "maintenance"
+    },
+    {
+      "job": "recalculate_missed_addresses",
+      "category": "maintenance"
+    },
+    {
+      "job": "fix_fi_streetcodes",
+      "category": "maintenance"
+    },
+    {
+      "job": "update_address_corrections",
+      "category": "maintenance"
+    },
+    {
+      "job": "data_import_prepare",
+      "category": "maintenance"
+    },
+    {
+      "job": "data_import_confirm",
+      "category": "maintenance"
+    },
+    {
+      "job": "update_templates_from_embedded_resources",
+      "category": "maintenance"
+    }
+  ]
+}

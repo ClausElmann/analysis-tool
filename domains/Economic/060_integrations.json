@@ -1,0 +1,12 @@
+{
+  "domain": "Economic",
+  "integrations": [],
+  "webhooks": [],
+  "background_services": [
+    {
+      "name": "EconomicBackgroundService",
+      "type": "worker",
+      "host": "ServiceAlert.Services"
+    }
+  ]
+}

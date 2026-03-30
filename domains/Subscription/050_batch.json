@@ -1,0 +1,9 @@
+{
+  "domain": "Subscription",
+  "batch_jobs": [
+    {
+      "job": "subscription_notifications",
+      "category": "subscription"
+    }
+  ]
+}

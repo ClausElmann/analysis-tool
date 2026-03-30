@@ -1,0 +1,14 @@
+{
+  "domain": "Status",
+  "events": [
+    {
+      "event": "StatusUpdatesEvent",
+      "publishers": [
+        "ServiceAlert.Services/Messages/MessageService.cs"
+      ],
+      "handlers": [
+        "StatusUpdatesEventListener"
+      ]
+    }
+  ]
+}

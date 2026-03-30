@@ -1,0 +1,121 @@
+{
+  "domain": "Cleanup",
+  "batch_jobs": [
+    {
+      "job": "cleanup_azure",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_azure_profile_storage_files",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_messages",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_systemlogs",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_bisnode_sweden",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_deletedsubscriptions",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_kamstrup_ready",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_kamstrup_ready_meter_addresses",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_duplicate_redundant_logs",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_positivelists",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_sendertips",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_emailmessages",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_statstidendedata",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_eboksmessages",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_requestlogs",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_enrollees",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_deactivated_users",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_deactivated_customers",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_deactivated_profiles",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_prospects",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_smslogsstatuses",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_dataimport_files",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_dataimportrows",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_iframerequests",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_clientevents",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_maprequest",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_webhookmessages",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_processed_inbound_emails",
+      "category": "cleanup"
+    },
+    {
+      "job": "cleanup_cached_phonenumbers",
+      "category": "cleanup"
+    }
+  ]
+}

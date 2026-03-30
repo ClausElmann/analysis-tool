@@ -1,0 +1,153 @@
+{
+  "domain": "Import",
+  "batch_jobs": [
+    {
+      "job": "import_dk_addresses",
+      "category": "import"
+    },
+    {
+      "job": "import_se_addresses",
+      "category": "import"
+    },
+    {
+      "job": "import_no_addresses",
+      "category": "import"
+    },
+    {
+      "job": "import_no_properties",
+      "category": "import"
+    },
+    {
+      "job": "poslist_ftp_import",
+      "category": "import"
+    },
+    {
+      "job": "import_dk_owner_addresses",
+      "category": "import"
+    },
+    {
+      "job": "import_dk_owner_bfe_lookup",
+      "category": "import"
+    },
+    {
+      "job": "import_dk_owner_publish_data",
+      "category": "import"
+    },
+    {
+      "job": "import_robinsons",
+      "category": "import"
+    },
+    {
+      "job": "import_provider_phonenumbers",
+      "category": "import"
+    },
+    {
+      "job": "import_fi_addresses_map",
+      "category": "import"
+    },
+    {
+      "job": "import_standard_receivers",
+      "category": "import"
+    },
+    {
+      "job": "import_ftp_subscriptions",
+      "category": "import"
+    },
+    {
+      "job": "import_ftp_enrollments",
+      "category": "import"
+    },
+    {
+      "job": "import_company_registrations",
+      "category": "import"
+    },
+    {
+      "job": "export_translations",
+      "category": "import"
+    },
+    {
+      "job": "import_translations",
+      "category": "import"
+    },
+    {
+      "job": "import_economic_customers",
+      "category": "import"
+    },
+    {
+      "job": "import_economic_invoices",
+      "category": "import"
+    },
+    {
+      "job": "import_economic_invoices_scheduled",
+      "category": "import"
+    },
+    {
+      "job": "import_salesforce",
+      "category": "import"
+    },
+    {
+      "job": "import_balance_sheets",
+      "category": "import"
+    },
+    {
+      "job": "import_balance_sheets_costcenter",
+      "category": "import"
+    },
+    {
+      "job": "import_budget",
+      "category": "import"
+    },
+    {
+      "job": "import_framweb_result_report",
+      "category": "import"
+    },
+    {
+      "job": "import_framweb_result_report_abonnement",
+      "category": "import"
+    },
+    {
+      "job": "import_framweb_balance_sheets",
+      "category": "import"
+    },
+    {
+      "job": "export_phonenumbers",
+      "category": "import"
+    },
+    {
+      "job": "import_phonenumbers",
+      "category": "import"
+    },
+    {
+      "job": "import_industries_from_file",
+      "category": "import"
+    },
+    {
+      "job": "import_industries_from_file_db25dk",
+      "category": "import"
+    },
+    {
+      "job": "export_infobip_scenarios",
+      "category": "import"
+    },
+    {
+      "job": "import_infobip_scenarios",
+      "category": "import"
+    },
+    {
+      "job": "export_no_addresses",
+      "category": "import"
+    },
+    {
+      "job": "import_no_people_initial",
+      "category": "import"
+    },
+    {
+      "job": "import_no_people_incremental",
+      "category": "import"
+    },
+    {
+      "job": "import_no_people_publish_data",
+      "category": "import"
+    }
+  ]
+}

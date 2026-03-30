@@ -1,0 +1,11 @@
+{
+  "domain": "NineteenNineteen",
+  "integrations": [],
+  "webhooks": [
+    {
+      "controller": "NineteenNineteenController",
+      "source": "NineteenNineteen"
+    }
+  ],
+  "background_services": []
+}

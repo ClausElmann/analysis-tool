@@ -1,0 +1,9 @@
+[
+  "LoginEmailPasswordDto",
+  "ProfileAccessModel",
+  "ProfileRoleAccessModel",
+  "TokenDto",
+  "UpdateUserCommand",
+  "UserDto",
+  "UserInfoDto"
+]

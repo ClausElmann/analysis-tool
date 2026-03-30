@@ -1,0 +1,262 @@
+{
+  "domain": "I",
+  "integrations": [
+    {
+      "interface": "IEboksService",
+      "implementation": "EboksService",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IFacebookHttpClientFactory",
+      "implementation": "FacebookHttpClientFactory",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IGatewayApiClient",
+      "implementation": "GatewayApiClient",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IGatewayApiHttpClientFactory",
+      "implementation": "GatewayApiHttpClientFactory",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IInfobipClientFactory",
+      "implementation": "InfobipClientFactory",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IInfoportalClient",
+      "implementation": "InfoportalClient",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IMonitoringService",
+      "implementation": "MonitoringService",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "INorwegianPhoneNumberService",
+      "implementation": "NorwegianPhoneNumberService",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IReadyService",
+      "implementation": "ReadyService",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IStrexApiClient",
+      "implementation": "StrexApiClient",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IWebhookMessageSender",
+      "implementation": "WebhookMessageSender",
+      "host_project": "ServiceAlert.Api"
+    },
+    {
+      "interface": "IAuthenticationService",
+      "implementation": "AuthenticationService",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IDanishAddressImporter",
+      "implementation": "DanishAddressImporter",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IEboksService",
+      "implementation": "EboksService",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IEconomicHttpClient",
+      "implementation": "EconomicHttpClient",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IEjerfortegnelseAppService",
+      "implementation": "EjerfortegnelseAppService",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IFacebookHttpClientFactory",
+      "implementation": "FacebookHttpClientFactory",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IFinnishCompanyRegistrationImporterService",
+      "implementation": "FinnishRegistrationImporterService",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IGatewayApiClient",
+      "implementation": "GatewayApiClient",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IGatewayApiHttpClientFactory",
+      "implementation": "GatewayApiHttpClientFactory",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IInfobipClientFactory",
+      "implementation": "InfobipClientFactory",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IInfoportalClient",
+      "implementation": "InfoportalClient",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "ILantmaterietClient",
+      "implementation": "LantmaterietClient",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IMonitoringService",
+      "implementation": "MonitoringService",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "INorwegianAddressClient",
+      "implementation": "NorwegianAddressClient",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "INorwegianCompanyRegistrationImporterService",
+      "implementation": "NorwegianCompanyRegistrationImporterService",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "INorwegianPhoneNumberService",
+      "implementation": "NorwegianPhoneNumberService",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IProfinderApiClient",
+      "implementation": "ProfinderApiClient",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IQueueVoiceGatewayStrategy",
+      "implementation": "QueueApiVoiceGatewayStrategy",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IReadyService",
+      "implementation": "ReadyService",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IStatstidendeService",
+      "implementation": "StatstidendeService",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IStrexApiClient",
+      "implementation": "StrexApiClient",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "ISykeWebMapClient",
+      "implementation": "SykeWebMapClient",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IWebhookMessageSender",
+      "implementation": "WebhookMessageSender",
+      "host_project": "ServiceAlert.Batch"
+    },
+    {
+      "interface": "IAuthenticationService",
+      "implementation": "AuthenticationService",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IEboksService",
+      "implementation": "EboksService",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IEconomicHttpClient",
+      "implementation": "EconomicHttpClient",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IFacebookHttpClientFactory",
+      "implementation": "FacebookHttpClientFactory",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IFact24Service",
+      "implementation": "Fact24Service",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IGatewayApiClient",
+      "implementation": "GatewayApiClient",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IGatewayApiHttpClientFactory",
+      "implementation": "GatewayApiHttpClientFactory",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IInfobipClientFactory",
+      "implementation": "InfobipClientFactory",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IInfoportalClient",
+      "implementation": "InfoportalClient",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IMonitoringService",
+      "implementation": "MonitoringService",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "INorwegianPhoneNumberService",
+      "implementation": "NorwegianPhoneNumberService",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IPublicHolidaysClient",
+      "implementation": "KayapoSoftPublicHolidaysClient",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IReadyService",
+      "implementation": "ReadyService",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IStatstidendeService",
+      "implementation": "StatstidendeService",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IStrexApiClient",
+      "implementation": "StrexApiClient",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IWebhookMessageSender",
+      "implementation": "WebhookMessageSender",
+      "host_project": "ServiceAlert.Contracts"
+    },
+    {
+      "interface": "IKrrClient",
+      "implementation": "KrrClient",
+      "host_project": "ServiceAlert.Services"
+    }
+  ],
+  "webhooks": [],
+  "background_services": []
+}

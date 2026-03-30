@@ -1,0 +1,12 @@
+{
+  "domain": "Client",
+  "integrations": [],
+  "webhooks": [],
+  "background_services": [
+    {
+      "name": "ClientEventSyncroBackgroundService",
+      "type": "sync_worker",
+      "host": "ServiceAlert.Services"
+    }
+  ]
+}

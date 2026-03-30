@@ -1,0 +1,14 @@
+{
+  "domain": "Operations",
+  "confidence": 0.17,
+  "coverage": {
+    "api_endpoints": 0,
+    "batch_jobs": 1,
+    "events": 0,
+    "webhooks": 0,
+    "integrations": 0,
+    "background_services": 0
+  },
+  "complexity_score": 1,
+  "roi_score": 2
+}

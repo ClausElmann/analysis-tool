@@ -1,0 +1,13 @@
+{
+  "domain": "Converter",
+  "batch_jobs": [
+    {
+      "job": "trimble_convert_to_poslist_format",
+      "category": "converter"
+    },
+    {
+      "job": "fof_convert_to_poslist_format",
+      "category": "converter"
+    }
+  ]
+}

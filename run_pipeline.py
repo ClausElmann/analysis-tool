@@ -40,6 +40,7 @@ REQUIRED_FILES = {
     "event_map.json":           "events",
     "integrations.json":        "integrations",
     "realtime_map.json":        "streams",
+    "rabbitmq_topology.json":   "connections",
     "work_item_analysis.json":  "features",
     "system_model.json":        "modules",
     "system_model_extended.json": "modules",

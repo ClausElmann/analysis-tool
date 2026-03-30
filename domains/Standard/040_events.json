@@ -1,0 +1,15 @@
+{
+  "domain": "Standard",
+  "events": [
+    {
+      "event": "StandardReceiverGroupMessageReceivedNotification",
+      "publishers": [
+        "ServiceAlert.Api/Controllers/Webhooks/GatewayApiController.cs",
+        "ServiceAlert.Api/Controllers/Webhooks/NineteenNineteenController.cs"
+      ],
+      "handlers": [
+        "StandardReceiverGroupMessageReceivedNotificationHandler"
+      ]
+    }
+  ]
+}

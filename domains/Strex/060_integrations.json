@@ -1,0 +1,11 @@
+{
+  "domain": "Strex",
+  "integrations": [],
+  "webhooks": [
+    {
+      "controller": "StrexController",
+      "source": "Strex"
+    }
+  ],
+  "background_services": []
+}

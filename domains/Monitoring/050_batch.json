@@ -1,0 +1,49 @@
+{
+  "domain": "Monitoring",
+  "batch_jobs": [
+    {
+      "job": "monitoring_address_imports",
+      "category": "monitoring"
+    },
+    {
+      "job": "watchdog_databasecheck",
+      "category": "monitoring"
+    },
+    {
+      "job": "watchdog_fatalerrors",
+      "category": "monitoring"
+    },
+    {
+      "job": "watchdog_version",
+      "category": "monitoring"
+    },
+    {
+      "job": "monitoring",
+      "category": "monitoring"
+    },
+    {
+      "job": "monitoring_daily",
+      "category": "monitoring"
+    },
+    {
+      "job": "monitoring_import_jobs",
+      "category": "monitoring"
+    },
+    {
+      "job": "send_error_500_report",
+      "category": "monitoring"
+    },
+    {
+      "job": "send_error_400_report",
+      "category": "monitoring"
+    },
+    {
+      "job": "send_system_messages_report",
+      "category": "monitoring"
+    },
+    {
+      "job": "check_certificate",
+      "category": "monitoring"
+    }
+  ]
+}

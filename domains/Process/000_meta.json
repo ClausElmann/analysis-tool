@@ -1,0 +1,14 @@
+{
+  "domain": "Process",
+  "confidence": 0.17,
+  "coverage": {
+    "api_endpoints": 8,
+    "batch_jobs": 0,
+    "events": 0,
+    "webhooks": 0,
+    "integrations": 0,
+    "background_services": 0
+  },
+  "complexity_score": 2,
+  "roi_score": 2
+}

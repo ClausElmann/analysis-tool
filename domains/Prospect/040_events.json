@@ -1,0 +1,14 @@
+{
+  "domain": "Prospect",
+  "events": [
+    {
+      "event": "ProspectCreatedInEconomicNotification",
+      "publishers": [
+        "ServiceAlert.Services/Pipelines/PipelinesService.cs"
+      ],
+      "handlers": [
+        "ProspectCreatedInEconomicNotificationHandler"
+      ]
+    }
+  ]
+}

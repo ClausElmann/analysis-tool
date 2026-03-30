@@ -1,0 +1,12 @@
+{
+  "domain": "Status",
+  "integrations": [],
+  "webhooks": [],
+  "background_services": [
+    {
+      "name": "StatusWatcher",
+      "type": "poller",
+      "host": "ServiceAlert.Worker.Voice"
+    }
+  ]
+}

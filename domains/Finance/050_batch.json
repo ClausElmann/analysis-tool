@@ -1,0 +1,13 @@
+{
+  "domain": "Finance",
+  "batch_jobs": [
+    {
+      "job": "economic_periodize_invoicelines",
+      "category": "finance"
+    },
+    {
+      "job": "economic_update_reporting",
+      "category": "finance"
+    }
+  ]
+}

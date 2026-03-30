@@ -1,0 +1,9 @@
+{
+  "domain": "Database",
+  "batch_jobs": [
+    {
+      "job": "azure_sql_maintenance",
+      "category": "database_maintenance"
+    }
+  ]
+}

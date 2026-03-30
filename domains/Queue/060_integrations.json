@@ -1,0 +1,12 @@
+{
+  "domain": "Queue",
+  "integrations": [],
+  "webhooks": [],
+  "background_services": [
+    {
+      "name": "QueueWorker",
+      "type": "queue_consumer",
+      "host": "ServiceAlert.Worker.Voice"
+    }
+  ]
+}

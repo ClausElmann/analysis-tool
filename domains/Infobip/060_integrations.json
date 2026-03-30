@@ -1,0 +1,11 @@
+{
+  "domain": "Infobip",
+  "integrations": [],
+  "webhooks": [
+    {
+      "controller": "InfobipWebhookController",
+      "source": "Infobip"
+    }
+  ],
+  "background_services": []
+}

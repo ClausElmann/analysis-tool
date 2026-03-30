@@ -1,0 +1,14 @@
+{
+  "domain": "Subscribe",
+  "events": [
+    {
+      "event": "SubscribeUnsubscribeReceiptRequestedNotification",
+      "publishers": [
+        "ServiceAlert.Services/SupplyNumbers/SupplyNumberService.cs"
+      ],
+      "handlers": [
+        "SubscribeUnsubscribeReceiptRequestedNotificationHandler"
+      ]
+    }
+  ]
+}

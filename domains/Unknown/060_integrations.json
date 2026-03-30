@@ -1,0 +1,15 @@
+{
+  "domain": "Unknown",
+  "integrations": [],
+  "webhooks": [
+    {
+      "controller": "ProfileController",
+      "source": "Unknown"
+    },
+    {
+      "controller": "WebhooksController",
+      "source": "Unknown"
+    }
+  ],
+  "background_services": []
+}

@@ -1,0 +1,17 @@
+{
+  "domain": "Client",
+  "events": [
+    {
+      "event": "ClientEventServiceConnectEvent",
+      "publishers": [
+        "ServiceAlert.Services/ClientEvents/Infrastructure/ClientEventServerSentEventsService.cs"
+      ],
+      "handlers": [
+        "ActiveJobsClientEventConnectEventListener",
+        "ConversationClientEventConnectEventListener",
+        "LookupClientEventConnectEventListener",
+        "ProgressWatcherInfoClientEventConnectEventListener"
+      ]
+    }
+  ]
+}

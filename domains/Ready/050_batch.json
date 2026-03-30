@@ -1,0 +1,17 @@
+{
+  "domain": "Ready",
+  "batch_jobs": [
+    {
+      "job": "ready_warning_reader",
+      "category": "ready"
+    },
+    {
+      "job": "ready_warning_missed_meters_mail",
+      "category": "ready"
+    },
+    {
+      "job": "ready_dawa_address_match",
+      "category": "ready"
+    }
+  ]
+}

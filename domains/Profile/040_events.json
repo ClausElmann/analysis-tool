@@ -1,0 +1,19 @@
+{
+  "domain": "Profile",
+  "events": [
+    {
+      "event": "ProfilePositiveListCopyLevelFiltersCommand",
+      "publishers": [
+        "ServiceAlert.Services/Messages/MessageService.cs"
+      ],
+      "handlers": [
+        "LevelService"
+      ]
+    },
+    {
+      "event": "ProfilePositiveListSelectLevelFiltersCommand",
+      "publishers": [],
+      "handlers": []
+    }
+  ]
+}

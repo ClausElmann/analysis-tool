@@ -1,0 +1,14 @@
+{
+  "domain": "Enrollment",
+  "events": [
+    {
+      "event": "EnrollmentCreatedEvent",
+      "publishers": [
+        "ServiceAlert.Services/Enrollments/EnrollmentService.cs"
+      ],
+      "handlers": [
+        "EnrollmentCreatedEventHandler"
+      ]
+    }
+  ]
+}

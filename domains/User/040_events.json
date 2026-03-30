@@ -1,0 +1,14 @@
+{
+  "domain": "User",
+  "events": [
+    {
+      "event": "UserContactDetailsUpdatedNotification",
+      "publishers": [
+        "ServiceAlert.Services/Users/UserService.cs"
+      ],
+      "handlers": [
+        "UserContactDetailsUpdatedNotificationHandler"
+      ]
+    }
+  ]
+}

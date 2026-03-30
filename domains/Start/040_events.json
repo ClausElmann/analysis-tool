@@ -1,0 +1,14 @@
+{
+  "domain": "Start",
+  "events": [
+    {
+      "event": "StartLookupBatchNotification",
+      "publishers": [
+        "ServiceAlert.Test.Integration/Services/IntegrationBatchAppService.cs"
+      ],
+      "handlers": [
+        "StartLookupBatchNotificationHandler"
+      ]
+    }
+  ]
+}

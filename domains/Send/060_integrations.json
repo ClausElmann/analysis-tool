@@ -1,0 +1,12 @@
+{
+  "domain": "Send",
+  "integrations": [],
+  "webhooks": [],
+  "background_services": [
+    {
+      "name": "SendGridBackgroundService",
+      "type": "dispatcher",
+      "host": "ServiceAlert.Services"
+    }
+  ]
+}

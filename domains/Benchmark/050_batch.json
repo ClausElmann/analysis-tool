@@ -1,0 +1,13 @@
+{
+  "domain": "Benchmark",
+  "batch_jobs": [
+    {
+      "job": "push_infoportal_entries",
+      "category": "benchmark"
+    },
+    {
+      "job": "autoclose_infoportal_entries",
+      "category": "benchmark"
+    }
+  ]
+}

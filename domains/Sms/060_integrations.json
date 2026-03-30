@@ -1,0 +1,17 @@
+{
+  "domain": "Sms",
+  "integrations": [],
+  "webhooks": [],
+  "background_services": [
+    {
+      "name": "SmsLogBackgroundService",
+      "type": "logger",
+      "host": "ServiceAlert.Services"
+    },
+    {
+      "name": "SmsBackgroundService",
+      "type": "worker",
+      "host": "ServiceAlert.Services"
+    }
+  ]
+}

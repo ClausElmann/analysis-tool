@@ -1,0 +1,21 @@
+{
+  "domain": "Scheduled",
+  "batch_jobs": [
+    {
+      "job": "create_scheduled_broadcast",
+      "category": "scheduled_broadcast"
+    },
+    {
+      "job": "create_schedules_from_file",
+      "category": "scheduled_broadcast"
+    },
+    {
+      "job": "process_warnings",
+      "category": "scheduled_broadcast"
+    },
+    {
+      "job": "email_norecipient_warnings",
+      "category": "scheduled_broadcast"
+    }
+  ]
+}

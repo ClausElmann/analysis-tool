@@ -1,0 +1,14 @@
+{
+  "domain": "Benchmark",
+  "confidence": 0.5,
+  "coverage": {
+    "api_endpoints": 22,
+    "batch_jobs": 2,
+    "events": 1,
+    "webhooks": 0,
+    "integrations": 0,
+    "background_services": 0
+  },
+  "complexity_score": 6,
+  "roi_score": 6
+}

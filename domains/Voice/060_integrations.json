@@ -1,0 +1,12 @@
+{
+  "domain": "Voice",
+  "integrations": [],
+  "webhooks": [],
+  "background_services": [
+    {
+      "name": "VoiceBackgroundService",
+      "type": "worker",
+      "host": "ServiceAlert.Services"
+    }
+  ]
+}

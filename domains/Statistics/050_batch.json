@@ -1,0 +1,37 @@
+{
+  "domain": "Statistics",
+  "batch_jobs": [
+    {
+      "job": "statistics_write_requestlogs",
+      "category": "statistics"
+    },
+    {
+      "job": "statistics_write_addressdata",
+      "category": "statistics"
+    },
+    {
+      "job": "statistics_write_phonedata",
+      "category": "statistics"
+    },
+    {
+      "job": "archive_message",
+      "category": "statistics"
+    },
+    {
+      "job": "archive_messages",
+      "category": "statistics"
+    },
+    {
+      "job": "snapshot_benchmark_kvhx_statistics",
+      "category": "statistics"
+    },
+    {
+      "job": "calculate_smsgroup_statistics",
+      "category": "statistics"
+    },
+    {
+      "job": "statistics_write_map_request",
+      "category": "statistics"
+    }
+  ]
+}

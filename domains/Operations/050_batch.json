@@ -1,0 +1,9 @@
+{
+  "domain": "Operations",
+  "batch_jobs": [
+    {
+      "job": "webhook_messages",
+      "category": "operations"
+    }
+  ]
+}

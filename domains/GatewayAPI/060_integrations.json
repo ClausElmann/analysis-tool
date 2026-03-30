@@ -1,0 +1,15 @@
+{
+  "domain": "GatewayAPI",
+  "integrations": [],
+  "webhooks": [
+    {
+      "controller": "MessageController",
+      "source": "GatewayAPI"
+    },
+    {
+      "controller": "GatewayApiController",
+      "source": "GatewayAPI"
+    }
+  ],
+  "background_services": []
+}

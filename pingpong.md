@@ -1,6 +1,7 @@
-# ServiceAlert — Komplet Arkitektrapport (29. marts 2026)
+# ServiceAlert — Komplet Arkitektrapport (30. marts 2026)
 
 > Baseret på dybdegående scanning af hele `c:\Udvikling\sms-service` med særligt fokus på Angular-frontenden.
+> Senest opdateret: 30. marts 2026 — DomainEngine v3 tilføjet (sektion 22), testantal opdateret til 762.
 
 ---
 
@@ -14,7 +15,7 @@
 | SLICE_0_5 | OK | 3 | `wiki_signals.json` | Wiki-signaler |
 | SLICE_0_7 | OK | 41 | `pdf_capabilities.json` | PDF-kapabiliteter |
 | SLICE_0_8 | OK | 3395 | `git_insights.json` | Git-historik |
-| SLICE_9 | OK | 319 | `db_schema.json` | DB-tabeller |
+| SLICE_9 | OK | 447 | `db_schema.json` | DB-skema (tabeller, procedures, views, funktioner, typer) |
 | SLICE_11 | OK | 115 | `label_map.json` | i18n namespaces |
 | SLICE_1 | OK | 69 | `angular_entries.json` | Angular-ruter |
 | SLICE_1b | OK | 14 | `angular_apps.json` | iFrame/sub Angular apps (3 sub-apps) |
@@ -65,10 +66,10 @@
 
 ```
 platform win32 -- Python 3.11.9, pytest-9.0.2
-289 passed in 43.21s
+762 passed in 30.18s
 ```
 
-### Output-filer (24 filer)
+### Output-filer (25 filer)
 
 | Fil | Items | Key |
 |---|---|---|
@@ -76,10 +77,10 @@ platform win32 -- Python 3.11.9, pytest-9.0.2
 | `wiki_signals.json` | 3 | capabilities |
 | `pdf_capabilities.json` | 41 | capabilities |
 | `git_insights.json` | 3395 | insights |
-| `db_schema.json` | 319 | tables |
+| `db_schema.json` | 447 | tables (319) + procedures (99) + views (3) + functions (8) + UDTs (18) |
 | `label_map.json` | 115 | namespaces |
 | `angular_entries.json` | 69 | entry_points |
-| `angular_apps.json` | 14 | apps (routes across 3 sub-apps) |
+| `angular_apps.json` | 3 | apps (3 sub-apps, 14 routes total) |
 | `mvc_routes.json` | 63 | mvc_routes |
 | `component_api_map.json` | 4 | mappings |
 | `api_db_map.json` | 57 | mappings |
@@ -892,7 +893,121 @@ Region: NorwayEast
 
 ---
 
-## 12. Kendte arkitektoniske observationer
+## 12. Ressourceinventar — AI vs. Script klassifikation
+
+> Komplet scanning af alle datakilder. Formål: beslutte hvilke slices forbliver script-baserede og hvor AI er påkrævet.
+
+### Kodebase
+
+| Type | Antal | Kompleksitet | Anbefalet behandling |
+|---|---|---|---|
+| TypeScript-filer (.ts) | **1.698** | HIGH | HYBRID — struktur via script, semantik via AI |
+| HTML-templates | **490** | MEDIUM | SCRIPT — binding-mønstre, component-refs |
+| SCSS/CSS | **203** | LOW | SCRIPT — fuldt deterministisk |
+| Angular components | **548** | HIGH | HYBRID — 69 ruter fanget, ~480 sub-komponenter ukategoriseret |
+| Angular services (.service.ts) | **129** | HIGH | HYBRID |
+| C# filer (.cs) | **3.193** | HIGH | HYBRID — controllers/repos via script, domænelogik via AI |
+| C# Controllers | **83** | MEDIUM | SCRIPT — [Route]/[HttpGet]-attributter, allerede fanget i SLICE_1c + 3b |
+| C# Services | **222** | HIGH | HYBRID — dependency graph via script, formål via AI |
+| C# Repositories | **174** | MEDIUM | SCRIPT — Dapper/EF query-mønstre |
+
+### Database
+
+| Type | Antal (SQL-filer) | Antal (live schema) | Anbefalet behandling |
+|---|---|---|---|
+| Tabeller | 319 | 319 | HYBRID — kolonner via script, domænegruppering via AI |
+| Stored procedures | 100 | 99 | HYBRID — signaturer via script, forretningslogik via AI |
+| Views | 3 | 3 | SCRIPT |
+| Funktioner | 9 | 8 | SCRIPT |
+| User defined types | 18 | 18 | SCRIPT |
+| Test-datafiler | 21 | — | SCRIPT |
+| SQL-filer total | **501** | — | — |
+
+### Wiki
+
+| Metric | Værdi |
+|---|---|
+| .md-filer | **180** |
+| Total linjer | **10.175** |
+| Gns. linjer/fil | 57 |
+| Max linjer (enkeltfil) | 697 |
+| Nuværende pipeline-output | **3 signaler** (SLICE_0_5) |
+| Anbefalet behandling | **AI** — fri tekst: principper, agendaer, code review guidelines |
+
+> ⚠️ Næsten alt wiki-indhold er uudnyttet. 10.000+ linjer arkitekturbeslutninger og principper fanger ingen pipeline-signaler i dag.
+
+### PDF
+
+| Fil | Sider | Størrelse | Behandling |
+|---|---|---|---|
+| `example.pdf` | 4 | 49 KB | AI (allerede delvist via SLICE_0_7) |
+| `Bootstrap-vs-Material-Design-vs-Prime-vs-Tailwind.pdf` | 19 | 7.781 KB | AI — tech selection dokument med arkitekturrelevans |
+| **Total** | **23** | — | — |
+
+### DevOps Work Items
+
+| Metric | Værdi |
+|---|---|
+| Total items | **11.622** |
+| Capabilities (unik) | 6 |
+| Gns. keywords/item | 10,5 |
+| Raw beskrivelsestekst | ❌ Ikke tilgængelig i `work_item_analysis.json` (pre-processeret) |
+| Anbefalet behandling | **AI** — dansk/engelsk naturlig sprog, kapabilitetsmapping er overfladisk |
+
+### Git Insights
+
+| Type | Antal |
+|---|---|
+| `fix` | 1.780 |
+| `feature` | 882 |
+| `rule` | 577 |
+| `refactor` | 132 |
+| `risk` | 24 |
+| **Total** | **3.395** |
+
+> Typeklassifikation er allerede script-baseret. `risk`-kategorien (24 items) er høj AI-prioritet trods lille volumen.
+
+### i18n Labels
+
+| Metric | Værdi | Behandling |
+|---|---|---|
+| Namespaces | **115** | SCRIPT — fuldt fanget af SLICE_11 |
+| Estimerede label-nøgler | ~1.725 (115 ns × ~15 keys) | SCRIPT |
+
+---
+
+### AI-belastningsestimering
+
+| Ressource | Items | Tokens/item | Total tokens |
+|---|---|---|---|
+| Wiki markdown-filer | 180 | 700 | 126.000 |
+| PDF-sider | 23 | 600 | 13.800 |
+| Work items (pre-processeret) | 11.622 | 80 | **929.760** |
+| Work items (rå ADO, hvis tilgængelig) | 11.622 | ~400 | ~4.650.000 |
+| Git commit-beskeder | 3.395 | 60 | 203.700 |
+| Angular components (semantisk) | 548 | 300 | 164.400 |
+| C# services (domæneklassifikation) | 222 | 500 | 111.000 |
+| SQL stored procedures (logikanalyse) | 100 | 800 | 80.000 |
+| **Minimum AI total** | | | **~1,6M tokens** |
+| **Maksimum (rå kilder)** | | | **~8–24M tokens** |
+
+---
+
+### Hotspots — prioriteret
+
+| Prioritet | Type | Antal | Årsag |
+|---|---|---|---|
+| 🔴 HIGH | Work items | 11.622 | Største dataset. NL-titler DK/EN. Kun 6 capability-buckets i dag — alt for groft. |
+| 🔴 HIGH | Git insights | 3.395 | `risk`-kategorien er ubehandlet. Arkitekturmønstre på tværs af commits ikke ekstraheret. |
+| 🔴 HIGH | C# source | 3.193 | 222 services + 174 repos = 396 filer mangler semantisk domæneklassifikation. |
+| 🟡 MEDIUM | Angular components | 548 | ~480 sub-komponenter ikke koblet til business capability. SLICE_1 dækkede kun 69. |
+| 🟡 MEDIUM | Wiki markdown | 180 | 10.175 linjer arkitekturviden. Næsten intet udnyttet. Kræver dedikeret AI-slice. |
+| 🟡 MEDIUM | SQL stored procedures | 100 | Signaturer er script-analyserede. Forretningslogik og side-effects kræver AI. |
+| 🟢 LOW | PDF | 2 | 23 sider total. Bootstrap vs Material er arkitekturrelevant men lavt volumen. |
+
+---
+
+## 13. Kendte arkitektoniske observationer
 
 1. **Dual-app arkitektur:** Systemet har to brugerfrontender — Angular SPA (`ServiceAlert.Web`) og Razor MVC-sider (enrollment, SAML2). Disse deler backend-tjenester men har separate authentication-flows.
 
@@ -905,3 +1020,1174 @@ Region: NorwayEast
 5. **SAML2 per kunde:** Hver kunde kan have sin egen IdP-konfiguration (`CustomerSamlSettings`), cached i `IMemoryCache`.
 
 6. **Angular 20 — moderne patterns:** Bruger `inject()` DI, standalone components, `loadComponent()` lazy-loading, og signal-baseret state (`set()`, `signal()`).
+
+---
+
+## 14. AI Asset Engine — Adaptiv Chunking
+
+> Implementeret 30. marts 2026. Tre nye moduler i `core/`.
+
+### Formål
+
+Gruppér alle datakilder i meningsfulde enheder (assets) inden AI-behandling — i stedet for at sende rå filer én ad gangen. Muliggør stabil state-tracking, inkrementel genbehandling og præcis token-budgettering.
+
+---
+
+### Nye moduler
+
+| Modul | Fil | Ansvar |
+|---|---|---|
+| `AssetScanner` | `core/asset_scanner.py` | Scan alle datakilder → returnér flad liste af Asset-dicts |
+| `AssetState` | `core/asset_state.py` | Persistér behandlingstilstand i `data/asset_state.json` |
+| `AssetProcessor` | `core/asset_processor.py` | Iterer over assets, filtrer uændrede, kald handlers, log |
+
+---
+
+### Grupperingsregler (per type)
+
+| Type | Kilde | Strategi | Gruppe-enhed | ID-mønster |
+|---|---|---|---|---|
+| `pdf_section` | PDF-filer i `raw/` | TOC hvis tilgængelig → ellers font-størrelse headings | N sider per sektion | `pdf:{fil}:{section_index}` |
+| `wiki_section` | Wiki `.md`-filer | Split på `##`+ headings | 1 sektion | `wiki:{fil}:{section_index}` |
+| `work_items_batch` | `work_item_analysis.json` | Sorteret på id, vinduer af 100 | 100 items | `work_items:batch:{n}` |
+| `git_insights_batch` | `git_insights.json` | Sorteret på id, vinduer af 100 | 100 items | `git_insights:batch:{n}` |
+| `labels_namespace` | `label_map.json` | 1 namespace = 1 asset | `key_count` nøgler | `labels:ns:{namespace}` |
+| `code_file` | Kildekode i `solution_root` | Uændret — 1 fil = 1 asset | 1 fil | `code:{rel/sti}` |
+
+---
+
+### Live scan-resultater (uden kode-filer)
+
+| Type | Assets | Kilde |
+|---|---|---|
+| `pdf_section` | **60** | 2+ PDF-filer via TOC-strategi |
+| `wiki_section` | **28** | 180 `.md`-filer → 28 sections (samlet wiki er <30 unikke sections pga. lav heading-tæthed) |
+| `work_items_batch` | **117** | 11.622 items / 100 per batch |
+| `git_insights_batch` | **34** | 3.395 insights / 100 per batch |
+| `labels_namespace` | **115** | 1 per namespace |
+| **Total** | **354** | — |
+
+---
+
+### State-system
+
+- Persisteret i `data/asset_state.json` (atomisk skrivning via `.tmp` + `os.replace`)
+- Et asset er **stale** hvis: id er nyt, ELLER `content_hash` (SHA-256) er ændret
+- For batch-typer: ændring i ét item → hele batchen genbehandles
+- `reset_asset(id)` tvinger genbehandling af specifikt asset
+- `reset_all()` nulstiller komplet state
+
+**Verificeret:** Anden run på uændrede data → 0 processed, 354 skipped.
+
+---
+
+### Logging-format
+
+```
+[SCAN]    Scanning all assets...
+[SCAN]    Scanned 354 assets (354 stale)
+[PROCESS] pdf_section          "manual.pdf" §3                     (2 pages)
+[PROCESS] work_items_batch     batch 0                             (100 items)
+[PROCESS] wiki_section         Architecture.md §1 "Overview"       (1 section)
+[SKIP]    code_file            "code:ServiceAlert.Web/..."          unchanged
+[DONE]    Processed 354 assets  Skipped 0  Errors 0
+```
+
+---
+
+### Tests
+
+| Testklasse | Tests | Dækker |
+|---|---|---|
+| `TestWikiSplitSections` | 6 | Heading-split, no-overlap, level-bevaring, tom fil |
+| `TestScanWorkItemAssets` | 7 | Batch-størrelse 100, stabile IDs, hash-ændring, ingen duplikering |
+| `TestScanGitInsightAssets` | 4 | Batch-størrelse, type-aggregering, ingen duplikering |
+| `TestScanLabelAssets` | 4 | 1 asset/namespace, id-format, sortering |
+| `TestScanWikiAssets` | 6 | Level-2 split, section_index, no-overlap, tom fil hoppes over |
+| `TestScanCodeAssets` | 6 | 1 fil/asset, node_modules skippes, forward-slash IDs |
+| `TestAssetState` | 8 | Stale-detektion, disk-persistens, reset, atomisk skrivning |
+| `TestAssetProcessor` | 10 | End-to-end run, idempotens, hash-change trigger, fejlhåndtering |
+| `TestSha256` | 3 | Determinisme, hex-format |
+| **Total nye tests** | **54** | — |
+
+```
+374 passed in 28.24s  (+54 asset system, +31 domain pipeline)
+```
+
+---
+
+### Hard rules (opfyldt)
+
+| Regel | Status |
+|---|---|
+| Deterministisk gruppering (samme input → samme output) | ✅ |
+| Stabile IDs (aldrig ændret medmindre struktur ændres) | ✅ |
+| Ingen duplikering på tværs af grupper | ✅ |
+| Ingen overlap (hvert item optræder i præcis én gruppe) | ✅ |
+| `group_size` på hvert asset | ✅ |
+| `content_hash` på hvert asset | ✅ |
+
+---
+
+## 15. Domain Pipeline — Multi-stage AI Extraction
+
+> Implementeret 30. marts 2026. Fire nye moduler i `core/`.
+
+### Formål
+
+Køre hvert asset igennem fire AI-stadier i rækkefølge, persistere state efter **hvert** stadie, og støtte ubegrænset restart uden tab af data. Output er maskinlæsbare domænefiler — ikke menneskelig dokumentation.
+
+---
+
+### Nye moduler
+
+| Modul | Fil | Ansvar |
+|---|---|---|
+| `StageState` | `core/stage_state.py` | Tracker per-asset per-stage status i `data/stage_state.json` |
+| `AIProcessor` | `core/ai_processor.py` | Abstrakt interface + `StubAIProcessor` (no-op) + `CopilotAIProcessor` (gpt-4.1) |
+| `PromptBuilder` | `core/prompt_builder.py` | Bygger stage- og asset-type-specifikke prompts |
+| `DomainPipeline` | `core/domain_pipeline.py` | Orchestrerer scan → filter-stale → multi-stage-AI → persist loop |
+
+---
+
+### Stadie-rækkefølge
+
+```
+structured_extraction → semantic_analysis → domain_mapping → refinement
+```
+
+| Stadie | Opgave |
+|---|---|
+| `structured_extraction` | Udtræk strukturerede fakta: entitetsnavne, API-signaturer, datastrukturer, eksplicitte relationer |
+| `semantic_analysis` | Ansvar og intent: hvad gør komponenten? hvilken business capability? hvem kalder den og hvorfor? |
+| `domain_mapping` | Klassificer til domæne-koncepter: entities, behaviors, flows, events, rules, integrations |
+| `refinement` | Flet og normaliser. Tilføj pseudokode for komplekse flows. Producér rebuild requirements |
+
+---
+
+### Domæne output-format (per asset per stadie)
+
+```json
+{
+  "asset_id": "wiki:Architecture.md:3",
+  "stage": "domain_mapping",
+  "entities": [],
+  "behaviors": [],
+  "flows": [],
+  "events": [],
+  "batch_jobs": [],
+  "integrations": [],
+  "rules": [],
+  "pseudocode": [],
+  "rebuild_requirements": []
+}
+```
+
+Output-filer skrives til: `{output_root}/{stage}/{safe_asset_id}.json`
+
+---
+
+### State-system
+
+- Persisteret i `data/stage_state.json` (atomisk via `.tmp` + `os.replace`)
+- State gemmes efter **hvert enkelt stadie** — crash-safe
+- Et asset er **stale** (alle stadier pending) hvis `content_hash` ændres
+- Et failed stadie forbliver pending til det lykkes
+- `reset_asset(id)` tvinger genbehandling, `reset_all()` nulstiller komplet
+
+**Verificeret:** Andet run på uændrede data → 0 processed, alle assets skipped.
+
+---
+
+### Pipeline-parametre
+
+| Parameter | Effekt |
+|---|---|
+| `max_assets=N` | Stop efter N assets (støtter batch-kørsel over dage) |
+| `stages=["semantic_analysis"]` | Kør kun ét stadie — restart fra præcis det stadie |
+| `dry_run()` | Rapport over pending stadier uden at skrive noget |
+| `verbose=True` | Logger `[SCAN]` / `[DONE]` / `[SKIP]` / `[ERROR]` per stadie |
+
+---
+
+### Logging-format
+
+```
+[SCAN      ] Scanned 354 assets
+[DONE      ] wiki_section             structured_extraction    wiki:Architecture.md:3
+[DONE      ] wiki_section             semantic_analysis        wiki:Architecture.md:3
+[SKIP      ] code_file                wiki:ServiceAlert.Web/...  (unchanged)
+[ERROR     ] pdf_section              domain_mapping           pdf:manual.pdf:5 — AI offline
+[DONE      ] Processed 42  Skipped 312  Errors 1
+```
+
+---
+
+### Prompt-regler (håndhævet i alle prompts)
+
+| Regel | Status |
+|---|---|
+| ALDRIG kopier kildekode | ✅ |
+| Udtræk altid intent og ansvar | ✅ |
+| Normaliser altid navngivning | ✅ |
+| Returnér altid strict JSON | ✅ |
+| Refinement modtager forrige stadies output som kontekst | ✅ |
+
+---
+
+### AI-implementering — CopilotAIProcessor
+
+| Egenskab | Værdi |
+|---|---|
+| Endpoint | `https://api.githubcopilot.com` |
+| Default model | `gpt-4.1` (fri med GitHub Copilot-abonnement) |
+| Auth | `GITHUB_TOKEN` env var |
+| Retry | 3 forsøg ved rate-limit (429) og transiente fejl (5xx) |
+| JSON-mode | `response_format={"type": "json_object"}` |
+
+**Brug:**
+```python
+from core.ai_processor import CopilotAIProcessor
+processor = CopilotAIProcessor()   # gpt-4.1 via Copilot
+pipeline = DomainPipeline(scanner, stage_state, processor, "data/domain_output")
+pipeline.run(max_assets=50)
+```
+
+**Opsætning:** `pip install openai` + `$env:GITHUB_TOKEN = "ghp_..."`
+
+---
+
+### Tests
+
+| Testklasse | Tests | Dækker |
+|---|---|---|
+| `TestStageState` | 11 | Pending-beregning, stale-detektion, partial done, disk-persistens, reset, summary |
+| `TestStubAIProcessor` | 3 | Alle domain-nøgler returneres, validate_output, stub-markering |
+| `TestPromptBuilder` | 5 | Asset-id i prompt, stage-instruktion, previous result, truncation, ingen previous-sektion uden input |
+| `TestDomainPipeline` | 12 | End-to-end run, idempotens, hash-change trigger, state-persistens per stadie, fejlhåndtering, max_assets, stage-filter, output-fil, dry_run, restart-resume, refinement modtager context |
+| **Total nye tests** | **31** | — |
+
+```
+437 passed in 23.79s  (+31 domain pipeline)
+```
+
+---
+
+## 16. Domain Extraction Platform — Full Architecture
+
+> Implementeret 30. marts 2026. Komplet AI-drevet reverse engineering platform.
+
+### Formål
+
+Transformere alle rådata fra de 23 deterministiske slices til struktureret domæneviden, sufficient til at genopbygge hele systemet fra bunden — uden at kopiere kode.
+
+---
+
+### Ny fil- og mappestruktur
+
+```
+prompts/
+  code_semantic.txt       — udtræk ansvar og intent fra kildekode
+  code_domain.txt         — kortlæg kildekode til domæne-koncepter
+  sql_semantic.txt        — udtræk forretningsbetydning af SQL-objekter
+  wiki_semantic.txt       — udtræk arkitekturbeslutninger fra wiki
+  workitem_semantic.txt   — udtræk kapabiliteter fra work item-batches
+  refinement.txt          — flet, normaliser, tilføj pseudokode + rebuild krav
+
+core/ai/
+  __init__.py
+  semantic_analyzer.py    — kører semantic_analysis med type-specifik prompt
+  domain_mapper.py        — kører domain_mapping med semantisk resultat som kontekst
+  refiner.py              — kører refinement per asset + per domain-cluster
+
+core/
+  domain_builder.py       — deterministisk gruppering af slice-output til domæner
+
+domains/
+  {DomainName}/
+    000_meta.json         — confidence, coverage, complexity_score, roi_score
+    010_entities.json     — domæneentiteter (AI-udfyldt)
+    020_behaviors.json    — handlinger og processer (AI-udfyldt)
+    030_flows.json        — end-to-end flows (AI-udfyldt)
+    040_events.json       — MediatR events (fra slice + AI-beriget)
+    050_batch.json        — batch jobs (fra slice + AI-beriget)
+    060_integrations.json — integrationer, webhooks, background services
+    070_rules.json        — forretningsregler (AI-udfyldt)
+    080_pseudocode.json   — pseudokode for komplekse flows (AI-udfyldt)
+    090_rebuild.json      — rebuild requirements, prioriteret og ordnet
+
+run_domain_pipeline.py    — CLI entry point
+```
+
+---
+
+### Domain Builder — deterministisk gruppering
+
+Læser 6 slice-filer og grupperer på tværs via navn-tokenisering (ingen AI):
+
+| Input-fil | Kilde | Gruppering |
+|---|---|---|
+| `api_db_map.json` | Controller-navn | `BenchmarkController` → `Benchmark` |
+| `batch_jobs.json` | Job-kategori | `import` → `Import` |
+| `event_map.json` | Event-navn | `BenchmarkFinishedNotification` → `Benchmark` |
+| `webhook_map.json` | Source-system | `GatewayAPI` → `GatewayAPI` |
+| `integrations.json` | Interface-navn | `IEboksService` → `Eboks` (AI normaliser) |
+| `background_services.json` | Service-navn | `SmsBackgroundService` → `Sms` |
+
+**Live scan-resultat (kørte mod rigtige data):**
+
+| Metrik | Værdi |
+|---|---|
+| Domains oprettet | **51** |
+| Største domæne | `Import` (37 items) |
+| Højest confidence | `Benchmark` (0.5 — API + events) |
+| Filer skrevet | 51 × 10 = **510 JSON-filer** |
+
+> ⚠️ Heuristisk første pass — `I` og `Human` er kendte artefakter fra interface-navne og modul-navne. AI refinement-stadiet normaliserer disse til korrekte domænenavne.
+
+---
+
+### AI-stadier og prompt-strategi
+
+| Stadie | Prompt-fil | Indhold |
+|---|---|---|
+| `semantic_analysis` | `code_semantic.txt` / `wiki_semantic.txt` / `workitem_semantic.txt` | Hvad gør filen? Ansvar, intent, side-effects |
+| `domain_mapping` | `code_domain.txt` | Hvilken domæne? Bounded context? Aggregate root? |
+| `refinement` | `refinement.txt` | Flet duplikater, normaliser navne, pseudokode, rebuild requirements |
+
+**Alle prompts håndhæver:**
+- Kopier aldrig kildekode
+- Udtræk intent og ansvar
+- Normaliser navngivning
+- Returnér strict JSON
+
+---
+
+### Quality scoring (per domæne)
+
+```json
+{
+  "domain": "Benchmark",
+  "confidence": 0.5,
+  "coverage": {
+    "api_endpoints": 15,
+    "batch_jobs": 0,
+    "events": 1,
+    "webhooks": 0,
+    "integrations": 9,
+    "background_services": 0
+  },
+  "complexity_score": 5,
+  "roi_score": 6
+}
+```
+
+---
+
+### run_domain_pipeline.py — CLI
+
+```bash
+# Første kørsel — byg domæner + kør AI på 50 assets
+python run_domain_pipeline.py --max-assets 50
+
+# Kun semantisk analyse
+python run_domain_pipeline.py --stages semantic_analysis --max-assets 100
+
+# Se hvad der er pending — ingen AI-kald
+python run_domain_pipeline.py --dry-run
+
+# Nulstil specifikt asset og genprocess
+python run_domain_pipeline.py --reset wiki:Architecture.md:3
+
+# Test pipeline-kabling uden token-forbrug
+python run_domain_pipeline.py --stub --max-assets 5
+```
+
+---
+
+### Tests
+
+| Testklasse | Tests | Dækker |
+|---|---|---|
+| `TestDomainToken` | 6 | CamelCase-split, suffix-stripping, fallback til "Core" |
+| `TestDomainClusterMetrics` | 5 | confidence, complexity_score, roi_score beregning |
+| `TestDomainBuilder` | 7 | Gruppering pr. kilde, manglende filer, atomisk skrivning, pre-udfyldte events |
+| `TestSemanticAnalyzer` | 4 | Alle domain-nøgler, prompt-valg pr. type, truncation, manglende prompt-fil |
+| `TestDomainMapper` | 2 | Alle domain-nøgler, forrige resultat injiceret i prompt |
+| `TestRefiner` | 3 | Alle domain-nøgler, syntetisk asset ved cluster-refinement, domain-navn i prompt |
+| **Total nye tests** | **27** | — |
+
+```
+437 passed in 23.79s  (+27 domain extraction platform)
+```
+
+---
+
+## 17. Autonomous Domain Loop Engine
+
+> Implementeret 30. marts 2026. Domain-first, selvstyrende loop pr. domæne.
+
+### Formål
+
+Systemet bestemmer selv hvornår et domæne er *tilstrækkeligt forstået* til at kunne genopbygges — uden menneskelig indgriben.
+
+---
+
+### Nye moduler
+
+| Fil | Klasse | Ansvar |
+|---|---|---|
+| `core/domain_state.py` | `DomainState` | Persisterer status, score, gaps, saturation pr. domæne til `domains/{name}/domain_state.json` |
+| `core/domain_gap_detector.py` | `DomainGapDetector` | Opdager: `missing_entity`, `orphan_event`, `api_without_flow`, `missing_trigger`, `unowned_batch_job`, `integration_no_behavior` |
+| `core/domain_scorer.py` | `DomainScorer` | Beregner 7-dimensionel score: `coverage_code (0.30)`, `coverage_events (0.15)`, `coverage_batch (0.10)`, `coverage_webhooks (0.05)`, `coverage_ui (0.10)`, `consistency (0.15)`, `confidence (0.15)` |
+| `core/domain_loop_engine.py` | `DomainLoopEngine` | Kører domain-loop: asset-mapping → AI stages → aggregering → scoring → gap-detektion → saturation-check |
+
+---
+
+### Domain-loop (for hvert domæne)
+
+```
+while not domain.is_complete:
+    assets ← get_domain_assets(domain)           # path/name heuristik
+    run_ai_stages(assets)                          # DomainPipeline med asset_filter
+    aggregate_ai_outputs(domain, assets)           # merge domain_mapping outputs
+    score  ← DomainScorer.score(domain_files)
+    gaps   ← DomainGapDetector.detect(domain_files)
+    update domain_state.json
+
+    if score >= 0.80:   mark_complete()
+    elif saturated:     mark_saturated()
+    elif processed==0:  exit early (idle)
+```
+
+---
+
+### Scoringssystem
+
+| Dimension | Vægt | Kilde |
+|---|---|---|
+| `coverage_code` | 0.30 | entities + behaviors + flows mod API-count |
+| `coverage_events` | 0.15 | events med producer/consumer info |
+| `coverage_batch` | 0.10 | batch jobs mappet |
+| `coverage_webhooks` | 0.05 | integrationer/webhooks |
+| `coverage_ui` | 0.10 | behaviors med UI-trigger nøgleord |
+| `consistency` | 0.15 | ingen ALLCAPS, ingen duplikater |
+| `confidence` | 0.15 | rules + pseudocode + rebuild |
+
+**Tærskel: score ≥ 0.80 → COMPLETE**
+
+---
+
+### Saturation-detektion
+
+Hvis `entity_count`, `flow_count` og `behavior_count` ikke ændrer sig over 3 på hinanden følgende iterationer → `STATUS_SATURATED`.
+
+---
+
+### Asset → domæne mapping
+
+| Asset-type | Strategi |
+|---|---|
+| `code_file` | Path-segment normaliseret + `_domain_token()` matcher domænenavn |
+| `wiki_section` | Domænenavn i asset-ID |
+| `labels_namespace` | Namespace-præfiks indeholder domænenavn |
+| `work_items_batch` | Global kontekst — tildeles alle domæner |
+| `git_insights_batch` | Global kontekst — tildeles alle domæner |
+
+---
+
+### Domæne-tilstandsfil
+
+```json
+{
+  "domain": "Messaging",
+  "status": "in_progress",
+  "iterations": 5,
+  "score": 0.76,
+  "score_breakdown": { "coverage_code": 0.85, "coverage_events": 0.67, ... },
+  "last_improvement": "coverage_events",
+  "gaps": [
+    { "type": "orphan_event", "priority": "medium", "description": "..." }
+  ],
+  "saturation": { "stable_iterations": 1, ... }
+}
+```
+
+---
+
+### CLI-integration
+
+```bash
+# Kør domain-loop for alle domæner
+python run_domain_pipeline.py --loop
+
+# Kun ét domæne
+python run_domain_pipeline.py --loop --domain Messaging
+
+# Begræns iterationer og assets
+python run_domain_pipeline.py --loop --max-iterations 5 --max-assets-per-iter 10 --stub
+```
+
+---
+
+### Tests (nye: 36)
+
+| Klasse | Tests | Dækker |
+|---|---|---|
+| `TestDomainState` | 8 | Load/save/reload, saturation, completion |
+| `TestDomainGapDetector` | 7 | Alle 6 gap-typer + sorteret output |
+| `TestDomainScorer` | 6 | Fuld score, tom score, alle dimensioner, vægte |
+| `TestAssetMatchesDomain` | 5 | Global, code-file, wiki, prefix-match |
+| `TestDeduplicate` | 4 | Dicts, strings, tom liste |
+| `TestDomainLoopEngine` | 6 | Skip-complete, filter, max-domains, saturation |
+| **Total nye tests** | **36** | — |
+
+```
+437 passed in 23.79s  (+36 autonomous loop engine)
+```
+
+---
+
+## 18. DomainEngine — Convergence-baseret stop (30. marts 2026)
+
+### Formål
+
+Ny `DomainEngine` der driver det autonome domain-loop med et matematisk konvergenskriterium fremfor simpel score-tærskel. Stop-betingelse: **begge** skal gælde samtidigt:
+
+- `new_information_score < 0.02` (ny info pr. iteration under 2 %)
+- `completeness_score > 0.90` (væstet dækning over 90 %)
+
+Adskiller sig fra `DomainLoopEngine` (stopper ved score ≥ 0.80 **eller** saturation).
+
+---
+
+### Nye filer
+
+#### `core/domain_information.py`
+Pure scoring-funktioner — ingen fil-I/O undtagen `load_domain_snapshot()`.
+
+| Konstant | Værdi |
+|---|---|
+| `NEW_INFO_THRESHOLD` | `0.02` |
+| `COMPLETENESS_THRESHOLD` | `0.90` |
+| `TRACKED_KEYS` | `("entities", "behaviors", "flows", "events", "rules", "pseudocode", "rebuild_requirements")` |
+
+**`SECTION_WEIGHTS`** (summer til præcis 1.0):
+
+| Sektion | Vægt | Mål (min items) |
+|---|---|---|
+| entities | 0.20 | 5 |
+| behaviors | 0.20 | 5 |
+| flows | 0.20 | 3 |
+| events | 0.15 | 2 |
+| rules | 0.10 | 3 |
+| pseudocode | 0.05 | 2 |
+| rebuild_requirements | 0.10 | 4 |
+
+**Funktioner:**
+- `compute_new_information(old_snapshot, new_snapshot) -> float` — `added / baseline`-ratio over alle 7 sektioner
+- `compute_completeness(snapshot) -> float` — vægtet `min(count/target, 1.0)` pr. sektion, clamped til [0, 1]
+- `load_domain_snapshot(domain_dir) -> dict` — læser alle 7 model-JSON-filer
+
+#### `core/domain_engine.py`
+
+| Konstant | Værdi |
+|---|---|
+| `DEFAULT_SEEDS` | `["identity", "messaging", "billing", "subscriptions", "monitoring"]` |
+| `_DEFAULT_MAX_ITERATIONS` | `15` |
+| `_DEFAULT_MAX_ASSETS` | `50` |
+| `_RELEVANCE_THRESHOLD` | `0.05` |
+
+`DOMAIN_KEYWORDS` — 5 entries, 10-13 keywords per seed-domæne.
+
+**Pure functions:**
+- `keyword_relevance(asset, keywords) -> float` — brøkdel af keywords fundet i `id + content`
+- `get_keywords_for_domain(domain_name) -> list[str]` — opslag i `DOMAIN_KEYWORDS` eller camelCase-split fallback
+
+**`DomainEngine`-metoder:**
+- `select_assets(domain_name, keywords)` — path-score (0/1) + kw_score, capped ved max_assets
+- `discover_domains(seed_list, discover_from_dir)` — seeds + domains/-mappe + roi_score-sortering
+- `run_domain(domain_name, keywords) -> dict` — fuldt loop med snapshot-sammenligning og konvergensstop
+- `run(seed_list, discover_from_dir, max_domains, keywords_map) -> list[dict]` — multi-domain orkestrering
+
+**Return per domæne:** `{domain, status, completeness_score, new_information_score, iterations}`
+
+---
+
+### Opdaterede filer
+
+#### `core/domain_state.py`
+- Nyt felt: `new_information_score: float = 0.0` (backward-kompatibel, defaulter til 0.0 ved load)
+- Ny metode: `update_new_information_score(score: float)` — runder til 4 decimaler
+
+#### `run_domain_pipeline.py`
+- Nye CLI-flag: `--engine`, `--seeds NAME [NAME...]`
+- Branch `5a` for `DomainEngine` indsat før eksisterende `5b` (`DomainLoopEngine`)
+
+```bash
+# Convergence-baseret engine (ny)
+python run_domain_pipeline.py --engine --stub
+python run_domain_pipeline.py --engine --seeds messaging billing --max-domains 2
+python run_domain_pipeline.py --engine --max-iterations 15 --max-assets-per-iter 50
+
+# Domain-loop (eksisterende)
+python run_domain_pipeline.py --loop --domain Messaging
+```
+
+---
+
+### Tests (nye: 51)
+
+| Klasse | Tests | Dækker |
+|---|---|---|
+| `TestComputeNewInformation` | 8 | Tom/fuld/delvis/normaliseret/threshold |
+| `TestComputeCompleteness` | 6 | Tom, fuld, delvis, vægte sum, keys, clamping |
+| `TestLoadDomainSnapshot` | 3 | Tom dir, entities, alle sektioner |
+| `TestKeywordRelevance` | 6 | Ingen keywords, alle match, delvis, ingen match, id-match, tom asset |
+| `TestGetKeywordsForDomain` | 4 | Kendt, case-insensitiv, ukendt fallback, alle seeds |
+| `TestDomainEngineSelectAssets` | 5 | Global assets, keyword-match, ingen match, max_assets, rækkefølge |
+| `TestDomainEngineDiscoverDomains` | 5 | Default seeds, custom seeds, dir-tilføjelse, ingen dubletter, roi-sort |
+| `TestDomainEngineRunDomain` | 6 | Allerede complete, opretter dir, result keys, idle exit, saturated, new_info persisteret |
+| `TestDomainEngineRun` | 4 | Processer seeds, max_domains, keywords_map, alle har status |
+| `TestDomainStateNewInfoScore` | 4 | Default, update, save+reload, afrunding |
+| **Total nye tests** | **51** | — |
+
+```
+488 passed in 27.11s  (+51 convergence domain engine)
+```
+
+---
+
+## 19. DomainEngine v1 — Autonom domenepakke (30. marts 2026)
+
+### Formål
+
+Ny separat pakke `core/domain/` med en fuldt selvstændig autonomous domain-loop. Kører én iteration ad gangen (`run_once()`), eller til alle domæner er stabile (`run_all()`). Integreres i `ExecutionEngine` via den nye `run_domain_engine()`-metode.
+
+**Adskiller sig fra `core/domain_engine.py`** (Section 18):
+- Egen state-fil (`domains/domain_state.json`) med `DomainProgress`-records per domæne
+- Separate model-filer per sektion (nummererede JSON-filer)
+- Stub semantic analyzer (regex, ingen LLM endnu)
+- Fuldt afkoblet fra `DomainLoopEngine`/`DomainPipeline`
+
+---
+
+### Filstruktur
+
+```
+core/domain/
+    __init__.py
+    domain_engine.py          ← DomainEngine: run_once() / run_all()
+    domain_selector.py        ← pick_next(): in_progress → pending → None
+    domain_asset_matcher.py   ← match_assets(): keyword + path heuristics
+    domain_state.py           ← DomainProgress + DomainState
+    domain_model_store.py     ← DomainModelStore: 10 nummererede section-filer
+    domain_scoring.py         ← compute_completeness / compute_new_information / is_stable
+
+core/domain/ai/
+    __init__.py
+    semantic_analyzer.py      ← analyze(): 9 insight keys, regex heuristics
+    domain_mapper.py          ← merge(): dedup + sort lists
+    refiner.py                ← refine(): normaliser, fjern nulls/blanks
+```
+
+---
+
+### Domain seeds (10 stk.)
+
+```python
+DOMAIN_SEEDS = [
+    "identity_access", "customer_administration", "messaging",
+    "recipient_management", "subscriptions", "reporting",
+    "monitoring", "benchmark", "pipeline_sales", "integrations",
+]
+```
+
+---
+
+### `domain_state.py` — `DomainProgress`
+
+| Felt | Type | Default |
+|---|---|---|
+| `name` | str | — |
+| `status` | str | `"pending"` |
+| `iteration` | int | 0 |
+| `completeness_score` | float | 0.0 |
+| `new_information_score` | float | 0.0 |
+| `matched_asset_ids` | List[str] | [] |
+| `processed_asset_ids` | List[str] | [] |
+| `gaps` | List[str] | [] |
+| `last_updated_utc` | str | "" |
+
+`DomainState`: `load()`, `save()` (atomisk), `ensure_domains(seed_list)`, `get(name)`, `all_domains()`.
+
+---
+
+### `domain_model_store.py` — sectionfiler
+
+```
+domains/{domain}/
+    000_meta.json
+    010_entities.json
+    020_behaviors.json
+    030_flows.json
+    040_events.json
+    050_batch.json
+    060_integrations.json
+    070_rules.json
+    080_pseudocode.json
+    090_rebuild.json
+```
+
+Alle skrivninger atomisk (`path.tmp` → `os.replace`). `sort_keys=True` på al JSON-output.
+
+---
+
+### `domain_scoring.py`
+
+| Konstant | Værdi |
+|---|---|
+| `COMPLETENESS_THRESHOLD` | `0.90` |
+| `NEW_INFO_THRESHOLD` | `0.02` |
+
+Scorede sektioner: `entities`, `behaviors`, `flows`, `rules`, `events`, `integrations` (mål: 5/5/3/3/2/2).
+`is_stable()`: begge betingelser skal gælde simultant.
+
+---
+
+### `DomainEngine`
+
+| Metode | Beskrivelse |
+|---|---|
+| `run_once()` | Vælger næste domæne, matcher assets, analyserer, merger, gemmer |
+| `run_all()` | Kører til alle domæner er stabile; per-domæne idle-guard (2 runs → force-stable) |
+
+**Resumability**: state genindlæses fra disk ved hvert `run_once()`-kald.  
+**Idempotency**: anden kørsel processerer 0 assets (allerede i `processed_asset_ids`).
+
+---
+
+### `ExecutionEngine.run_domain_engine()` (ny metode)
+
+```python
+engine.run_domain_engine(
+    domains_root="domains",
+    seed_list=None,           # None → DOMAIN_SEEDS
+    max_assets_per_domain=0,  # 0 = unlimited
+    verbose=True,
+)
+```
+
+Returnerer result-dict eller `{"status": "all_stable", "domain": None}`.
+
+---
+
+### HOW TO RUN
+
+```bash
+# Én iteration (næste pending/in_progress domæne)
+python -c "
+from core.execution_engine import ExecutionEngine
+e = ExecutionEngine(solution_root='C:/Udvikling/sms-service')
+print(e.run_domain_engine(domains_root='domains'))
+"
+
+# Kør alle domæner til konvergens
+python -c "
+from core.asset_scanner import AssetScanner
+from core.domain.domain_engine import DomainEngine
+scanner = AssetScanner(data_root='data', solution_root='C:/Udvikling/sms-service')
+engine = DomainEngine(scanner=scanner, domains_root='domains', verbose=True)
+for r in engine.run_all():
+    print(r)
+"
+```
+
+---
+
+### Tests (nye: 67)
+
+| Klasse | Tests | Dækker |
+|---|---|---|
+| `TestDomainProgress` | 5 | Default status/scores, to_dict sort, from_dict roundtrip, manglende felter |
+| `TestDomainState` | 7 | Load/save, ensure_domains, dedup, roundtrip, reset ved reload, unknown domain |
+| `TestDomainSelector` | 5 | in_progress prioritet, pending→in_progress, alle stable→None, tom state |
+| `TestDomainAssetMatcher` | 7 | Keyword-match, path-match, ingen match, sorteret, ingen dubletter, alle seeds har keywords |
+| `TestSemanticAnalyzer` | 6 | Alle keys, tom asset, entities fra class, behaviors fra metode, path i pseudocode |
+| `TestDomainMapper` | 5 | Tom insight, merge lists, dedup, sorteret output, alle keys |
+| `TestRefiner` | 5 | Alle keys, nulls fjernet, sorteret, dedup, tom model |
+| `TestDomainModelStore` | 6 | Load tom, save+load roundtrip, meta-fil, alle sectionfiler, ingen .tmp-filer, dedup |
+| `TestDomainScoring` | 10 | Tom model, fuld model, delvis, ny info=0/!=0/tom baseline, is_stable alle kombinationer |
+| `TestDomainEngine` | 11 | Alle stable→None, domain navn, required keys, opretter dir, persist state, idempotency, max_assets, stable ved konvergens, run_all stop, run_all alle domæner |
+| **Total nye tests** | **67** | — |
+
+```
+555 passed in 23.62s  (+67 DomainEngine v1)
+```
+
+---
+
+## 21. DomainEngine v2 — AI Reasoning Layer (30. marts 2026)
+
+### Formål
+
+Opgrader DomainEngine v1 med en gap-drevet, memory-backed AI reasoning layer. Additive kun — ingen breaking changes. V1 `run_once()` er uændret.
+
+**Stop-betingelse (skærpet):** Begge konvergensbetingelser skal gælde i **2 på hinanden følgende iterationer** (v1 kræver kun 1):
+- `completeness_score >= 0.90`
+- `new_information_score < 0.02`
+
+---
+
+### Nye filer
+
+| Fil | Klasse/Funktion | Ansvar |
+|---|---|---|
+| `core/domain/ai_prompt_builder.py` | `build_prompt()` | Type-specifik prompt per asset (7 typer) |
+| `core/domain/ai_reasoner.py` | `AIProvider`, `HeuristicAIProvider`, `AIReasoner` | Provider-abstraktion + heuristisk implementation + reasoning-metoder |
+| `core/domain/domain_memory.py` | `DomainMemory` | Persistér AI-afledt viden i `data/domain_memory.json` |
+| `core/domain/domain_query_engine.py` | `DomainQueryEngine` | Gap-drevet asset-ranking og -selektion |
+| `core/domain/domain_learning_loop.py` | `DomainLearningLoop` | 10-trins iterationsorkestrator |
+
+---
+
+### `ai_prompt_builder.py`
+
+Bygger type-afhængige prompts for: `code_file`, `sql`, `wiki_section`, `work_items_batch`, `git_insights_batch`, `labels_namespace`, `pdf_section` + fallback.
+
+Fælles JSON-schema der efterspørges: `intent`, `domain_role`, `entities`, `behaviors`, `rules`, `flow_relevance`, `events`, `integrations`, `rebuild_note`.
+
+---
+
+### `ai_reasoner.py`
+
+| Klasse | Beskrivelse |
+|---|---|
+| `AIProvider` | Abstrakt interface — `generate_json(prompt, schema_name) -> dict` |
+| `HeuristicAIProvider` | Regex-baseret stub. Deterministisk. Ingen LLM. Erstattelig med GPT/Copilot |
+| `AIReasoner` | High-level reasoning-metoder |
+
+**`AIReasoner`-metoder:**
+
+| Metode | Returnerer |
+|---|---|
+| `analyze_asset(asset, domain_name)` | Alle INSIGHT_KEYS + `signal_strength` float |
+| `cross_analyze(domain_model, domain_name)` | `{linked_pairs, flow_stubs, coverage, consistency}` |
+| `detect_gaps(domain_model, domain_name)` | `list[dict]` med gap-records, sorteret høj→lav prioritet |
+| `estimate_signal_strength(asset, domain_name)` | Float i [0.0, 1.0] |
+
+**Gap ID-format:** `gap:<domain>:<type>:<slug>`
+
+**Gap-typer:** `missing_entity`, `missing_flow`, `orphan_event`, `weak_rule`, `incomplete_integration`, `missing_context`
+
+---
+
+### `domain_memory.py`
+
+Persisteret i `data/domain_memory.json` — atomisk skrivning.
+
+**Struktur:**
+```json
+{
+  "domains": {
+    "<domain>": {
+      "assets": { "<id>": { "semantic": {...}, "confidence": 0.8, "content_hash": "abc" } },
+      "cross_analysis": {...},
+      "gap_history": [ { "iteration": 1, "gaps": [...] } ]
+    }
+  }
+}
+```
+
+**Caching:** `set_asset_insight()` springer over skrivning hvis `content_hash` er uændret → idempotent.
+
+---
+
+### `domain_query_engine.py`
+
+Asset-score = `unprocessed_bonus(+2.0)` + `type_priority(0–0.7)` + `gap_score(0–1.0)` + `path_score(0–0.5)`
+
+**Type-prioriteter:** `code_file=7`, `sql=6`, `wiki_section=5`, `work_items_batch=4`, `git_insights_batch=3`, `labels_namespace=2`, `pdf_section=1`
+
+| Metode | Beskrivelse |
+|---|---|
+| `rank_assets_for_domain(domain_name, assets, memory, processed_ids)` | Fuld rangering, deterministisk tie-breaking på asset_id |
+| `select_assets_for_iteration(domain_name, assets, gaps, processed_ids, max_assets=30)` | Uprocesserede gaps-orienterede assets først, capped |
+| `expand_search_terms(domain_name, gaps)` | Domæne-tokens + gap `suggested_terms`, sorteret + deduped |
+
+---
+
+### `domain_learning_loop.py`
+
+**10-trins iteration:**
+1. Load domænemodel
+2. Load memory
+3. Detect gaps → snapshot i memory
+4. Sæt gap-IDs på `DomainProgress.gaps`
+5. Vælg assets via `DomainQueryEngine`
+6. Analyser hvert asset (`AIReasoner`), cache i `DomainMemory`
+7. Merge + refine
+8. Cross-analyse
+9. Beregn scores + opdater `consecutive_stable_iterations`
+10. Persist model → memory → state
+
+**Stop-betingelse:**
+```python
+def should_mark_stable(domain_state):
+    return (
+        completeness >= 0.90
+        and new_info < 0.02
+        and stable_streak >= 2   # _REQUIRED_STABLE_STREAK
+    )
+```
+
+---
+
+### Opdaterede filer
+
+| Fil | Ændring |
+|---|---|
+| `core/domain/domain_state.py` | Nyt felt: `consecutive_stable_iterations: int = 0` (backward-kompatibel) |
+| `core/domain/domain_scoring.py` | Ny funktion: `cross_source_consistency_score(model, memory, domain_name) -> float` |
+| `core/domain/domain_engine.py` | Ny metode: `run_once_v2(data_root="data")` — bruger `DomainLearningLoop`; `run_once()` uændret |
+| `core/execution_engine.py` | Ny metode: `run_domain_engine_v2(...)` — `run_domain_engine()` uændret |
+
+---
+
+### `DomainProgress` — opdateret feltliste
+
+| Felt | Type | Default |
+|---|---|---|
+| `name` | str | — |
+| `status` | str | `"pending"` |
+| `iteration` | int | 0 |
+| `completeness_score` | float | 0.0 |
+| `new_information_score` | float | 0.0 |
+| `matched_asset_ids` | List[str] | [] |
+| `processed_asset_ids` | List[str] | [] |
+| `gaps` | List[str] | [] |
+| `last_updated_utc` | str | "" |
+| `consecutive_stable_iterations` | int | 0 | ← **NY (v2)** |
+
+---
+
+### HOW TO RUN (v2)
+
+```bash
+# Én v2-iteration (næste pending/in_progress domæne)
+python -c "
+from core.execution_engine import ExecutionEngine
+e = ExecutionEngine(solution_root='C:/Udvikling/sms-service')
+print(e.run_domain_engine_v2(domains_root='domains'))
+"
+
+# Direkte via DomainEngine
+python -c "
+from core.asset_scanner import AssetScanner
+from core.domain.domain_engine import DomainEngine
+scanner = AssetScanner(data_root='data', solution_root='C:/Udvikling/sms-service')
+engine = DomainEngine(scanner=scanner, domains_root='domains', verbose=True)
+print(engine.run_once_v2(data_root='data'))
+"
+```
+
+---
+
+### Tests (nye: 89)
+
+| Fil | Tests | Dækker |
+|---|---|---|
+| `tests/test_ai_reasoner.py` | 26 | `HeuristicAIProvider`, `AIProvider`, `AIReasoner.analyze_asset`, `.cross_analyze`, `.detect_gaps`, `.estimate_signal_strength` |
+| `tests/test_domain_memory.py` | 22 | Persistens, roundtrip, asset-caching, cross-analysis, gap-historik, `get_domain_data` |
+| `tests/test_domain_query_engine.py` | 18 | `expand_search_terms`, `rank_assets_for_domain`, `select_assets_for_iteration` |
+| `tests/test_domain_learning_loop.py` | 23 | Stop-betingelser, iteration-shape, state-opdateringer, persistens, memory-caching, `max_assets`-cap |
+| **Total nye tests** | **89** | — |
+
+```
+644 passed in 26.34s  (+89 DomainEngine v2)
+```
+
+---
+
+## 20. run_domain_engine.py — CLI runner (30. marts 2026)
+
+### Formål
+
+Standalone CLI entry point for `DomainEngine v1` (`core/domain/`).
+
+### Kommandooversigt
+
+```bash
+# Vis status for alle domæner (ingen processering)
+python run_domain_engine.py --dry-run
+
+# Én iteration (næste pending/in_progress domæne)
+python run_domain_engine.py --once
+
+# Én iteration, maks 50 assets
+python run_domain_engine.py --once --max-assets 50
+
+# Kør alle domæner til konvergens
+python run_domain_engine.py
+
+# Kun specifikke domæner
+python run_domain_engine.py --seeds messaging monitoring
+
+# Nulstil al domain-state
+python run_domain_engine.py --reset-all
+
+# Tilpasset domains-mappe
+python run_domain_engine.py --domains-root my_domains/
+
+# Undertrykker progress-output
+python run_domain_engine.py --quiet
+```
+
+### Første kørsel (verificeret)
+
+```
+identity_access: matched=135  pending=10  completeness=0.25  new_info=0.00
+```
+
+Alle 10 domæner starter som `pending`. Scanner matcher automatisk assets via `domain_asset_matcher.py`.
+
+---
+
+## 22. DomainEngine v3 — Discovery + Autonomous Search (30. marts 2026)
+
+### Formål
+
+Fuldautomatisk, discovery-first pipeline. Ingen seed-liste nødvendig. Systemet finder selv domænerne, sorterer dem i rækkefølge og kører hvert domæne til konvergens med gap-drevet corpus-udvidelse.
+
+**Ny flowsekvens:**
+1. **Scan** — alle assets via `AssetScanner`
+2. **Discover** — `DomainDiscoveryEngine` identificerer domæner via vokabular-match + sti-token-clustering
+3. **Prioritize** — `DomainPrioritizer` beregner build-rækkefølge (foundation-tier-regler + coupling-score)
+4. **Analyze** — `DomainLearningLoop` + `DomainAutonomousSearch` kører hvert domæne til stable
+5. **Persist** — `discovered_domains.json` + `domain_priority.json` + alle v1/v2 model-filer
+
+---
+
+### Nye filer
+
+| Fil | Klasse | Ansvar |
+|---|---|---|
+| `core/domain/domain_discovery.py` | `DomainDiscoveryEngine`, `DomainCandidate` | Opdager forretningsdomæner fra assets (vokabular + sti-tokens) |
+| `core/domain/domain_prioritizer.py` | `DomainPrioritizer` | Beregner build-rækkefølge (13 foundation-tier-regler + coupling) |
+| `core/domain/domain_autonomous_search.py` | `DomainAutonomousSearch` | Konverterer gap-records til ranked asset-selektion fra hele corpus |
+| `core/domain/domain_engine_v3.py` | `DomainEngineV3`, `run_domain_engine_v3()` | V3 orkestrerings-entrypoint |
+
+---
+
+### `domain_discovery.py`
+
+**To faser:**
+- **Fase 1 — Vokabular-match:** scorer `_DOMAIN_KEYWORDS` mod asset-indhold
+- **Fase 2 — Sti-token-clustering:** grupperer assets på delte namespace-tokens
+
+**`DomainCandidate`-felter:** `domain`, `confidence`, `keywords`, `sources`, `estimated_size` (`small`/`medium`/`large`), `reasoning`
+
+**Confidence-formel:** `asset_score(0–0.70)` + `diversity(0–0.15)` + `kw_depth(0–0.10)`
+
+**Output:** sorteret confidence desc → domain name asc (deterministisk)
+
+**JSON-output:** `data/domains/discovered_domains.json`
+
+---
+
+### `domain_prioritizer.py`
+
+**13 foundation-tier-regler** (lavest matchende tier vinder):
+
+| Tier | Domænetyper |
+|---|---|
+| 1 | identity, auth, login, token, jwt, oauth |
+| 2 | user, customer, account, profile, tenant |
+| 3 | permission, role, policy, privilege |
+| 4 | message, sms, email, notification, send, deliver |
+| 5 | recipient, contact, subscriber, distribution |
+| 6 | subscription, billing, payment, invoice |
+| … | … |
+| 50 | sales, crm, lead, opportunity |
+
+**Sorteringsnøgle:** `(tier asc, -coupling asc, domain asc)` — fuldt deterministisk
+
+**JSON-output:** `data/domains/domain_priority.json`
+
+---
+
+### `domain_autonomous_search.py`
+
+**`DomainAutonomousSearch(query_engine)`-metoder:**
+
+| Metode | Returnerer |
+|---|---|
+| `search(intent, domain, assets, gap_types, max_results)` | `[{"asset_id": str, "score": float}]` |
+| `gap_to_intents(gap, domain)` | `list[str]` — max 3 intents per gap |
+| `find_assets_for_gaps(gaps, domain, assets, memory, max_per_gap, max_gaps)` | `list[dict]` — faktiske asset-dicts sorteret efter score |
+
+**Intent-udvidelse:** CamelCase-split → noise-fjernelse → synonym-udvidelse (12 entries)
+
+**Synonym-eksempler:** `entity → [entity, object, model, record]`, `flow → [flow, process, pipeline, step]`
+
+---
+
+### Opdaterede filer
+
+| Fil | Ændring |
+|---|---|
+| `core/domain/domain_learning_loop.py` | Ny param `search_engine: Optional[Any] = None` + `all_assets: Optional[List[Dict]] = None` i `run_iteration()` + trin 4b: gap-drevet pool-udvidelse |
+
+**Trin 4b (nyt):** Hvis `search_engine` er sat og der er gaps, kalder `find_assets_for_gaps()` på hele corpus (`all_assets`). Nye asset-IDs appendes til kandidat-puljen.
+
+**Bagudkompatibel:** `search_engine=None` (default) → ingen ændring i eksisterende adfærd.
+
+---
+
+### `DomainProgress` — opdateret feltliste (v3)
+
+| Felt | Type | Default | Version |
+|---|---|---|---|
+| `consecutive_stable_iterations` | int | 0 | v2 |
+| `last_significant_change` | str | "" | v2 |
+| `current_focus` | str | "" | v2 |
+| `evidence_balance` | dict | {} | v2 |
+
+---
+
+### HOW TO RUN (v3)
+
+```python
+from core.domain.domain_engine_v3 import run_domain_engine_v3
+from core.asset_scanner import AssetScanner
+
+scanner = AssetScanner(data_root='data', solution_root='C:/Udvikling/sms-service')
+results = run_domain_engine_v3(
+    scanner=scanner,
+    domains_root='domains',
+    data_root='data',
+    seed_list=[],          # tomt = kun discovery
+    max_iterations_per_domain=50,
+    verbose=True,
+)
+```
+
+---
+
+### Tests (nye: 54)
+
+| Testklasse | Tests | Dækker |
+|---|---|---|
+| `TestDomainDiscovery` | 13 | discover([])→[], finder messaging, confidence i [0,1], estimated_size valid, ingen nulls, deterministisk, sorteret desc, save/load round-trip, to_dict/from_dict, min_match_count |
+| `TestDomainPrioritizer` | 8 | prioritize([])→[], 1-indekseret, identity før messaging, required keys, tier > 0, deterministisk, save/load round-trip, enkelt kandidat |
+| `TestDomainAutonomousSearch` | 12 | search([])→[], scored dicts, scores ≥ 0, deterministisk, gap_to_intents, max 3 intents, find_assets_for_gaps([])→[], asset dicts returneret, deterministisk, tokenize, synonymer, max_results |
+| `TestLearningLoopV3` | 7 | search_engine=None default, run_iteration uden search_engine, all_assets=None, med search_engine uden gaps, pool-expansion, alle score-keys, bagudkompatibilitet |
+| `TestDomainEngineV3` | 9 | constructor, discover_and_prioritize tuple, tom discover, deterministisk, run returnerer list, domain key, resume, convenience-funktion, output-filer skrevet |
+| **Total** | **54** | — |
+
+### Samlet testantal
+
+```
+platform win32 -- Python 3.11.9, pytest-9.0.2
+762 passed in 30.18s  (+54 DomainEngine v3)
+```

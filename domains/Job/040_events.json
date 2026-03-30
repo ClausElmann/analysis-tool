@@ -1,0 +1,14 @@
+{
+  "domain": "Job",
+  "events": [
+    {
+      "event": "JobTaskStatusChangedEvent",
+      "publishers": [
+        "ServiceAlert.Services/Jobs/JobService.cs"
+      ],
+      "handlers": [
+        "JobTaskStatusChangedEventListener"
+      ]
+    }
+  ]
+}

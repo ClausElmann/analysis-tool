@@ -1,0 +1,14 @@
+{
+  "domain": "Notify",
+  "events": [
+    {
+      "event": "NotifySupplyNumberSubscribersNotification",
+      "publishers": [
+        "ServiceAlert.Services/SupplyNumbers/SupplyNumberService.cs"
+      ],
+      "handlers": [
+        "NotifySupplyNumberSubscribersNotificationHandler"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "domain": "Secondary",
+  "events": [
+    {
+      "event": "SecondaryLookupForEboksFirstStrategyNotification",
+      "publishers": [
+        "ServiceAlert.Services/Messages/MessageService.cs"
+      ],
+      "handlers": [
+        "SecondaryLookupForEboksFirstStrategyNotificationHandler"
+      ]
+    }
+  ]
+}

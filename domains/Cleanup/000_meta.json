@@ -1,0 +1,14 @@
+{
+  "domain": "Cleanup",
+  "confidence": 0.17,
+  "coverage": {
+    "api_endpoints": 0,
+    "batch_jobs": 29,
+    "events": 0,
+    "webhooks": 0,
+    "integrations": 0,
+    "background_services": 0
+  },
+  "complexity_score": 6,
+  "roi_score": 2
+}

@@ -1,0 +1,14 @@
+{
+  "domain": "Conversation",
+  "events": [
+    {
+      "event": "ConversationUnreadStatusChangedEvent",
+      "publishers": [
+        "ServiceAlert.Services/Conversations/ConversationService.cs"
+      ],
+      "handlers": [
+        "ConversationUnreadStatusChangedListener"
+      ]
+    }
+  ]
+}

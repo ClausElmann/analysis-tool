@@ -1,0 +1,41 @@
+{
+  "domain": "Other",
+  "batch_jobs": [
+    {
+      "job": "statstidende",
+      "category": "other"
+    },
+    {
+      "job": "testbatch",
+      "category": "other"
+    },
+    {
+      "job": "email_message_report",
+      "category": "other"
+    },
+    {
+      "job": "generate_file_with_industry_codes",
+      "category": "other"
+    },
+    {
+      "job": "send_ftpsettings_warnings",
+      "category": "other"
+    },
+    {
+      "job": "requestbase",
+      "category": "other"
+    },
+    {
+      "job": "requestchanges",
+      "category": "other"
+    },
+    {
+      "job": "download",
+      "category": "other"
+    },
+    {
+      "job": "fromlocalfile",
+      "category": "other"
+    }
+  ]
+}

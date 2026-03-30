@@ -1,0 +1,35 @@
+{
+  "domain": "Customer",
+  "events": [
+    {
+      "event": "CustomerCreatedEvent",
+      "publishers": [
+        "ServiceAlert.Services/Customers/CustomerService.cs"
+      ],
+      "handlers": []
+    },
+    {
+      "event": "CustomerDeletedEvent",
+      "publishers": [],
+      "handlers": []
+    },
+    {
+      "event": "CustomerUpdatedEvent",
+      "publishers": [
+        "ServiceAlert.Services/Customers/CustomerService.cs"
+      ],
+      "handlers": [
+        "CustomerEventsHandler"
+      ]
+    },
+    {
+      "event": "CustomerVoiceSettingsChangedEvent",
+      "publishers": [
+        "ServiceAlert.Web/Controllers/Customers/CustomerController.cs"
+      ],
+      "handlers": [
+        "InfobipCustomerVoiceSettingsChangedEventHandler"
+      ]
+    }
+  ]
+}

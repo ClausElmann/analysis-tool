@@ -1,0 +1,39 @@
+{
+  "domain": "Sms",
+  "events": [
+    {
+      "event": "SmsGroupDeletedNotification",
+      "publishers": [
+        "ServiceAlert.Services/Messages/MessageService.cs"
+      ],
+      "handlers": [
+        "SmsGroupDeletedHandler"
+      ]
+    },
+    {
+      "event": "SmsGroupMarkedAsStencilEvent",
+      "publishers": [],
+      "handlers": [
+        "SmsGroupMarkedAsStencilEventHandler"
+      ]
+    },
+    {
+      "event": "SmsGroupScheduleCreatedEvent",
+      "publishers": [],
+      "handlers": [
+        "SmsGroupScheduleCreatedEventHandler"
+      ]
+    },
+    {
+      "event": "SmsSentNotification",
+      "publishers": [
+        "ServiceAlert.Services/Gateways/SmsGateways/GatewayApi/GatewayApiBulkApiWorkloadProcessor.cs",
+        "ServiceAlert.Services/Gateways/SmsGateways/GatewayApi/GatewayApiBulkTestWorkloadProcessor.cs",
+        "ServiceAlert.Services/Gateways/SmsGateways/Strex/StrexGatewayWorkloadProcessor.cs"
+      ],
+      "handlers": [
+        "ConversationMessageSentEventListener"
+      ]
+    }
+  ]
+}
