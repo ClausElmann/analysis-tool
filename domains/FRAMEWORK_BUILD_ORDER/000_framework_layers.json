@@ -1,0 +1,338 @@
+{
+  "type": "FRAMEWORK_BUILD_ORDER",
+  "generated": "2026-04-01",
+  "rebased": "2026-04-01",
+  "rebase_note": "Plan rebased to align with IDENTITY_ACCESS_CORE foundational model. All feature domains are explicitly blocked until IDENTITY_ACCESS_CORE steps 1-8 are verified. Sequence enforced: (1) Profile hardening + ICurrentUser, (2) Customer/profile selection consistency, (3) Authorization model, (4) Localization, (5) dependent feature domains. Decision registry: ai-governance/12_DECISION_REGISTRY.json.",
+  "purpose": "Definerer den lagdelte byggerækkefølge for det nye system. Skelner skarpt mellem rammeværk (framework), kerne-features og feature-moduler. Ingen feature-modul må bygges foran det lag det afhænger af.",
+
+  "layer_model": {
+    "L0": "Foundation — alt hvad ICurrentUser, DB-adgang og sprog afhænger af. Skal være stabilt FØR alt andet.",
+    "L1": "Platform services — infrastruktur der bruges på tværs: logging, job-motor, email-infrastruktur, kø-mekanisme.",
+    "L2": "Core tenant framework — kundeoprettelse, profilstyring, brugerstyring. Det administrative lag.",
+    "L3": "Core product features — de centrale driftsdomæner som alle kunder bruger: adresseopslag, afsendelse, modtager-styring, statistik.",
+    "L4": "Feature modules — valgfri moduler der aktiveres via ProfileRoles. Kan IKKE bygges uden L0–L3 er stabilt."
+  },
+
+  "layers": [
+    {
+      "layer": "L0 — Foundation",
+      "build_first": true,
+      "domains": [
+        {
+          "name": "IDENTITY_ACCESS_CORE",
+          "analysis_file": "domains/IDENTITY_ACCESS_CORE/000_foundational_analysis.json",
+          "status": "ANALYSERET — klar til implementering",
+          "what_it_provides": [
+            "ICurrentUser interface (UserId, CustomerId, ProfileId, LanguageId, ImpersonateFromUserId)",
+            "CurrentUserMiddleware — JWT validering og population",
+            "LoginHandler, SelectCustomerHandler, SelectProfileHandler",
+            "RefreshTokenHandler, LogoutHandler",
+            "IPermissionService: DoesUserHaveRole, DoesProfileHaveRole",
+            "2FA flows (TOTP, SMS, email)",
+            "Azure AD / SAML2 / SCIM login"
+          ],
+          "blocks_everything": true,
+          "db_tables": [
+            "Users", "UserRefreshTokens", "UserRoleMappings", "UserRoles",
+            "Customers", "CustomerUserMappings", "CustomerUserRoleMappings",
+            "CustomerSamlSettings",
+            "Profiles", "ProfileUserMappings", "ProfileRoleMappings", "ProfileRoles", "ProfileRoleGroups"
+          ]
+        },
+        {
+          "name": "Localization",
+          "analysis_file": "domains/localization/",
+          "status": "ANALYSERET (completeness 0.95)",
+          "what_it_provides": [
+            "ILocalizationService: GetLocalizedResource(key, languageId)",
+            "GET /api/Common/GetResourcesJson — AllowAnonymous label-bootstrap",
+            "Languages tabel (6 sprog: da/sv/en/fi/no/de)",
+            "LocaleStringResources tabel — alle UI-tekster"
+          ],
+          "dependency": "ICurrentUser.LanguageId — must come after IDENTITY_ACCESS_CORE",
+          "blocks": ["alle UI-handlers der returnerer lokaliserede fejlbeskeder, datofomatering, e-mail-skabeloner"],
+          "db_tables": ["Languages", "LocaleStringResources"]
+        },
+        {
+          "name": "Database / IDbSession",
+          "analysis_file": "domains/Database/",
+          "status": "IKKE FULDT ANALYSERET",
+          "what_it_provides": [
+            "IDbSession — Dapper connection wrapper",
+            "ConnectionFactory — SQL Server connection string management",
+            "Transaction scope pattern",
+            "BaseRepository pattern (Dapper)"
+          ],
+          "blocks_everything": true,
+          "note": "Skal implementeres som første kode-artefakt — alle andre handler bruger IDbSession"
+        }
+      ]
+    },
+
+    {
+      "layer": "L1 — Platform Services",
+      "domains": [
+        {
+          "name": "Monitoring / Logging",
+          "analysis_file": "domains/Monitoring/",
+          "status": "LID ANALYSERET (confidence 0.17, 11 batch jobs set)",
+          "what_it_provides": [
+            "ISystemLogger — struktureret logging med UserId/CustomerId kontekst",
+            "Audit trail pipeline behavior (MediatR)",
+            "Fejllog til DB"
+          ],
+          "dependency": "ICurrentUser (for UserId/CustomerId stempel på alle log-entries)"
+        },
+        {
+          "name": "Email Infrastructure",
+          "analysis_file": "domains/Email/",
+          "status": "IKKE FULDT ANALYSERET",
+          "what_it_provides": [
+            "IEmailService — send plain email",
+            "Email-kø og retry-mekanisme",
+            "EmailTemplateName enum + skabelon-opslag"
+          ],
+          "dependency": "Localization (email-skabeloner er lokaliserede), ICurrentUser (afsender-kontekst)",
+          "note": "Bruges af: password reset, 2FA pin, SAML user-oprettelse, user-kontakt-detaljer-opdatering"
+        },
+        {
+          "name": "Queue",
+          "analysis_file": "domains/Queue/",
+          "status": "IKKE FULDT ANALYSERET",
+          "what_it_provides": [
+            "Besked-kø infrastruktur for async afsendelse",
+            "Retry-logik for mislykkede udsendelser"
+          ],
+          "dependency": "Database/IDbSession"
+        },
+        {
+          "name": "Job / Batch Infrastructure",
+          "analysis_file": "domains/Job/",
+          "status": "IKKE FULDT ANALYSERET",
+          "what_it_provides": [
+            "IJobContext — non-HTTP implementation af ICurrentUser til batch-jobs",
+            "Job scheduling og eksekvering",
+            "HangFire eller tilsvarende scheduler integration"
+          ],
+          "critical_note": "Batch-jobs har INGEN JWT. Kræver dedikeret JobCurrentUser implementation af ICurrentUser der populeres fra job-metadata (ProfileId, CustomerId) — IKKE fra HTTP-kontekst.",
+          "locked_decision": "AD_005 (DEC_006 i 12_DECISION_REGISTRY.json) — JobCurrentUser implementerer ICurrentUser men populeres fra job-metadata, ikke JWT. ProfileId og CustomerId gemmes ved scheduling-tidspunkt i job-record.",
+          "dependency": "IDENTITY_ACCESS_CORE (ICurrentUser interface), Database/IDbSession"
+        }
+      ]
+    },
+
+    {
+      "layer": "L2 — Core Tenant Framework",
+      "note": "Det administrative lag — styring af kunder, profiler og brugere. Bygger ovenpå L0 men ER ikke L0.",
+      "domains": [
+        {
+          "name": "Customer Administration",
+          "analysis_file": "domains/Customer/",
+          "status": "IKKE FULDT ANALYSERET (confidence 0.17)",
+          "what_it_provides": [
+            "Kundeoprettelse og -redigering (SuperAdmin)",
+            "CustomerUserMappings CRUD (tilknyt/fjern bruger til kunde)",
+            "CustomerUserRoleMappings CRUD (konfigurer tilgængelige roller per kunde)",
+            "SAML/SCIM konfiguration per kunde",
+            "Kundedeletion (soft delete med aktiv-profil-check)"
+          ],
+          "required_roles": ["SuperAdmin", "CustomerSetup"],
+          "circular_dependency_warning": "Skriver til UserRoleMappings og ProfileUserMappings som ICurrentUser læser. Skal behandles som admin-only vertikal slice med eksplicit rolle-krav."
+        },
+        {
+          "name": "Profile Management",
+          "analysis_file": "domains/Profile/",
+          "status": "ANALYSERET",
+          "what_it_provides": [
+            "Profiloprettelse/-redigering inden for en kunde",
+            "ProfileRoleMappings CRUD (tildel capabilities til profil)",
+            "ProfileApiKey management",
+            "ProfileUserMappings CRUD (giv/fjern brugeradgang til profil)",
+            "PositiveList / MunicipalityList upload og styring",
+            "NightTimeDetector per profil"
+          ],
+          "required_roles": ["CustomerSetup", "ManageProfiles", "SuperAdmin"]
+        },
+        {
+          "name": "User Management",
+          "analysis_file": "domains/User/",
+          "status": "IKKE FULDT ANALYSERET (entities tom)",
+          "what_it_provides": [
+            "Brugeroprettelse og -redigering inden for en kunde",
+            "UserRoleMappings CRUD",
+            "Bruger lock/unlock, reaktivering",
+            "2FA konfiguration per bruger (AuthenticatorSecret)",
+            "Impersonation management (SuperAdmin)"
+          ],
+          "required_roles": ["ManageUsers", "CustomerSetup", "SuperAdmin"]
+        }
+      ]
+    },
+
+    {
+      "layer": "L3 — Core Product Features",
+      "note": "De centrale driftsdomæner alle kunder benytter. Kræver stabilt L0+L1+L2.",
+      "domains": [
+        {
+          "name": "Lookup / Address",
+          "analysis_file": "domains/Lookup/",
+          "status": "IKKE FULDT ANALYSERET",
+          "what_it_provides": [
+            "Adresseopslag (BBR, DAWA, norske/svenske/finske kilder)",
+            "Ejerdata-opslag per adresse",
+            "GetAddressRestrictionForProfile — geografisk begrænsning enforcement"
+          ],
+          "critical_dependency": "DoesProfileHaveRole (HaveNoSendRestrictions, UseMunicipalityPolList). profileId=0 SKAL afvises her.",
+          "gate": "ProfileRole"
+        },
+        {
+          "name": "Standard Receivers / Recipient Management",
+          "analysis_file": "domains/Standard/",
+          "status": "IKKE FULDT ANALYSERET",
+          "what_it_provides": [
+            "Modtagerlister (StandardReceivers, StandardReceiverGroups)",
+            "SCIM-synkroniserede modtagere",
+            "Import af modtagere"
+          ],
+          "gate": "UserRole: StandardReceivers"
+        },
+        {
+          "name": "SMS / Message Sending",
+          "analysis_file": "domains/Sms/",
+          "status": "DELVIST ANALYSERET (confidence 0.33)",
+          "what_it_provides": [
+            "SmsGroup oprettelse og udsendelse",
+            "WebMessage (web-baserede beskeder)",
+            "Gateway-routing (GatewayAPI, Infobip, Strex)",
+            "Afsenderidentitet fra Profile.SMSSendAs"
+          ],
+          "gate": "ProfileRole: multiple (CanSendByEboks, CanSendByVoice, HaveNoSendRestrictions etc.)"
+        },
+        {
+          "name": "Delivery Pipeline",
+          "analysis_file": "domains/Delivery/",
+          "status": "IKKE FULDT ANALYSERET (8 batch jobs set)",
+          "what_it_provides": [
+            "Afsendelsespipeline — kø til gateway",
+            "Retry og fejlhåndtering",
+            "Leveringsstatus-tracking"
+          ],
+          "dependency": "Queue, Email Infrastructure, SMS infra"
+        },
+        {
+          "name": "Statistics",
+          "analysis_file": "domains/Statistics/",
+          "status": "IKKE FULDT ANALYSERET (8 batch jobs, confidence 0.17)",
+          "what_it_provides": [
+            "Udsendelsesstatistik per kunde og profil",
+            "Batch-aggregering af statistik",
+            "Rapporter"
+          ],
+          "gate": "UserRole: ManageReports"
+        },
+        {
+          "name": "Subscription",
+          "analysis_file": "domains/Subscription/",
+          "status": "IKKE FULDT ANALYSERET",
+          "what_it_provides": [
+            "Abonnementstyring (til/framelding)",
+            "Reminder-opsætning"
+          ],
+          "gate": "UserRole: SubscriptionModule, ProfileRole: CanSetupSubscriptionReminders"
+        }
+      ]
+    },
+
+    {
+      "layer": "L4 — Feature Modules",
+      "note": "Aktiveres via ProfileRoles eller UserRoles. Kan IKKE bygges uden stabilt L0–L3. Build on demand — ikke alle kunder bruger alle moduler.",
+      "domains": [
+        { "name": "Benchmark", "gate": "UserRole: Benchmark, ManageBenchmarks" },
+        { "name": "Voice", "gate": "ProfileRole: CanSendByVoice" },
+        { "name": "Conversation (SMS 2-vejs)", "gate": "ProfileRole: SmsConversations" },
+        { "name": "Webhook", "gate": "CustomerSetup" },
+        { "name": "Enrollment", "gate": "ukendt — kræver analyse" },
+        { "name": "Finance / Economic", "gate": "SuperAdmin" },
+        { "name": "GatewayAPI (ekstern API-adgang)", "gate": "ProfileApiKey + UserRole: API" },
+        { "name": "Infobip / Strex / SendGrid", "gate": "Gateway-konfiguration per kunde" },
+        { "name": "Import (masseimport)", "gate": "ProfileRole — kræver analyse" },
+        { "name": "Map", "gate": "ProfileRole — kræver analyse" },
+        { "name": "Notify (push/notifikation)", "gate": "kræver analyse" },
+        { "name": "Prospect", "gate": "kræver analyse" },
+        { "name": "Scheduled Broadcasts", "gate": "UserRole: CanCreateScheduledBroadcasts" },
+        { "name": "Subscribe / Unsubscribe (selvbetjenings-UI)", "gate": "SubscriptionModule" },
+        { "name": "Citizen Dialogue", "gate": "ProfileRole: CitizenDialogue" },
+        { "name": "NineteenNineteen (NO specifik)", "gate": "profileRole — kræver analyse" },
+        { "name": "Inbound (indgående beskeder)", "gate": "kræver analyse" },
+        { "name": "Pin (2FA til udsendelse)", "gate": "kræver analyse" },
+        { "name": "Cleanup / Maintenance", "gate": "SuperAdmin / batch" },
+        { "name": "Operations", "gate": "SuperAdmin" }
+      ]
+    }
+  ],
+
+  "build_sequence_summary": [
+    "TRIN 1: IDbSession + ConnectionFactory (ingen afhængigheder)",
+    "TRIN 2: IDENTITY_ACCESS_CORE komplet (ICurrentUser, JWT, login, profil/kunde-valg, permissions)",
+    "TRIN 3: Localization (ICurrentUser.LanguageId tilgængeligt)",
+    "TRIN 4: Monitoring/Logging (ICurrentUser + IDbSession tilgængeligt)",
+    "TRIN 5: Email Infrastructure (Localization + ICurrentUser tilgængeligt)",
+    "TRIN 6: Queue Infrastructure (IDbSession tilgængeligt)",
+    "TRIN 7: Job/Batch Infrastructure inkl. JobCurrentUser — non-HTTP ICurrentUser implementation",
+    "TRIN 8: Customer Administration (L2 — admin CRUD for kunder, roller, SAML, SCIM)",
+    "TRIN 9: Profile Management (L2 — profil CRUD, capabilities, positive lists)",
+    "TRIN 10: User Management (L2 — bruger CRUD, roller, 2FA-admin)",
+    "TRIN 11: Lookup / Address (L3 — adresseopslag med profil-restriction enforcement)",
+    "TRIN 12: Standard Receivers / Recipient Management (L3)",
+    "TRIN 13: SMS / Message Sending core (L3)",
+    "TRIN 14: Delivery Pipeline (L3 — inkl. retry, status-tracking)",
+    "TRIN 15: Statistics (L3 — rapportering)",
+    "TRIN 16: Subscription (L3)",
+    "TRIN 17+: Feature modules L4 — efter behov og prioritet"
+  ],
+
+  "domains_that_need_foundational_analysis": [
+    "Database/IDbSession — mangler komplet analyse, er trin 1",
+    "Job/Batch — AD_005 besluttet (JobCurrentUser), men dybere batch-infrastruktur-analyse mangler",
+    "Delivery Pipeline — 8 batch jobs set, ikke fuldt kortlagt",
+    "Lookup — adgangsrestriktionsmodellen er kritisk, ikke fuldt analyseret",
+    "Customer Administration — confidence 0.17, cirkulær afhængighed uafklaret",
+    "User Management — entities-fil er tom"
+  ],
+
+  "enforced_build_sequence": {
+    "description": "Mandatory sequence derived from IDENTITY_ACCESS_CORE foundational analysis (2026-04-01). Cannot be reordered. No domain listed after step 8 may begin before steps 1-8 are verified complete.",
+    "sequence": [
+      "1. Profile hardening: ICurrentUser interface + CurrentUserMiddleware (rejects profileId=0/customerId=0 with HTTP 401)",
+      "2. IDbSession + ConnectionFactory (all DB operations depend on this)",
+      "3. Single canonical ICurrentUser: LoginHandler + SelectCustomerHandler + SelectProfileHandler (replaces both diverging WebWorkContext implementations)",
+      "4. Customer/profile selection consistency: RefreshTokenHandler reads User.CurrentCustomerId/CurrentProfileId from DB — token is always in sync",
+      "5. Authorization model: IPermissionService (DoesUserHaveRole + DoesProfileHaveRole) + in-memory cache",
+      "6. Authentication variants: 2FA flows, Azure AD/MSAL, SAML2 SSO, SCIM",
+      "7. Admin operations: ManageUsers, ManageProfiles, UserRoleAssignment, Impersonation",
+      "8. Security hardening: Argon2id password migration, AuthenticatorSecret encryption",
+      "→ GATE: steps 1-8 must be verified before any downstream domain begins",
+      "9. Localization: ICurrentUser.LanguageId is stable — ILocalizationService can be built",
+      "10. L1 Platform: Monitoring/Logging (stamped with ICurrentUser), Email Infrastructure, Queue",
+      "11. L1 Platform: Job/Batch Infrastructure with JobCurrentUser (AD_005)",
+      "12. L2 Core Tenant: Customer Administration, Profile Management, User Management",
+      "13. L3 Core Product: Lookup/Address (profileId=0 now definitively closed), Standard Receivers",
+      "14. L3 Core Product: SMS/Messaging, Subscriptions, Reporting/Statistics",
+      "15+. L4 Feature Modules: Voice, Benchmark, Conversation, Finance, etc."
+    ]
+  },
+
+  "not_in_framework": [
+    "Benchmark — feature modul (L4)",
+    "Voice — feature modul (L4)",
+    "Conversation — feature modul (L4)",
+    "Finance/Economic — admin modul (L4)",
+    "Infobip/Strex/SendGrid/GatewayAPI — gateway-integrationer (L4)",
+    "NineteenNineteen — land-specifikt modul (L4)",
+    "Prospect — ukendt scope (L4)",
+    "Map — feature modul (L4)"
+  ],
+
+  "confidence": 0.82,
+  "confidence_rationale": "Lag-strukturen er afledt af confirmed afhængigheder fra kode og domain-outputs. L0 og L1 er solide. L2/L3 grænsen er baseret på domain meta-scores (mange på 0.17 confidence) og kræver supplerende analyse. L4-listen er udtømmende men indeholder uanalyserede domæner. 0.18 usikkerhed: præcis scope af Delivery, Queue, Job/Batch — disse er svagt analyserede."
+}

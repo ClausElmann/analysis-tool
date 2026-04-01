@@ -1,0 +1,103 @@
+{
+  "version": "1.0",
+  "generated": "2026-04-01",
+  "purpose": "Authoritative registry of locked architectural decisions. Entries are immutable once locked. Superseding requires an explicit new entry referencing the superseded id. Deletion is forbidden.",
+
+  "locked_decisions": [
+    {
+      "id": "DEC_001",
+      "key": "IDENTITY_ACCESS_CORE_FOUNDATIONAL",
+      "value": true,
+      "summary": "IDENTITY_ACCESS_CORE is the architectural foundation of the entire system. It is NOT a feature domain — it is the structural basis on which all other domains are built. No domain touching auth, access, tenant scoping, profile enforcement, or runtime context may be built without explicit alignment to this model.",
+      "source": "domains/IDENTITY_ACCESS_CORE/000_foundational_analysis.json",
+      "locked": true,
+      "date": "2026-04-01",
+      "scope": ["auth", "access", "scoping", "tenant", "profile", "user", "permissions", "jwt", "runtime-context"],
+      "blocked_until_steps_1_to_8_complete": [
+        "Localization (step 1 depends on ICurrentUser.LanguageId)",
+        "Messaging/SmsGroup (depends on ICurrentUser.ProfileId + DoesProfileHaveRole)",
+        "Customer Administration (writes to UserRoleMappings that ICurrentUser reads)",
+        "User Management (writes ProfileUserMappings that ICurrentUser reads)",
+        "Lookup/Address (depends on GetAddressRestrictionForProfile with valid profileId)",
+        "Reporting/Statistics (depends on ICurrentUser.CustomerId scope)",
+        "Job/Batch (depends on JobCurrentUser implementing same ICurrentUser interface)"
+      ]
+    },
+    {
+      "id": "DEC_002",
+      "key": "AD_001_LANGUAGEID_FROM_DB",
+      "value": "User.LanguageId is read from the User entity in DB via CurrentUserMiddleware. It is NOT stored in or derived from JWT.",
+      "rationale": "Option A already loads User from DB per request — LanguageId is free. Baking LanguageId into JWT creates divergence risk and requires token reissuance on language change.",
+      "consequence": "Language change requires only UPDATE Users SET LanguageId = @lang. Next request has updated LanguageId automatically. No token action required.",
+      "locked": true,
+      "date": "2026-04-01"
+    },
+    {
+      "id": "DEC_003",
+      "key": "AD_002_JWT_SHAPE_FIXED",
+      "value": "{UserId, CustomerId, ProfileId, ImpersonateFromUserId} — thin JWT. No roles, no LanguageId, no capabilities, no TestMode in JWT.",
+      "rationale": "Avoids fat-token problems (63 profile roles + 40 user roles). All authorization decisions read from DB via ICurrentUser with in-memory cache. Eliminates JWT/DB divergence.",
+      "locked": true,
+      "date": "2026-04-01"
+    },
+    {
+      "id": "DEC_004",
+      "key": "AD_003_PROFILEID_ZERO_HARD_401",
+      "value": "profileId=0 and customerId=0 are hard errors. CurrentUserMiddleware rejects any request with these values with HTTP 401. No handler ever receives ICurrentUser with ProfileId=0 or CustomerId=0.",
+      "rationale": "Existing codebase treats 0 as uninitialized and allows some operations through (including address-restriction bypass = security hole). Rebuild closes this permanently.",
+      "locked": true,
+      "date": "2026-04-01"
+    },
+    {
+      "id": "DEC_005",
+      "key": "AD_004_SINGLE_ICURRENTUSER",
+      "value": "Exactly one ICurrentUser implementation exists: CurrentUserMiddleware. No diverging WebWorkContext variants. All handlers in all assemblies receive the same ICurrentUser via DI.",
+      "rationale": "Eliminates CONTRADICTION_002: ServiceAlert.Api and ServiceAlert.Contracts have diverging WebWorkContext implementations with different sources of truth for CustomerId/ProfileId.",
+      "locked": true,
+      "date": "2026-04-01"
+    },
+    {
+      "id": "DEC_006",
+      "key": "AD_005_JOB_CURRENT_USER",
+      "value": "Batch/Job context uses JobCurrentUser — a separate non-HTTP implementation of the ICurrentUser interface. Populated from job metadata (ProfileId and CustomerId stored at scheduling time). Not populated from JWT or HttpContext.",
+      "rationale": "Batch jobs have no JWT and no HTTP context. They require their own ICurrentUser source. Same interface guarantees all handlers are usable from both HTTP and batch contexts without modification.",
+      "consequence": "IPermissionService.DoesProfileHaveRole and DoesUserHaveRole work identically in both HTTP and batch contexts.",
+      "locked": true,
+      "date": "2026-04-01"
+    }
+  ],
+
+    ,{
+      "id": "DEC_007",
+      "key": "IDENTITY_FLOW_CONTRACT",
+      "value": "The identity flow contract in docs/IDENTITY_FLOW_CONTRACT.md is the single authoritative source of truth for all login, customer selection, profile selection, and JWT issuance rules.",
+      "sub_rules": {
+        "jwt_requires_profile_and_customer": true,
+        "jwt_issued_only_when": "UserId > 0 AND CustomerId > 0 AND ProfileId > 0 AND (2FA passed if required)",
+        "jwt_forbidden_states": [
+          "ProfileId = 0 in JWT — NEVER issued",
+          "CustomerId = 0 in JWT — NEVER issued"
+        ],
+        "login_output_states": [
+          "REQUIRES_TWO_FACTOR (428) — 2FA gate not cleared",
+          "REQUIRES_CUSTOMER_SELECTION (409) — CurrentCustomerId=0 or no CustomerUserMapping",
+          "REQUIRES_PROFILE_SELECTION (409) — CurrentProfileId=0 and 0 or >1 profiles",
+          "SUCCESS (200) — all preconditions met, JWT issued"
+        ],
+        "customer_selection_issues_jwt": "only if exactly 1 profile accessible (auto-assign)",
+        "profile_selection_always_issues_jwt": true,
+        "auto_profile_selection_rule": "apply ONLY when exactly 1 profile accessible — never when 0 or >1",
+        "refresh_reads_from_db": "RefreshTokenHandler reads User.CurrentCustomerId and User.CurrentProfileId fresh from DB — never from expired JWT",
+        "partial_tokens_restricted": "userId-only and userId+customerId tokens MUST NOT be accepted by any operational handler"
+      },
+      "source": "docs/IDENTITY_FLOW_CONTRACT.md",
+      "locked": true,
+      "date": "2026-04-01"
+    }
+  ],
+
+  "change_policy": {
+    "rule": "Locked decisions are immutable. To supersede, add a new entry referencing 'supersedes': '<old_id>'. The old entry remains. Deletion is forbidden.",
+    "review_required_for": ["Any change to JWT shape", "Any change to ICurrentUser interface", "Any change to profileId/customerId validation policy", "Any new ICurrentUser implementation", "Any change to login flow output states", "Any change to JWT issuance preconditions"]
+  }
+}

@@ -1,0 +1,328 @@
+{
+  "type": "FOUNDATIONAL_DOMAIN_ANALYSIS",
+  "domain": "IDENTITY_ACCESS_CORE",
+  "generated": "2026-04-01",
+  "files_scanned": 34,
+  "core_concepts": [
+    {
+      "name": "User",
+      "meaning": "The authenticated identity of a human actor. Stores credentials (SHA256+salt password, AuthenticatorSecret for TOTP), lockout state, 2FA contact details, and two session-pointer fields: CurrentCustomerId and CurrentProfileId. NOT a tenant-scoped entity — it exists globally across all customers.",
+      "responsibility": "Authentication (verifying credentials, issuing JWT). Carries session-state pointers to the currently selected Customer and Profile. Subject of impersonation. Soft-deletable (User.Deleted=true).",
+      "relationships": [
+        "User N:M Customer via CustomerUserMappings (explicit membership — a user can belong to multiple customers)",
+        "User N:M Profile via ProfileUserMappings (explicit access grants — a user can access profiles across customers)",
+        "User N:M UserRole via UserRoleMappings (global, NOT scoped per customer — CONTRADICTION)",
+        "User 1:N UserRefreshToken (sliding 480-min window, stored in DB)",
+        "User.CurrentCustomerId → Customer (session-state pointer, DEFAULT 0, NO FK constraint)",
+        "User.CurrentProfileId → Profile (session-state pointer, DEFAULT 0, NO FK constraint)",
+        "User.ImpersonatingUserId → User (self-reference: who the F24 admin is acting as)"
+      ]
+    },
+    {
+      "name": "Customer",
+      "meaning": "The organizational tenant. A legal/billing entity that owns one or more Profiles, has its own SAML SSO configuration, SCIM token, and country/language defaults. NOT the same as the User's current operational scope — Customer is an organizational umbrella.",
+      "responsibility": "Tenant registration and configuration (SAML, SCIM, voice delivery windows, billing ERP reference). Governs which users are members (via CustomerUserMappings). Owns all profiles.",
+      "relationships": [
+        "Customer 1:N Profile (Profile.CustomerId FK — hard ownership)",
+        "Customer N:M User via CustomerUserMappings (membership table with no attached roles)",
+        "Customer 1:1 optional CustomerSamlSettings (per-tenant SAML IdP configuration)",
+        "Customer 0:N CustomerUserRoleMappings (defines which UserRoles are configured for this customer — NO UserId, a policy table not a per-user assignment)",
+        "Customer.ScimTokenUUID → SCIM bearer token for inbound provisioning",
+        "All data entities in the system have CustomerId FK — Customer is the outer partition key"
+      ]
+    },
+    {
+      "name": "Profile",
+      "meaning": "A sub-division of a Customer. The PRIMARY runtime operational scope. Almost every data entity (SmsGroups, messages, positive lists, API keys, FTP settings) is scoped to a Profile, not just to a Customer. Profile is the REAL context in which work happens.",
+      "responsibility": "Data partition within Customer. Capability gate (63 ProfileRoleNames control what operations are legal). Geographic send boundary (positive lists, municipality lists). SMS/email sender identity (SMSSendAs, EmailSendAs). Night-time detection for outbound message suppression.",
+      "relationships": [
+        "Profile N:1 Customer (Profile.CustomerId, FK enforced)",
+        "Profile N:M User via ProfileUserMappings (explicit access — membership in Customer does NOT auto-grant access to all profiles)",
+        "Profile N:M ProfileRole via ProfileRoleMappings (capability flags — 63 roles)",
+        "Profile 0:N SmsGroup (primary message ownership)",
+        "Profile 0:N ProfileApiKey (external integrations scoped to this profile)",
+        "Profile 0:1 ProfileRoleGroup (optional bulk-role preset via Profile.RoleGroupId)"
+      ]
+    },
+    {
+      "name": "CustomerUserMapping",
+      "meaning": "The explicit membership record linking a User to a Customer. CONFIRMED in DB: dbo.CustomerUserMappings (CustomerId, UserId). This is the authoritative answer to 'is this user a member of this customer?' — checked by CanUserAccessCustomer().",
+      "responsibility": "Authorization guard: user cannot operate within a customer unless a mapping exists. UserRepository.GetUsersByCustomerIdAsync() uses this table as the user-enumeration basis.",
+      "relationships": [
+        "CustomerUserMapping N:1 Customer",
+        "CustomerUserMapping N:1 User",
+        "No roles attached at this level — roles are separately assigned via UserRoleMappings"
+      ]
+    },
+    {
+      "name": "ProfileUserMapping",
+      "meaning": "The explicit access grant linking a User to a Profile. CONFIRMED in DB: dbo.ProfileUserMappings (ProfileId, UserId). CanUserAccessProfile() checks this before any profile switch or profile-scoped operation.",
+      "responsibility": "Fine-grained profile access control. Membership in Customer does NOT auto-grant access to all profiles of that customer. Admin must explicitly add a user to each profile.",
+      "relationships": [
+        "ProfileUserMapping N:1 Profile",
+        "ProfileUserMapping N:1 User",
+        "Indirectly scopes user to Customer (profiles belong to customers)"
+      ]
+    },
+    {
+      "name": "UserRole",
+      "meaning": "An administrative capability flag attached to a User globally (NOT per customer, NOT per profile). 40 values including: SuperAdmin, ManageUsers, ManageProfiles, CustomerSetup, WEBMessages, API, Searching, StandardReceivers, TwoFactorAuthenticate, AlwaysTestMode, LimitedUser, RequiresApproval.",
+      "responsibility": "Controls which admin/UI features a user can access. SuperAdmin bypasses most checks. API role is required for machine-to-machine API access. AlwaysTestMode forces TestMode regardless of user setting.",
+      "relationships": [
+        "UserRole N:M User via UserRoleMappings (no CustomerId scope — GLOBAL roles)",
+        "UserRole N:M Customer via CustomerUserRoleMappings (customer-level role policy — NO UserId — defines which roles the customer is configured to use)",
+        "DoesUserHaveRole(userId, roleName) is the check function — cached"
+      ]
+    },
+    {
+      "name": "ProfileRole",
+      "meaning": "A capability flag attached to a Profile. 63 values including: HaveNoSendRestrictions, CanSendByEboks, CanSendByVoice, UseMunicipalityPolList, CanSendToCriticalAddresses, SmsConversations, NorwayKRRLookup, NynorskLanguage, CitizenDialogue, and many more channel/feature enablement flags.",
+      "responsibility": "Controls what operational capabilities a profile has. ALL service-layer capability checks route through DoesProfileHaveRole(profileId, roleName). This is the primary access enforcement mechanism for operational features, NOT UserRoles.",
+      "relationships": [
+        "ProfileRole N:M Profile via ProfileRoleMappings",
+        "ProfileRoles can be grouped into ProfileRoleGroups for bulk assignment",
+        "DoesProfileHaveRole(profileId, roleName) is the check function — cached"
+      ]
+    },
+    {
+      "name": "CustomerUserRoleMapping",
+      "meaning": "CONFUSINGLY NAMED TABLE. dbo.CustomerUserRoleMappings (CustomerId, UserRoleId) — NO UserId. This is a CUSTOMER POLICY table defining which UserRoles the customer wishes to make available/configure. NOT a per-user role assignment. Used by GetCustomerUserRoleMappings(customerId) and UpdateCustomerUserRoleMapping().",
+      "responsibility": "Customer admin configuration of which user roles are relevant for this customer's users. Separate from UserRoleMappings which is the actual role-to-user assignment.",
+      "relationships": [
+        "CustomerUserRoleMapping N:1 Customer",
+        "CustomerUserRoleMapping N:1 UserRole",
+        "NOT linked to User — this is a policy/template, not an assignment"
+      ]
+    },
+    {
+      "name": "RuntimeContext (IWorkContext / ICurrentUser)",
+      "meaning": "The per-request resolved context carrying the authenticated User, their currently selected Customer and Profile, role-check methods, and impersonation state. Two DIVERGENT implementations exist in the codebase.",
+      "responsibility": "Single access point for all authorization decisions within a request. Populated from JWT claims + DB lookups. Subject of extensive caching (per-request scope).",
+      "relationships": [
+        "ServiceAlert.Api/WebWorkContext: UserId from JWT claim → loads full User from DB → User.CurrentCustomerId/CurrentProfileId drive Customer and Profile loads (DB-primary approach)",
+        "ServiceAlert.Contracts/WebWorkContext: ALL (UserId, CustomerId, ProfileId, ImpersonateFromUserId) read from JWT claims directly (JWT-primary approach — DIVERGENCE)",
+        "Both expose: IsUserSuperAdmin(), UserHaveRole(role), CurrentCustomerId, CurrentProfileId, ImpersonateFromUserId",
+        "JWT shape confirmed: {UserId, CustomerId, ProfileId, ImpersonateFromUserId} — roles are NOT in JWT"
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "boundary": "Identity boundary",
+      "owned_by": "User",
+      "reason": "FACT from code: JWT is issued per User. Authentication validates the User entity (email+password, Azure AD token, SAML assertion). UserId is the root claim in every JWT. User is the subject of 2FA, lockout, and impersonation."
+    },
+    {
+      "boundary": "Tenant boundary",
+      "owned_by": "Customer",
+      "reason": "FACT from schema: Every data entity has a CustomerId column. SELECT queries are scoped with WHERE CustomerId = @CustomerId. Access guard is CanUserAccessCustomer() via CustomerUserMappings. Customer.ScimTokenUUID and CustomerSamlSettings are tenant-level configurations. Customer is the organizational registration unit."
+    },
+    {
+      "boundary": "Capability boundary",
+      "owned_by": "Profile (DoesProfileHaveRole)",
+      "reason": "FACT from code: ALL 63 operational capability flags live on Profiles via ProfileRoleMappings. Whether a user can send e-Boks, voice, use municipality lists, send to critical addresses, etc. is determined by DoesProfileHaveRole(profileId, roleName) — NOT by the user's own roles. UserRoles control admin UI access (ManageUsers, CustomerSetup) not operational execution."
+    },
+    {
+      "boundary": "Data partition boundary",
+      "owned_by": "Profile (primary) within Customer (outer)",
+      "reason": "FACT from schema: SmsGroups.ProfileId is NOT NULL and is the primary FK for all message data. Positive lists, FTP settings, API keys, map settings are Profile-scoped. The Profile is where operational work is isolated. Customer is the outer grouping, Profile is the inner work-unit."
+    },
+    {
+      "boundary": "Runtime context boundary",
+      "owned_by": "JWT + User.CurrentCustomerId + User.CurrentProfileId (session state)",
+      "reason": "FACT from code: JWT carries the last-issued (CustomerId, ProfileId). DB table Users carries the current session selection. These can diverge. Refresh token issuance is the synchronization point: GenerateAccessToken reads User.CurrentCustomerId and User.CurrentProfileId from DB at refresh time, propagating any customer/profile switch into the new JWT."
+    },
+    {
+      "boundary": "Administrative access boundary",
+      "owned_by": "UserRole (global) + CustomerUserRoleMappings (policy)",
+      "reason": "FACT from code: UserRoleMappings (UserId, UserRoleId) has no CustomerId column — UserRoles are GLOBAL across all customers. A user with ManageUsers can manage users for any customer they are a member of. SuperAdmin bypasses everything. CustomerUserRoleMappings configures which roles are visible in a given customer's admin UI."
+    }
+  ],
+  "access_flow": [
+    "STEP 1 — Submit credentials: User POSTs email+password to /api/user/login",
+    "STEP 2 — Credential validation: UserService.GetApiUserByEmail() fetches User by email. Checks UserRoleName.API or SuperAdmin (API route) OR standard user. Validates SHA256(password+salt) against stored hash.",
+    "STEP 3 — Lockout check: IsLockedOut=true OR (FailedLoginCount > 5 AND time-based delay not expired) → HTTP 403. On success: reset FailedLoginCount=0.",
+    "STEP 4 — Profile auto-assignment: If User.CurrentProfileId==0 AND user has exactly 1 accessible profile (via ProfileUserMappings) → set User.CurrentProfileId = that profile. If 0 profiles or >1 profile → HTTP 300 (client must call profile-select endpoint).",
+    "STEP 5 — 2FA check: If UserRoleName.TwoFactorAuthenticate assigned → HTTP 428. Client sends pin to /api/user/twofactor. Methods: SMS (User.ResetPhone+PhoneCode), email (User.Email), TOTP (User.AuthenticatorSecret via RFC 6238). Each resolves to same token issuance path.",
+    "STEP 6 — JWT issuance: GenerateAccessToken(user, user.CurrentCustomerId, user.CurrentProfileId) called. Claims written: {UserId, CustomerId, ProfileId, ImpersonateFromUserId}. AccessToken TTL=15min. RefreshToken (3x Guid concatenated) created/extended in DB, TTL=480min (sliding).",
+    "STEP 7 — Client stores tokens. Future requests include Authorization: Bearer <accessToken>.",
+    "STEP 8 — Per-request authorization (Api project): WebWorkContext.CurrentUser reads JWT claim UserId → loads User from DB. User.CurrentCustomerId → loads Customer. User.CurrentProfileId → loads Profile.",
+    "STEP 9 — Admin access check (user-level): DoesUserHaveRole(userId, role) → queries UserRoleMappings (global, no customer scope).",
+    "STEP 10 — Operational capability check (profile-level): DoesProfileHaveRole(profileId, role) → queries ProfileRoleMappings. This is the primary feature gate.",
+    "STEP 11 — Customer access guard: CanUserAccessCustomer(userId, customerId) → CustomerUserMappings table. Profile access guard: CanUserAccessProfile(profileId, userId) → ProfileUserMappings table.",
+    "STEP 12 — DB queries: service layer adds WHERE CustomerId = @workContext.CurrentCustomerId and/or WHERE ProfileId = @workContext.CurrentProfileId to all scoped queries.",
+    "STEP 13 — Profile switch: UI calls profile-select endpoint. Server: CanUserAccessProfile() checked. UpdateCurrentProfileByUser() writes new profileId to User.CurrentProfileId in DB. JWT still carries old profileId. Next RefreshAccessToken() call reads updated User.CurrentProfileId from DB → new JWT issued with correct profileId. Refresh IS the sync point.",
+    "STEP 14 — Customer switch: Similar to profile switch. User.CurrentCustomerId updated. Token refresh propagates change.",
+    "STEP 15 — Token refresh: GET /api/user/refreshaccesstoken?refreshToken=<token>. Validates DB token (non-expired). Reads User.CurrentCustomerId + User.CurrentProfileId from DB. Issues new JWT. Extends RefreshToken TTL (sliding).",
+    "STEP 16 — Logout: POST /api/user/logout → ClearRefreshTokens(userId). JWT remains valid for up to 15 min (no server-side JWT invalidation — KNOWN TD_002).",
+    "STEP 17 — Impersonation (F24 customers only, CustomerId in {1,9}): ImpersonatingUserId set on real user. WebWorkContext swaps CurrentUser to impersonated user if real user has SuperAdmin role. JWT carries impersonateFromUserId claim."
+  ],
+  "relationship_model": [
+    "Can a user belong to multiple customers? YES — confirmed by dbo.CustomerUserMappings (CustomerId, UserId) many-to-many. User.CurrentCustomerId is only the SESSION pointer, not the membership definition.",
+    "Can a user access multiple profiles within one customer? YES — confirmed by dbo.ProfileUserMappings (ProfileId, UserId) many-to-many. Cross-profile access within a customer is supported. Admin must grant explicitly.",
+    "Are roles attached to users, profiles, customers, or mappings? DUAL SYSTEM: UserRoles attached to Users globally (UserRoleMappings has no CustomerId). ProfileRoles attached to Profiles (ProfileRoleMappings). CustomerUserRoleMappings is a POLICY table (no UserId — defines available roles per customer, NOT per-user-per-customer assignment).",
+    "Are permissions direct, indirect, or role-derived? DIRECT for both role systems. UserRoleMappings is a direct (UserId, UserRoleId) join. ProfileRoleMappings is a direct (ProfileId, ProfileRoleId) join. There is NO permission inheritance, NO role hierarchy, NO indirection — both are flat capability assignment tables.",
+    "Are modules a permission set, a UI switch, or both? In current system: the term 'module' does not exist as a first-class entity. Module-like control is achieved via: (a) ProfileRoleNames flags enabling operational capabilities (effective module switches at Profile level), and (b) UserRoles like SubscriptionModule (26) and StandardReceivers (25) which enable admin UI sections. There is NO separate Module entity or table.",
+    "Is Profile the real runtime scope? YES — Profile is the decisive runtime boundary. ProfileId in JWT determines address restrictions, capability checks, and data partition for all operations. CustomerId is the outer grouping but Profile is where execution decisions are made.",
+    "Is there a Membership entity? YES implicitly: CustomerUserMappings is the membership. But it carries no attributes beyond (CustomerId, UserId, DateCreatedUtc). It does NOT carry roles or permissions — those are stored separately at global UserRoleMappings level.",
+    "How does impersonation work? F24 admin users (CustomerId 1 or 9) with SuperAdmin role can set User.ImpersonatingUserId = target user ID. WebWorkContext.Api detects ImpersonatingUserId != null AND requester has SuperAdmin → substitutes target user as CurrentUser. JWT carries ImpersonateFromUserId claim (original user's ID). ServiceAlert.Contracts version detects impersonation by ImpersonateFromUserId != CurrentUserId from JWT."
+  ],
+  "contradictions": [
+    "CONTRADICTION_001 — profileId==0 bypass: GetAddressRestrictionForProfile(0) returns NoAddressRestriction. A user with uninitialized session (profileId=0) can execute address lookups with NO geographic restriction. Rebuild MUST reject profileId=0 as a hard error before any operational request.",
+    "CONTRADICTION_002 — JWT vs DB divergence (two WebWorkContext implementations): ServiceAlert.Api/WebWorkContext reads CurrentCustomerId and CurrentProfileId from User entity in DB (fresh per request). ServiceAlert.Contracts/WebWorkContext reads them from JWT claims directly. These can diverge after a customer or profile switch until next token refresh. The new system MUST pick one authoritative source.",
+    "CONTRADICTION_003 — UserRoleMappings is not customer-scoped: The table (UserId, UserRoleId) has NO CustomerId. A user with ManageUsers role has that role across ALL customers they are a member of. This is inconsistent with a multi-tenant model where roles should be scoped to the customer context.",
+    "CONTRADICTION_004 — CustomerUserRoleMappings naming is misleading: The table is named as if it assigns roles to users per customer, but it has NO UserId column. It is actually a customer-role-policy table. This creates significant confusion when modeling the access system.",
+    "CONTRADICTION_005 — No FK on Users.CurrentProfileId and Users.CurrentCustomerId: These are session-state pointers with DEFAULT 0 and NO foreign key constraint. Zero is a sentinel for 'not selected' but is treated as a valid profileId in some code paths (causing CONTRADICTION_001).",
+    "CONTRADICTION_006 — RefreshToken TTL mismatch in docs vs code: Domain analysis docs state 30 min; AuthenticationService.cs code has refreshTokenExpiresSpan = TimeSpan.FromMinutes(480) (8 hours). The code is authoritative. Docs are stale.",
+    "CONTRADICTION_007 — NOCHECK constraints on critical FKs: FK_ProfileUserMappings_Profiles, FK_ProfileUserMappings_Users, FK_UserInRoles_UserRoles, FK_UserInRoles_Users are all defined but disabled via NOCHECK. Referential integrity is not enforced at DB level for these core junction tables.",
+    "CONTRADICTION_008 — CreateRefreshtoken() bug: Checks if existing token is expired and if so RETURNS the expired token instead of creating a new one (condition is inverted — < DateTime.UtcNow should be > DateTime.UtcNow). Users with expired refresh tokens may receive the expired token.",
+    "CONTRADICTION_009 — JWT does not contain roles: Roles are checked per-request from DB. But Contracts/WebWorkContext caches IDs from JWT only, so impersonation detection differs between the two WebWorkContext implementations.",
+    "CONTRADICTION_010 — No Customer-Profile cross-validation in JWT: The JWT carries CustomerId and ProfileId independently. Nothing in the JWT issuance validates that the Profile actually belongs to the Customer. A mismatched JWT would not be detected until a service-layer check.",
+    "CONTRADICTION_011 — AuthenticatorSecret stored plaintext: User.AuthenticatorSecret (NVARCHAR 50) is stored unencrypted in DB. This is a TOTP seed — exposure allows offline TOTP code generation. Must encrypt at rest in rebuild.",
+    "CONTRADICTION_012 — SHA256 password hashing: SHA256 is a fast hash, not a password KDF. SHA256+salt is far weaker than bcrypt/Argon2id against brute force. Must migrate in rebuild."
+  ],
+  "architecture_options": [
+    {
+      "option": "A — Thin JWT + DB-backed ICurrentUser (enhanced current pattern)",
+      "description": "JWT carries only {UserId, CustomerId, ProfileId, ImpersonateFromUserId}. Per-request: ICurrentUser resolves User from DB by UserId claim, Customer and Profile from DB by User.CurrentCustomerId and User.CurrentProfileId. Role checks always go to DB (with in-memory cache). Customer and profile selection happen server-side before token issuance — profileId=0 is a hard error that prevents token issuance. Single, unified ICurrentUser implementation (no divergence). CustomerUserMappings and ProfileUserMappings enforced strictly at selection time.",
+      "jwt_shape": "{userId: int, customerId: int, profileId: int, impersonateFromUserId: int, iat, exp}",
+      "enforcement_model": "Middleware: extract JWT → validate → populate ICurrentUser. ICurrentUser reads User from DB on first access. All service handlers receive ICurrentUser via DI. Handlers query: WHERE CustomerId = @currentUser.CustomerId. Capability: DoesProfileHaveRole(currentUser.ProfileId, role) via IPermissionService. No profileId=0 ever reaches a handler (middleware rejects). AdminPolicy: DoesUserHaveRole(currentUser.UserId, role) via IPermissionService.",
+      "risk": "LOW — closest to current working model. DB per-request load mitigated by in-memory caching. Single ICurrentUser eliminates JWT/DB divergence. Explicitness matches AI-friendly mandate."
+    },
+    {
+      "option": "B — Two-phase token (unauthenticated → tenant-scoped)",
+      "description": "Phase 1 login produces {userId}-only JWT. Client must then call POST /auth/select-customer (checks CustomerUserMappings) to get {userId+customerId} JWT, and POST /auth/select-profile (checks ProfileUserMappings) to get the final operational {userId+customerId+profileId} JWT. Each step is an explicit endpoint. No session state mutation — selection is captured in token. Green-ai already has SelectCustomerHandler suggesting this pattern is being pursued.",
+      "jwt_shape": "Phase 1: {userId}. Phase 2: {userId, customerId}. Phase 3: {userId, customerId, profileId, iat, exp}",
+      "enforcement_model": "Middleware validates JWT phase. Endpoints requiring operational context reject phase 1 or phase 2 tokens. Profile selection is not a DB write — it is embedded in token. No User.CurrentCustomerId / User.CurrentProfileId needed in DB (eliminate session state from Users table). Role checks still go to DB.",
+      "risk": "MEDIUM — cleaner model but more complex login flow. Blazor Server needs to manage phase transitions in circuit state."
+    },
+    {
+      "option": "C — Profile-enriched JWT (fat token with roles)",
+      "description": "JWT contains: {userId, customerId, profileId, userRoles: string[], profileRoles: string[]}. All roles and capability flags baked into token at issuance. Per-request: ICurrentUser reads entirely from JWT — NO DB hit. Profile switch requires token reissuance (not just refresh). Middleware parses and caches roles from JWT.",
+      "jwt_shape": "{userId, customerId, profileId, userRoles: ['SuperAdmin','ManageUsers'], profileRoles: ['CanSendByEboks','SmsConversations'], iat, exp}",
+      "enforcement_model": "ICurrentUser reads all from JWT claims. Permission checks parse JWT claims only. Role changes require immediate token reissuance. JWT must be signed with RS256 to prevent tampering. Large JWTs (100+ roles) may exceed cookie/header size limits.",
+      "risk": "HIGH — 63 profile roles + 40 user roles = potentially very large JWT. Role changes take up to 15 min to propagate. Not suitable for time-sensitive access revocation. Overkill for Blazor Server which has persistent circuit and can cache DB results."
+    },
+    {
+      "option": "D — CustomerScoped UserRoles (new schema + thin JWT)",
+      "description": "Extend schema: add CustomerId to UserRoleMappings (new junction: CustomerId+UserId+UserRoleId). UserRoles become scoped per customer. JWT remains thin {userId, customerId, profileId}. ICurrentUser resolves roles for (userId, customerId) combination. Eliminates the global-role contradiction. CustomerUserRoleMappings becomes a proper per-user-per-customer role assignment table.",
+      "jwt_shape": "{userId: int, customerId: int, profileId: int, iat, exp}",
+      "enforcement_model": "DoesUserHaveRoleForCustomer(userId, customerId, role) queries extended UserRoleMappings. DoesProfileHaveRole unchanged. ICurrentUser carries customerId to scope all role checks. Migration: populate new table from existing UserRoleMappings + CustomerUserMappings join.",
+      "risk": "MEDIUM-HIGH — requires schema migration and data migration. All authorization code must be updated to pass customerId. Significant refactor but fixes the biggest architectural contradiction. Worth doing for a clean rebuild."
+    }
+  ],
+  "recommended_model": "Option A enhanced, with explicit selection pattern from Option B and scope-awareness from Option D. Concretely: (1) Single ICurrentUser implementation reading UserId from JWT → User from DB → Customer/Profile from DB via User.CurrentCustomerId/CurrentProfileId. (2) profileId=0 and customerId=0 are hard errors rejected in middleware — no fallback, no bypass. (3) Customer and profile selection are explicit server-side operations (SelectCustomerHandler, SelectProfileHandler) that update User.CurrentCustomerId/CurrentProfileId in DB AND reissue a new JWT immediately — no stale-JWT window. (4) UserRoles remain global for now (Option D migration is Phase 2). (5) ProfileRoles unchanged — profile capability model is sound. (6) Replace both existing WebWorkContext implementations with a single ICurrentUser that is explicit about its DB reads. (7) JWT shape stays thin: {userId, customerId, profileId, impersonateFromUserId}. (8) Passwords must be migrated from SHA256 to Argon2id. (9) AuthenticatorSecret must be encrypted with IDataProtectionProvider.",
+  "recommended_build_order": [
+    "1. Define ICurrentUser interface: {UserId, CustomerId, ProfileId, LanguageId, ImpersonateFromUserId} with IsAuthenticated, IsImpersonating. No mutable state. Pure read. LanguageId is required by Localization, Email templates, and error message formatting — all downstream handlers depend on it. Source: User.LanguageId (read from DB at login time, baked into JWT or read from User entity).",
+    "2. Implement CurrentUserMiddleware: extract and validate JWT → construct ICurrentUser → register in DI as scoped. Reject if profileId=0 or customerId=0 (return 401). This is the ONLY WorkContext implementation.",
+    "3. Implement IDbSession and connection factory (per ai-governance rules). Verify Dapper wiring.",
+    "4. Implement LoginHandler: email+password login → SHA256 verify → lockout check → if single profile auto-assign → issue JWT with real profileId.",
+    "5. Implement SelectCustomerHandler: validate CustomerUserMapping exists → UPDATE Users.CurrentCustomerId → reissue JWT with new customerId and correct profileId from DB.",
+    "6. Implement SelectProfileHandler: validate ProfileUserMapping exists → UPDATE Users.CurrentProfileId → reissue JWT with new profileId.",
+    "7. Implement RefreshTokenHandler: validate DB refresh token → read User.CurrentCustomerId + User.CurrentProfileId → reissue JWT.",
+    "8. Implement DoesUserHaveRole and DoesProfileHaveRole as IPermissionService with Dapper and in-memory cache.",
+    "9. Implement 2FA flows: TOTP verify, SMS pin, email pin. All merge into same JWT issuance at end.",
+    "10. Implement Azure AD / Entra ID login (MSAL token exchange). Same JWT issuance at end.",
+    "11. Implement SAML2 SSO per-customer flow (per CustomerSamlSettings).",
+    "12. Implement admin operations: ManageUsers, ManageProfiles, UserRoleAssignment (checked via DoesUserHaveRole).",
+    "13. Implement impersonation (SuperAdmin only, customer-scope restriction to CustomerId 1 and 9).",
+    "14. Implement SCIM provisioning endpoints (per Customer.ScimTokenUUID auth).",
+    "15. Add password migration path: detect SHA256 on login → re-hash to Argon2id → store new hash."
+  ],
+  "supporting_domains": [
+    {
+      "domain": "Localization",
+      "db_tables": ["dbo.LocaleStringResources", "dbo.Languages"],
+      "coupling_point": "User.LanguageId and Customer.LanguageId and Profile.LanguageId — all three identity entities carry a LanguageId that drives which translation set is loaded. CountryId = LanguageId equivalence is an identity-layer quirk (documented in contradictions). ICurrentUser must expose LanguageId for all downstream label lookups.",
+      "dependency_direction": "Localization → IDENTITY_ACCESS_CORE (one-way). IDENTITY stores LanguageId; Localization reads it to serve labels.",
+      "rebuild_note": "GET /api/Common/GetResourcesJson is AllowAnonymous — loads ALL labels for a language at bootstrap. ICurrentUser.LanguageId is needed by any handler that formats localized output (dates, error messages, email templates). Build AFTER ICurrentUser is stable."
+    },
+    {
+      "domain": "Messaging / SmsGroup / Broadcast",
+      "db_tables": ["dbo.SmsGroups (ProfileId FK)", "dbo.WebMessages (ProfileId FK)"],
+      "coupling_point": "Cannot dispatch a message without ICurrentUser.ProfileId and ICurrentUser.CustomerId. All message data is partitioned by ProfileId (primary) and CustomerId (outer). DoesProfileHaveRole(profileId, CanSendByEboks / CanSendByVoice / HaveNoSendRestrictions) gates every send path.",
+      "dependency_direction": "Messaging → IDENTITY_ACCESS_CORE (one-way).",
+      "rebuild_note": "Build AFTER ICurrentUser, SelectProfileHandler, and DoesProfileHaveRole are verified."
+    },
+    {
+      "domain": "Recipient Management / Standard Receivers",
+      "db_tables": ["dbo.StandardReceivers (CustomerId FK)", "dbo.StandardReceiverGroups (CustomerId FK)"],
+      "coupling_point": "All recipient writes require ICurrentUser.CustomerId for scoping. UserRoleName.StandardReceivers gates UI access. SCIM provisioning (Customer.ScimTokenUUID) maps SCIM users to StandardReceivers.",
+      "dependency_direction": "RecipientManagement → IDENTITY_ACCESS_CORE (one-way).",
+      "rebuild_note": "Build AFTER CustomerUserMapping enforcement and SCIM token validation are in place."
+    },
+    {
+      "domain": "Subscriptions",
+      "db_tables": ["dbo.Subscriptions (CustomerId FK, ProfileId FK)"],
+      "coupling_point": "Subscription ownership is tied to ProfileId. UserRoleName.SubscriptionModule gates access. ProfileRole.CanSetupSubscriptionReminders controls the reminder feature.",
+      "dependency_direction": "Subscriptions → IDENTITY_ACCESS_CORE (one-way).",
+      "rebuild_note": "Build AFTER ProfileRole capability check is stable."
+    },
+    {
+      "domain": "Reporting / Statistics",
+      "db_tables": ["dbo.Statistics (CustomerId FK)", "dbo.Benchmarks (CustomerId FK)"],
+      "coupling_point": "All report queries are scoped to ICurrentUser.CustomerId. UserRoleName.ManageReports / ManageBenchmarks gates access. SuperAdmin sees cross-customer data.",
+      "dependency_direction": "Reporting → IDENTITY_ACCESS_CORE (one-way).",
+      "rebuild_note": "Build AFTER ICurrentUser.CustomerId and DoesUserHaveRole are stable."
+    },
+    {
+      "domain": "Customer Administration",
+      "db_tables": ["dbo.Customers", "dbo.CustomerUserMappings", "dbo.CustomerUserRoleMappings"],
+      "coupling_point": "Admin UI for managing users within a customer. UserRoleName.CustomerSetup / ManageUsers required. CanUserAccessCustomer() is the access guard. CustomerUserRoleMappings defines which roles are visible to customer admins.",
+      "dependency_direction": "CustomerAdmin → IDENTITY_ACCESS_CORE (circular reference risk — this domain modifies users/roles that IDENTITY reads). Must be treated carefully: CustomerAdmin writes to UserRoleMappings and ProfileUserMappings which ICurrentUser reads.",
+      "rebuild_note": "Build AFTER ICurrentUser is stable. Treat as an admin-only vertical slice with explicit SuperAdmin or CustomerSetup role requirement."
+    },
+    {
+      "domain": "Job Management / Scheduled Broadcasts",
+      "coupling_point": "Jobs run as a specific profile context (ProfileId passed to job at schedule time). UserRoleName.CanCreateScheduledBroadcasts gates scheduling. Batch jobs load a synthetic ICurrentUser from job metadata.",
+      "dependency_direction": "Jobs → IDENTITY_ACCESS_CORE (one-way).",
+      "rebuild_note": "Batch job ICurrentUser must be a deterministic, non-HTTP implementation — same interface, different population source (job record, not JWT)."
+    },
+    {
+      "domain": "Monitoring / Logging",
+      "coupling_point": "All audit log entries are stamped with UserId and CustomerId from ICurrentUser. ISystemLogger typically receives user context as structured data.",
+      "dependency_direction": "Monitoring → IDENTITY_ACCESS_CORE (one-way).",
+      "rebuild_note": "ICurrentUser.UserId and ICurrentUser.CustomerId must be available at logging time. Build audit logging as a pipeline behavior that reads from ICurrentUser."
+    }
+  ],
+  "architectural_decisions": [
+    {
+      "id": "AD_001",
+      "decision": "LanguageId populeres fra DB (User.LanguageId), ikke fra JWT",
+      "rationale": "Option A anbefalet model loader allerede User fra DB pr. request. User.LanguageId er gratis at læse herfra. Det tilføjer ingen ekstra DB-rundtur. At bages LanguageId ind i JWT ville (a) øge token-størrelsen unødigt, (b) kræve token-reissuance ved language-skift, og (c) skabe endnu en JWT/DB-divergensmulighed. ICurrentUser.LanguageId sættes fra User-entiteten i CurrentUserMiddleware.",
+      "consequence": "Language-skift kræver kun at User.LanguageId opdateres i DB. Næste request har automatisk den nye LanguageId via CurrentUserMiddleware. Ingen token-invalidering nødvendig.",
+      "status": "BESLUTTET"
+    },
+    {
+      "id": "AD_002",
+      "decision": "JWT-shape er fast og minimal: {UserId, CustomerId, ProfileId, ImpersonateFromUserId}",
+      "rationale": "Roller, permissions, LanguageId og TestMode bages IKKE ind i JWT. Alt læses fra DB via ICurrentUser. Undgår fat-token problemet (Option C), reducerer JWT/DB-divergens til nul, og giver fuld fleksibilitet til at ændre roller/permissions uden token-rotation.",
+      "consequence": "Alle per-request autorisationsbeslutninger koster ét DB-lookup (med in-memory cache). Acceptabelt for Blazor Server som har persistent circuit og kan cache aggressivt.",
+      "status": "BESLUTTET"
+    },
+    {
+      "id": "AD_003",
+      "decision": "profileId=0 og customerId=0 er hard errors i middleware — ingen fallback",
+      "rationale": "Den eksisterende codebase behandler 0 som 'ikke valgt endnu' og lader visse operationer passere igennem med 0 (inkl. adressebegrænsnings-bypass). Dette er en sikkerhedsfejl. I det nye system afviser CurrentUserMiddleware enhver request med profileId=0 eller customerId=0 med HTTP 401. LoginHandler tildeler altid et gyldigt profileId før token udstedes.",
+      "consequence": "Ingen handler modtager nogensinde ICurrentUser med ProfileId=0 eller CustomerId=0. Eliminerer CONTRADICTION_001 og CONTRADICTION_005 fuldstændigt.",
+      "status": "BESLUTTET"
+    },
+    {
+      "id": "AD_004",
+      "decision": "Kun ét ICurrentUser/IWorkContext — ingen divergerende implementationer",
+      "rationale": "Eksisterende codebase har to divergerende WebWorkContext-implementationer (ServiceAlert.Api og ServiceAlert.Contracts) med forskellig kilde-of-truth for CustomerId og ProfileId. Det nye system har præcis én implementation: CurrentUserMiddleware populerer ICurrentUser fra JWT UserId → User fra DB. Alt andet læses fra User-entiteten.",
+      "consequence": "Eliminerer CONTRADICTION_002 fuldstændigt. Alle handlers ser samme kontekst uanset hvilken assembly de bor i.",
+      "status": "BESLUTTET"
+    },
+    {
+      "id": "AD_005",
+      "decision": "Batch/Job ICurrentUser er en separat implementation af samme interface — IKKE HTTP-baseret",
+      "rationale": "Batch-jobs har ingen JWT og ingen HTTP-kontekst. De kræver deres egne ProfileId/CustomerId. En JobCurrentUser implementation af ICurrentUser populeres fra job-metadata (ProfileId, CustomerId gemt ved scheduling-tidspunkt). Samme interface — forskellig population-kilde.",
+      "consequence": "Alle handlers kan bruges fra både HTTP-kontekst og batch-kontekst uden ændringer. IPermissionService.DoesProfileHaveRole og DoesUserHaveRole virker identisk i begge kontekster.",
+      "status": "BESLUTTET"
+    }
+  ],
+  "urgency": "CRITICAL — FOUNDATIONAL. No other domain can be correctly built without this model being settled. Every vertical slice that touches user context, customer scoping, or capability checking depends on ICurrentUser being stable and correct. profileId=0 bypass must be closed before any messaging or lookup feature is implemented.",
+  "confidence": 0.93,
+  "confidence_rationale": "0.93: All 9 core concepts directly verified against source code and SQL schema. CustomerUserMappings confirmed (resolves the multi-customer question definitively). ProfileUserMappings confirmed with actual SQL. JWT claims enum confirmed (AccessTokenClaims.cs). Both WebWorkContext implementations read and compared line-by-line. UserRoleName (40 values) and ProfileRoleNames (63 values) confirmed. RefreshToken TTL corrected from docs (480 min in code, not 30 min). profileId==0 bypass confirmed from GetAddressRestrictionForProfile behavior. 0.07 uncertainty: CustomerUserRoleMappings exact runtime usage, whether explicit customer-selection exists in login flow, SAML2 user-matching detail."
+}

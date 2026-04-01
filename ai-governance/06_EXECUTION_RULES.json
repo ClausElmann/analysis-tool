@@ -9,10 +9,30 @@
     "no_inline_sql_allowed",
     "all_queries_must_include_customerid",
     "no_httpcontext_in_handlers",
-    "no_forbidden_patterns"
+    "no_forbidden_patterns",
+    "no_feature_code_before_identity_access_core_steps_1_to_8",
+    "profileid_zero_must_never_reach_handler",
+    "customerid_zero_must_never_reach_handler",
+    "icurrentuser_must_be_single_implementation",
+    "any_handler_touching_auth_or_scoping_must_align_with_foundational_analysis"
   ],
   "failure_behavior": {
     "on_violation": "stop_and_report",
     "no_auto_fix": true
+  },
+  "identity_foundation_gate": {
+    "description": "Before implementing any domain that touches auth, access, tenant scoping, profile enforcement, or runtime context: verify alignment with domains/IDENTITY_ACCESS_CORE/000_foundational_analysis.json.",
+    "check_sequence": [
+      "1. Is ICurrentUser interface defined with {UserId, CustomerId, ProfileId, LanguageId, ImpersonateFromUserId}?",
+      "2. Is CurrentUserMiddleware implemented and rejecting profileId=0 / customerId=0 with HTTP 401?",
+      "3. Is IDbSession implemented and wired?",
+      "4. Are LoginHandler, SelectCustomerHandler, SelectProfileHandler implemented?",
+      "5. Is IPermissionService (DoesUserHaveRole, DoesProfileHaveRole) implemented?",
+      "If any answer is NO: stop implementation and complete IDENTITY_ACCESS_CORE build order first."
+    ],
+    "blocked_domains_until_gate_passes": [
+      "Localization", "Messaging", "CustomerAdmin", "UserManagement",
+      "Lookup", "Reporting", "Subscriptions", "StandardReceivers", "Job/Batch"
+    ]
   }
 }

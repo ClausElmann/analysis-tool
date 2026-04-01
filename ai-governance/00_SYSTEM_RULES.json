@@ -17,7 +17,12 @@
     "strongly_typed_ids",
     "no_httpcontext_in_handlers",
     "use_icurrentuser",
-    "use_idbsession"
+    "use_idbsession",
+    "identity_access_core_is_foundational",
+    "profileid_zero_is_hard_401",
+    "customerid_zero_is_hard_401",
+    "single_icurrentuser_only",
+    "no_feature_domain_before_identity_foundation"
   ],
 
   "tenant_rules": {
@@ -32,5 +37,54 @@
     ],
     "enforcement": "explicit_only",
     "validation": "fail_if_missing_customerid"
+  },
+
+  "identity_foundation": {
+    "status": "LOCKED — 2026-04-01",
+    "decision_registry": "ai-governance/12_DECISION_REGISTRY.json",
+    "source": "domains/IDENTITY_ACCESS_CORE/000_foundational_analysis.json",
+    "core_model": {
+      "User": "identity boundary — global entity, NOT tenant-scoped per Customer",
+      "Customer": "tenant boundary — all data entities partitioned by CustomerId",
+      "Profile": "PRIMARY capability + inner data partition boundary — ProfileId is the decisive runtime scope",
+      "ICurrentUser": "{UserId, CustomerId, ProfileId, LanguageId, ImpersonateFromUserId} — pure read interface, no mutable state",
+      "JWT_shape": "{UserId, CustomerId, ProfileId, ImpersonateFromUserId} — thin, no roles, no LanguageId"
+    },
+    "hard_rules": [
+      "profileId=0 is NEVER valid runtime state — CurrentUserMiddleware rejects with HTTP 401",
+      "customerId=0 is NEVER valid runtime state — CurrentUserMiddleware rejects with HTTP 401",
+      "No handler ever receives ICurrentUser with ProfileId=0 or CustomerId=0",
+      "Exactly one ICurrentUser implementation exists (CurrentUserMiddleware). No diverging WebWorkContext variants.",
+      "LanguageId is read from User entity in DB at middleware time — NOT baked into JWT",
+      "Localization is blocked until IDENTITY_ACCESS_CORE build steps 1–8 are complete",
+      "All feature domains that touch auth/access/scoping must align with 000_foundational_analysis.json before implementation begins"
+    ]
+  },
+
+  "identity_flow_contract": {
+    "status": "LOCKED — 2026-04-01",
+    "source": "docs/IDENTITY_FLOW_CONTRACT.md",
+    "decision_entry": "DEC_007",
+    "jwt_requires_profile_and_customer": true,
+    "jwt_issuance_preconditions": {
+      "user_id_valid": true,
+      "customer_id_greater_than_zero": true,
+      "profile_id_greater_than_zero": true,
+      "two_fa_cleared_if_required": true
+    },
+    "login_states": [
+      "REQUIRES_TWO_FACTOR — HTTP 428",
+      "REQUIRES_CUSTOMER_SELECTION — HTTP 409",
+      "REQUIRES_PROFILE_SELECTION — HTTP 409",
+      "SUCCESS — HTTP 200 + JWT"
+    ],
+    "hard_rules": [
+      "jwt_requires_profile_and_customer: true — JWT NEVER issued with ProfileId=0 or CustomerId=0",
+      "auto_profile_selection: only when exactly 1 profile accessible",
+      "profile_selection_is_terminal: POST /auth/select-profile always issues JWT on success",
+      "refresh_reads_db: RefreshTokenHandler reads User.CurrentCustomerId/CurrentProfileId from DB, never from JWT",
+      "partial_tokens_restricted: userId-only tokens not accepted by operational handlers",
+      "cross_tenant_profile_forbidden: Profile.CustomerId must equal CurrentCustomerId at selection time"
+    ]
   }
 }
