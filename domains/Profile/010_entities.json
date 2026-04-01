@@ -1,4 +1,137 @@
 {
   "domain": "Profile",
-  "entities": []
+  "entities": [
+    {
+      "name": "Profile",
+      "source": "ServiceAlert.Core/Domain/Profiles/Profile.cs",
+      "table": "dbo.Profiles",
+      "type": "FACT",
+      "role": "DATA_PARTITION_AND_CAPABILITY_BOUNDARY",
+      "note": "A Profile is a subdivision of a Customer. Almost everything partitioned by CustomerId is also partitioned by ProfileId. Owns SmsGroups, FtpSettings, ProfileApiKeys, ConversationMappings, positive lists, storage files.",
+      "fields": [
+        "Id (int, PK, IDENTITY)",
+        "PublicId (Guid, NOT NULL, default newid())",
+        "Name (nvarchar(250), NOT NULL)",
+        "CustomerId (int, NOT NULL, FK → Customers) — parent partition",
+        "ProfileTypeId (int, NOT NULL, FK → ProfileTypes)",
+        "SMSSendAs (nvarchar(100)) — sender label for outbound SMS",
+        "EmailSendAs (nvarchar(200)) — sender label for outbound email",
+        "EconomicId (int?) — billing/ERP reference",
+        "CountryId (int, NOT NULL, DEFAULT 1)",
+        "LanguageId (int, NOT NULL, DEFAULT 1)",
+        "TimeZoneId (nvarchar(100)) — Windows TZ id for nighttime detection",
+        "LookupMaxNumbers (smallint) — cap on lookup result size",
+        "MapLayerId (int?)",
+        "MapZoomLevel (int?) — stored as zoom*10 for 1 decimal support",
+        "MapCenterCoordLatitude (float?)",
+        "MapCenterCoordLongitude (float?)",
+        "MapSearchMethod (nvarchar(50), DEFAULT 'Addresses')",
+        "RoleGroupId (int?) — pre-configured role group",
+        "WeeklyReportEmail (nvarchar(500), DEFAULT '')",
+        "EboksStrategy (int?) — 1=All, 2=SmsFirst",
+        "PublicName (nvarchar(250)) — public-facing name",
+        "PublicAddress (nvarchar(200)) — public-facing address",
+        "KvhxAddress (nvarchar(36)) — profile's own address KVHX code",
+        "CompanyRegistrationId (nvarchar(500)) — CVR/org. number",
+        "OneFlowDocumentId (nvarchar(20))",
+        "Sms2InternalDisplayName (nvarchar(50))",
+        "BenchmarkDisplayName (nvarchar(50))",
+        "Hidden (bit, DEFAULT 0) — hidden from UI",
+        "Deleted (bit, DEFAULT 0) — soft delete",
+        "DateDeletedUtc (datetime?)",
+        "DateCreatedUtc (datetime, NOT NULL)",
+        "DateLastUpdatedUtc (datetime?)",
+        "DateLastPosListUpdateUtc (datetime?)"
+      ],
+      "collections": [
+        "Roles: ICollection<ProfileRoleMapping> — capabilities granted to this profile",
+        "Users: ICollection<ProfileUserMapping> — users with access to this profile",
+        "SmsGroups: ICollection<SmsGroup> — messages owned by this profile",
+        "WebMessages: ICollection<WebMessage>",
+        "PositiveList: ICollection<DataImportFile>",
+        "MunicipalityList: ICollection<ProfilePosListMunicipalityCode>"
+      ],
+      "constraints": [
+        "PK_Users (sic) on Id — primary key (misnamed constraint, actual PK on Profiles)",
+        "FK_Profiles_Customers (NOCHECK) → Customers.Id",
+        "FK_Profiles_ProfileTypes (NOCHECK) → ProfileTypes.Id",
+        "IX_Profiles_CustomerId (nonclustered) on CustomerId INCLUDE Name"
+      ],
+      "missing_constraints": [
+        "NO FK from Users.CurrentProfileId → Profiles.Id",
+        "NO UNIQUE on (CustomerId, Name) — duplicate-named profiles within a customer allowed"
+      ]
+    },
+    {
+      "name": "ProfileUserMapping",
+      "source": "ServiceAlert.Core/Domain/Profiles/Mappings/ProfileUserMapping.cs",
+      "table": "dbo.ProfileUserMappings (inferred from ProfileRepository references)",
+      "type": "FACT",
+      "note": "Many-to-many between Profile and User. Determines which users can access which profiles. No UNIQUE constraint verified.",
+      "fields": [
+        "Id (int, PK)",
+        "ProfileId (int, FK → Profiles)",
+        "UserId (int, FK → Users)"
+      ]
+    },
+    {
+      "name": "ProfileRoleMapping",
+      "source": "ServiceAlert.Core/Domain/Profiles/Mappings/ProfileRoleMapping.cs",
+      "table": "dbo.ProfileRoleMappings",
+      "type": "FACT",
+      "note": "Assigns capability roles to a profile. All service-layer permission checks route through DoesProfileHaveRole(profileId, roleName).",
+      "fields": [
+        "Id (int, PK)",
+        "ProfileId (int, FK → Profiles)",
+        "ProfileRoleId (int, FK → ProfileRoles)",
+        "AddedManuallyDateUtc (datetime?) — tracking when manually granted"
+      ]
+    },
+    {
+      "name": "ProfileRole",
+      "source": "ServiceAlert.Core/Domain/Profiles/ProfileRoles/ProfileRole.cs",
+      "table": "dbo.ProfileRoles",
+      "type": "FACT",
+      "note": "Named capability flags. 60+ roles defined in ProfileRoleNames enum. Examples: HaveNoSendRestrictions, CanSendByEboks, CanSendByVoice, UseMunicipalityPolList, CanSendToCriticalAddresses, SmsConversations, NorwayKRRLookup, Nynorsk, CitizenDialogue."
+    },
+    {
+      "name": "ProfileRoleNames (enum)",
+      "source": "ServiceAlert.Core/Domain/Profiles/ProfileRoleNames.cs",
+      "type": "FACT",
+      "value_count": 63,
+      "note": "Canonical list of all capability toggles per profile. MUST be extended when adding to dbo.ProfileRoles."
+    },
+    {
+      "name": "User.CurrentProfileId",
+      "source": "ServiceAlert.Core/Domain/Users/User.cs (field) + ServiceAlert.DB/Tables/Users.sql",
+      "table": "dbo.Users.CurrentProfileId",
+      "type": "FACT",
+      "note": "Session-state field. INT DEFAULT 0 NOT NULL. Holds the profile the user last selected/is currently using. Value 0 = not yet selected (new account or cleared). No FK constraint. Updated by UpdateCurrentProfileByUser() and by Login auto-assignment (single-profile case)."
+    },
+    {
+      "name": "ProfileApiKey",
+      "source": "ServiceAlert.Core/Domain/ApiKeys/ProfileApiKey.cs",
+      "type": "FACT",
+      "note": "API key scoped to a profile. Enables external systems to act as a specific profile.",
+      "fields": [
+        "Id (int, PK)",
+        "Key (string)",
+        "Secret (string)",
+        "Type (ProfileApiKeyType — value object)",
+        "ProfileId (int, FK → Profiles)"
+      ]
+    },
+    {
+      "name": "ProfileAccessModel / ProfileIdAccessModel",
+      "source": "ServiceAlert.Contracts/Models/Profiles/ProfileUserAccessModels.cs",
+      "type": "FACT",
+      "note": "Read models. ProfileAccessModel = { Profile, HasAccess }. ProfileIdAccessModel = { ProfileId, HasAccess }. Used in UI to list profiles user can/cannot access."
+    },
+    {
+      "name": "ProfileRoleAccessModel",
+      "source": "ServiceAlert.Contracts/Models/Profiles/ProfileRoleAccessModel.cs",
+      "type": "FACT",
+      "note": "Read model. { ProfileRole, HasAccess }. Used in admin UI to show which roles a profile has."
+    }
+  ]
 }

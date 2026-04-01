@@ -1,0 +1,79 @@
+[
+  {
+    "id": "F001",
+    "name": "Runtime resource lookup",
+    "type": "FACT",
+    "description": "Any domain that needs a translated string injects ILocalizationService and calls GetLocalizedResource(key, languageId). LanguageId is sourced from the authenticated user's LanguageId property (via IWorkContext.CurrentUser.LanguageId).",
+    "steps": [
+      "1. Controller/service resolves current user's LanguageId from IWorkContext",
+      "2. Calls ILocalizationService.GetLocalizedResource(resourceKey, languageId)",
+      "3. Service checks IStaticCacheManager for key 'sms.lsr.{languageId}-{UPPER(resourceKey)}'",
+      "4. Cache hit: return cached ResourceValue",
+      "5. Cache miss: query LocaleStringResources WHERE ResourceName = @key AND LanguageId = @id",
+      "6. Found: cache and return ResourceValue",
+      "7. Not found: return resourceKey as-is (no error thrown)"
+    ],
+    "example_callers": ["StatusController: translates SmsGroup status descriptions", "MessageController: resolves default group name and date format strings", "UserController: resolves login error message in user's language"]
+  },
+  {
+    "id": "F002",
+    "name": "Add new translation key",
+    "type": "FACT",
+    "description": "When a developer adds a new localized string, it is inserted once with the first language's value. The service auto-creates placeholder rows for all remaining languages.",
+    "steps": [
+      "1. Call ILocalizationService.InsertLocaleStringResource(lsr) with one language's data",
+      "2. Service calls ILanguageService.GetAllLanguages() to get all 6 language rows",
+      "3. For the matching LanguageId: insert with provided ResourceValue",
+      "4. For all other LanguageIds: insert with ResourceValue = 'Missing Translation'",
+      "5. Clear cache pattern 'sms.lsr.'",
+      "6. Result: 6 rows in LocaleStringResources, all sharing same ResourceName"
+    ],
+    "invariant": "ResourceName is always present for all languages after insert."
+  },
+  {
+    "id": "F003",
+    "name": "Translation export/import cycle (developer tooling)",
+    "type": "FACT",
+    "description": "Developer workflow for updating translations in bulk. Used via batch command tool. Documented in translations.bat.",
+    "steps": [
+      "1. Run: ServiceAlert.Batch.exe export_translations labels.json",
+      "2. Batch calls ILocalizationService.ExportLocaleStringResourcesAsync(path)",
+      "3. All resources serialized as JSON: [{LanguageId, ResourceName, ResourceValue}]",
+      "4. Developer/translator edits labels.json",
+      "5. Run: ServiceAlert.Batch.exe import_translations labels.json",
+      "6. Batch calls ILocalizationService.ImportLocaleStringResourcesAsync(path)",
+      "7. Deserializes JSON, BulkMerge via Z.Dapper.Plus keyed on (LanguageId, ResourceName)",
+      "8. Existing rows updated, new rows inserted"
+    ],
+    "note": "This is a manual developer process — no admin UI exists for this operation currently (GAP_001)."
+  },
+  {
+    "id": "F004",
+    "name": "User language preference resolution",
+    "type": "FACT",
+    "description": "Determines which LanguageId to use when the user has no explicit preference set.",
+    "steps": [
+      "1. UserController reads Accept-Language header or URL parameter",
+      "2. Calls private GetRequestLanguage() to resolve Language entity",
+      "3. LanguageService.GetAllLanguages() called (cache hit in most cases)",
+      "4. Matches against published languages",
+      "5. If no match: fall back to default (DanishLanguageId = 1)",
+      "6. User.LanguageId set/saved on profile update"
+    ],
+    "source": "ServiceAlert.Api/Controllers/UserController.cs: GetRequestLanguage(), GetUserLanguage()"
+  },
+  {
+    "id": "F005",
+    "name": "Country-to-culture resolution",
+    "type": "FACT",
+    "description": "Maps a CountryId (which equals LanguageId) to .NET culture strings for locale-aware operations like string sorting and phone validation.",
+    "steps": [
+      "1. Caller has a CountryId (e.g. from profile, message, or address context)",
+      "2. CountryConstants.GetCultureString(countryId) returns 'da-DK', 'sv-SE', etc.",
+      "3. Used to create CultureInfo for StringComparer (locale-aware sorting)",
+      "4. Used to create CultureInfo for DateTime formatting",
+      "5. Also used to derive phone prefix and country code for SMS routing"
+    ],
+    "note": "Countries table in DB provides ISO codes, but CountryConstants provides the operational mapping used at runtime — the table is not queried at runtime."
+  }
+]

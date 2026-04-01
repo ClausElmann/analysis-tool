@@ -1,0 +1,93 @@
+[
+  {
+    "name": "Language",
+    "source": "ServiceAlert.Core/Domain/Localization/Language.cs",
+    "db_table": "dbo.Languages",
+    "type": "FACT",
+    "fields": [
+      "Id (int, PK, IDENTITY)",
+      "Name (NVARCHAR(100), COLLATE Danish_Norwegian_CI_AI)",
+      "LanguageCulture (NVARCHAR(20), e.g. 'da-DK', 'sv-SE', 'en-GB', 'fi-FI', 'nb-NO', 'de-DE')",
+      "UniqueSeoCode (NVARCHAR(2), e.g. 'da', 'sv', 'en', 'fi', 'no')",
+      "DefaultCurrencyId (int, DEFAULT 0 — not actively used)",
+      "Published (bit, DEFAULT 0 — controls visibility)",
+      "DisplayOrder (int, DEFAULT 0 — controls sort order)"
+    ],
+    "note": "6 languages in production: Danish(1), Swedish(2), English(3), Finnish(4), Norwegian(5), German(6). Id values are hardcoded constants in CountryConstants.cs."
+  },
+  {
+    "name": "LocaleStringResource",
+    "source": "ServiceAlert.Core/Domain/Localization/LocaleStringResource.cs",
+    "db_table": "dbo.LocaleStringResources",
+    "type": "FACT",
+    "fields": [
+      "Id (int, PK, IDENTITY)",
+      "LanguageId (int, FK → Languages.Id)",
+      "ResourceName (NVARCHAR(200) — dot-separated key, e.g. 'shared.DateFormatShort', 'errorMessages.LoginUsernameOrPassword')",
+      "ResourceValue (NVARCHAR(MAX) — translated string, or 'Missing Translation' sentinel)"
+    ],
+    "indexes": [
+      "ix_LocaleStringResources_ResourceName_LanguageId (ResourceName ASC, LanguageId ASC) INCLUDE(ResourceValue) — read by resource name",
+      "ix_LocaleStringResources_LanguageId_ResourceName (LanguageId ASC, ResourceName ASC) UNIQUE INCLUDE(ResourceValue) — ensures uniqueness per language"
+    ],
+    "note": "Every ResourceName exists once per language. When a new resource is inserted, the service auto-creates rows for ALL languages, with 'Missing Translation' as placeholder for non-provided languages. Sentinel value 'Missing Translation' is queryable via GetIncomplete()."
+  },
+  {
+    "name": "Country",
+    "source": "ServiceAlert.Core/Domain/Directory/Country.cs",
+    "db_table": "dbo.Countries",
+    "type": "FACT",
+    "fields": [
+      "Id (int, PK)",
+      "Name (string)",
+      "TwoLetterIsoCode (string, e.g. 'DK', 'SE', 'NO', 'FI', 'GB', 'DE')",
+      "ThreeLetterIsoCode (string, e.g. 'DNK', 'SWE')",
+      "NumericIsoCode (short)"
+    ],
+    "note": "Used as a reference table for country-to-language mapping, phone routing, and culture selection. Not directly exposed via API — accessed via CountryConstants static class. CountryId values 1–6 map 1:1 with LanguageId values 1–6 (DanishCountryId=1 = DanishLanguageId=1). Gap analysis flags Countries as a dead_table (no direct API reference), but it IS referenced indirectly via CountryConstants."
+  },
+  {
+    "name": "CountryConstants (static)",
+    "source": "ServiceAlert.Core/Domain/Directory/CountryConstants.cs",
+    "type": "FACT",
+    "fields": [
+      "DanishCountryId = 1, SwedishCountryId = 2, EnglishCountryId = 3, FinnishCountryId = 4, NorwegianCountryId = 5, GermanCountryId = 6",
+      "DanishLanguageId = 1, SwedishLanguageId = 2, EnglishLanguageId = 3, FinnishLanguageId = 4, NorwegianLanguageId = 5, GermanLanguageId = 6",
+      "Phone codes: DK=45, SE=46, NO=47, FI=358, GB=44, DE=49, NL=31",
+      "Phone length rules per country (DK/NO=8 digits, SE=9–15, FI=6–12, DE=7–12, GB=8–10)",
+      "Currency conversion rates: SEK/EUR, SEK/DKK, EUR/DKK, NOK/EUR, NOK/DKK, DKK/EUR"
+    ],
+    "methods": [
+      "GetCultureString(countryId) → 'da-DK' | 'sv-SE' | 'en-GB' | 'fi-FI' | 'nb-NO'",
+      "GetComparer(countryId) → StringComparer for locale-aware string sorting",
+      "GetCountryCode(countryId) → 'dk' | 'se' | 'gb' | 'fi' | 'no'",
+      "GetISOLanguageCode(countryId) → 'da' | 'sv' | 'en' | 'fi' | 'no'",
+      "GetPhoneCode(countryId) → phone prefix int",
+      "GetLanguageName(countryId) → display name string"
+    ],
+    "note": "CountryId and LanguageId are interchangeable in this system — same numeric value, same 6 entries. This is a known design quirk documented in identity_access domain."
+  },
+  {
+    "name": "LocaleStringResourceExportReadModel",
+    "source": "ServiceAlert.Services/Localization/ReadModels/LocaleStringResourceExportReadModel.cs",
+    "type": "FACT",
+    "fields": [
+      "LanguageId (int)",
+      "ResourceName (string)",
+      "ResourceValue (string)"
+    ],
+    "note": "Projection used exclusively for JSON export/import. Excludes Id to allow bulk merge by (LanguageId, ResourceName) key."
+  },
+  {
+    "name": "LanguageResourceModel (contract)",
+    "source": "ServiceAlert.Contracts/Models/Common/LanguageResourceModel.cs",
+    "type": "FACT",
+    "fields": [
+      "Id (int — DB row PK)",
+      "Name (string — maps to ResourceName)",
+      "Value (string — maps to ResourceValue)",
+      "LanguageId (int)"
+    ],
+    "note": "Fully wired. Used by CommonController.Resources (POST /api/Common/Resources, SuperAdmin) and the Angular admin component at translation-management.component.ts. Paired with LanguageResourcesQuery for paginated/filtered searches. GAP_001 (initial analysis error) is now closed — the endpoint and admin UI both exist. Correction: initial grep missed CommonController in ServiceAlert.Web project (not in ServiceAlert.Api)."
+  }
+]

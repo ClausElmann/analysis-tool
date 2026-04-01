@@ -1,4 +1,65 @@
 {
   "domain": "Profile",
-  "rules": []
+  "rules": [
+    {
+      "id": "RULE_P001",
+      "name": "Profile is first-class data partition within Customer",
+      "type": "FACT",
+      "statement": "A Customer may have 1..N Profiles. Almost all entities that are scoped to a Customer are also scoped to a Profile. SmsGroups.ProfileId NOT NULL and FK to Profiles is the canonical enforcement."
+    },
+    {
+      "id": "RULE_P002",
+      "name": "A user is always on exactly 1 active profile",
+      "type": "FACT",
+      "statement": "User.CurrentProfileId holds the currently active profile. Value 0 is a degenerate/uninitialised state, not a valid operating state. User switches to exactly 1 other profile at a time via explicit action."
+    },
+    {
+      "id": "RULE_P003",
+      "name": "All capability is gated per profile, not per user",
+      "type": "FACT",
+      "statement": "ProfileRoleNames (63 values) control what operations are legal for a profile. Users inherit the capabilities of their current profile, not their user roles (UserRoleName is a separate, orthogonal concept)."
+    },
+    {
+      "id": "RULE_P004",
+      "name": "Profile controls geographic send boundaries via positive lists",
+      "type": "FACT",
+      "statement": "ProfilePositiveLists (per KVHX) and ProfilePosListMunicipalityCodes restrict which addresses a profile may send to. The PositiveListAddressRestriction SQL JOIN enforces this at query time."
+    },
+    {
+      "id": "RULE_P005",
+      "name": "Profile deletion requires no active SmsGroups or Users",
+      "type": "FACT",
+      "statement": "Customer.Delete() checks HasActiveProfile() before allowing deletion. Profile.Deleted=true is the soft delete state. Profiles are never hard-deleted in normal flow."
+    },
+    {
+      "id": "RULE_P006",
+      "name": "Profile access requires explicit ProfileUserMapping",
+      "type": "FACT",
+      "statement": "CanUserAccessProfile(profileId, userId) returns true only if a ProfileUserMapping row exists. Membership in a Customer does not grant access to all profiles of that customer."
+    },
+    {
+      "id": "RULE_P007",
+      "name": "profileId==0 is a security gap — bypasses all address restrictions",
+      "type": "CONTRADICTION",
+      "statement": "GetAddressRestrictionForProfile(0) returns NoAddressRestriction. Multi-profile users who have not selected a profile send with no geographic restriction. This violates RULE_P004 for uninitialised sessions."
+    },
+    {
+      "id": "RULE_P008",
+      "name": "JWT carries profileId — refresh is the synchronisation point",
+      "type": "FACT",
+      "statement": "ProfileId is baked into the JWT at issuance. Profile switches update DB but not the in-flight JWT. Next token refresh reads User.CurrentProfileId from DB, propagating the switch. ServiceAlert.Contracts/WebWorkContext reads profileId from JWT claim; ServiceAlert.Api/WebWorkContext reads from DB User entity — these can diverge."
+    },
+    {
+      "id": "RULE_P009",
+      "name": "Profile.TimeZoneId drives outbound message timing",
+      "type": "FACT",
+      "statement": "NightTimeDetector.IsNightForProfile(profileId) uses Profile.TimeZoneId to determine if messages should be suppressed. Profiles in different time zones behave independently."
+    },
+    {
+      "id": "RULE_P010",
+      "name": "ProfileApiKey scopes external integrations to a profile",
+      "type": "FACT",
+      "statement": "External systems authenticate via ProfileApiKey and act with that profile's capabilities and geographic boundaries. API key type (ProfileApiKeyType) further restricts what operations are allowed."
+    }
+  ]
 }

@@ -1,0 +1,193 @@
+{
+  "analysis": {
+    "stack_summary": "Blazor Server + ASP.NET Core Web API (same host) + Dapper + SQL Server + JWT. This is a pragmatic, low-abstraction stack. AI performs best on stacks where cause and effect are traceable without inspecting framework internals.",
+    "ai_strengths": [
+      "Dapper: SQL is explicit and readable. AI can generate, read and modify queries without understanding a query-translation layer.",
+      "Blazor Server: component lifecycle is simple and synchronous. AI can reason about state without WASM boundary complexity.",
+      "Same-host API+UI: no CORS, no separate auth token propagation between projects. One auth surface.",
+      "SQL Server: well-represented in AI training data. Schema-first approach maps cleanly to Dapper.",
+      ".NET 9 / C# 13: primary records, pattern matching, and minimal API syntax are compact and AI-generatable."
+    ],
+    "ai_weaknesses": [
+      "Dapper has no change tracking: AI cannot infer which fields changed. UPDATE statements must be fully explicit — risk of silent data loss if AI omits a column.",
+      "Blazor Server circuit model: AI frequently confuses Blazor Server lifecycle (OnInitializedAsync, StateHasChanged) with Blazor WASM. Risk of subtle state bugs.",
+      "JWT + custom auth (no ASP.NET Identity): AI defaults to Identity scaffolding. Every auth-related prompt must explicitly state 'no ASP.NET Identity'.",
+      "Multi-tenancy without ORM global filters: AI-generated queries will regularly forget the tenant WHERE clause. This is the single highest risk.",
+      "Shared DbConnection lifecycle: AI tends to open connections per-operation or per-request inconsistently without guidance."
+    ]
+  },
+
+  "risks": [
+    {
+      "area": "Multi-tenant data leakage",
+      "severity": "CRITICAL",
+      "description": "Dapper has no global query filter. Every AI-generated SELECT must manually include WHERE CustomerId = @customerId. AI will omit this under time pressure or when context window is short.",
+      "mitigation": "Wrap all Dapper calls in a typed IQuerySession(customerId) that injects the tenant parameter at the call site. Make it impossible to query without a tenant context object."
+    },
+    {
+      "area": "Incomplete UPDATE statements",
+      "severity": "HIGH",
+      "description": "AI generates UPDATE SET col1=@v1, col2=@v2 based on the fields it sees in the current prompt. Fields outside the prompt context get silently dropped.",
+      "mitigation": "One SQL file per operation (not inline strings). AI edits the file, not an interpolated string. Reviewer sees the full SQL diff."
+    },
+    {
+      "area": "Auth context confusion",
+      "severity": "HIGH",
+      "description": "AI will inject HttpContext.User.Claims directly in handlers instead of using a typed ICurrentUser service. This couples handlers to HTTP and breaks unit tests.",
+      "mitigation": "Define ICurrentUser with UserId, CustomerId, ProfileId, IsImpersonating. Inject it everywhere. Never reference HttpContext outside middleware."
+    },
+    {
+      "area": "Blazor StateHasChanged misuse",
+      "severity": "MEDIUM",
+      "description": "AI frequently calls StateHasChanged() from async callbacks on wrong thread, or forgets InvokeAsync wrapper. Causes silent render failures.",
+      "mitigation": "Establish a BaseComponent with a SafeStateHasChanged() wrapper and document it in the prompt template."
+    },
+    {
+      "area": "MediatR pipeline behavior order",
+      "severity": "MEDIUM",
+      "description": "AI adds pipeline behaviors (validation, logging, auth) but does not know the correct registration order. Wrong order causes auth bypass or double-logging.",
+      "mitigation": "Register behaviors in a single PipelineRegistration.cs file with numbered comments. AI is instructed to add to this file only."
+    },
+    {
+      "area": "Connection lifetime",
+      "severity": "MEDIUM",
+      "description": "AI opens IDbConnection per-handler without using-blocks, or registers it as singleton instead of transient/scoped.",
+      "mitigation": "Provide an IDbSession factory abstraction. Register as scoped. Handlers receive IDbSession, not IDbConnection directly."
+    }
+  ],
+
+  "architecture_recommendation": {
+    "pattern": "Vertical Slice Architecture with explicit tenant context",
+    "structure": {
+      "src/": {
+        "Api/": {
+          "Features/": {
+            "[Domain]/": {
+              "[Feature]/": {
+                "[Feature]Command.cs": "record with input fields only",
+                "[Feature]Handler.cs": "IRequestHandler — all logic here",
+                "[Feature]Validator.cs": "FluentValidation rules",
+                "[Feature]Response.cs": "output record",
+                "[Feature]Endpoint.cs": "minimal API registration",
+                "[Feature]Page.razor": "Blazor page (co-located)",
+                "[Feature].sql": "one SQL file per query/command"
+              }
+            }
+          },
+          "SharedKernel/": {
+            "Auth/": "ICurrentUser, JwtOptions, SamlOptions, TotpOptions",
+            "Tenant/": "ITenantContext, TenantMiddleware",
+            "Ids/": "UserId, CustomerId, ProfileId (strongly-typed)",
+            "Results/": "Result<T>, Error, ErrorCode",
+            "Db/": "IDbSession, DbSession (Dapper wrapper)",
+            "Audit/": "IAuditLogger, AuditEntry, AuditBehavior",
+            "Pipeline/": "PipelineRegistration.cs (ordered behaviors)"
+          }
+        },
+        "AppHost/": ".NET Aspire entry point"
+      },
+      "tests/": {
+        "[Domain]/": {
+          "[Feature]HandlerTests.cs": "unit test per handler, NSubstitute IDbSession"
+        }
+      }
+    },
+    "key_rule": "One .sql file per database operation. No inline SQL strings. No dynamic query builders unless isolated in a named QueryBuilder class."
+  },
+
+  "dapper_strategy": {
+    "query_location": "Each feature slice has its own .sql file embedded as an assembly resource. Handler loads it via a SqlLoader helper. AI edits the .sql file, not C# strings.",
+    "tenant_enforcement": "IDbSession wraps IDbConnection and exposes QueryAsync<T>(string sql, object param, TenantContext tenant). TenantContext is non-optional. The wrapper appends AND CustomerId = @_tenantId to every query automatically via a convention (all tables have a CustomerId column).",
+    "update_safety": "UPDATE statements use explicit column lists in the .sql file. AI must modify the .sql file to add/remove columns. The diff is visible in source control.",
+    "concurrency": "Add RowVersion (timestamp) column to all mutable entities. Handler reads current RowVersion, passes it in WHERE clause of UPDATE. If 0 rows affected → return ConcurrencyError from Result<T>.",
+    "unit_testing": "Mock IDbSession with NSubstitute. Return fake data from QueryAsync. No TestContainers required for unit tests. Integration tests use a real DB with Respawn for reset.",
+    "transactions": "IDbSession.BeginTransaction() returns an IDbTransaction. Handlers that touch multiple tables receive IDbSession and call BeginTransaction explicitly. Never assume ambient transaction."
+  },
+
+  "auth_strategy": {
+    "principles": [
+      "ICurrentUser is the only way to get the current user in any handler or component. Never read HttpContext.User directly.",
+      "JWT generation lives in exactly one class: JwtTokenService. No other class creates tokens.",
+      "Refresh token rotation: single-use, stored in UserRefreshToken table, invalidated on use. One class: RefreshTokenService.",
+      "All auth flows are explicit commands: LoginCommand, RefreshTokenCommand, SamlCallbackCommand, ImpersonateCommand.",
+      "SAML2 and MSAL are adapters that terminate in the same internal LoginCommand. The handler does not know which auth method was used.",
+      "2FA is a second MediatR step: LoginCommand returns RequiresTwoFactor result (not a token). Client calls VerifyTwoFactorCommand to get the token.",
+      "Impersonation sets an additional ImpersonatedUserId claim. ICurrentUser exposes IsImpersonating and OriginalUserId. All audit entries include both."
+    ],
+    "blazor_integration": "CustomAuthenticationStateProvider reads the JWT from localStorage via JSInterop on first render. It starts a background timer that calls RefreshTokenCommand 2 minutes before expiry. On circuit disconnect the timer is disposed.",
+    "permission_check": "await _authz.CanAsync(userId, profileId, Permission.X) — single method, single SQL query, result cached per request in ICurrentUser scope.",
+    "ai_safety": "Every auth prompt must begin with: 'Do not use ASP.NET Identity. Do not use IdentityServer. Use ICurrentUser from SharedKernel/Auth/. Tokens are issued by JwtTokenService only.'"
+  },
+
+  "tradeoffs": [
+    {
+      "decision": "Dapper over EF Core",
+      "benefit": "SQL is visible, diffable, and AI-readable. No LINQ-to-SQL translation surprises.",
+      "downside": "No global query filters, no change tracking, no migrations. Schema changes require manual SQL scripts.",
+      "why_preferred": "AI generates better explicit SQL than implicit LINQ. Hidden ORM behavior is the leading cause of AI-generated bugs in data access."
+    },
+    {
+      "decision": "Vertical slice over layered architecture",
+      "benefit": "AI can understand and modify one feature without reading the entire codebase. All files for a feature are in one folder.",
+      "downside": "Some logic duplication across slices (e.g. permission checks). Requires discipline to not create horizontal shared services.",
+      "why_preferred": "AI context windows are finite. A self-contained slice fits in context. A layered architecture requires reading Controller + Service + Repository + Model simultaneously."
+    },
+    {
+      "decision": "Co-located Blazor pages with API slices",
+      "benefit": "The Blazor page, its command, and its handler are in the same folder. AI sees the full feature in one pass.",
+      "downside": "Mixes server-side and client-side concerns in the same project.",
+      "why_preferred": "Same-host Blazor Server eliminates the client/server boundary. The co-location benefit outweighs the conceptual mixing."
+    },
+    {
+      "decision": "Strongly-typed IDs",
+      "benefit": "AI cannot pass a CustomerId where a ProfileId is expected. Compiler catches cross-ID bugs immediately.",
+      "downside": "Boilerplate per ID type. JSON serialization requires custom converters.",
+      "why_preferred": "AI-generated code frequently mixes numeric IDs. Strongly-typed IDs make the error non-compilable rather than a silent runtime bug."
+    },
+    {
+      "decision": "Result<T> over exceptions",
+      "benefit": "Handler return types are explicit contracts. AI can see all possible outcomes without reading exception documentation.",
+      "downside": "More verbose than throw. AI trained on exception-based code may revert to throws.",
+      "why_preferred": "Every prompt must include: 'Return Result<T>. Never throw for business errors.' Once established, AI follows consistently."
+    },
+    {
+      "decision": "One .sql file per operation",
+      "benefit": "SQL is version-controlled, reviewable, and independently editable. AI edits SQL without touching C#.",
+      "downside": "More files per feature. SqlLoader helper required.",
+      "why_preferred": "Inline SQL strings are invisible to code review tools and AI context scanners. File-per-operation is the single highest-impact AI safety measure for Dapper."
+    }
+  ],
+
+  "final_recommendation": {
+    "stack": "Keep the baseline stack. No changes required.",
+    "additions": [
+      "Add FluentValidation (validators per slice)",
+      "Add MediatR (command/query dispatch + pipeline behaviors)",
+      "Add Scrutor (assembly scanning for handler registration)",
+      "Add Respawn (database reset for integration tests)"
+    ],
+    "removals": [
+      "Do NOT add EF Core — even for migrations. Use DbUp or Flyway for SQL-file-based migrations.",
+      "Do NOT add ASP.NET Identity — even as a reference. Its presence confuses AI prompts."
+    ],
+    "structural_non_negotiables": [
+      "ICurrentUser — never expose HttpContext.User outside middleware",
+      "IDbSession — never expose raw IDbConnection to handlers",
+      "One .sql file per database operation — no inline SQL strings",
+      "ITenantContext injected into IDbSession — no WHERE CustomerId written in handlers",
+      "PipelineRegistration.cs — single ordered list of MediatR behaviors"
+    ],
+    "prompt_header_for_every_feature": "Use vertical slice architecture. Place all files in Features/[Domain]/[Feature]/. Use ICurrentUser from SharedKernel/Auth/. Use IDbSession from SharedKernel/Db/. Load SQL from [Feature].sql via SqlLoader. Return Result<T> — never throw for business errors. Do not use ASP.NET Identity or EntityFramework."
+  },
+
+  "ai_score": {
+    "score": 8,
+    "breakdown": {
+      "clarity": "9 — explicit SQL, explicit auth, explicit tenant context",
+      "safety_for_ai_edits": "7 — Dapper UPDATE risk mitigated by .sql files; tenant risk mitigated by IDbSession wrapper",
+      "predictability": "8 — vertical slices mean every feature looks identical",
+      "maintainability_via_prompts": "8 — self-contained slices fit in AI context window"
+    },
+    "ceiling_reason": "Score cannot reach 10 because Blazor Server circuit model and Dapper multi-tenant enforcement require prompt discipline that cannot be fully automated. A score of 8 is realistic and achievable with the mitigations described."
+  }
+}

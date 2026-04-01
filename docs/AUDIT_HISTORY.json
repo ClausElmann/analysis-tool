@@ -1,0 +1,25 @@
+{
+  "audit_history": [
+    {
+      "audit_id": "audit-20260331-001",
+      "timestamp": "2026-03-31T09:30:00Z",
+      "package": "audit-package-20260331-092016.zip",
+      "scope": ["analysis-tool", "green-ai"],
+      "scores": {
+        "analysis_tool": 9,
+        "green_ai": 8,
+        "overall": 8.5
+      },
+      "critical_risk_count": 10,
+      "structural_issue_count": 5,
+      "accepted_findings": 5,
+      "rejected_findings": 5,
+      "deferred_findings": 5,
+      "files_changed": [
+        "green-ai/ai-governance/04_ANTI_PATTERNS.json",
+        "green-ai/ai-governance/05_EXECUTION_RULES.json"
+      ],
+      "response_log": "analysis-tool/docs/AUDIT_RESPONSE_LOG.md"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "GAP_001",
+    "status": "closed",
+    "title": "LanguageResourceModel and LanguageResourcesQuery exist but have no API endpoint",
+    "description": "INITIAL ANALYSIS ERROR. The contract models ARE fully wired. All 5 CRUD endpoints exist in ServiceAlert.Web/Controllers/Common/CommonController.cs (not in ServiceAlert.Api). The initial grep was scoped to ServiceAlert.Api and missed this controller.",
+    "resolution": "CommonController.cs exposes: GET /api/Common/GetResourcesJson [AllowAnonymous], POST /api/Common/Resources [SuperAdmin], POST /api/Common/InsertLocalizedResource [SuperAdmin], POST /api/Common/UpdateLocalizedResource [SuperAdmin], POST /api/Common/DeleteLocalizedResource [SuperAdmin], GET /api/Common/DownloadResourcesExcel [SuperAdmin]. Admin UI exists at translation-management.component.ts under super-administration, backed by TranslationManagementService. LanguageResourceModel IS used.",
+    "evidence": "Read ServiceAlert.Web/Controllers/Common/CommonController.cs lines 126–295. All endpoints verified.",
+    "lesson": "Search scope error — ServiceAlert.Web is the main web project with controllers. ServiceAlert.Api is a separate headless API project. Both projects have controllers. Always search both."
+  },
+  {
+    "id": "GAP_002",
+    "status": "open",
+    "title": "Batch import (import_translations) does not invalidate in-memory cache",
+    "description": "After importing translations via ServiceAlert.Batch.exe import_translations, the IStaticCacheManager cache is NOT cleared. Imported translations will not be visible to the running application until the cache naturally expires or the app restarts.",
+    "evidence": "ImportLocaleStringResourcesAsync does not call _cacheManager.RemoveByPattern(). Compare with UpdateLocaleStringResource which does call it.",
+    "impact": "In a production environment, a translation import via batch would silently fail to take effect until cache expiry. Potentially hours of stale translations.",
+    "options": [
+      "A: Add _cacheManager.RemoveByPattern(_localStringResourcesPatternKey) at end of ImportLocaleStringResourcesAsync.",
+      "B: Accept — batch import is always followed by app restart in practice."
+    ]
+  },
+  {
+    "id": "GAP_003",
+    "status": "open",
+    "title": "Countries table is not queried at runtime — hardcoded constants instead",
+    "description": "The dbo.Countries table exists with ISO codes and names, but all country-to-culture and country-to-phone mappings use hardcoded values in CountryConstants.cs. The table is never SELECT'd in production code.",
+    "evidence": "grep across ServiceAlert.Api and ServiceAlert.Services: no query against dbo.Countries. CountryConstants.cs contains all mappings as switch expressions.",
+    "impact": "The Countries table is dead weight. Any new country requires both a code change (CountryConstants) and a data migration (Countries row). No single source of truth.",
+    "options": [
+      "A: Remove Countries table — it adds no value. Maintain CountryConstants.cs as the canonical source.",
+      "B: Make CountryConstants.cs dynamic — load from Countries table at startup and cache. More flexible but more complex.",
+      "C: Accept the current state — table exists for historical reasons, code is the runtime source."
+    ]
+  },
+  {
+    "id": "GAP_004",
+    "status": "open",
+    "title": "German (DE=6) exists in backend but is missing from frontend BiLanguageId enum",
+    "description": "The DB Languages table has 6 rows including German (Id=6, LanguageCulture='de-DE'). CountryConstants.cs has GermanCountryId=6 and GermanLanguageId=6. bi-localization-helper-base.service.ts has a 'DE' case in getLanguageConfigByCountry(). BUT: BiLanguageId enum in BiLanguageAndCountryId.ts only has DK=1, SE=2, EN=3, FI=4, NO=5 — NO German entry. translation-management.component.ts initLanguageOptions() lists only 5 languages (no German). BiHttpTranslateLoader has no language code mapping for German ID 6.",
+    "evidence": "Read BiLanguageAndCountryId.ts lines 1-50: enum has 5 entries, no DE. initLanguageOptions() in translation-management.component.ts: array has 5 entries, no German. BiHttpTranslateLoader: switch/if has no case for languageId=6. bi-localization-helper-base.service.ts: HAS a DE case — inconsistency.",
+    "impact": "MEDIUM-HIGH. German translations exist in the DB and can be batch-imported, but German users cannot: (1) load German translations at frontend bootstrap (BiHttpTranslateLoader has no route for languageId=6), (2) see or manage German translations in the admin UI, (3) use German via Angular language switching. German support is backend-only and inaccessible to the frontend.",
+    "options": [
+      "A: Add BiLanguageId.DE = 6 to enum; add German to BiHttpTranslateLoader language code map; add German option to initLanguageOptions(). Full frontend German support.",
+      "B: Intentional omission — German market not yet launched on this frontend. Document and accept.",
+      "C: Check if German translations actually exist in DB first (may be all 'Missing Translation') — if so, only partial work is needed."
+    ]
+  },
+  {
+    "id": "GAP_005",
+    "status": "open",
+    "title": "TranslationManagementService.updateLocalizedResource hardcodes language code for frontend cache update",
+    "description": "In TranslationManagementService.updateLocalizedResource(), the tap() that updates the in-memory ngx-translate cache uses: translator.setTranslation(languageId.toString() === '1' ? 'da' : 'se', ...). This means for ANY language other than DK (1), the cache update targets the Swedish 'se' translation store — including EN, FI, NO, and potentially DE. Compare with insertLocalizedResources which correctly calls getLanguageCodeByLanguageId() instead.",
+    "evidence": "Read translation-management.service.ts lines 76-86: updateLocalizedResource tap() has hardcoded '1' ? 'da' : 'se'. insertLocalizedResources (lines 55-65) correctly calls getLanguageCodeByLanguageId(languageId).",
+    "impact": "LOW-MEDIUM. When a super-admin edits an EN/FI/NO translation via the UI, the frontend cache update silently writes to the Swedish translation store instead. The edited translation appears to take effect (Swedish store is updated incorrectly), but the English/Finnish/Norwegian store still has the old value until the next page reload / app restart. Bug is masked by low frequency of non-DK translation editing.",
+    "options": [
+      "A: Replace hardcoded string in updateLocalizedResource with getLanguageCodeByLanguageId(languageId) — same fix already applied to insertLocalizedResources.",
+      "B: Remove in-memory cache update from updateLocalizedResource entirely — force page reload instead.",
+      "C: Accept — super-admins almost exclusively edit Danish (1) translations. Low real-world impact."
+    ]
+  }
+]

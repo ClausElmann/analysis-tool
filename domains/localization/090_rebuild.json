@@ -1,0 +1,89 @@
+{
+  "domain": "localization",
+  "target_stack": "green-ai (ASP.NET Core 9 + Blazor Server + SQL Server + In-Memory Cache)",
+  "recommendation": "PRESERVE_AND_SIMPLIFY",
+  "rationale": "The localization domain is infrastructure-level utility. It has no complex business rules, no domain events, and no external service dependencies beyond the DB and in-memory cache. The current architecture is sound — the primary issues are gaps (GAP_004, GAP_005) not structural problems.",
+
+  "api_surface": {
+    "recommendation": "Keep DB-backed translations. Expose via a dedicated LocalizationEndpoints module rather than mixing into CommonController.",
+    "public_endpoint": {
+      "route": "GET /api/localization/translations?languageId={id}",
+      "auth": "AllowAnonymous",
+      "description": "Returns flat JSON dictionary of UPPER(ResourceName) → ResourceValue for a language. Used by frontend on bootstrap.",
+      "green_ai_equivalent": "ILocalizationService.GetAll(languageId) already returns this. Wire it up."
+    },
+    "admin_endpoints": {
+      "auth": "SuperAdmin role",
+      "routes": [
+        "POST /api/localization/search — paginated search (replace current mixed query/filter approach)",
+        "POST /api/localization — create new key (auto-creates all language placeholders)",
+        "PUT /api/localization/{id} — update existing resource",
+        "DELETE /api/localization/{id} — delete single row",
+        "GET /api/localization/export?languageId={optional} — Excel export"
+      ]
+    }
+  },
+
+  "database": {
+    "recommendation": "Keep dbo.LocaleStringResources and dbo.Languages as-is. Remove dbo.Countries (GAP_003).",
+    "schema_changes": [
+      "No changes to Languages table — all 6 languages including German.",
+      "No changes to LocaleStringResources table — indexes are correct.",
+      "Consider adding DATETIME2 LastModifiedUtc column to LocaleStringResources for change tracking.",
+      "Consider adding soft-delete (IsDeleted bit) to enable auditing of deleted keys.",
+      "Countries table: drop or archive (GAP_003 decision needed first)."
+    ],
+    "migration_note": "No breaking migrations needed for core localization functionality."
+  },
+
+  "caching": {
+    "recommendation": "Keep per-key caching for GetLocalizedResource(key, langId). Fix GAP_002 — add cache invalidation to batch import.",
+    "green_ai_pattern": "IMemoryCache or IDistributedCache. Current 'sms.lsr.*' pattern-clear approach is acceptable.",
+    "improvement": "Add ETag or Last-Modified header to GET /api/localization/translations so browsers and CDNs can cache effectively. Current response has no cache headers."
+  },
+
+  "frontend": {
+    "platform": "Blazor Server — no Angular, no ngx-translate",
+    "translation_pattern": "Use Microsoft.Extensions.Localization or a thin wrapper over ILocalizationService directly in Blazor components.",
+    "key_design": "Keep UPPER-cased dot-notation keys (e.g. 'SHARED.DATEFORMATSHORT') — consistent with existing DB content.",
+    "language_switching": "Blazor CultureInfo.CurrentUICulture — set from user profile LanguageId on login. No client-side translation loading needed (server renders).",
+    "admin_ui": {
+      "description": "Rebuild translation-management.component.ts as a Blazor page.",
+      "features": [
+        "Language selector (all 6 including German — fix GAP_004)",
+        "Paginated/filtered grid (QuickGrid or Radzen DataGrid)",
+        "Inline edit/delete (row-level)",
+        "New key creation form",
+        "Excel export button",
+        "'Show only incomplete' toggle"
+      ],
+      "note": "Server-side pagination preferred — DB can handle the filtering natively rather than loading all rows in memory as current implementation does."
+    }
+  },
+
+  "gaps_to_fix_during_rebuild": [
+    {
+      "gap": "GAP_002",
+      "action": "Add cache invalidation to ImportLocaleStringResourcesAsync. One line: _cacheManager.RemoveByPattern('sms.lsr.')."
+    },
+    {
+      "gap": "GAP_003",
+      "action": "Decision required: drop Countries table or migrate mappings from CountryConstants.cs into it. Rebuild is the right time to resolve this."
+    },
+    {
+      "gap": "GAP_004",
+      "action": "Add German (DE=6) to all frontend language enumerations and translation loading. In green-ai/Blazor this is automatic if CultureInfo is configured correctly — no separate enum needed."
+    },
+    {
+      "gap": "GAP_005",
+      "action": "Non-issue in Blazor — server renders translations, no client-side cache update needed."
+    }
+  ],
+
+  "effort_estimate": {
+    "backend_port": "LOW — ILocalizationService interface is clean. Wire new endpoints, fix cache invalidation.",
+    "database_migration": "LOW — no schema changes required for core functionality.",
+    "frontend_rebuild": "MEDIUM — Blazor admin page is straightforward but requires server-side pagination refactor (current code loads all rows in memory).",
+    "total_estimate": "2–3 dev-days for full rebuild including German fix and server-side pagination."
+  }
+}

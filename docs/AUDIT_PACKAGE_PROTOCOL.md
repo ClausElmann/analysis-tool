@@ -1,0 +1,150 @@
+# Audit Package Protocol
+
+> Purpose: Prepare a combined, clean, source-only ZIP of both `analysis-tool` and `green-ai` for external architectural review.
+> This is NOT a deployment package, NOT a backup, NOT a build artifact.
+> Optimize for: reviewability, traceability, low noise, source-first packaging.
+
+---
+
+## Included Projects
+
+| Project | Root Path |
+|---|---|
+| analysis-tool | `C:\Udvikling\analysis-tool` |
+| green-ai | `C:\Udvikling\green-ai` |
+
+---
+
+## Excluded Patterns
+
+### Folders (recursive)
+- `bin/`
+- `obj/`
+- `.vs/`
+- `.git/`
+- `node_modules/`
+- `__pycache__/`
+- `.pytest_cache/`
+- `TestResults/`
+- `Screenshots/`
+- `.venv/`
+- `venv/`
+- `.idea/`
+
+### File Extensions (binary/generated/transient)
+- Binaries: `*.dll`, `*.exe`, `*.pdb`, `*.lib`, `*.so`, `*.dylib`
+- Packages: `*.nupkg`, `*.snupkg`, `*.whl`, `*.egg`
+- Archives: `*.zip`, `*.tar`, `*.gz`, `*.rar`, `*.7z`
+- Images: `*.png`, `*.jpg`, `*.jpeg`, `*.gif`, `*.webp`, `*.bmp`, `*.ico`, `*.svg`
+- Fonts: `*.woff`, `*.woff2`, `*.ttf`, `*.eot`, `*.otf`
+- Media: `*.pdf`, `*.mp4`, `*.mp3`, `*.wav`, `*.avi`
+- Databases: `*.db`, `*.sqlite`, `*.mdf`, `*.ldf`
+- Build artifacts: `*.cache`, `*.suo`, `*.dbmdl`, `*.jfm`, `*.bim`, `*.user` (except `.csproj.user` for context)
+
+---
+
+## Required Generated Files (inside ZIP root)
+
+| File | Description |
+|---|---|
+| `PACKAGE_INDEX.md` | Human-readable index: timestamp, tree, key files |
+| `PACKAGE_MANIFEST.json` | Machine-readable: file counts by extension, metadata |
+
+---
+
+## Package Structure
+
+```
+audit-package-YYYYMMDD-HHMMSS.zip
+├── PACKAGE_INDEX.md
+├── PACKAGE_MANIFEST.json
+├── analysis-tool/
+│   ├── ai-governance/
+│   ├── docs/
+│   ├── analyzers/
+│   ├── core/
+│   ├── ...
+└── green-ai/
+    ├── ai-governance/
+    ├── docs/
+    ├── src/
+    ├── tests/
+    └── ...
+```
+
+---
+
+## Output Location
+
+```
+D:\Udvikling\audit-packages\audit-package-YYYYMMDD-HHMMSS.zip
+```
+
+The output directory is created automatically if it does not exist.
+
+---
+
+## Naming Convention
+
+```
+audit-package-YYYYMMDD-HHMMSS.zip
+```
+
+Example: `audit-package-20260331-143022.zip`
+
+---
+
+## How to Run
+
+Run inline in a PowerShell terminal (do NOT open a new window):
+
+```powershell
+& "C:\Udvikling\analysis-tool\scripts\Create-Audit-Package.ps1"
+```
+
+Optional override for output directory:
+
+```powershell
+& "C:\Udvikling\analysis-tool\scripts\Create-Audit-Package.ps1" -OutputDir "D:\MyOutputDir"
+```
+
+---
+
+## Determinism Rules
+
+1. Timestamp is captured once at script start — used consistently in folder name and manifest.
+2. Files are copied in filesystem order — no randomization.
+3. Excluded patterns are defined as constants at the top of the script — not inferred at runtime.
+4. The output ZIP is created from a staging folder, then the staging folder is deleted.
+5. Running the script twice produces two ZIPs with different timestamps but identical content (assuming no source changes).
+
+---
+
+## Index Generation Rules
+
+`PACKAGE_INDEX.md` must include:
+- Package creation timestamp (UTC)
+- Included project roots
+- Excluded patterns (summary)
+- Top-level folder tree (depth 2)
+- Key files listed explicitly if present: README, ai-governance files, docs/, solution files, SQL schema files, protocol docs
+
+`PACKAGE_MANIFEST.json` must include:
+- `packageName`: ZIP filename
+- `timestamp`: ISO 8601 UTC
+- `includedRoots`: array of project paths
+- `excludedPatterns`: array of excluded folder names and extensions
+- `fileCountByExtension`: object mapping extension → count
+- `totalFileCount`: integer
+
+---
+
+## Validation Checklist (before sending to reviewer)
+
+- [ ] Both project roots (`analysis-tool`, `green-ai`) present in ZIP
+- [ ] No `bin/`, `obj/`, `.git/` folders in ZIP
+- [ ] No `.dll`, `.exe`, `.png`, `.zip` files in ZIP
+- [ ] `PACKAGE_INDEX.md` present at ZIP root
+- [ ] `PACKAGE_MANIFEST.json` present at ZIP root
+- [ ] ZIP filename follows `audit-package-YYYYMMDD-HHMMSS.zip` convention
+- [ ] ZIP is in `D:\Udvikling\audit-packages\`

@@ -1,0 +1,36 @@
+{
+  "architecture_style": "vertical_slice",
+  "backend": ".net",
+  "frontend": "blazor_server",
+  "data_access": "dapper",
+  "database": "sql_server",
+  "auth": "custom_jwt",
+
+  "non_negotiables": [
+    "no_entity_framework",
+    "no_aspnet_identity",
+    "no_hidden_magic",
+    "explicit_sql_only",
+    "one_sql_file_per_operation",
+    "vertical_slice_structure",
+    "result_pattern_only",
+    "strongly_typed_ids",
+    "no_httpcontext_in_handlers",
+    "use_icurrentuser",
+    "use_idbsession"
+  ],
+
+  "tenant_rules": {
+    "required": true,
+    "column": "CustomerId",
+    "rule": "all tenant-owned tables must include CustomerId",
+    "query_rule": "all SQL must explicitly include WHERE CustomerId = @CustomerId",
+    "forbidden": [
+      "automatic_sql_rewriting",
+      "global_filters",
+      "hidden_tenant_logic"
+    ],
+    "enforcement": "explicit_only",
+    "validation": "fail_if_missing_customerid"
+  }
+}

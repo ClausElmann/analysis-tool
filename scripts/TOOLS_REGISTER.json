@@ -1,0 +1,33 @@
+{
+  "_purpose": "Canonical index of all scripts and tools available in the analysis-tool + green-ai workspace. Consult this FIRST before searching for tools or asking the user. Updated whenever a script is added, removed, or changed.",
+  "_rule": "AI agents must read this file before concluding a tool does not exist.",
+
+  "tools": [
+    {
+      "id": "create-audit-package",
+      "name": "Create-Audit-Package.ps1",
+      "path": "analysis-tool/scripts/Create-Audit-Package.ps1",
+      "full_path": "C:\\Udvikling\\analysis-tool\\scripts\\Create-Audit-Package.ps1",
+      "type": "powershell",
+      "purpose": "Creates a combined audit ZIP of analysis-tool and green-ai for external review. Excludes binaries, obj/bin, .git. Generates PACKAGE_INDEX.md and PACKAGE_MANIFEST.json inside the ZIP.",
+      "output_dir": "D:\\Udvikling\\audit-packages",
+      "output_naming": "audit-package-{yyyyMMdd-HHmmss}.zip",
+      "usage": "& 'C:\\Udvikling\\analysis-tool\\scripts\\Create-Audit-Package.ps1'",
+      "usage_with_output": "& 'C:\\Udvikling\\analysis-tool\\scripts\\Create-Audit-Package.ps1' -OutputDir 'D:\\Udvikling\\audit-packages'",
+      "triggers": ["lav audit zip", "audit pakke", "zip til review", "audit package", "create audit"],
+      "last_verified": "2026-03-31"
+    },
+    {
+      "id": "set-copilot-env",
+      "name": "set_copilot_env.ps1",
+      "path": "analysis-tool/set_copilot_env.ps1",
+      "full_path": "C:\\Udvikling\\analysis-tool\\set_copilot_env.ps1",
+      "type": "powershell",
+      "purpose": "Sets GITHUB_TOKEN and DOMAIN_ENGINE_AI_PROVIDER env vars before running Python AI enrichment scripts.",
+      "usage": "& 'C:\\Udvikling\\analysis-tool\\set_copilot_env.ps1'",
+      "warning": "SECURITY: Do NOT store real tokens in this file. Use environment variables or a secrets manager instead. File contained a plaintext PAT — revoke and replace with placeholder.",
+      "triggers": ["sæt copilot env", "enrichment environment", "set ai provider"],
+      "last_verified": "2026-03-31"
+    }
+  ]
+}

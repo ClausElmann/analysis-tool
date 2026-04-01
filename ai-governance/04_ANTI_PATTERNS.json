@@ -1,0 +1,14 @@
+{
+  "forbidden_patterns": [
+    "repository_pattern",
+    "service_layer_abstraction",
+    "generic_base_repository",
+    "auto_mapper_usage",
+    "hidden_sql_generation",
+    "global_query_filters",
+    "magic_auth_helpers",
+    "implicit_tenant_filtering",
+    "shared_mutable_state",
+    "cross_feature_dependencies"
+  ]
+}

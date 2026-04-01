@@ -1,4 +1,80 @@
 {
   "domain": "Profile",
-  "behaviors": []
+  "behaviors": [
+    {
+      "id": "BEH_001",
+      "name": "GetProfilesByUser",
+      "source": "ServiceAlert.Services/Profiles/ProfileService.cs + IProfileService.cs",
+      "type": "FACT",
+      "description": "Returns all profiles a user has access to, optionally filtered by customerId and name. Many-to-many via ProfileUserMapping. Used at login and in profile picker UI.",
+      "signature": "IReadOnlyCollection<Profile> GetProfilesbyUserId(int userId, int? customerId, string filter, bool includeSystemProfile, bool includeCustomer)"
+    },
+    {
+      "id": "BEH_002",
+      "name": "CanUserAccessProfile",
+      "source": "ServiceAlert.Services/Profiles/ProfileService.cs",
+      "type": "FACT",
+      "description": "Returns true if a ProfileUserMapping exists for (profileId, userId). Used as guard before UpdateCurrentProfileByUser.",
+      "signature": "bool CanUserAccessProfile(int profileId, int userId)"
+    },
+    {
+      "id": "BEH_003",
+      "name": "DoesProfileHaveRole",
+      "source": "ServiceAlert.Services/Permissions/PermissionService.cs",
+      "type": "FACT",
+      "description": "Core capability gate. Checks ProfileRoleMappings for (profileId, roleName). Called from address service, broadcast, voice, e-Boks, map, data import, search — virtually every domain operation that has a capability toggle.",
+      "signature": "bool DoesProfileHaveRole(int profileId, ProfileRoleNames role)"
+    },
+    {
+      "id": "BEH_004",
+      "name": "UpdateCurrentProfileByUser",
+      "source": "ServiceAlert.Services/Users/UserService.cs",
+      "type": "FACT",
+      "description": "Persists profile switch to DB (User.CurrentProfileId). Guards: profile must not be null, user must not be null, CanUserAccessProfile must return true. Updates User.DateLastUpdatedUtc. Cache invalidated.",
+      "side_effects": ["User row updated in DB", "Cache key ProfileRolesByProfile cleared"]
+    },
+    {
+      "id": "BEH_005",
+      "name": "GetAddressRestrictionForProfile",
+      "source": "ServiceAlert.Services/Addresses/AddressService.cs",
+      "type": "FACT",
+      "description": "Returns the correct IAddressRestriction based on profile roles. Priority: profileId==0 OR HaveNoSendRestrictions → NoAddressRestriction; UseMunicipalityPolList → MunicipalityPositiveListAddressRestriction; else → PositiveListAddressRestriction. This is the main enforcement point of profile-level geographic access control.",
+      "known_issue": "profileId==0 returns NoAddressRestriction — bypasses all restrictions for uninitialised sessions"
+    },
+    {
+      "id": "BEH_006",
+      "name": "AddProfileAccessToUser / DeleteUserProfileMappings",
+      "source": "ServiceAlert.Services/Profiles/ProfileService.cs",
+      "type": "FACT",
+      "description": "Admin operations. Grant or revoke user access to one or more profiles. Invalidates ProfileRolesByProfile cache."
+    },
+    {
+      "id": "BEH_007",
+      "name": "GetApiKeys / Profile API key management",
+      "source": "ServiceAlert.Services/Profiles/IProfileService.cs",
+      "type": "FACT",
+      "description": "Retrieve, create, delete API keys scoped to a profile. External integrations use these to act as a specific profile."
+    },
+    {
+      "id": "BEH_008",
+      "name": "NightTimeDetector.IsNightForProfile",
+      "source": "ServiceAlert.Services/Profiles/NightTimeDetector.cs",
+      "type": "FACT",
+      "description": "Determines whether it is 'night' for a profile based on Profile.TimeZoneId. Used to suppress or delay outbound messages."
+    },
+    {
+      "id": "BEH_009",
+      "name": "GetLatestPositiveList / GetLatestMunicipalityList",
+      "source": "ServiceAlert.Services/Profiles/IProfileService.cs",
+      "type": "FACT",
+      "description": "Retrieve address restriction lists uploaded for a profile. Drives PositiveListAddressRestriction and MunicipalityPositiveListAddressRestriction."
+    },
+    {
+      "id": "BEH_010",
+      "name": "InsertRoleMappingsByRoleGroup",
+      "source": "ServiceAlert.Services/Permissions/Repositories/ProfileRoleRepository.cs",
+      "type": "FACT",
+      "description": "Bulk-assign all roles from a ProfileRoleGroup to a profile. Used when Profile.RoleGroupId is set. Skips roles already assigned."
+    }
+  ]
 }

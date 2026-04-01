@@ -1,0 +1,10 @@
+Use vertical slice architecture.
+Use Dapper only.
+Load SQL from .sql files.
+Use ICurrentUser (never HttpContext).
+Use IDbSession (never raw connection).
+Return Result<T> (never throw for business errors).
+All tenant queries MUST include WHERE CustomerId = @CustomerId.
+Do NOT use ASP.NET Identity.
+Do NOT use Entity Framework.
+Do NOT introduce hidden abstractions.

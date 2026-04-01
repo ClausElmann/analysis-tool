@@ -1,4 +1,70 @@
 {
   "domain": "Profile",
-  "flows": []
+  "flows": [
+    {
+      "id": "FLOW_P001",
+      "name": "Login — Profile Auto-Assignment (single profile)",
+      "type": "FACT",
+      "trigger": "User logs in. User.CurrentProfileId == 0.",
+      "steps": [
+        "UserController.Login(): if CurrentProfileId==0, call GetProfilesbyUserId(user.Id, user.CurrentCustomerId, null)",
+        "If exactly 1 profile returned → user.CurrentProfileId = profile.Id",
+        "User saved to DB via UpdateUser()",
+        "JWT includes this profileId in AccessTokenClaims.ProfileId"
+      ],
+      "note": "Multi-profile users with CurrentProfileId==0 get NO auto-assignment. JWT carries 0. All downstream restriction checks bypass (see CONTRADICTION_001)."
+    },
+    {
+      "id": "FLOW_P002",
+      "name": "Profile Switch",
+      "type": "FACT",
+      "trigger": "User selects a different profile in UI (exact endpoint not yet found in search scope)",
+      "steps": [
+        "Frontend calls endpoint (not yet located — likely a ProfileController or UserController action)",
+        "Server: CanUserAccessProfile(profileId, userId) checked",
+        "UpdateCurrentProfileByUser(profile, user) → User.CurrentProfileId updated in DB",
+        "New JWT must be issued: next RefreshAccessToken() reads updated User.CurrentProfileId from DB → new profileId in token"
+      ],
+      "note": "There is NO immediate reissuance of JWT on profile switch — user continues with old profileId in JWT until token refresh."
+    },
+    {
+      "id": "FLOW_P003",
+      "name": "Refresh Token — Profile Context Propagation",
+      "type": "FACT",
+      "trigger": "Angular interceptor calls GET /api/user/refreshaccesstoken",
+      "steps": [
+        "UserController.RefreshAccessToken() fetches User from DB by token.UserId",
+        "Calls GenerateAccessToken(user, user.CurrentCustomerId, user.CurrentProfileId)",
+        "user.CurrentProfileId is read from DB at this moment — carries any profile switch made since last token issuance",
+        "New JWT issued with current DB profileId"
+      ],
+      "note": "Refresh is the synchronisation point between DB profile state and JWT profile claim."
+    },
+    {
+      "id": "FLOW_P004",
+      "name": "Capability Check (per request)",
+      "type": "FACT",
+      "trigger": "Any service call that gates on a profile role",
+      "steps": [
+        "Service receives profileId (from IWorkContext.CurrentProfileId or from domain entity e.g. SmsGroup.ProfileId)",
+        "PermissionService.DoesProfileHaveRole(profileId, roleName) called",
+        "Queries ProfileRoleMappings JOIN ProfileRoles WHERE ProfileId=@profileId",
+        "Returns bool — drives conditional logic (e.g. which address restriction, whether e-Boks allowed, whether voice allowed)"
+      ]
+    },
+    {
+      "id": "FLOW_P005",
+      "name": "Address Restriction Enforcement",
+      "type": "FACT",
+      "trigger": "Any address lookup or broadcast dispatch",
+      "steps": [
+        "GetAddressRestrictionForProfile(profileId) called",
+        "Evaluates: profileId==0? → NoAddressRestriction (BYPASS)",
+        "HasRole(HaveNoSendRestrictions)? → NoAddressRestriction",
+        "HasRole(UseMunicipalityPolList)? → MunicipalityPositiveListAddressRestriction (joins dbo.ProfilePosList...)",
+        "Default → PositiveListAddressRestriction (joins dbo.ProfilePositiveLists ON ProfileId=@profileId AND Kvhx=a.Kvhx)"
+      ],
+      "note": "Profile's positive list data IS the geographic access boundary. This is the primary enforcement mechanism of the data partition."
+    }
+  ]
 }

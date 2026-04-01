@@ -1,0 +1,18 @@
+{
+  "prompt_rules": {
+    "always_prepend_header": true,
+    "must_reference_governance": true,
+    "must_follow_feature_template": true
+  },
+  "validation_rules": [
+    "all_features_must_follow_template",
+    "no_inline_sql_allowed",
+    "all_queries_must_include_customerid",
+    "no_httpcontext_in_handlers",
+    "no_forbidden_patterns"
+  ],
+  "failure_behavior": {
+    "on_violation": "stop_and_report",
+    "no_auto_fix": true
+  }
+}

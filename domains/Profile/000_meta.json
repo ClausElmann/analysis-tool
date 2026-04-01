@@ -1,14 +1,46 @@
 {
   "domain": "Profile",
-  "confidence": 0.17,
+  "confidence": 0.91,
+  "status": "complete",
+  "iteration": 1,
+  "saved_utc": "2026-04-01T00:00:00.000000+00:00",
+  "enrichment_note": "Full repository scan pass: Profile is a first-class data partition within a Customer. A user is always on exactly 1 active profile at a time (User.CurrentProfileId). ProfileId is as fundamental a scoping key as CustomerId across SmsGroups, FtpSettings, ProfileApiKeys, ConversationMappings, address restrictions, positive lists, and all broadcast operations. 60+ named roles (ProfileRoleNames enum) gate capability per profile. Source verified from ServiceAlert.Core, ServiceAlert.Services, ServiceAlert.Api, ServiceAlert.DB, ServiceAlert.Test, ServiceAlert.Test.Shared.",
   "coverage": {
-    "api_endpoints": 0,
+    "api_endpoints": 3,
     "batch_jobs": 0,
     "events": 2,
     "webhooks": 0,
     "integrations": 0,
     "background_services": 0
   },
-  "complexity_score": 1,
-  "roi_score": 2
+  "complexity_score": 5,
+  "roi_score": 5,
+  "domain_role": "DATA_PARTITION_AND_CAPABILITY_BOUNDARY",
+  "key_insight": "Profile is a subdivision of Customer. Almost everything partitioned by CustomerId is also partitioned by ProfileId. User is always on exactly 1 active profile until they switch. SmsGroups.ProfileId NOT NULL FK makes Profile the direct owner of all outbound messages.",
+  "open_contradictions": [
+    "CONTRADICTION_001: Users.CurrentProfileId DEFAULT 0 NOT NULL (no FK) — 0 is 'not yet selected', bypasses all address restrictions in GetAddressRestrictionForProfile()",
+    "CONTRADICTION_002: Two WebWorkContext implementations diverge on ProfileId source (DB vs JWT claim)",
+    "CONTRADICTION_003: SmsGroups FK_SmsGroup_Profiles is NOCHECK — referential integrity not enforced at runtime",
+    "CONTRADICTION_004: No UNIQUE constraint on ProfileUserMapping(ProfileId, UserId)"
+  ],
+  "source_files_verified": [
+    "ServiceAlert.Core/Domain/Profiles/Profile.cs",
+    "ServiceAlert.Core/Domain/Profiles/ProfileRoleNames.cs",
+    "ServiceAlert.Core/Domain/Profiles/Mappings/ProfileUserMapping.cs",
+    "ServiceAlert.Core/Domain/Profiles/Mappings/ProfileRoleMapping.cs",
+    "ServiceAlert.Core/IWorkContext.cs",
+    "ServiceAlert.DB/Tables/Profiles.sql",
+    "ServiceAlert.DB/Tables/Users.sql",
+    "ServiceAlert.DB/Tables/SmsGroups.sql",
+    "ServiceAlert.Api/Controllers/UserController.cs",
+    "ServiceAlert.Api/WebWorkContext.cs",
+    "ServiceAlert.Contracts/WebWorkContext.cs",
+    "ServiceAlert.Services/Authentication/AuthenticationService.cs",
+    "ServiceAlert.Services/Authentication/AccessTokenClaims.cs",
+    "ServiceAlert.Services/Profiles/ProfileService.cs",
+    "ServiceAlert.Services/Profiles/IProfileService.cs",
+    "ServiceAlert.Services/Permissions/PermissionService.cs",
+    "ServiceAlert.Services/Addresses/AddressService.cs",
+    "ServiceAlert.Test.Shared/Database/Profiles.sql"
+  ]
 }

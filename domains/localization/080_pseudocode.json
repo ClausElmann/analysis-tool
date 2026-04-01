@@ -1,0 +1,125 @@
+[
+  {
+    "id": "PC001",
+    "name": "GetResourcesJson — public translation bootstrap",
+    "source": "CommonController.GetResourcesJson",
+    "pseudocode": [
+      "FUNCTION GetResourcesJson(languageId: int) → JSON",
+      "  IF languageId <= 0 THEN return 400 BadRequest",
+      "  resources = localizationService.GetAll(languageId)",
+      "    // GetAll: checks cache 'sms.lsr.all.{languageId}'; if miss, SELECT * FROM LocaleStringResources WHERE LanguageId = @id",
+      "  result = empty Dictionary<string, string>",
+      "  FOR EACH resource IN resources:",
+      "    IF resource.ResourceName NOT IN result THEN",
+      "      result.Add(UPPER(resource.ResourceName), resource.ResourceValue)",
+      "    // Duplicate guard is defensive; DB unique index prevents duplicates in practice",
+      "  RETURN 200 Ok(result)"
+    ],
+    "notes": [
+      "AllowAnonymous — no auth check.",
+      "Key upper-casing matches BiTranslateService which also upper-cases all lookup keys.",
+      "No HTTP-level caching headers — browser will cache based on server defaults.",
+      "Called once per language per Angular app bootstrap (page load / language switch)."
+    ]
+  },
+  {
+    "id": "PC002",
+    "name": "Resources — paginated admin search",
+    "source": "CommonController.Resources",
+    "pseudocode": [
+      "FUNCTION Resources(languageId: int, query: LanguageResourcesQuery) → DataTableResult<LanguageResourceModel>",
+      "  IF query.OnlyIncomplete THEN",
+      "    dbResult = localizationService.GetIncomplete(languageId)",
+      "      // GetIncomplete: CTE finds ResourceNames with any 'Missing Translation' version, returns all rows for matching names",
+      "  ELSE",
+      "    dbResult = localizationService.GetAll(languageId)",
+      "  query = dbResult.AsQueryable()",
+      "  IF query.SearchResourceName NOT empty THEN",
+      "    filter: WHERE UPPER(ResourceName) CONTAINS UPPER(SearchResourceName)",
+      "  IF query.SearchResourceValue NOT empty THEN",
+      "    filter: WHERE UPPER(ResourceValue) CONTAINS UPPER(SearchResourceValue)",
+      "  total = filtered.Count",
+      "  data = filtered.Paginate(query)  // applies .Skip(first).Take(rows), optional sort by sortField/sortOrder",
+      "  RETURN 200 Ok({ Total: total, Data: data })"
+    ],
+    "notes": [
+      "Requires SuperAdmin role.",
+      "Filtering is in-memory (post-DB load) — full dataset is loaded then filtered. Acceptable for the expected dataset size (translations rarely exceed 10k rows).",
+      "ResourceValue in model has double-backslash replaced with single-backslash before returning."
+    ]
+  },
+  {
+    "id": "PC003",
+    "name": "InsertLocalizedResource — create new translation key",
+    "source": "CommonController.InsertLocalizedResource → LocalizationService.InsertLocaleStringResource",
+    "pseudocode": [
+      "FUNCTION InsertLocalizedResource(resourceName: string, resourceValue: string, languageId: int = 1)",
+      "  IF resourceName empty OR resourceValue empty THEN return 400",
+      "  existingValue = localizationService.GetLocalizedResource(resourceName, languageId)",
+      "  IF existingValue NOT empty AND existingValue != resourceName THEN return 400 'Resource already exists'",
+      "    // Note: GetLocalizedResource returns resourceName itself when not found (fail-open), so existingValue == resourceName means not-found",
+      "  CREATE locale = new LocaleStringResource { LanguageId, ResourceName = resourceName.Trim(), ResourceValue }",
+      "  localizationService.InsertLocaleStringResource(locale):",
+      "    INSERT INTO LocaleStringResources VALUES (@LanguageId, @ResourceName, @ResourceValue)",
+      "    FOR EACH otherLanguage IN GetAllLanguages() WHERE Id != locale.LanguageId:",
+      "      IF NOT EXISTS (SELECT 1 FROM LocaleStringResources WHERE LanguageId = otherLanguage.Id AND ResourceName = locale.ResourceName) THEN",
+      "        INSERT INTO LocaleStringResources VALUES (@otherLanguageId, @ResourceName, 'Missing Translation')",
+      "    cacheManager.RemoveByPattern('sms.lsr.')",
+      "  RETURN 200 Ok()"
+    ],
+    "notes": [
+      "The 'already exists' check uses fail-open behaviour of GetLocalizedResource — counter-intuitive but correct.",
+      "Auto-creates placeholder rows for ALL other languages — maintains ResourceName completeness invariant.",
+      "Frontend tap() in insertLocalizedResources correctly calls getLanguageCodeByLanguageId() to update ngx-translate cache."
+    ]
+  },
+  {
+    "id": "PC004",
+    "name": "UpdateLocalizedResource — edit existing translation",
+    "source": "CommonController.UpdateLocalizedResource → LocalizationService.UpdateLocaleStringResource",
+    "pseudocode": [
+      "FUNCTION UpdateLocalizedResource(id: int, resourceName: string, resourceValue: string, languageId: int)",
+      "  IF id == 0 OR resourceName empty OR resourceValue empty THEN return 400",
+      "  locale = localizationService.GetLocaleStringResourceById(id)",
+      "  IF locale == null THEN return 400 'Resource not found'",
+      "  locale.ResourceName = resourceName.Trim()",
+      "  locale.ResourceValue = resourceValue",
+      "  locale.LanguageId = languageId",
+      "  localizationService.UpdateLocaleStringResource(locale):",
+      "    UPDATE LocaleStringResources SET ResourceName=@name, ResourceValue=@value, LanguageId=@langId WHERE Id=@id",
+      "    cacheManager.RemoveByPattern('sms.lsr.')",
+      "  RETURN 200 Ok()",
+      "",
+      "// Frontend side (BUG — GAP_005):",
+      "  tap(() => translator.setTranslation(languageId == 1 ? 'da' : 'se', ..., true))",
+      "  // Should be: translator.setTranslation(getLanguageCodeByLanguageId(languageId), ..., true)"
+    ],
+    "notes": [
+      "Updates all three fields — allows renaming ResourceName, changing LanguageId assignment, or editing the value.",
+      "Does NOT cascade ResourceName rename to other languages — if you rename 'foo.bar' to 'foo.baz', other language rows still have 'foo.bar'. Risk: silent orphan creation.",
+      "GAP_005: frontend cache update is buggy for non-DK/SE languages."
+    ]
+  },
+  {
+    "id": "PC005",
+    "name": "BulkMerge import (batch CLI)",
+    "source": "LocalizationService.ImportLocaleStringResourcesAsync",
+    "pseudocode": [
+      "FUNCTION ImportLocaleStringResourcesAsync(filePath: string)",
+      "  json = File.ReadAllText(filePath)",
+      "  records = JsonDeserialize<List<LocaleStringResourceExportReadModel>>(json)",
+      "  CONFIGURE DapperPlus entity:",
+      "    Table = 'dbo.LocaleStringResources'",
+      "    Key = (LanguageId, ResourceName)",
+      "    Output Id",
+      "  USING connection = new SqlConnection(connectionString):",
+      "    AWAIT connection.BulkMergeAsync(records)",
+      "  // NOTE: no cacheManager.RemoveByPattern() called here — GAP_002"
+    ],
+    "notes": [
+      "GAP_002: cache not invalidated after import. Imported translations invisible until cache expires or app restarts.",
+      "BulkMerge = UPSERT: existing rows updated, new rows inserted. No deletes.",
+      "Key matches DB unique index: UIX_LocaleStringResources_LanguageId_ResourceName."
+    ]
+  }
+]
