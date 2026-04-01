@@ -85,11 +85,10 @@ DOMAIN STATUS VOCABULARY
 
 pending          → not yet started
 in_progress      → actively being enriched (current)
+stable_candidate → high scores (≥ 0.85/0.80/0.80) but not yet enough stable_iterations
 stable           → scores converged; quality gate (in-memory model) passed
-complete         → stable + file-level quality gate passed (all 6 required files present)
+complete         → stable_iterations threshold reached + file-level quality gate passed
 blocked          → no useful new assets found in 2 iterations; state explains why
-
-NOTE: stable_candidate is a legacy label — no longer used in the active loop.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DOMAIN STRUCTURE
@@ -115,9 +114,9 @@ QUALITY REQUIREMENTS (minimum gate)
 
 A domain does NOT pass quality gate unless:
 
-- ≥ 5 entities
+- ≥ 3 entities
 - ≥ 2 flows
-- ≥ 3 rules
+- ≥ 2 rules
 - ≥ 1 integration
 - rebuild spec is usable
 

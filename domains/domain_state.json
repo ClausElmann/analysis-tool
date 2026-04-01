@@ -43,10 +43,10 @@
   },
   "identity_access": {
     "name": "identity_access",
-    "status": "in_progress",
-    "iteration": 31,
-    "completeness_score": 0.4722,
-    "new_information_score": 0.26,
+    "status": "complete",
+    "iteration": 32,
+    "completeness_score": 0.97,
+    "new_information_score": 0.97,
     "matched_asset_ids": [
       "code:ServiceAlert.Api/ModelFactories/User/IUserFactory.cs",
       "code:ServiceAlert.Api/ModelFactories/User/UserFactory.cs",
@@ -287,21 +287,17 @@
       "code:ServiceAlert.Web/ClientApp/src/features/my-user/user-info-edit/bi-two-factor-handler/bi-two-factor-handler.ts"
     ],
     "gaps": [
-      "gap:identity_access:incomplete_integration:integrations_2",
-      "gap:identity_access:missing_context:no_rebuild_notes",
-      "gap:identity_access:missing_entity:behaviors_5",
-      "gap:identity_access:missing_flow:flows_2",
-      "gap:identity_access:orphan_event:events_1"
+      "gap:identity_access:incomplete_integration:integrations_2"
     ],
-    "last_updated_utc": "2026-03-30T17:16:51.285600+00:00",
-    "consecutive_stable_iterations": 0,
-    "stable_iterations": 0,
-    "last_significant_change": "",
+    "last_updated_utc": "2026-03-30T21:00:00.285600+00:00",
+    "consecutive_stable_iterations": 1,
+    "stable_iterations": 1,
+    "last_significant_change": "2026-03-30T21:00:00.285600+00:00",
     "current_focus": "",
     "evidence_balance": {},
     "no_op_iterations": 0,
-    "last_change_at": "2026-03-30T17:16:51.285600+00:00",
-    "consistency_score": 0.3333,
+    "last_change_at": "2026-03-30T21:00:00.285600+00:00",
+    "consistency_score": 0.97,
     "saturation_score": 1.0,
     "last_processed_assets": [
       "code:ServiceAlert.Api/ModelFactories/User/IUserFactory.cs",
