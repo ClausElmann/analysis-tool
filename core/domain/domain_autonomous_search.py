@@ -50,12 +50,12 @@ _CAMEL_PAT = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
 
 # Synonym/expansion map — bidirectional lookup
 _SYNONYMS: Dict[str, List[str]] = {
-    "entity":        ["class", "interface", "model", "record", "type"],
-    "rule":          ["validate", "check", "must", "require", "assert", "guard"],
-    "flow":          ["pipeline", "process", "workflow", "handler", "step"],
-    "event":         ["notification", "message", "command", "publish", "emit"],
-    "integration":   ["api", "http", "webhook", "endpoint", "client"],
-    "behavior":      ["method", "action", "operation", "function"],
+    "entity":        ["class", "interface", "model", "record", "type", "table", "dto", "aggregate", "document"],
+    "rule":          ["validate", "check", "must", "require", "assert", "guard", "constraint", "policy", "invariant"],
+    "flow":          ["pipeline", "process", "workflow", "handler", "step", "controller", "orchestrator", "processor", "service"],
+    "event":         ["notification", "message", "command", "publish", "emit", "signal", "trigger", "dispatch"],
+    "integration":   ["api", "http", "webhook", "endpoint", "client", "gateway", "connector", "adapter", "proxy"],
+    "behavior":      ["method", "action", "operation", "function", "command", "query", "handler"],
     "inheritance":   ["base", "abstract", "derive", "extend", "parent"],
     "permission":    ["role", "policy", "access", "authorize", "privilege"],
     "schedule":      ["cron", "job", "batch", "worker", "timer"],
@@ -63,6 +63,8 @@ _SYNONYMS: Dict[str, List[str]] = {
     "message":       ["sms", "email", "notification", "send", "deliver"],
     "report":        ["statistic", "analytic", "dashboard", "metric"],
     "monitor":       ["alert", "health", "log", "trace", "uptime"],
+    "repository":    ["store", "storage", "persistence", "database", "db", "data"],
+    "service":       ["provider", "manager", "coordinator", "facade"],
 }
 
 def _preferred_sources_for_gap(gap_type: str) -> List[str]:

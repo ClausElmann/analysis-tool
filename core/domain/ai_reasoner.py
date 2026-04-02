@@ -176,6 +176,17 @@ class HeuristicAIProvider(AIProvider):
     _FLOW_PAT = re.compile(
         r"\b(\w+(?:Flow|Process|Pipeline|Workflow|Handler|Processor|Step))\b"
     )
+    # QU: Foreign-key / relationship detection — *Id fields imply referenced entity types
+    _FK_REF_PAT = re.compile(r"\b(?:int|Guid|long)\s+(\w+)Id\b", re.IGNORECASE)
+    # QU: Service call detection — public method calls on injected (_field) dependencies
+    _SERVICE_CALL_PAT = re.compile(
+        r"(?:this\._\w+|_\w+)\.([A-Z]\w{2,}(?:Async)?)\s*\("
+    )
+    # QU: Guard block detection — if-throw / null-check patterns as explicit rule signals
+    _GUARD_BLOCK_PAT = re.compile(
+        r"if\s*\([^)]{5,60}\)\s*(?:throw|return\s+(?:null|false|BadRequest|NotFound)|continue|break)",
+        re.IGNORECASE,
+    )
 
     def _extract(self, pat: re.Pattern, text: str, group: int = 1, limit: int = 8) -> List[str]:
         found: set = set()
@@ -289,6 +300,24 @@ class HeuristicAIProvider(AIProvider):
             integrations = sorted(set(integrations) | {"Angular Injectable Service"})[:8]
         if angular["api_calls"]:
             integrations = sorted(set(integrations) | set(angular["api_calls"]))[:8]
+
+        # QU: Relationship detection — *Id fields hint at referenced entity types
+        for m in self._FK_REF_PAT.finditer(text):
+            ref = m.group(1)
+            if len(ref) > 2:
+                entities = sorted(set(entities) | {ref})[:8]
+
+        # QU: Service call behaviors — method calls on injected dependencies
+        svc_calls = self._extract(self._SERVICE_CALL_PAT, text, limit=6)
+        behaviors = sorted(set(behaviors) | set(svc_calls))[:10]
+
+        # QU: Guard block rules — if-throw / null-check patterns as explicit rule signals
+        for m in self._GUARD_BLOCK_PAT.finditer(text):
+            snippet = m.group(0).strip()[:80]
+            if snippet and snippet not in rules:
+                rules.append(snippet)
+        rules = sorted(set(rules))[:8]
+
         # Fix 5: generate pseudocode steps
         pseudocode = self._generate_pseudocode(text, entities, behaviors, rules)
 
@@ -519,6 +548,18 @@ class AIReasoner:
                     )
 
         insight["signal_strength"] = round(self.estimate_signal_strength(asset, domain_name), 4)
+
+        # QU Task 5: minimum signal filter — if neither entities nor flows detected,
+        # mark confidence=0.0 so the learning loop's CONFIDENCE_FLOOR (0.60) filters
+        # this insight out at merge time, preventing noise domains from growing.
+        if not insight.get("entities") and not insight.get("flows"):
+            insight["confidence"] = 0.0
+
+        # QU Task 7: light source traceability — optional metadata field stored in memory
+        # only; filtered out before model merge (not in INSIGHT_KEYS).
+        if asset.get("id"):
+            insight["_source_asset_id"] = str(asset.get("id"))
+
         return insight
 
     # ------------------------------------------------------------------

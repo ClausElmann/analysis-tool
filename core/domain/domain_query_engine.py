@@ -30,6 +30,13 @@ _TYPE_PRIORITY: Dict[str, int] = {
     "pdf_section":        1,
 }
 
+# Generic/utility path segments that indicate low domain-relevance.
+# Assets whose path contains one of these tokens receive a scoring penalty.
+_NOISE_PATH_RE = re.compile(
+    r"[/\\](?:utils?|shared|common|base|test|mock|stub|helper|helpers|"
+    r"extensions?|constants?|config)[/\\]",
+    re.IGNORECASE,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -46,12 +53,14 @@ def _score_asset(
 ) -> float:
     """Return composite score for *asset*.
 
-    Components:
-    * unprocessed bonus: +2.0
-    * type priority: 0-0.7 (scaled from _TYPE_PRIORITY)
-    * gap-term keyword hits: 0-1.0
-    * path/id domain overlap: 0-0.5
-    * gap-type source-preference bonus: 0-0.3
+    Components (QU-updated):
+    * unprocessed bonus:            +0.8  (reduced from 2.0 — relevance now wins over recency)
+    * type priority:                0–0.7 (scaled from _TYPE_PRIORITY)
+    * gap-term keyword hits:        0–1.5 (raised cap — keyword relevance beats unprocessed bonus)
+    * path/id domain overlap:       0–0.5
+    * gap-type source-preference:   0–0.3
+    * noise-path penalty:           –0.4 for generic utils/shared/base/test paths
+    * zero-keyword penalty:         –0.2 when gap terms provided but none matched
     """
     asset_id = asset.get("id", "")
     asset_type = asset.get("type", "")
@@ -63,18 +72,19 @@ def _score_asset(
         + (asset.get("content") or "")
     ).lower()
 
-    # Unprocessed bonus
-    unprocessed = 2.0 if asset_id not in processed_ids else 0.0
+    # Unprocessed bonus — reduced so that keyword relevance takes priority
+    unprocessed = 0.8 if asset_id not in processed_ids else 0.0
 
     # Type priority (normalised)
     type_score = _TYPE_PRIORITY.get(asset_type, 0) / 7.0 * 0.7
 
-    # Gap-term keyword hits
+    # Gap-term keyword hits — higher cap so a relevant processed asset beats
+    # an irrelevant unprocessed one.
     gap_hits = 0
     for term in gap_terms:
         if re.search(r"\b" + re.escape(term.lower()) + r"\b", text):
             gap_hits += 1
-    gap_score = min(gap_hits / max(len(gap_terms), 1), 1.0) if gap_terms else 0.0
+    gap_score = min(gap_hits / max(len(gap_terms), 1), 1.0) * 1.5 if gap_terms else 0.0
 
     # Path/id domain name overlap
     domain_parts = domain_name.lower().split("_")
@@ -93,7 +103,14 @@ def _score_asset(
         if gap_types:
             type_bonus = min(preferred_count / len(gap_types), 1.0) * 0.3
 
-    return unprocessed + type_score + gap_score + path_score + type_bonus
+    # Noise-path penalty: generic utility paths carry weak domain signal
+    asset_path = asset.get("path") or asset.get("id") or ""
+    noise_penalty = -0.4 if _NOISE_PATH_RE.search(asset_path) else 0.0
+
+    # Zero-keyword penalty: gap terms provided but none hit — likely off-topic
+    zero_kw_penalty = -0.2 if gap_terms and gap_hits == 0 else 0.0
+
+    return unprocessed + type_score + gap_score + path_score + type_bonus + noise_penalty + zero_kw_penalty
 
 
 # ---------------------------------------------------------------------------
