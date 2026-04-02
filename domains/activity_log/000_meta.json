@@ -1,0 +1,9 @@
+{
+  "completeness_score": 0.84,
+  "domain": "activity_log",
+  "gaps_count": 3,
+  "iteration": 26,
+  "new_information_score": 0.032,
+  "saved_utc": "2026-04-02T08:37:52.849743+00:00",
+  "status": "in_progress"
+}

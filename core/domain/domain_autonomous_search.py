@@ -33,6 +33,7 @@ from core.domain.domain_query_engine import (
     _GAP_TYPE_PREFERRED_SOURCES,
     _score_asset,
 )
+from core.domain.domain_gap_types import GapType, GAP_SOURCE_ROUTING, GAP_PRIORITY
 
 # ---------------------------------------------------------------------------
 # Intent processing
@@ -65,51 +66,31 @@ _SYNONYMS: Dict[str, List[str]] = {
     "monitor":       ["alert", "health", "log", "trace", "uptime"],
 }
 
-# ---------------------------------------------------------------------------
-# Gap type → preferred source asset-type hints (Protocol v1 upgrade #1)
-# ---------------------------------------------------------------------------
-
-GAP_TO_SOURCE: Dict[str, List[str]] = {
-    "MISSING_RULE":        ["wiki", "work_items", "csharp"],
-    "MISSING_FLOW":        ["angular", "csharp"],
-    "PARTIAL_ENTITY":      ["sql", "csharp"],
-    "UNLINKED_EVENT":      ["events", "webhooks", "batch"],
-    "ORPHAN_BATCH":        ["batch", "csharp"],
-    "UI_WITHOUT_BACKEND":  ["csharp"],
-    "BACKEND_WITHOUT_UI":  ["angular"],
-}
-
-# Normalised lookup: lowercase keys so callers need not worry about casing
-_GAP_TO_SOURCE_LOWER: Dict[str, List[str]] = {
-    k.lower(): v for k, v in GAP_TO_SOURCE.items()
-}
-
-# Also map existing snake_case gap types used internally
-_GAP_TO_SOURCE_LOWER.update({
-    "missing_rule":        ["wiki_section", "work_items_batch", "code_file"],
-    "missing_flow":        ["angular", "code_file"],
-    "partial_entity":      ["sql_table", "sql_procedure", "code_file"],
-    "unlinked_event":      ["event", "webhook", "background"],
-    "orphan_batch":        ["batch", "code_file"],
-    "ui_without_backend":  ["code_file"],
-    "backend_without_ui":  ["angular"],
-})
-
-
 def _preferred_sources_for_gap(gap_type: str) -> List[str]:
-    """Return preferred asset-type hints for *gap_type*, or [] if unknown."""
-    return list(_GAP_TO_SOURCE_LOWER.get(gap_type.lower(), []))
+    """Return preferred asset-type hints for *gap_type* using canonical routing."""
+    return list(GAP_SOURCE_ROUTING.get(GapType.normalize(gap_type), []))
 
 
-# Gap type → default intent template (fallback when no suggested_terms)
-_GAP_TYPE_INTENTS: Dict[str, str] = {
-    "missing_entity":         "entity class interface model definitions",
-    "missing_flow":           "flow pipeline process workflow handler steps",
-    "weak_rule":              "validate check constraint rule require assert",
-    "orphan_event":           "event notification command publish emit signal",
-    "incomplete_integration": "api endpoint http client webhook integration",
-    "missing_context":        "rebuild purpose intent responsibility description",
+# Canonical fallback intent per gap type — derived from GapType constants.
+# Used when a gap record has neither suggested_terms nor description.
+_GAP_TYPE_INTENT_MAP: dict = {
+    GapType.MISSING_ENTITY:      "entity class interface model definitions",
+    GapType.MISSING_FLOW:        "flow pipeline process workflow handler steps",
+    GapType.MISSING_RULE:        "validate check constraint rule require assert",
+    GapType.MISSING_INTEGRATION: "api endpoint http client webhook integration",
+    GapType.ORPHAN_EVENT:        "event notification command publish emit signal",
+    GapType.ORPHAN_BATCH:        "batch job background schedule worker",
+    GapType.UI_BACKEND_MISMATCH: "controller view page component form screen",
+    GapType.CONTRADICTION:       "conflicting inconsistent contradiction mismatch",
+    GapType.WEAK_REBUILD:        "rebuild purpose intent responsibility description",
+    GapType.MISSING_CONTEXT:     "rebuild purpose intent responsibility description",
 }
+
+
+def _default_intent_for_gap_type(gap_type: str) -> str:
+    """Return a default search intent string for *gap_type* using canonical map."""
+    canonical = GapType.normalize(gap_type)
+    return _GAP_TYPE_INTENT_MAP.get(canonical, "domain entity behavior rule flow")
 
 
 def _tokenize(text: str) -> List[str]:
@@ -173,7 +154,7 @@ class DomainAutonomousSearch:
         if description:
             intents.append(description)
 
-        fallback = _GAP_TYPE_INTENTS.get(gap_type)
+        fallback = _default_intent_for_gap_type(gap_type)
         if fallback and fallback not in intents:
             intents.append(f"{fallback} {domain_name}")
 
@@ -294,7 +275,11 @@ class DomainAutonomousSearch:
         }
         best_score: Dict[str, float] = {}
 
-        for gap in gaps[:max_gaps]:
+        sorted_gaps = sorted(
+            gaps[:max_gaps],
+            key=lambda g: GAP_PRIORITY.get(GapType.normalize(g.get("type", "")), 99),
+        )
+        for gap in sorted_gaps:
             gap_type  = gap.get("type", "")
             gap_types = [gap_type] if gap_type else []
             intents   = self.gap_to_intents(gap, domain_name)

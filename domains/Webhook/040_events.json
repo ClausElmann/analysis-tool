@@ -1,4 +1,5 @@
-{
-  "domain": "Webhook",
-  "events": []
-}
+[
+  "MsalEvent.cs",
+  "RegisterWebhookCommand",
+  "WebhookMessage"
+]

@@ -100,6 +100,12 @@ def is_domain_complete(domain_path: Union[str, Path]) -> bool:
         if _item_count(data) < min_count:
             return False
 
+    # 3. Rebuild substance check (L4) — 090_rebuild.json must have
+    # at least one structural section populated (aggregates, commands,
+    # queries, entities, or persistence).
+    if not _rebuild_has_substance(base / "090_rebuild.json"):
+        return False
+
     return True
 
 
@@ -122,7 +128,38 @@ def gate_failures(domain_path: Union[str, Path]) -> list[str]:
             count = _item_count(data)
             if count < min_count:
                 failures.append(
-                    f"{fname} has {count} item(s), need ≥ {min_count}"
+                    f"{fname} has {count} item(s), need \u2265 {min_count}"
                 )
 
+    # Rebuild substance check (same gate as is_domain_complete)
+    if not _rebuild_has_substance(base / "090_rebuild.json"):
+        failures.append(
+            "090_rebuild.json has no structural sections "
+            "(need aggregates, commands, queries, entities, or persistence)"
+        )
+
     return failures
+
+# ---------------------------------------------------------------------------
+# Rebuild substance check (NOT wired as gate — inspection only until Phase L4)
+# ---------------------------------------------------------------------------
+
+def _rebuild_has_substance(rebuild_path: Union[str, Path]) -> bool:
+    """True if 090_rebuild.json has at least one structural section populated.
+
+    Checks for the presence of any of:
+    ``aggregates``, ``commands``, ``queries``, ``entities``, ``persistence``.
+
+    .. warning::
+        This function is intentionally **not** called by ``is_domain_complete``
+        or ``gate_failures``.  It is wired as a hard gate only in Phase L4,
+        after ``identity_access`` has been migrated to V2 and validated.
+    """
+    try:
+        data = _load_json(Path(rebuild_path))
+        if not isinstance(data, dict):
+            return False
+        structural = ["aggregates", "commands", "queries", "entities", "persistence"]
+        return any(data.get(k) for k in structural)
+    except Exception:  # noqa: BLE001
+        return False

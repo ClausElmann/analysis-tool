@@ -1,0 +1,9 @@
+{
+  "completeness_score": 0.69,
+  "domain": "phone_numbers",
+  "gaps_count": 4,
+  "iteration": 24,
+  "new_information_score": 0.1242,
+  "saved_utc": "2026-04-02T01:26:13.801735+00:00",
+  "status": "in_progress"
+}

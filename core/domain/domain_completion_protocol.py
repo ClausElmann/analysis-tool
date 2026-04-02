@@ -64,11 +64,58 @@ PROTOCOL_STABLE_REQUIRED: int = 3         # consecutive passing iterations
 NOOP_LIMIT: int = 3          # no-op iterations before forcing strategy reset
 STAGNATION_LIMIT: int = 3    # repeated gap snapshots before escaling scope
 COOLDOWN_WINDOW: int = 2     # assets processed in the last N iters are skipped
+SOURCE_DIVERSITY_MAX_RATIO: float = 0.50  # max fraction of assets from one source_type
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _enforce_source_diversity(
+    assets: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Cap any single source_type to SOURCE_DIVERSITY_MAX_RATIO of the list.
+
+    When one source_type would exceed the cap, excess items from that type
+    are moved to the end so the front of the list is balanced.  The full
+    list is returned (nothing is dropped) so callers that need all assets
+    still have access — only ordering changes.
+
+    Parameters
+    ----------
+    assets:
+        List of asset dicts, each optionally carrying a ``source_type`` key.
+
+    Returns
+    -------
+    list[dict]
+        Same items, reordered so no source_type exceeds the cap in the
+        leading *n* items where *n* == len(assets).
+    """
+    if not assets:
+        return assets
+    total = len(assets)
+    cap = max(1, int(total * SOURCE_DIVERSITY_MAX_RATIO))
+
+    from collections import defaultdict
+    buckets: dict = defaultdict(list)
+    for a in assets:
+        src = a.get("source_type") or "unknown"
+        buckets[src].append(a)
+
+    # Interleave: round-robin across source types up to cap per type
+    result: List[Dict[str, Any]] = []
+    overflow: List[Dict[str, Any]] = []
+    counts: dict = defaultdict(int)
+    for a in assets:
+        src = a.get("source_type") or "unknown"
+        if counts[src] < cap:
+            result.append(a)
+            counts[src] += 1
+        else:
+            overflow.append(a)
+    return result + overflow
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -116,7 +163,10 @@ def select_next_domain(state: DomainState) -> Optional[str]:
             return state.active_domain
 
     # Rule 2: choose next best
-    terminal = {STATUS_COMPLETE, STATUS_BLOCKED, "stable"}
+    # NOTE: "stable" is intentionally excluded — it is a loop-internal convergence
+    # hint only and must NOT be treated as terminal. Domains set to "stable" by
+    # DomainLearningLoop are re-evaluated by the protocol on the next call.
+    terminal = {STATUS_COMPLETE, STATUS_BLOCKED}
     candidates: List[DomainProgress] = [
         p for p in state.all_domains() if p.status not in terminal
     ]
@@ -215,11 +265,55 @@ def _check_gap_stagnation(memory: Any, domain_name: str) -> bool:
     return all(s == id_sets[0] for s in id_sets[1:])
 
 
+def _no_unprocessed_assets_exist(
+    prog: DomainProgress,
+    domain_name: str,
+    all_assets: List[Dict[str, Any]],
+) -> bool:
+    """True when at least one asset matches *domain_name* and every matched
+    asset has already been processed.  Returns False when no assets are
+    matched (nothing to exhaust) to avoid false positives on empty domains.
+    """
+    matched_ids = set(match_assets(domain_name, all_assets))
+    if not matched_ids:
+        return False  # no matched assets — nothing to exhaust
+    processed = set(prog.processed_asset_ids)
+    return matched_ids.issubset(processed)
+
+
+def _contradiction_stagnant(memory: Any, domain_name: str) -> bool:
+    """True when CONTRADICTION gaps appear in every snapshot
+    of the last STAGNATION_LIMIT history entries."""
+    if memory is None or not domain_name:
+        return False
+    try:
+        history = memory.get_gap_history(domain_name)
+    except Exception:  # noqa: BLE001
+        return False
+    if len(history) < STAGNATION_LIMIT:
+        return False
+    recent = history[-STAGNATION_LIMIT:]
+
+    def _has_contradiction(snapshot: Dict[str, Any]) -> bool:
+        return any(
+            g.get("type") == "CONTRADICTION"
+            for g in (snapshot.get("gaps") or [])
+        )
+
+    return all(_has_contradiction(s) for s in recent)
+
+
 # ---------------------------------------------------------------------------
 # Completion evaluator
 # ---------------------------------------------------------------------------
 
-def evaluate_completion(domain_name: str, prog: DomainProgress) -> str:
+def evaluate_completion(
+    domain_name: str,
+    prog: DomainProgress,
+    gap_stagnation: bool = False,
+    all_assets: Optional[List[Dict[str, Any]]] = None,
+    memory: Any = None,
+) -> str:
     """Determine and set the new status for *prog*.
 
     Decision table
@@ -228,8 +322,12 @@ def evaluate_completion(domain_name: str, prog: DomainProgress) -> str:
         → ``complete``
     All gates pass OR high scores (pre-gate zone)
         → ``stable_candidate``
-    no_op_iterations >= NOOP_LIMIT AND completeness < 0.40
-        → ``blocked``  (domain appears stuck with low coverage)
+    no_op_iterations >= NOOP_LIMIT AND completeness < 0.60
+        → ``blocked``  (domain stuck with low coverage)
+    gap_stagnation AND all matched assets already processed
+        → ``blocked``  (domain exhausted all assets with no progress)
+    CONTRADICTION in every snapshot for STAGNATION_LIMIT iterations
+        → ``blocked``  (persistent contradiction cannot be auto-resolved)
     Otherwise
         → ``in_progress``
 
@@ -241,16 +339,31 @@ def evaluate_completion(domain_name: str, prog: DomainProgress) -> str:
     str
         The new status string (also assigned to ``prog.status``).
     """
-    if _all_scores_pass(prog):
+    if _all_scores_pass(prog) or _high_scores(prog):
         prog.stable_iterations += 1
     else:
         prog.stable_iterations = 0
 
     if _all_scores_pass(prog) and prog.stable_iterations >= PROTOCOL_STABLE_REQUIRED:
         prog.status = STATUS_COMPLETE
+    elif _high_scores(prog) and prog.stable_iterations >= PROTOCOL_STABLE_REQUIRED * 2:
+        # Heuristic mode: PROTOCOL_CONSISTENCY_GATE (0.90) is never reachable
+        # because heuristic providers cap consistency ~0.83.  After 2x the normal
+        # stable window with consistently high scores, accept the domain as complete.
+        prog.status = STATUS_COMPLETE
+    elif (_all_scores_pass(prog) or _high_scores(prog)) and prog.no_op_iterations >= NOOP_LIMIT:
+        # High-score domain that can no longer learn — no AI or assets are exhausted.
+        # stable_iterations can never accumulate because _all_scores_pass() may never
+        # be True (e.g. heuristic mode caps consistency at 0.83).  Treat as BLOCKED
+        # rather than spinning forever in stable_candidate.
+        prog.status = STATUS_BLOCKED
     elif _all_scores_pass(prog) or _high_scores(prog):
         prog.status = STATUS_STABLE_CANDIDATE
-    elif prog.no_op_iterations >= NOOP_LIMIT and prog.completeness_score < 0.40:
+    elif prog.no_op_iterations >= NOOP_LIMIT and prog.completeness_score < 0.60:
+        prog.status = STATUS_BLOCKED
+    elif gap_stagnation and all_assets and _no_unprocessed_assets_exist(prog, domain_name, all_assets):
+        prog.status = STATUS_BLOCKED
+    elif _contradiction_stagnant(memory, domain_name):
         prog.status = STATUS_BLOCKED
     else:
         prog.status = STATUS_IN_PROGRESS
@@ -273,6 +386,37 @@ def _append_run_log(data_root: str, entry: Dict[str, Any]) -> None:
     line = json.dumps(entry, ensure_ascii=False, separators=(",", ":"))
     with open(log_path, "a", encoding="utf-8") as fh:
         fh.write(line + "\n")
+
+
+# ---------------------------------------------------------------------------
+# Meta-sync guard
+# ---------------------------------------------------------------------------
+
+def _check_meta_sync(
+    domain_name: str,
+    prog: DomainProgress,
+    data_root: str,
+) -> None:
+    """Warn to stderr when ``000_meta.json`` status disagrees with *prog*.
+
+    Trusts ``domain_state.json`` (Tier 1) as master.  Never raises, never
+    modifies state.  Safe to call before every protocol iteration.
+    """
+    meta_path = os.path.join(data_root, domain_name, "000_meta.json")
+    try:
+        with open(meta_path, encoding="utf-8") as fh:
+            meta = json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return
+    meta_status = meta.get("status")
+    if meta_status is not None and meta_status != prog.status:
+        import sys
+        print(
+            f"WARNING: domain_state.json[{domain_name!r}].status={prog.status!r} "
+            f"!= 000_meta.json status={meta_status!r} "
+            "\u2014 trusting domain_state.json",
+            file=sys.stderr,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -329,6 +473,9 @@ def run_protocol_iteration(
     prog = state.get(domain_name)
     assert prog is not None  # ensure_domains guarantees existence
 
+    # ── 1b. Meta-sync guard ──────────────────────────────────────────────
+    _check_meta_sync(domain_name, prog, engine._data_root)
+
     status_before = prog.status
     scores_before = {
         "completeness": prog.completeness_score,
@@ -355,6 +502,11 @@ def run_protocol_iteration(
     # If cooldown removed all assets, fall back to the full matched set
     if not domain_assets:
         domain_assets = [assets_by_id[aid] for aid in matched_ids if aid in assets_by_id]
+
+    # ── 3b. Source diversity enforcement ────────────────────────────────
+    # Reorder domain_assets so no single source_type dominates the front
+    # of the list beyond SOURCE_DIVERSITY_MAX_RATIO.
+    domain_assets = _enforce_source_diversity(domain_assets)
 
     # ── 4. Run one learning iteration ───────────────────────────────────
     if domain_assets:
@@ -402,7 +554,12 @@ def run_protocol_iteration(
         ]
 
     # ── 7. Evaluate completion ───────────────────────────────────────────
-    status_after = evaluate_completion(domain_name, prog)
+    status_after = evaluate_completion(
+        domain_name, prog,
+        gap_stagnation=gap_stagnation,
+        all_assets=all_assets,
+        memory=engine._memory,
+    )
 
     if status_after == STATUS_COMPLETE:
         state.active_domain = None  # release lock — next domain on next call

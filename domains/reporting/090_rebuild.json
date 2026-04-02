@@ -1,0 +1,35 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T00:10:09.871654Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [],
+  "blazor_state_model": {
+    "events": [],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [],
+  "ef_core_entities": [
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
+}

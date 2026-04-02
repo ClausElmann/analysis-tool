@@ -1,4 +1,13 @@
-{
-  "domain": "Monitoring",
-  "entities": []
-}
+[
+  "IMonitoringRepository",
+  "IMonitoringService",
+  "MapDataDto",
+  "MonitoringController",
+  "MonitoringRepository",
+  "MonitoringService",
+  "ProgressWatcherInfoDto",
+  "SeriesReadModel",
+  "SeriesValueReadModel",
+  "and",
+  "names"
+]

@@ -1,13 +1,12 @@
-{
-  "domain": "Lookup",
-  "batch_jobs": [
-    {
-      "job": "prelookup",
-      "category": "lookup"
-    },
-    {
-      "job": "lookup",
-      "category": "lookup"
-    }
-  ]
-}
+[
+  "BatchApp",
+  "BatchCommandEventListener",
+  "BatchedCommandsCompletedEvent",
+  "BatchedCommandsCompletedEventListener",
+  "ILookupBatchCommandProcessor",
+  "LookupBatchCommandProcessorBase",
+  "RunBatchedCommandsCommand",
+  "RunBatchedCommandsCommandProcessor",
+  "StartLookupBatchNotification",
+  "StartLookupBatchNotificationHandler"
+]

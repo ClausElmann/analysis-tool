@@ -1,0 +1,156 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T00:11:22.927852Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "SubscribeModuleController",
+      "route": "/subscribemodule",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminInvoiceController",
+      "route": "/superadmininvoice",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CustomerSubscriptionNotification",
+      "LookupOwnerSubscriptionsCommand",
+      "LookupSubscriptionsCommand",
+      "LookupSupplyNumbersSubscriptionsCommand",
+      "SubscribeAddressCommand",
+      "SubscribeCommand",
+      "SubscribeSupplyNumberCommand",
+      "SubscriptionNotification",
+      "UnsubscribeAddressCommand",
+      "UnsubscribeMessageReceivedEvent",
+      "UnsubscribeSupplyNumberCommand",
+      "UpdateSupplyNumberSubscriptionNameCommand"
+    ],
+    "rules": [
+      "If",
+      "guard",
+      "guard.ts",
+      "if",
+      "if truly empty (use empty list, not null).",
+      "must",
+      "must be plain English or well-known identifiers.",
+      "should"
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "EnrollmentCreatedEventHandler",
+    "EnrollmentStep",
+    "LookupOwnerSubscriptionsCommandProcessor",
+    "LookupSubscriptionsCommandProcessor",
+    "LookupSupplyNumbersSubscriptionsCommandProcessor",
+    "UnsubscribeMessageReceivedEventHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "Domain",
+      "table": "domains"
+    },
+    {
+      "entity": "EnrollmentCreatedEventHandler",
+      "table": "enrollmentcreatedeventhandlers"
+    },
+    {
+      "entity": "ISubscriptionRepository",
+      "table": "isubscriptionrepositorys"
+    },
+    {
+      "entity": "LookupOwnerSubscriptionsCommand",
+      "table": "lookupownersubscriptionscommands"
+    },
+    {
+      "entity": "LookupSubscriptionsCommand",
+      "table": "lookupsubscriptionscommands"
+    },
+    {
+      "entity": "LookupSupplyNumbersSubscriptionsCommand",
+      "table": "lookupsupplynumberssubscriptionscommands"
+    },
+    {
+      "entity": "SubscribeAddressCommand",
+      "table": "subscribeaddresscommands"
+    },
+    {
+      "entity": "SubscribeCommand",
+      "table": "subscribecommands"
+    },
+    {
+      "entity": "SubscribeModuleController",
+      "table": "subscribemodulecontrollers"
+    },
+    {
+      "entity": "SubscribeSupplyNumberCommand",
+      "table": "subscribesupplynumbercommands"
+    },
+    {
+      "entity": "SubscriptionRepository",
+      "table": "subscriptionrepositorys"
+    },
+    {
+      "entity": "SuperAdminInvoiceController",
+      "table": "superadmininvoicecontrollers"
+    },
+    {
+      "entity": "UnsubscribeAddressCommand",
+      "table": "unsubscribeaddresscommands"
+    },
+    {
+      "entity": "UnsubscribeMessageReceivedEventHandler",
+      "table": "unsubscribemessagereceivedeventhandlers"
+    },
+    {
+      "entity": "UnsubscribeSupplyNumberCommand",
+      "table": "unsubscribesupplynumbercommands"
+    },
+    {
+      "entity": "UpdateSupplyNumberSubscriptionNameCommand",
+      "table": "updatesupplynumbersubscriptionnamecommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "in",
+      "table": "ins"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "should",
+      "table": "shoulds"
+    },
+    {
+      "entity": "to",
+      "table": "tos"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "If",
+    "guard",
+    "guard.ts",
+    "if",
+    "if truly empty (use empty list, not null).",
+    "must",
+    "must be plain English or well-known identifiers.",
+    "should"
+  ]
+}

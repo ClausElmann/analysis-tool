@@ -1,0 +1,317 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T01:18:09.219828Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "CustomerOverviewDataDto",
+      "route": "/customeroverviewdatadto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CustomerProfileUsageOverviewDto",
+      "route": "/customerprofileusageoverviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "DataImportController",
+      "route": "/dataimport",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FinnishBuildingCollectionDto",
+      "route": "/finnishbuildingcollectiondto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FinnishBuildingFeatureDto",
+      "route": "/finnishbuildingfeaturedto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FinnishBuildingPropertiesDto",
+      "route": "/finnishbuildingpropertiesdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FinnishPermitBuildingCollectionDto",
+      "route": "/finnishpermitbuildingcollectiondto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FinnishPermitBuildingFeatureDto",
+      "route": "/finnishpermitbuildingfeaturedto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FinnishPermitBuildingPropertiesDto",
+      "route": "/finnishpermitbuildingpropertiesdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FinnishSharedBuildingFeatureDto",
+      "route": "/finnishsharedbuildingfeaturedto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FinnishSharedBuildingPropertiesDto",
+      "route": "/finnishsharedbuildingpropertiesdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "QuickResponsePageDataDto",
+      "route": "/quickresponsedatadto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "QuickResponsePageDataReadModel",
+      "route": "/quickresponsedatareadmodel",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SwedishUUIDBroadcastDto",
+      "route": "/swedishuuidbroadcastdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "customerOverviewDataDto",
+      "route": "/customeroverviewdatadto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "quickResponsePageDataDto",
+      "route": "/quickresponsedatadto",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CompleteTeledataCommand",
+      "CreateOrUpdateCustomerImportFtpSettingCommand",
+      "CreateOrUpdateProfileFtpSettingCommand",
+      "DataTableLazyLoadQuery",
+      "DeleteCustomerImportFtpSettingCommand",
+      "DeliveryEvent",
+      "LookupNorwegianCompany1881DataCommand",
+      "LookupNorwegianCompanyContactDataCommand",
+      "LookupNorwegianPerson1881DataCommand",
+      "LookupNorwegianPersonContactDataCommand",
+      "LookupNorwegianTeledataCommand",
+      "LookupOwnerTeledataCommand",
+      "LookupTeledataCommand",
+      "MessageMetadataUpdateCommand",
+      "NorwegianCompanyContactDataNotFoundEvent",
+      "NorwegianPersonContactDataNotFoundEvent",
+      "SmsLogResponseCommand",
+      "TeledataCompleteEvent",
+      "TeledataLookedUpEvent",
+      "createOrUpdateCustomerImportFtpSettingCommand",
+      "deleteCustomerImportFtpSettingCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "AsyncHandler",
+    "CompleteTeledataCommandProcessor",
+    "DataImportActivityLoggerPostProcessor",
+    "DataImportPositiveListAdditionalRecordsHandler",
+    "DataImportRecordValidationResultChunkHandler",
+    "FinnishImportStep",
+    "IDataImportAdditionalRecordsHandler",
+    "IDataImportPostProcessor",
+    "LookupNorwegianCompany1881DataCommandProcessor",
+    "LookupNorwegianCompanyContactDataCommandProcessor",
+    "LookupNorwegianPerson1881DataCommandProcessor",
+    "LookupNorwegianPersonContactDataCommandProcessor",
+    "LookupNorwegianTeledataCommandProcessor",
+    "LookupOwnerTeledataCommandProcessor",
+    "LookupTeledataCommandProcessor",
+    "PositiveListDataImportPostProcessor",
+    "StandardReceiverDataImportPostProcessor",
+    "WriteToDatabasePostProcessor"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "AsyncHandler",
+      "table": "asynchandlers"
+    },
+    {
+      "entity": "BaseRepository",
+      "table": "baserepositorys"
+    },
+    {
+      "entity": "CompleteTeledataCommand",
+      "table": "completeteledatacommands"
+    },
+    {
+      "entity": "CreateOrUpdateCustomerImportFtpSettingCommand",
+      "table": "createorupdatecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "CreateOrUpdateProfileFtpSettingCommand",
+      "table": "createorupdateprofileftpsettingcommands"
+    },
+    {
+      "entity": "DataImportController",
+      "table": "dataimportcontrollers"
+    },
+    {
+      "entity": "DataImportPositiveListAdditionalRecordsHandler",
+      "table": "dataimportpositivelistadditionalrecordshandlers"
+    },
+    {
+      "entity": "DataImportRecordValidationResultChunkHandler",
+      "table": "dataimportrecordvalidationresultchunkhandlers"
+    },
+    {
+      "entity": "DataImportRepository",
+      "table": "dataimportrepositorys"
+    },
+    {
+      "entity": "DataTableLazyLoadQuery",
+      "table": "datatablelazyloadquerys"
+    },
+    {
+      "entity": "DatabaseMaintenanceRepository",
+      "table": "databasemaintenancerepositorys"
+    },
+    {
+      "entity": "DeleteCustomerImportFtpSettingCommand",
+      "table": "deletecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "FinnishMapAddressImportManager",
+      "table": "finnishmapaddressimportmanagers"
+    },
+    {
+      "entity": "FinnishMapAddressImporterRepository",
+      "table": "finnishmapaddressimporterrepositorys"
+    },
+    {
+      "entity": "IBaseRepository",
+      "table": "ibaserepositorys"
+    },
+    {
+      "entity": "IDataImportAdditionalRecordsHandler",
+      "table": "idataimportadditionalrecordshandlers"
+    },
+    {
+      "entity": "IDataImportRepository",
+      "table": "idataimportrepositorys"
+    },
+    {
+      "entity": "IDatabaseMaintenanceRepository",
+      "table": "idatabasemaintenancerepositorys"
+    },
+    {
+      "entity": "IFinnishMapAddressImportManager",
+      "table": "ifinnishmapaddressimportmanagers"
+    },
+    {
+      "entity": "IFinnishMapAddressImporterRepository",
+      "table": "ifinnishmapaddressimporterrepositorys"
+    },
+    {
+      "entity": "IPhoneNumberImportRepository",
+      "table": "iphonenumberimportrepositorys"
+    },
+    {
+      "entity": "LookupNorwegianCompany1881DataCommand",
+      "table": "lookupnorwegiancompany1881datacommands"
+    },
+    {
+      "entity": "LookupNorwegianCompanyContactDataCommand",
+      "table": "lookupnorwegiancompanycontactdatacommands"
+    },
+    {
+      "entity": "LookupNorwegianPerson1881DataCommand",
+      "table": "lookupnorwegianperson1881datacommands"
+    },
+    {
+      "entity": "LookupNorwegianPersonContactDataCommand",
+      "table": "lookupnorwegianpersoncontactdatacommands"
+    },
+    {
+      "entity": "LookupNorwegianTeledataCommand",
+      "table": "lookupnorwegianteledatacommands"
+    },
+    {
+      "entity": "LookupOwnerTeledataCommand",
+      "table": "lookupownerteledatacommands"
+    },
+    {
+      "entity": "LookupTeledataCommand",
+      "table": "lookupteledatacommands"
+    },
+    {
+      "entity": "MessageMetadataUpdateCommand",
+      "table": "messagemetadataupdatecommands"
+    },
+    {
+      "entity": "PhoneNumberImportRepository",
+      "table": "phonenumberimportrepositorys"
+    },
+    {
+      "entity": "ScimEntity",
+      "table": "scimentitys"
+    },
+    {
+      "entity": "SmsLogResponseCommand",
+      "table": "smslogresponsecommands"
+    },
+    {
+      "entity": "StdReceiversDataManager",
+      "table": "stdreceiversdatamanagers"
+    },
+    {
+      "entity": "StdReceiversTreeNodeDataManager",
+      "table": "stdreceiverstreenodedatamanagers"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "createOrUpdateCustomerImportFtpSettingCommand",
+      "table": "createorupdatecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "deleteCustomerImportFtpSettingCommand",
+      "table": "deletecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
+}

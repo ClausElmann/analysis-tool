@@ -1,0 +1,83 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T01:36:44.615268Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "TemplateOverviewDto",
+      "route": "/templateoverviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "TemplateQuickResponseSetupDto",
+      "route": "/templatequickresponsesetupdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "TemplateQuickResponseSetupUpdateCommand",
+      "route": "/templatequickresponsesetupupdatecommand",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "MessageTemplateCreateCommand",
+      "TemplateQuickResponseSetupUpdateCommand",
+      "TemplateResponseOptionUpdateCommand",
+      "TemplateResponseSettingsUpdateCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [],
+  "ef_core_entities": [
+    {
+      "entity": "ITemplateRepository",
+      "table": "itemplaterepositorys"
+    },
+    {
+      "entity": "MessageTemplateCreateCommand",
+      "table": "messagetemplatecreatecommands"
+    },
+    {
+      "entity": "TemplateQuickResponseSetupUpdateCommand",
+      "table": "templatequickresponsesetupupdatecommands"
+    },
+    {
+      "entity": "TemplateRepository",
+      "table": "templaterepositorys"
+    },
+    {
+      "entity": "TemplateResponseOptionUpdateCommand",
+      "table": "templateresponseoptionupdatecommands"
+    },
+    {
+      "entity": "TemplateResponseSettingsUpdateCommand",
+      "table": "templateresponsesettingsupdatecommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
+}

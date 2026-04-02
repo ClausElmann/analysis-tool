@@ -1,14 +1,4 @@
-{
-  "domain": "Benchmark",
-  "events": [
-    {
-      "event": "BenchmarkFinishedNotification",
-      "publishers": [
-        "ServiceAlert.Services/Benchmarks/BenchmarkService.cs"
-      ],
-      "handlers": [
-        "BenchmarkFinishedNotificationHandler"
-      ]
-    }
-  ]
-}
+[
+  "BenchmarkFinishedNotification",
+  "BenchmarkUpdateCommand"
+]

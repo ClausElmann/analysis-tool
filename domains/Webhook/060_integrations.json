@@ -1,12 +1,1 @@
-{
-  "domain": "Webhook",
-  "integrations": [],
-  "webhooks": [],
-  "background_services": [
-    {
-      "name": "WebhookMessagesBackgroundService",
-      "type": "worker",
-      "host": "ServiceAlert.Services"
-    }
-  ]
-}
+[]

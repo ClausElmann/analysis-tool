@@ -293,6 +293,191 @@ class DomainModelStore:
         path = os.path.join(domain_dir, _FILE_MAP["rebuild"])
         _write_atomic(path, spec)
 
+    def build_rebuild_spec_v2(self, model: Dict[str, Any]) -> Dict[str, Any]:
+        """Derive a structured Gen 3 rebuild specification from *model*.
+
+        Uses the canonical V2 schema that describes domain behaviour rather
+        than a specific target stack.  Both ``build_rebuild_spec()`` and this
+        method coexist until rebuild V2 migration is fully validated (Phase L4).
+
+        Returns
+        -------
+        dict
+            14 canonical top-level keys (aggregates, entities, commands,
+            queries, workflows, state_transitions, invariants, permissions,
+            persistence, integrations, background_processes, ui_surfaces,
+            events_emitted, events_consumed) plus ``_meta``.
+        """
+        _MUTATION_VERBS = frozenset({
+            "create", "update", "delete", "add", "remove", "set", "save",
+            "write", "post", "put", "patch", "insert", "upsert", "change",
+        })
+        _QUERY_VERBS = frozenset({
+            "get", "fetch", "list", "read", "find", "search", "load",
+            "show", "check", "count", "query",
+        })
+        _AUTH_HINTS = frozenset({
+            "auth", "login", "logout", "permission", "role", "claim",
+            "identity", "token", "authorize",
+        })
+        _UI_HINTS = frozenset({
+            "page", "view", "component", "screen", "form", "controller",
+        })
+        _CONSUME_HINTS = frozenset({
+            "consume", "subscribe", "receive", "handle", "listen",
+        })
+        _SUB_ENTITY_HINTS = frozenset({
+            "detail", "item", "line", "child", "sub",
+        })
+
+        def _clean(items) -> List[str]:
+            return [str(x) for x in (items or []) if x]
+
+        entities     = _clean(model.get("entities"))
+        behaviors    = _clean(model.get("behaviors"))
+        flows        = _clean(model.get("flows"))
+        rules        = _clean(model.get("rules"))
+        integrations = _clean(model.get("integrations"))
+        batch        = _clean(model.get("batch"))
+        events       = _clean(model.get("events"))
+
+        # behaviors → commands vs queries (default: command)
+        commands: List[str] = []
+        queries: List[str] = []
+        for b in behaviors:
+            lc = b.lower()
+            if any(v in lc for v in _QUERY_VERBS) and not any(v in lc for v in _MUTATION_VERBS):
+                queries.append(b)
+            else:
+                commands.append(b)
+
+        # aggregates: entities without obvious sub-entity naming
+        aggregates: List[str] = [
+            e for e in entities
+            if not any(h in e.lower() for h in _SUB_ENTITY_HINTS)
+        ]
+
+        # permissions: rules + behaviors mentioning auth concepts
+        permissions: List[str] = [
+            item for item in rules + behaviors
+            if any(h in item.lower() for h in _AUTH_HINTS)
+        ]
+
+        # persistence: one mapping per entity
+        persistence: List[Dict[str, str]] = [
+            {"entity": e, "table": e.lower().replace(" ", "_") + "s"}
+            for e in entities
+        ]
+
+        # ui_surfaces: behaviors + entities with UI hints
+        ui_surfaces: List[str] = [
+            item for item in behaviors + entities
+            if any(h in item.lower() for h in _UI_HINTS)
+        ]
+
+        # events_emitted vs events_consumed
+        events_emitted: List[str] = []
+        events_consumed: List[str] = []
+        for ev in events:
+            lc = ev.lower()
+            if any(h in lc for h in _CONSUME_HINTS):
+                events_consumed.append(ev)
+            else:
+                events_emitted.append(ev)
+
+        # state_transitions: flows that explicitly mention state changes
+        state_transitions: List[str] = [
+            f for f in flows
+            if any(kw in f.lower() for kw in ("transition", "state", "status", "->", "\u2192"))
+        ]
+
+        return {
+            "_meta": {
+                "schema_version": "2.0",
+                "generated_by":   "build_rebuild_spec_v2",
+                "generated_at":   datetime.now(timezone.utc).isoformat(),
+            },
+            "aggregates":           aggregates,
+            "entities":             entities,
+            "commands":             commands,
+            "queries":              queries,
+            "workflows":            flows,
+            "state_transitions":    state_transitions,
+            "invariants":           rules,
+            "permissions":          permissions,
+            "persistence":          persistence,
+            "integrations":         integrations,
+            "background_processes": batch,
+            "ui_surfaces":          ui_surfaces,
+            "events_emitted":       events_emitted,
+            "events_consumed":      events_consumed,
+        }
+
+    def migrate_rebuild_v1_to_v2(self, domain_name: str) -> None:
+        """One-time migration: promote 090_rebuild.json from v1 to V2 schema.
+
+        Maps v1 Blazor-centric keys to canonical V2 keys:
+          - ``blazor_pages``    → ``ui_surfaces``
+          - ``api_contracts``   → ``commands`` (POST/PUT/DELETE/PATCH) + ``queries`` (GET)
+          - ``ef_core_entities`` → ``entities`` + ``persistence``
+          - ``domain_flows``    → ``workflows``
+          - ``validation_rules`` → ``invariants``
+          - ``authorization_hints`` → ``permissions``
+          - ``known_integrations`` → ``integrations``
+
+        The original v1 payload is preserved verbatim under ``_v1_legacy``.
+        Writes the result back to ``090_rebuild.json`` atomically.
+        """
+        domain_dir = self._domain_dir(domain_name)
+        rebuild_path = os.path.join(domain_dir, _FILE_MAP["rebuild"])
+
+        try:
+            with open(rebuild_path, "r", encoding="utf-8") as fh:
+                v1: Dict[str, Any] = json.load(fh)
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError(f"Cannot read {rebuild_path}: {exc}") from exc
+
+        # blazor_pages → ui_surfaces (preserve full records)
+        ui_surfaces = v1.get("blazor_pages") or []
+
+        # api_contracts → commands / queries split by HTTP verb
+        _QUERY_HTTP = {"get", "head", "options"}
+        commands: List[Any] = []
+        queries: List[Any] = []
+        for contract in (v1.get("api_contracts") or []):
+            method_str = (
+                contract.get("method", "") if isinstance(contract, dict) else str(contract)
+            ).upper()
+            if any(method_str.startswith(v.upper()) for v in _QUERY_HTTP):
+                queries.append(contract)
+            else:
+                commands.append(contract)
+
+        v2: Dict[str, Any] = {
+            "_meta": {
+                "schema_version": "2.0",
+                "migrated_from":  "v1",
+                "migrated_at":    datetime.now(timezone.utc).isoformat(),
+                "domain":         domain_name,
+            },
+            "aggregates":           [],
+            "entities":             v1.get("ef_core_entities") or [],
+            "commands":             commands,
+            "queries":              queries,
+            "workflows":            v1.get("domain_flows") or [],
+            "state_transitions":    [],
+            "invariants":           v1.get("validation_rules") or [],
+            "permissions":          v1.get("authorization_hints") or [],
+            "persistence":          v1.get("ef_core_entities") or [],
+            "integrations":         v1.get("known_integrations") or [],
+            "background_processes": [],
+            "ui_surfaces":          ui_surfaces,
+            "events_emitted":       [],
+            "events_consumed":      [],
+            "_v1_legacy":           v1,
+        }
+        _write_atomic(rebuild_path, v2)
+
     def build_decision_support(self, model: Dict[str, Any]) -> Dict[str, Any]:
         """Derive heuristic decision-support metadata from *model*.
 

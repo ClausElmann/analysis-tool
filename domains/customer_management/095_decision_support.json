@@ -1,0 +1,8 @@
+{
+  "business_value": "medium",
+  "complexity": "high",
+  "coupling": "medium",
+  "domain": "customer_management",
+  "rebuild_priority": 7,
+  "saved_utc": "2026-04-02T08:44:39.631780+00:00"
+}

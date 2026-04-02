@@ -1,79 +1,9 @@
 [
-  {
-    "id": "I001",
-    "name": "ILocalizationService — cross-domain utility",
-    "type": "FACT",
-    "description": "LocalizationService is injected as a utility into multiple other domains. It does not own a dedicated API surface — it is a supporting service.",
-    "consumers": [
-      {
-        "consumer": "StatusController",
-        "usage": "GetLocalizedResource(status.TranslationKey, countryId) — translates SMS delivery status descriptions per country/language"
-      },
-      {
-        "consumer": "MessageController",
-        "usage": "GetLocalizedResource('messages.defaultGroupName', languageId) and GetLocalizedResource('shared.DateTimeFormat', languageId) — localizes default message group name and datetime format"
-      },
-      {
-        "consumer": "UserController",
-        "usage": "GetLocalizedResource('errorMessages.LoginUsernameOrPassword', languageId) — translates login error message; also uses GetLanguageLookup indirectly"
-      }
-    ],
-    "note": "ILocalizationService is registered as Scoped in Startup.cs (line 515). ILanguageService registered as Scoped (line 512)."
-  },
-  {
-    "id": "I002",
-    "name": "IStaticCacheManager — in-memory caching",
-    "type": "FACT",
-    "description": "LocalizationService and LanguageService both use IStaticCacheManager for aggressive in-memory caching. Language list cached 10 hours. Individual resource lookups cached indefinitely until pattern-cleared.",
-    "cache_keys": [
-      "'ServiceAlert.language.all' — all Language rows, 10-hour TTL",
-      "'sms.lsr.{languageId}-{UPPER(resourceKey)}' — individual resource lookups, cleared on write"
-    ],
-    "invalidation": "InsertLocaleStringResource, UpdateLocaleStringResource, DeleteLocaleStringResource all call RemoveByPattern('sms.lsr.'). Batch import does NOT invalidate cache."
-  },
-  {
-    "id": "I003",
-    "name": "Z.Dapper.Plus — bulk merge for import",
-    "type": "FACT",
-    "description": "Import operation uses Z.Dapper.Plus BulkMerge with entity configuration: Table='dbo.LocaleStringResources', Key=(LanguageId, ResourceName). This matches the unique index.",
-    "source": "LocalizationService.ImportLocaleStringResourcesAsync: DapperPlusManager.Entity<LocaleStringResource>().Table(...).Key(x => new { x.LanguageId, x.ResourceName })"
-  },
-  {
-    "id": "I004",
-    "name": "Countries table — runtime not queried",
-    "type": "FACT",
-    "description": "The Countries table exists in SSDT schema and is referenced conceptually by CountryConstants, but is NOT queried at runtime. All country-to-culture, country-to-phone-code, and country-to-language mappings are hardcoded in CountryConstants.cs static methods.",
-    "implication": "Countries table is structural/referential data only. It may have been used for dynamic mapping in an earlier architecture. Currently a dead table from an API perspective — consistent with gap_analysis.json finding."
-  },
-  {
-    "id": "I005",
-    "name": "CommonController — primary HTTP surface for this domain",
-    "type": "FACT",
-    "description": "ServiceAlert.Web/Controllers/Common/CommonController.cs is the main HTTP API surface for the localization domain. It mixes localization endpoints with unrelated concerns (Captcha, logo serving, page sensitivity tracking).",
-    "endpoints": [
-      "GET /api/Common/GetResourcesJson?languageId={id} — AllowAnonymous, called by Angular BiHttpTranslateLoader at bootstrap",
-      "POST /api/Common/Resources?languageId={id} — SuperAdmin, paginated/filtered search of LanguageResourceModel",
-      "POST /api/Common/InsertLocalizedResource — SuperAdmin",
-      "POST /api/Common/UpdateLocalizedResource — SuperAdmin",
-      "POST /api/Common/DeleteLocalizedResource — SuperAdmin",
-      "GET /api/Common/DownloadResourcesExcel — SuperAdmin, optional ?languageId filter"
-    ],
-    "note": "Iteration 1 of this analysis missed CommonController because it only searched ServiceAlert.Api project. CommonController lives in ServiceAlert.Web project. Lesson documented in GAP_001 closure."
-  },
-  {
-    "id": "I006",
-    "name": "Angular TranslationManagementService — admin frontend client",
-    "type": "FACT",
-    "description": "Angular service at translation-management.service.ts backing the super-admin translation management UI. Wraps all 5 admin HTTP endpoints. Uses ApiRoutes.commonRoutes.localizationRoutes static class to reference endpoint paths.",
-    "known_bug": "GAP_005: updateLocalizedResource tap() hardcodes 'da'/'se' for frontend cache update instead of using getLanguageCodeByLanguageId(). insertLocalizedResources correctly uses getLanguageCodeByLanguageId().",
-    "frontend_component": "translation-management.component.ts — lazy PrimeNG table, language filter dropdown (5 languages, no German), resourceName/resourceValue search, displayMode toggle (All / NonTranslated), row-level inline edit/delete/create, Excel download."
-  },
-  {
-    "id": "I007",
-    "name": "BiHttpTranslateLoader — Angular translation bootstrap",
-    "type": "FACT",
-    "description": "Custom ngx-translate TranslateLoader at app-globals/classes/BiHttpTranslateLoader.ts. Called by Angular at app bootstrap for each language. Maps Angular language codes (e.g. 'da', 'sv', 'en', 'fi', 'nb') to BiCountryId values and calls GET /api/Common/GetResourcesJson. Result dictionary fed directly into ngx-translate store.",
-    "language_code_mapping": "da → 1 (DK), sv → 2 (SE), en → 3 (EN), fi → 4 (FI), nb → 5 (NO). No mapping for language code 6 (DE) — consistent with GAP_004.",
-    "key_transform": "BiTranslateService forces all translation key lookups to UPPERCASE. CommonController.GetResourcesJson also UPPER-cases keys before returning. Both sides match."
-  }
+  "{'id': 'I001', 'name': 'ILocalizationService — cross-domain utility', 'type': 'FACT', 'description': 'LocalizationService is injected as a utility into multiple other domains. It does not own a dedicated API surface — it is a supporting service.', 'consumers': [{'consumer': 'StatusController', 'usage': 'GetLocalizedResource(status.TranslationKey, countryId) — translates SMS delivery status descriptions per country/language'}, {'consumer': 'MessageController', 'usage': \"GetLocalizedResource('messages.defaultGroupName', languageId) and GetLocalizedResource('shared.DateTimeFormat', languageId) — localizes default message group name and datetime format\"}, {'consumer': 'UserController', 'usage': \"GetLocalizedResource('errorMessages.LoginUsernameOrPassword', languageId) — translates login error message; also uses GetLanguageLookup indirectly\"}], 'note': 'ILocalizationService is registered as Scoped in Startup.cs (line 515). ILanguageService registered as Scoped (line 512).'}",
+  "{'id': 'I002', 'name': 'IStaticCacheManager — in-memory caching', 'type': 'FACT', 'description': 'LocalizationService and LanguageService both use IStaticCacheManager for aggressive in-memory caching. Language list cached 10 hours. Individual resource lookups cached indefinitely until pattern-cleared.', 'cache_keys': [\"'ServiceAlert.language.all' — all Language rows, 10-hour TTL\", \"'sms.lsr.{languageId}-{UPPER(resourceKey)}' — individual resource lookups, cleared on write\"], 'invalidation': \"InsertLocaleStringResource, UpdateLocaleStringResource, DeleteLocaleStringResource all call RemoveByPattern('sms.lsr.'). Batch import does NOT invalidate cache.\"}",
+  "{'id': 'I003', 'name': 'Z.Dapper.Plus — bulk merge for import', 'type': 'FACT', 'description': \"Import operation uses Z.Dapper.Plus BulkMerge with entity configuration: Table='dbo.LocaleStringResources', Key=(LanguageId, ResourceName). This matches the unique index.\", 'source': 'LocalizationService.ImportLocaleStringResourcesAsync: DapperPlusManager.Entity<LocaleStringResource>().Table(...).Key(x => new { x.LanguageId, x.ResourceName })'}",
+  "{'id': 'I004', 'name': 'Countries table — runtime not queried', 'type': 'FACT', 'description': 'The Countries table exists in SSDT schema and is referenced conceptually by CountryConstants, but is NOT queried at runtime. All country-to-culture, country-to-phone-code, and country-to-language mappings are hardcoded in CountryConstants.cs static methods.', 'implication': 'Countries table is structural/referential data only. It may have been used for dynamic mapping in an earlier architecture. Currently a dead table from an API perspective — consistent with gap_analysis.json finding.'}",
+  "{'id': 'I005', 'name': 'CommonController — primary HTTP surface for this domain', 'type': 'FACT', 'description': 'ServiceAlert.Web/Controllers/Common/CommonController.cs is the main HTTP API surface for the localization domain. It mixes localization endpoints with unrelated concerns (Captcha, logo serving, page sensitivity tracking).', 'endpoints': ['GET /api/Common/GetResourcesJson?languageId={id} — AllowAnonymous, called by Angular BiHttpTranslateLoader at bootstrap', 'POST /api/Common/Resources?languageId={id} — SuperAdmin, paginated/filtered search of LanguageResourceModel', 'POST /api/Common/InsertLocalizedResource — SuperAdmin', 'POST /api/Common/UpdateLocalizedResource — SuperAdmin', 'POST /api/Common/DeleteLocalizedResource — SuperAdmin', 'GET /api/Common/DownloadResourcesExcel — SuperAdmin, optional ?languageId filter'], 'note': 'Iteration 1 of this analysis missed CommonController because it only searched ServiceAlert.Api project. CommonController lives in ServiceAlert.Web project. Lesson documented in GAP_001 closure.'}",
+  "{'id': 'I006', 'name': 'Angular TranslationManagementService — admin frontend client', 'type': 'FACT', 'description': 'Angular service at translation-management.service.ts backing the super-admin translation management UI. Wraps all 5 admin HTTP endpoints. Uses ApiRoutes.commonRoutes.localizationRoutes static class to reference endpoint paths.', 'known_bug': \"GAP_005: updateLocalizedResource tap() hardcodes 'da'/'se' for frontend cache update instead of using getLanguageCodeByLanguageId(). insertLocalizedResources correctly uses getLanguageCodeByLanguageId().\", 'frontend_component': 'translation-management.component.ts — lazy PrimeNG table, language filter dropdown (5 languages, no German), resourceName/resourceValue search, displayMode toggle (All / NonTranslated), row-level inline edit/delete/create, Excel download.'}",
+  "{'id': 'I007', 'name': 'BiHttpTranslateLoader — Angular translation bootstrap', 'type': 'FACT', 'description': \"Custom ngx-translate TranslateLoader at app-globals/classes/BiHttpTranslateLoader.ts. Called by Angular at app bootstrap for each language. Maps Angular language codes (e.g. 'da', 'sv', 'en', 'fi', 'nb') to BiCountryId values and calls GET /api/Common/GetResourcesJson. Result dictionary fed directly into ngx-translate store.\", 'language_code_mapping': 'da → 1 (DK), sv → 2 (SE), en → 3 (EN), fi → 4 (FI), nb → 5 (NO). No mapping for language code 6 (DE) — consistent with GAP_004.', 'key_transform': 'BiTranslateService forces all translation key lookups to UPPERCASE. CommonController.GetResourcesJson also UPPER-cases keys before returning. Both sides match.'}"
 ]

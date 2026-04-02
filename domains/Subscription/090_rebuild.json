@@ -1,4 +1,143 @@
 {
-  "domain": "Subscription",
-  "rebuild_requirements": []
+  "_meta": {
+    "generated_at": "2026-04-02T01:36:05.602166Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "SubscribeModuleController",
+      "route": "/subscribemodule",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SubscriptionController",
+      "route": "/subscription",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CustomerSubscriptionNotification",
+      "LookupOwnerSubscriptionsCommand",
+      "LookupSubscriptionsCommand",
+      "LookupSupplyNumbersSubscriptionsCommand",
+      "SubscribeAddressCommand",
+      "SubscribeCommand",
+      "SubscribeSupplyNumberCommand",
+      "SubscriptionNotification",
+      "UnsubscribeAddressCommand",
+      "UnsubscribeMessageReceivedEvent",
+      "UnsubscribeSupplyNumberCommand",
+      "UpdateSupplyNumberSubscriptionNameCommand",
+      "subscriptionNotification",
+      "updateAddressSubscriptionNameCommand",
+      "updateSupplyNumberSubscriptionNameCommand"
+    ],
+    "rules": [
+      "guard",
+      "guard.ts",
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "EnrollmentCreatedEventHandler",
+    "EnrollmentStep",
+    "LookupOwnerSubscriptionsCommandProcessor",
+    "LookupSubscriptionsCommandProcessor",
+    "LookupSupplyNumbersSubscriptionsCommandProcessor",
+    "UnsubscribeMessageReceivedEventHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "EnrollmentCreatedEventHandler",
+      "table": "enrollmentcreatedeventhandlers"
+    },
+    {
+      "entity": "ISubscriptionRepository",
+      "table": "isubscriptionrepositorys"
+    },
+    {
+      "entity": "LookupOwnerSubscriptionsCommand",
+      "table": "lookupownersubscriptionscommands"
+    },
+    {
+      "entity": "LookupSubscriptionsCommand",
+      "table": "lookupsubscriptionscommands"
+    },
+    {
+      "entity": "LookupSupplyNumbersSubscriptionsCommand",
+      "table": "lookupsupplynumberssubscriptionscommands"
+    },
+    {
+      "entity": "SubscribeAddressCommand",
+      "table": "subscribeaddresscommands"
+    },
+    {
+      "entity": "SubscribeCommand",
+      "table": "subscribecommands"
+    },
+    {
+      "entity": "SubscribeModuleController",
+      "table": "subscribemodulecontrollers"
+    },
+    {
+      "entity": "SubscribeSupplyNumberCommand",
+      "table": "subscribesupplynumbercommands"
+    },
+    {
+      "entity": "SubscriptionController",
+      "table": "subscriptioncontrollers"
+    },
+    {
+      "entity": "SubscriptionRepository",
+      "table": "subscriptionrepositorys"
+    },
+    {
+      "entity": "UnsubscribeAddressCommand",
+      "table": "unsubscribeaddresscommands"
+    },
+    {
+      "entity": "UnsubscribeMessageReceivedEventHandler",
+      "table": "unsubscribemessagereceivedeventhandlers"
+    },
+    {
+      "entity": "UnsubscribeSupplyNumberCommand",
+      "table": "unsubscribesupplynumbercommands"
+    },
+    {
+      "entity": "UpdateSupplyNumberSubscriptionNameCommand",
+      "table": "updatesupplynumbersubscriptionnamecommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "updateAddressSubscriptionNameCommand",
+      "table": "updateaddresssubscriptionnamecommands"
+    },
+    {
+      "entity": "updateSupplyNumberSubscriptionNameCommand",
+      "table": "updatesupplynumbersubscriptionnamecommands"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "guard",
+    "guard.ts",
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
 }

@@ -33,6 +33,7 @@ from core.domain.ai.refiner import refine
 from core.domain.domain_quality_gate import gate_failures, is_domain_complete
 from core.domain.ai.semantic_analyzer import INSIGHT_KEYS
 from core.domain.ai_reasoner import AIReasoner
+from core.domain.domain_gap_types import GapType
 from core.domain.domain_memory import DomainMemory
 from core.domain.domain_model_store import DomainModelStore
 from core.domain.domain_query_engine import DomainQueryEngine
@@ -161,6 +162,10 @@ class DomainLearningLoop:
 
         # 3. Detect gaps in the current model
         gaps = self._reasoner.detect_gaps(old_model, domain_name)
+        gaps = [
+            {**g, "type": GapType.normalize(g.get("type", ""))}
+            for g in gaps
+        ]
 
         # 4. Snapshot gap list into memory (append-only)
         self._memory.add_gap_snapshot(domain_name, gaps)
@@ -238,11 +243,13 @@ class DomainLearningLoop:
                 processed_set.add(asset_id)
 
         # 7. Merge + refine
-        # Strip the extra "signal_strength" key before merging so that
-        # domain_mapper only sees the canonical INSIGHT_KEYS
+        # L1: Drop insights below confidence floor before merging.
+        # Insights without an explicit confidence key are assumed confident.
+        CONFIDENCE_FLOOR: float = 0.60
         clean_insights = [
             {k: v for k, v in ins.items() if k in INSIGHT_KEYS}
             for ins in insights
+            if float(ins.get("confidence", 1.0)) >= CONFIDENCE_FLOOR
         ]
         merged = merge(old_model, clean_insights)
         refined = refine(merged)
@@ -254,6 +261,26 @@ class DomainLearningLoop:
         # 9. Score
         completeness = compute_completeness(refined)
         new_info = compute_new_information(old_model, refined)
+
+        # L2: Inflation penalty — if the model grew >20% but no new source
+        # types were added, halve new_information_score to prevent artificial
+        # inflation from repeated merging of the same source type.
+        old_total = sum(len(old_model.get(k) or []) for k in INSIGHT_KEYS)
+        new_total = sum(len(refined.get(k) or []) for k in INSIGHT_KEYS)
+        if old_total > 0 and (new_total - old_total) / old_total > 0.20:
+            old_source_types = {
+                a.get("source_type", "") for a in (all_assets or []) if a.get("source_type")
+            }
+            new_source_types = {
+                a.get("source_type", "") for a in pending if a.get("source_type")
+            }
+            if not (new_source_types - old_source_types):
+                # No new source types introduced — penalise inflation
+                new_info *= 0.5
+                self._log(
+                    f"[L2-inflate:{domain_name}] >20% growth, no new sources "
+                    f"-> new_information_score halved to {new_info:.4f}"
+                )
 
         # Compute consistency from the fresh cross-analysis
         consistency = compute_consistency_score(cross)
@@ -274,31 +301,10 @@ class DomainLearningLoop:
         )
         new_streak = (prev_streak + 1) if is_convergent else 0
 
-        # ── No-op detection (upgrade #3) ─────────────────────────────────
-        # Count new items since the old model to detect stagnant iterations.
-        new_entities_count = max(
-            len(refined.get("entities") or []) - len(old_model.get("entities") or []), 0
-        )
-        new_flows_count = max(
-            len(refined.get("flows") or []) - len(old_model.get("flows") or []), 0
-        )
-        if new_entities_count == 0 and new_flows_count == 0:
-            if progress is not None:
-                progress.no_op_iterations = getattr(progress, "no_op_iterations", 0) + 1
-        else:
-            if progress is not None:
-                progress.no_op_iterations = 0
-
-        # When stuck for ≥3 no-op iterations, signal broadened search next time
-        no_op_count = getattr(progress, "no_op_iterations", 0) if progress else 0
-        if no_op_count >= 3 and progress is not None:
-            # Clear processed_asset_ids so the next iteration can revisit assets,
-            # effectively "broadening" the search scope.
-            progress.processed_asset_ids = []
-            self._log(
-                f"[LearningLoop:{domain_name}] no-op limit reached "
-                f"({no_op_count}) — resetting asset cooldown"
-            )
+        # NOTE: no-op counter is owned exclusively by _check_no_op() in
+        # domain_completion_protocol.run_protocol_iteration(). The learning
+        # loop must NOT increment or reset prog.no_op_iterations — doing so
+        # caused double-counting and inconsistent BLOCKED detection.
 
         # 10. Determine status and update DomainProgress
         status = "in_progress"
@@ -377,7 +383,7 @@ class DomainLearningLoop:
             "gaps_found": len(gaps),
             "stable_streak": new_streak,
             "status": status,
-            "no_op_iterations": no_op_count,
+            "no_op_iterations": progress.no_op_iterations if progress is not None else 0,
         }
 
     # ------------------------------------------------------------------

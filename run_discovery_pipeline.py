@@ -1,3 +1,6 @@
+# LEGACY — DO NOT RUN
+# This script is superseded by run_domain_engine.py (Gen 3 canonical entrypoint).
+# Retained for reference only. Running this file may corrupt domain state.
 """
 Domain Discovery + Priority + Deep Scan Pipeline
 SAFE LONG-RUN — NO BREAKING CHANGES

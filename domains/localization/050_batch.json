@@ -1,27 +1,4 @@
 [
-  {
-    "id": "J001",
-    "name": "export_translations",
-    "type": "FACT",
-    "description": "Exports all LocaleStringResources to a JSON file at a given path. Used by developers to pull current translations out of the database for bulk editing.",
-    "trigger": "Manual CLI: ServiceAlert.Batch.exe export_translations <path>",
-    "source": "ServiceAlert.Batch/Program.cs line 722-723",
-    "calls": "ILocalizationService.ExportLocaleStringResourcesAsync(args[1])",
-    "output": "JSON file: [{LanguageId, ResourceName, ResourceValue}, ...]",
-    "side_effects": "None — read-only.",
-    "example": "translations.bat: .\\bin\\Debug\\net10.0\\ServiceAlert.Batch.exe export_translations .\\labels.json -live"
-  },
-  {
-    "id": "J002",
-    "name": "import_translations",
-    "type": "FACT",
-    "description": "Imports translations from a JSON file into LocaleStringResources via bulk UPSERT. Used after bulk editing to push translations back to database.",
-    "trigger": "Manual CLI: ServiceAlert.Batch.exe import_translations <path>",
-    "source": "ServiceAlert.Batch/Program.cs line 725-726",
-    "calls": "ILocalizationService.ImportLocaleStringResourcesAsync(args[1])",
-    "merge_key": "(LanguageId, ResourceName) — matches UIX_LocaleStringResources_LanguageId_ResourceName",
-    "side_effects": "Updates or inserts rows in LocaleStringResources. Does NOT clear memcache — requires app restart or cache expiry to pick up changes at runtime.",
-    "risk": "No cache invalidation on import — translations imported via batch will not be visible until cache expires. GAP_002.",
-    "example": "translations.bat: .\\bin\\Debug\\net10.0\\ServiceAlert.Batch.exe import_translations .\\labels.json"
-  }
+  "{'id': 'J001', 'name': 'export_translations', 'type': 'FACT', 'description': 'Exports all LocaleStringResources to a JSON file at a given path. Used by developers to pull current translations out of the database for bulk editing.', 'trigger': 'Manual CLI: ServiceAlert.Batch.exe export_translations <path>', 'source': 'ServiceAlert.Batch/Program.cs line 722-723', 'calls': 'ILocalizationService.ExportLocaleStringResourcesAsync(args[1])', 'output': 'JSON file: [{LanguageId, ResourceName, ResourceValue}, ...]', 'side_effects': 'None — read-only.', 'example': 'translations.bat: .\\\\bin\\\\Debug\\\\net10.0\\\\ServiceAlert.Batch.exe export_translations .\\\\labels.json -live'}",
+  "{'id': 'J002', 'name': 'import_translations', 'type': 'FACT', 'description': 'Imports translations from a JSON file into LocaleStringResources via bulk UPSERT. Used after bulk editing to push translations back to database.', 'trigger': 'Manual CLI: ServiceAlert.Batch.exe import_translations <path>', 'source': 'ServiceAlert.Batch/Program.cs line 725-726', 'calls': 'ILocalizationService.ImportLocaleStringResourcesAsync(args[1])', 'merge_key': '(LanguageId, ResourceName) — matches UIX_LocaleStringResources_LanguageId_ResourceName', 'side_effects': 'Updates or inserts rows in LocaleStringResources. Does NOT clear memcache — requires app restart or cache expiry to pick up changes at runtime.', 'risk': 'No cache invalidation on import — translations imported via batch will not be visible until cache expires. GAP_002.', 'example': 'translations.bat: .\\\\bin\\\\Debug\\\\net10.0\\\\ServiceAlert.Batch.exe import_translations .\\\\labels.json'}"
 ]

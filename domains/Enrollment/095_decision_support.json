@@ -1,0 +1,8 @@
+{
+  "business_value": "medium",
+  "complexity": "high",
+  "coupling": "low",
+  "domain": "enrollment",
+  "rebuild_priority": 6,
+  "saved_utc": "2026-04-02T01:21:10.084431+00:00"
+}

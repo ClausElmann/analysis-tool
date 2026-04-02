@@ -1,0 +1,194 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T08:37:52.851746Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "HTTP REST Client",
+      "source": "integration"
+    },
+    {
+      "method": "MediatR Event Bus",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "ActivityLogController",
+      "route": "/activitylog",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CitizenDialogueController",
+      "route": "/citizendialogue",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "LogController",
+      "route": "/log",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "OutgoingRequestLogsController",
+      "route": "/outgoingrequestlogs",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CitizenDialogueSearchCommand",
+      "CreateLogCommand",
+      "CreateSmsLogCommand",
+      "CreateSmsLogResponseCommand",
+      "CreateSmsLogStatusCommand",
+      "CreateSmsLogsInStateEvent",
+      "LookupSmsLogsQuery",
+      "SmsLogResponseCommand",
+      "SmsLogResponseEvent",
+      "createLogCommand",
+      "smsLogResponseCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "CreateSmsLogCommandProcessor",
+    "CreateSmsLogResponseCommandProcessor",
+    "DataImportActivityLoggerPostProcessor",
+    "LoggingVoiceMessageQueueEventProcessor",
+    "OutgoingHttpClientLoggingHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "ActivityLogController",
+      "table": "activitylogcontrollers"
+    },
+    {
+      "entity": "ActivityLogRepository",
+      "table": "activitylogrepositorys"
+    },
+    {
+      "entity": "CitizenDialogueController",
+      "table": "citizendialoguecontrollers"
+    },
+    {
+      "entity": "CitizenDialogueRepository",
+      "table": "citizendialoguerepositorys"
+    },
+    {
+      "entity": "CitizenDialogueSearchCommand",
+      "table": "citizendialoguesearchcommands"
+    },
+    {
+      "entity": "CreateLogCommand",
+      "table": "createlogcommands"
+    },
+    {
+      "entity": "CreateSmsLogCommand",
+      "table": "createsmslogcommands"
+    },
+    {
+      "entity": "CreateSmsLogResponseCommand",
+      "table": "createsmslogresponsecommands"
+    },
+    {
+      "entity": "CreateSmsLogStatusCommand",
+      "table": "createsmslogstatuscommands"
+    },
+    {
+      "entity": "IActivityLogRepository",
+      "table": "iactivitylogrepositorys"
+    },
+    {
+      "entity": "ICitizenDialogueRepository",
+      "table": "icitizendialoguerepositorys"
+    },
+    {
+      "entity": "ILogRepository",
+      "table": "ilogrepositorys"
+    },
+    {
+      "entity": "IOutgoingRequestLogsRepository",
+      "table": "ioutgoingrequestlogsrepositorys"
+    },
+    {
+      "entity": "ISmsLogBackgroundProcessingManager",
+      "table": "ismslogbackgroundprocessingmanagers"
+    },
+    {
+      "entity": "ISmsLogRepository",
+      "table": "ismslogrepositorys"
+    },
+    {
+      "entity": "LogController",
+      "table": "logcontrollers"
+    },
+    {
+      "entity": "LogRepository",
+      "table": "logrepositorys"
+    },
+    {
+      "entity": "LookupSmsLogsQuery",
+      "table": "lookupsmslogsquerys"
+    },
+    {
+      "entity": "OutgoingHttpClientLoggingHandler",
+      "table": "outgoinghttpclientlogginghandlers"
+    },
+    {
+      "entity": "OutgoingRequestLogsController",
+      "table": "outgoingrequestlogscontrollers"
+    },
+    {
+      "entity": "OutgoingRequestLogsRepository",
+      "table": "outgoingrequestlogsrepositorys"
+    },
+    {
+      "entity": "SmsLogBackgroundProcessingManager",
+      "table": "smslogbackgroundprocessingmanagers"
+    },
+    {
+      "entity": "SmsLogRepository",
+      "table": "smslogrepositorys"
+    },
+    {
+      "entity": "SmsLogResponseCommand",
+      "table": "smslogresponsecommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "createLogCommand",
+      "table": "createlogcommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "smsLogResponseCommand",
+      "table": "smslogresponsecommands"
+    }
+  ],
+  "known_integrations": [
+    "HTTP REST Client",
+    "MediatR Event Bus"
+  ],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
+}

@@ -1,4 +1,468 @@
 {
-  "domain": "Lookup",
-  "rebuild_requirements": []
+  "_meta": {
+    "generated_at": "2026-04-02T01:24:43.870751Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [],
+  "blazor_state_model": {
+    "events": [
+      "AttachAddressCommand",
+      "AttachEboksAddressCommand",
+      "AttachEboksCvrCommand",
+      "AttachEmailCommand",
+      "AttachPhoneCommand",
+      "BatchedCommandsCompletedEvent",
+      "CheckEboksAmplifyForDoublesCommand",
+      "CheckEboksAmplifyOwnerForDoublesCommand",
+      "CheckEboksCvrForDoublesCommand",
+      "CheckEboksCvrNameMatchCommand",
+      "CheckEmailForDoublesCommand",
+      "CheckNameMatchCommand",
+      "CheckPhoneFiltersCommand",
+      "CheckRobinsonCommand",
+      "CompleteSubscribersCommand",
+      "CompleteTeledataCommand",
+      "CreateSmsLogCommand",
+      "CreateSmsLogResponseCommand",
+      "CreateSmsLogsInStateEvent",
+      "DeterminePhoneNumberTypeCommand",
+      "EboksAmplifyCheckedForDoublesEvent",
+      "EboksAmplifyMessageCreatedEvent",
+      "EboksAmplifyOwnerCheckedForDoublesEvent",
+      "EboksCvrCheckedForDoublesEvent",
+      "EboksCvrMessageCreatedEvent",
+      "EboksCvrNameMatchCheckedEvent",
+      "EmailAttachedEvent",
+      "EmailCheckedForDoublesEvent",
+      "EmailMessageCreatedEvent",
+      "ExpandAddressFilterCommand",
+      "ExpandLevelFiltersCommand",
+      "ExpandRecipientMunicipalityAddressesCommand",
+      "ExpandStandardReceiverGroupCommand",
+      "FindOwnerAddressCommand",
+      "ILookupCommand",
+      "ILookupEvent",
+      "INorwegianLookupCommand",
+      "INorwegianPropertyLookupCommand",
+      "LevelFiltersFoundEvent",
+      "LoadLevelFiltersCommand",
+      "LookupAddressQuery",
+      "LookupAddressRecipientsQuery",
+      "LookupAddressesQuery",
+      "LookupCommand",
+      "LookupEboksAmplifyCommand",
+      "LookupEboksAmplifyOwnerCommand",
+      "LookupEboksCvrCommand",
+      "LookupEboksCvrOwnerCommand",
+      "LookupEnrollmentsCommand",
+      "LookupEvent",
+      "LookupNorwegianAddressOwnersCommand",
+      "LookupNorwegianAddressResidentsCommand",
+      "LookupNorwegianCompaniesCommand",
+      "LookupNorwegianCompany1881DataCommand",
+      "LookupNorwegianCompanyContactDataCommand",
+      "LookupNorwegianOwnersCommand",
+      "LookupNorwegianPerson1881DataCommand",
+      "LookupNorwegianPersonContactDataCommand",
+      "LookupNorwegianPropertyOwnersCommand",
+      "LookupNorwegianPropertyPublicContactsCommand",
+      "LookupNorwegianPropertyResidentsCommand",
+      "LookupNorwegianPublicContactsCommand",
+      "LookupNorwegianTeledataCommand",
+      "LookupOwnerEnrollmentsCommand",
+      "LookupOwnerSubscriptionsCommand",
+      "LookupOwnerTeledataCommand",
+      "LookupSmsGroupCommand",
+      "LookupSmsLogsQuery",
+      "LookupSubscriptionsCommand",
+      "LookupSupplyNumbersSubscriptionsCommand",
+      "LookupTeledataCommand",
+      "NameMatchCheckedEvent",
+      "NorwegianCompanyContactDataNotFoundEvent",
+      "NorwegianCompanyFoundEvent",
+      "NorwegianPersonContactDataNotFoundEvent",
+      "NorwegianPersonFoundEvent",
+      "NorwegianPublicContactsPhoneLookedUpEvent",
+      "OriginAddressesFoundEvent",
+      "OwnerAddressFoundEvent",
+      "PhoneAttachedEvent",
+      "PhoneFiltersCheckedEvent",
+      "PhoneMessageCreatedEvent",
+      "PhoneNumberTypeDeterminedEvent",
+      "QueueEvent",
+      "RegisterPreloadedAddressCommand",
+      "RunBatchedCommandsCommand",
+      "SecondaryLookupForEboksFirstStrategyNotification",
+      "SmsGroupFoundEvent",
+      "SmsLogResponseEvent",
+      "SplitStandardReceiverCommand",
+      "StandardReceiverGroupExpandedEvent",
+      "StartLookupBatchNotification",
+      "SubscribersCompleteEvent",
+      "SupplyNumbersFoundEvent",
+      "TeledataCompleteEvent",
+      "TeledataLookedUpEvent"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "AttachAddressCommandProcessor",
+    "AttachEboksAddressCommandProcessor",
+    "AttachEboksCvrCommandProcessor",
+    "AttachEmailCommandProcessor",
+    "AttachPhoneCommandProcessor",
+    "CheckEboksAmplifyForDoublesCommandProcessor",
+    "CheckEboksAmplifyOwnerForDoublesCommandProcessor",
+    "CheckEboksCvrForDoublesCommandProcessor",
+    "CheckEboksCvrNameMatchCommandProcessor",
+    "CheckEmailForDoublesCommandProcessor",
+    "CheckNameMatchCommandProcessor",
+    "CheckPhoneFiltersCommandProcessor",
+    "CheckRobinsonCommandProcessor",
+    "CompleteSubscribersCommandProcessor",
+    "CompleteTeledataCommandProcessor",
+    "ConsoleWriteAllCommandProcessor",
+    "CreateSmsLogCommandProcessor",
+    "CreateSmsLogResponseCommandProcessor",
+    "DeterminePhoneNumberTypeCommandProcessor",
+    "ExpandAddressFilterCommandProcessor",
+    "ExpandLevelFiltersCommandProcessor",
+    "ExpandRecipientMunicipalitiesCommandProcessor",
+    "ExpandStandardReceiverGroupCommandProcessor",
+    "FindOwnerAddressCommandProcessor",
+    "ILookupBatchCommandProcessor",
+    "ILookupCommandProcessor",
+    "ILookupPostProcessor",
+    "LoadLevelFiltersCommandProcessor",
+    "LookupEboksAmplifyCommandProcessor",
+    "LookupEboksAmplifyOwnerCommandProcessor",
+    "LookupEboksCvrCommandProcessor",
+    "LookupEboksCvrOwnerCommandProcessor",
+    "LookupEnrollmentsCommandProcessor",
+    "LookupNorwegianAddressOwnersCommandProcessor",
+    "LookupNorwegianAddressResidentsCommandProcessor",
+    "LookupNorwegianCompany1881DataCommandProcessor",
+    "LookupNorwegianCompanyContactDataCommandProcessor",
+    "LookupNorwegianOwnersCommandProcessor",
+    "LookupNorwegianPerson1881DataCommandProcessor",
+    "LookupNorwegianPersonContactDataCommandProcessor",
+    "LookupNorwegianPropertyOwnersCommandProcessor",
+    "LookupNorwegianPropertyPublicContactsCommandProcessor",
+    "LookupNorwegianPropertyResidentsCommandProcessor",
+    "LookupNorwegianPublicContactsCommandProcessor",
+    "LookupNorwegianTeledataCommandProcessor",
+    "LookupOwnerEnrollmentsCommandProcessor",
+    "LookupOwnerSubscriptionsCommandProcessor",
+    "LookupOwnerTeledataCommandProcessor",
+    "LookupProgressHandler",
+    "LookupSmsGroupCommandProcessor",
+    "LookupSubscriptionsCommandProcessor",
+    "LookupSupplyNumbersSubscriptionsCommandProcessor",
+    "LookupTeledataCommandProcessor",
+    "NorwegianResultHandler",
+    "RegisterPreloadedAddressCommandProcessor",
+    "RunBatchedCommandsCommandProcessor",
+    "SecondaryLookupForEboksFirstStrategyNotificationHandler",
+    "SequentialPostProcessor",
+    "SplitStandardReceiverCommandProcessor",
+    "StartLookupBatchNotificationHandler",
+    "TemporaryStoragePostProcessor",
+    "WriteToConsolePostProcessor",
+    "WriteToDatabasePostProcessor"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "AttachAddressCommand",
+      "table": "attachaddresscommands"
+    },
+    {
+      "entity": "AttachEboksAddressCommand",
+      "table": "attacheboksaddresscommands"
+    },
+    {
+      "entity": "AttachEboksCvrCommand",
+      "table": "attachebokscvrcommands"
+    },
+    {
+      "entity": "AttachEmailCommand",
+      "table": "attachemailcommands"
+    },
+    {
+      "entity": "AttachPhoneCommand",
+      "table": "attachphonecommands"
+    },
+    {
+      "entity": "CheckEboksAmplifyForDoublesCommand",
+      "table": "checkeboksamplifyfordoublescommands"
+    },
+    {
+      "entity": "CheckEboksAmplifyOwnerForDoublesCommand",
+      "table": "checkeboksamplifyownerfordoublescommands"
+    },
+    {
+      "entity": "CheckEboksCvrForDoublesCommand",
+      "table": "checkebokscvrfordoublescommands"
+    },
+    {
+      "entity": "CheckEboksCvrNameMatchCommand",
+      "table": "checkebokscvrnamematchcommands"
+    },
+    {
+      "entity": "CheckEmailForDoublesCommand",
+      "table": "checkemailfordoublescommands"
+    },
+    {
+      "entity": "CheckNameMatchCommand",
+      "table": "checknamematchcommands"
+    },
+    {
+      "entity": "CheckPhoneFiltersCommand",
+      "table": "checkphonefilterscommands"
+    },
+    {
+      "entity": "CheckRobinsonCommand",
+      "table": "checkrobinsoncommands"
+    },
+    {
+      "entity": "CompleteSubscribersCommand",
+      "table": "completesubscriberscommands"
+    },
+    {
+      "entity": "CompleteTeledataCommand",
+      "table": "completeteledatacommands"
+    },
+    {
+      "entity": "CreateSmsLogCommand",
+      "table": "createsmslogcommands"
+    },
+    {
+      "entity": "CreateSmsLogResponseCommand",
+      "table": "createsmslogresponsecommands"
+    },
+    {
+      "entity": "DeterminePhoneNumberTypeCommand",
+      "table": "determinephonenumbertypecommands"
+    },
+    {
+      "entity": "ExpandAddressFilterCommand",
+      "table": "expandaddressfiltercommands"
+    },
+    {
+      "entity": "ExpandLevelFiltersCommand",
+      "table": "expandlevelfilterscommands"
+    },
+    {
+      "entity": "ExpandRecipientMunicipalityAddressesCommand",
+      "table": "expandrecipientmunicipalityaddressescommands"
+    },
+    {
+      "entity": "ExpandStandardReceiverGroupCommand",
+      "table": "expandstandardreceivergroupcommands"
+    },
+    {
+      "entity": "FindOwnerAddressCommand",
+      "table": "findowneraddresscommands"
+    },
+    {
+      "entity": "ILookupCommand",
+      "table": "ilookupcommands"
+    },
+    {
+      "entity": "ILookupRepository",
+      "table": "ilookuprepositorys"
+    },
+    {
+      "entity": "INorwegianLookupCommand",
+      "table": "inorwegianlookupcommands"
+    },
+    {
+      "entity": "INorwegianPropertyLookupCommand",
+      "table": "inorwegianpropertylookupcommands"
+    },
+    {
+      "entity": "ISmsLogBackgroundProcessingManager",
+      "table": "ismslogbackgroundprocessingmanagers"
+    },
+    {
+      "entity": "LoadLevelFiltersCommand",
+      "table": "loadlevelfilterscommands"
+    },
+    {
+      "entity": "LookupAddressQuery",
+      "table": "lookupaddressquerys"
+    },
+    {
+      "entity": "LookupAddressRecipientsQuery",
+      "table": "lookupaddressrecipientsquerys"
+    },
+    {
+      "entity": "LookupAddressesQuery",
+      "table": "lookupaddressesquerys"
+    },
+    {
+      "entity": "LookupCommand",
+      "table": "lookupcommands"
+    },
+    {
+      "entity": "LookupEboksAmplifyCommand",
+      "table": "lookupeboksamplifycommands"
+    },
+    {
+      "entity": "LookupEboksAmplifyOwnerCommand",
+      "table": "lookupeboksamplifyownercommands"
+    },
+    {
+      "entity": "LookupEboksCvrCommand",
+      "table": "lookupebokscvrcommands"
+    },
+    {
+      "entity": "LookupEboksCvrOwnerCommand",
+      "table": "lookupebokscvrownercommands"
+    },
+    {
+      "entity": "LookupEnrollmentsCommand",
+      "table": "lookupenrollmentscommands"
+    },
+    {
+      "entity": "LookupNorwegianAddressOwnersCommand",
+      "table": "lookupnorwegianaddressownerscommands"
+    },
+    {
+      "entity": "LookupNorwegianAddressResidentsCommand",
+      "table": "lookupnorwegianaddressresidentscommands"
+    },
+    {
+      "entity": "LookupNorwegianCompaniesCommand",
+      "table": "lookupnorwegiancompaniescommands"
+    },
+    {
+      "entity": "LookupNorwegianCompany1881DataCommand",
+      "table": "lookupnorwegiancompany1881datacommands"
+    },
+    {
+      "entity": "LookupNorwegianCompanyContactDataCommand",
+      "table": "lookupnorwegiancompanycontactdatacommands"
+    },
+    {
+      "entity": "LookupNorwegianOwnersCommand",
+      "table": "lookupnorwegianownerscommands"
+    },
+    {
+      "entity": "LookupNorwegianPerson1881DataCommand",
+      "table": "lookupnorwegianperson1881datacommands"
+    },
+    {
+      "entity": "LookupNorwegianPersonContactDataCommand",
+      "table": "lookupnorwegianpersoncontactdatacommands"
+    },
+    {
+      "entity": "LookupNorwegianPropertyOwnersCommand",
+      "table": "lookupnorwegianpropertyownerscommands"
+    },
+    {
+      "entity": "LookupNorwegianPropertyPublicContactsCommand",
+      "table": "lookupnorwegianpropertypubliccontactscommands"
+    },
+    {
+      "entity": "LookupNorwegianPropertyResidentsCommand",
+      "table": "lookupnorwegianpropertyresidentscommands"
+    },
+    {
+      "entity": "LookupNorwegianPublicContactsCommand",
+      "table": "lookupnorwegianpubliccontactscommands"
+    },
+    {
+      "entity": "LookupNorwegianTeledataCommand",
+      "table": "lookupnorwegianteledatacommands"
+    },
+    {
+      "entity": "LookupOwnerEnrollmentsCommand",
+      "table": "lookupownerenrollmentscommands"
+    },
+    {
+      "entity": "LookupOwnerSubscriptionsCommand",
+      "table": "lookupownersubscriptionscommands"
+    },
+    {
+      "entity": "LookupOwnerTeledataCommand",
+      "table": "lookupownerteledatacommands"
+    },
+    {
+      "entity": "LookupProgressHandler",
+      "table": "lookupprogresshandlers"
+    },
+    {
+      "entity": "LookupRepository",
+      "table": "lookuprepositorys"
+    },
+    {
+      "entity": "LookupSmsGroupCommand",
+      "table": "lookupsmsgroupcommands"
+    },
+    {
+      "entity": "LookupSmsLogsQuery",
+      "table": "lookupsmslogsquerys"
+    },
+    {
+      "entity": "LookupSubscriptionsCommand",
+      "table": "lookupsubscriptionscommands"
+    },
+    {
+      "entity": "LookupSupplyNumbersSubscriptionsCommand",
+      "table": "lookupsupplynumberssubscriptionscommands"
+    },
+    {
+      "entity": "LookupTeledataCommand",
+      "table": "lookupteledatacommands"
+    },
+    {
+      "entity": "NorwegianResultHandler",
+      "table": "norwegianresulthandlers"
+    },
+    {
+      "entity": "RegisterPreloadedAddressCommand",
+      "table": "registerpreloadedaddresscommands"
+    },
+    {
+      "entity": "RunBatchedCommandsCommand",
+      "table": "runbatchedcommandscommands"
+    },
+    {
+      "entity": "SecondaryLookupForEboksFirstStrategyNotificationHandler",
+      "table": "secondarylookupforeboksfirststrategynotificationhandlers"
+    },
+    {
+      "entity": "SmsLogBackgroundProcessingManager",
+      "table": "smslogbackgroundprocessingmanagers"
+    },
+    {
+      "entity": "SplitStandardReceiverCommand",
+      "table": "splitstandardreceivercommands"
+    },
+    {
+      "entity": "StartLookupBatchNotificationHandler",
+      "table": "startlookupbatchnotificationhandlers"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
 }

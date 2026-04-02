@@ -1,4 +1,71 @@
 {
-  "domain": "Finance",
-  "rebuild_requirements": []
+  "_meta": {
+    "generated_at": "2026-04-02T01:21:59.986794Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "SuperAdminInvoiceController",
+      "route": "/superadmininvoice",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "ClientEvent",
+      "ClientEventServiceConnectEvent",
+      "ConversationMessage",
+      "ConversationUnreadStatusChangedEvent"
+    ],
+    "rules": [
+      "guard",
+      "guard.ts",
+      "if truly empty (use empty list, not null).",
+      "must",
+      "must be plain English or well-known identifiers.",
+      "should"
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [],
+  "ef_core_entities": [
+    {
+      "entity": "SuperAdminInvoiceController",
+      "table": "superadmininvoicecontrollers"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "in",
+      "table": "ins"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "should",
+      "table": "shoulds"
+    },
+    {
+      "entity": "to",
+      "table": "tos"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "guard",
+    "guard.ts",
+    "if truly empty (use empty list, not null).",
+    "must",
+    "must be plain English or well-known identifiers.",
+    "should"
+  ]
 }

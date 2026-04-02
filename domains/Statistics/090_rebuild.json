@@ -1,4 +1,71 @@
 {
-  "domain": "Statistics",
-  "rebuild_requirements": []
+  "_meta": {
+    "generated_at": "2026-04-02T01:34:44.212422Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "MediatR Event Bus",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "SmsGroupQuickResponseStatisticsReadModel",
+      "route": "/smsgroupquickresponsestatisticsreadmodel",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "smsGroupQuickResponseStatisticsReadModel",
+      "route": "/smsgroupquickresponsestatisticsreadmodel",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [],
+  "ef_core_entities": [
+    {
+      "entity": "IMessageStatisticsRepository",
+      "table": "imessagestatisticsrepositorys"
+    },
+    {
+      "entity": "ISmsGroupStatisticRepository",
+      "table": "ismsgroupstatisticrepositorys"
+    },
+    {
+      "entity": "MessageStatisticsRepository",
+      "table": "messagestatisticsrepositorys"
+    },
+    {
+      "entity": "SmsGroupStatisticRepository",
+      "table": "smsgroupstatisticrepositorys"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [
+    "MediatR Event Bus"
+  ],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
 }

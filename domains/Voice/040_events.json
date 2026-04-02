@@ -1,16 +1,10 @@
-{
-  "domain": "Voice",
-  "events": [
-    {
-      "event": "VoiceMessageStatusChangedEvent",
-      "publishers": [
-        "ServiceAlert.Api/Controllers/Webhooks/InfobipWebhookController.cs",
-        "ServiceAlert.Worker.Voice/Status/StatusPreloader.cs",
-        "ServiceAlert.Worker.Voice/Status/StatusWatcher.cs"
-      ],
-      "handlers": [
-        "VoiceMessageStatusChangedEventHandler"
-      ]
-    }
-  ]
-}
+[
+  "CallMessage",
+  "CallRecipientEntityEvent",
+  "CustomerVoiceSettingsChangedEvent",
+  "SSEEvent",
+  "VoiceGatewaySendMessageCommand",
+  "VoiceMessageQueueEvent",
+  "VoiceMessageStatusChangedEvent",
+  "VoiceMessageUpdateCommand"
+]

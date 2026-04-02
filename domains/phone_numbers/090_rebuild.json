@@ -1,0 +1,197 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T01:26:13.802728Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "HTTP REST Client",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "SuperAdminPhoneNumberProviderController",
+      "route": "/superadminphonenumberprovider",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "VirtualPhoneNumbersController",
+      "route": "/virtualphonenumbers",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "AssignConversationPhoneNumberCommand",
+      "AssignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "AttachPhoneCommand",
+      "CheckPhoneFiltersCommand",
+      "DeterminePhoneNumberTypeCommand",
+      "LookupSupplyNumbersSubscriptionsCommand",
+      "NorwegianPublicContactsPhoneLookedUpEvent",
+      "NotifySupplyNumberSubscribersNotification",
+      "PhoneAttachedEvent",
+      "PhoneFiltersCheckedEvent",
+      "PhoneMessageCreatedEvent",
+      "PhoneNumberTypeDeterminedEvent",
+      "SubscribeUnsubscribeReceiptRequestedNotification",
+      "SupplyNumbersFoundEvent",
+      "UpdateConversationPhoneNumberCommand",
+      "UpdateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "UpdateSupplyNumberSubscriptionNameCommand",
+      "assignConversationPhoneNumberCommand",
+      "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "updateConversationPhoneNumberCommand",
+      "updateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "updateSupplyNumberSubscriptionNameCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "AsyncHandler",
+    "AttachPhoneCommandProcessor",
+    "CheckPhoneFiltersCommandProcessor",
+    "DeterminePhoneNumberTypeCommandProcessor",
+    "LookupSupplyNumbersSubscriptionsCommandProcessor",
+    "NotifySupplyNumberSubscribersNotificationHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "AssignConversationPhoneNumberCommand",
+      "table": "assignconversationphonenumbercommands"
+    },
+    {
+      "entity": "AssignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "assignstandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "AsyncHandler",
+      "table": "asynchandlers"
+    },
+    {
+      "entity": "AttachPhoneCommand",
+      "table": "attachphonecommands"
+    },
+    {
+      "entity": "CheckPhoneFiltersCommand",
+      "table": "checkphonefilterscommands"
+    },
+    {
+      "entity": "DeterminePhoneNumberTypeCommand",
+      "table": "determinephonenumbertypecommands"
+    },
+    {
+      "entity": "IPhoneNumberImportRepository",
+      "table": "iphonenumberimportrepositorys"
+    },
+    {
+      "entity": "IPhoneNumberProviderRepository",
+      "table": "iphonenumberproviderrepositorys"
+    },
+    {
+      "entity": "IPhoneNumberRepository",
+      "table": "iphonenumberrepositorys"
+    },
+    {
+      "entity": "ISupplyNumberRepository",
+      "table": "isupplynumberrepositorys"
+    },
+    {
+      "entity": "IVoiceNumbersRepository",
+      "table": "ivoicenumbersrepositorys"
+    },
+    {
+      "entity": "LookupSupplyNumbersSubscriptionsCommand",
+      "table": "lookupsupplynumberssubscriptionscommands"
+    },
+    {
+      "entity": "NotifySupplyNumberSubscribersNotificationHandler",
+      "table": "notifysupplynumbersubscribersnotificationhandlers"
+    },
+    {
+      "entity": "PhoneNumberImportRepository",
+      "table": "phonenumberimportrepositorys"
+    },
+    {
+      "entity": "PhoneNumberProviderRepository",
+      "table": "phonenumberproviderrepositorys"
+    },
+    {
+      "entity": "PhoneNumberRepository",
+      "table": "phonenumberrepositorys"
+    },
+    {
+      "entity": "SuperAdminPhoneNumberProviderController",
+      "table": "superadminphonenumberprovidercontrollers"
+    },
+    {
+      "entity": "SupplyNumberRepository",
+      "table": "supplynumberrepositorys"
+    },
+    {
+      "entity": "UpdateConversationPhoneNumberCommand",
+      "table": "updateconversationphonenumbercommands"
+    },
+    {
+      "entity": "UpdateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "updatestandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "UpdateSupplyNumberSubscriptionNameCommand",
+      "table": "updatesupplynumbersubscriptionnamecommands"
+    },
+    {
+      "entity": "VirtualPhoneNumbersController",
+      "table": "virtualphonenumberscontrollers"
+    },
+    {
+      "entity": "VoiceNumbersRepository",
+      "table": "voicenumbersrepositorys"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "assignConversationPhoneNumberCommand",
+      "table": "assignconversationphonenumbercommands"
+    },
+    {
+      "entity": "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "assignstandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "updateConversationPhoneNumberCommand",
+      "table": "updateconversationphonenumbercommands"
+    },
+    {
+      "entity": "updateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "updatestandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "updateSupplyNumberSubscriptionNameCommand",
+      "table": "updatesupplynumbersubscriptionnamecommands"
+    }
+  ],
+  "known_integrations": [
+    "HTTP REST Client"
+  ],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
+}

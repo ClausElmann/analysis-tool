@@ -1,0 +1,7 @@
+[
+  "Batch",
+  "BatchApp",
+  "IntegrationBatchAppService",
+  "StartLookupBatchNotification",
+  "StartLookupBatchNotificationHandler"
+]

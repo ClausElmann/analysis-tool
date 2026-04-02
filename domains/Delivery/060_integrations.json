@@ -1,6 +1,4 @@
-{
-  "domain": "Delivery",
-  "integrations": [],
-  "webhooks": [],
-  "background_services": []
-}
+[
+  "ApiClient",
+  "HTTP REST Client"
+]

@@ -1,4 +1,9 @@
-{
-  "domain": "Email",
-  "flows": []
-}
+[
+  "AttachEmailCommandProcessor",
+  "CheckEmailForDoublesCommandProcessor",
+  "EmailsWorkloadProcessor",
+  "InboundParseEventHandler",
+  "PinCodeEmailRequestedNotificationHandler",
+  "SendGridWorkloadDevProcessor",
+  "SendGridWorkloadProcessor"
+]

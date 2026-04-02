@@ -1,4 +1,3 @@
-{
-  "domain": "Enrollment",
-  "batch_jobs": []
-}
+[
+  "BatchApp"
+]

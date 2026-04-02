@@ -1,14 +1,9 @@
 {
-  "domain": "Voice",
-  "confidence": 0.33,
-  "coverage": {
-    "api_endpoints": 0,
-    "batch_jobs": 0,
-    "events": 1,
-    "webhooks": 0,
-    "integrations": 0,
-    "background_services": 1
-  },
-  "complexity_score": 1,
-  "roi_score": 4
+  "completeness_score": 0.54,
+  "domain": "voice",
+  "gaps_count": 4,
+  "iteration": 14,
+  "new_information_score": 0.1352,
+  "saved_utc": "2026-04-02T01:37:34.232717+00:00",
+  "status": "in_progress"
 }

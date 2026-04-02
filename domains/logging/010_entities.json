@@ -1,0 +1,10 @@
+[
+  "CreateLogCommand",
+  "FullLoggingApplicationSettingsService",
+  "ILogRepository",
+  "LogRepository",
+  "LogService",
+  "OutgoingHttpClientLoggingHandler",
+  "and",
+  "names"
+]

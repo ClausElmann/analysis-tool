@@ -1,0 +1,8 @@
+{
+  "business_value": "medium",
+  "complexity": "high",
+  "coupling": "low",
+  "domain": "profile_management",
+  "rebuild_priority": 6,
+  "saved_utc": "2026-04-02T01:30:09.942149+00:00"
+}

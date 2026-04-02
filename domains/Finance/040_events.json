@@ -1,4 +1,6 @@
-{
-  "domain": "Finance",
-  "events": []
-}
+[
+  "ClientEvent",
+  "ClientEventServiceConnectEvent",
+  "ConversationMessage",
+  "ConversationUnreadStatusChangedEvent"
+]

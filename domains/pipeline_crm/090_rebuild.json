@@ -1,0 +1,81 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T01:27:12.377056Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "PipelineController",
+      "route": "/pipeline",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CloneProspectProductsToCustomerCommand",
+      "ProspectCreatedInEconomicNotification",
+      "UpdateProspectCommand",
+      "UpdateProspectWithCustomerIdCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [],
+  "ef_core_entities": [
+    {
+      "entity": "CloneProspectProductsToCustomerCommand",
+      "table": "cloneprospectproductstocustomercommands"
+    },
+    {
+      "entity": "IPipelinesRepository",
+      "table": "ipipelinesrepositorys"
+    },
+    {
+      "entity": "ISalesforceRepository",
+      "table": "isalesforcerepositorys"
+    },
+    {
+      "entity": "PipelineController",
+      "table": "pipelinecontrollers"
+    },
+    {
+      "entity": "PipelinesRepository",
+      "table": "pipelinesrepositorys"
+    },
+    {
+      "entity": "SalesforceRepository",
+      "table": "salesforcerepositorys"
+    },
+    {
+      "entity": "UpdateProspectCommand",
+      "table": "updateprospectcommands"
+    },
+    {
+      "entity": "UpdateProspectWithCustomerIdCommand",
+      "table": "updateprospectwithcustomeridcommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must",
+    "must be plain English or well-known identifiers."
+  ]
+}

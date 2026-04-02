@@ -1,4 +1,116 @@
 {
-  "domain": "Enrollment",
-  "rebuild_requirements": []
+  "_meta": {
+    "generated_at": "2026-04-02T01:21:10.083428Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "BaseEnrollmentsController",
+      "route": "/baseenrollments",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "EnrollmentAdminController",
+      "route": "/enrollmentadmin",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "EnrollmentController",
+      "route": "/enrollment",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "DeleteEnrollmentCommand",
+      "EnrollmentCreatedEvent",
+      "LookupEnrollmentsCommand",
+      "LookupOwnerEnrollmentsCommand",
+      "UnsubscribeEvent",
+      "deleteEnrollmentCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "CustomerEventsHandler",
+    "EnrollmentCreatedEventHandler",
+    "EnrollmentStep",
+    "LookupEnrollmentsCommandProcessor",
+    "LookupOwnerEnrollmentsCommandProcessor",
+    "UnsubscribeEventHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "BaseEnrollmentsController",
+      "table": "baseenrollmentscontrollers"
+    },
+    {
+      "entity": "CustomerEventsHandler",
+      "table": "customereventshandlers"
+    },
+    {
+      "entity": "DeleteEnrollmentCommand",
+      "table": "deleteenrollmentcommands"
+    },
+    {
+      "entity": "EnrollmentAdminController",
+      "table": "enrollmentadmincontrollers"
+    },
+    {
+      "entity": "EnrollmentController",
+      "table": "enrollmentcontrollers"
+    },
+    {
+      "entity": "EnrollmentCreatedEventHandler",
+      "table": "enrollmentcreatedeventhandlers"
+    },
+    {
+      "entity": "EnrollmentRepository",
+      "table": "enrollmentrepositorys"
+    },
+    {
+      "entity": "IEnrollmentRepository",
+      "table": "ienrollmentrepositorys"
+    },
+    {
+      "entity": "LookupEnrollmentsCommand",
+      "table": "lookupenrollmentscommands"
+    },
+    {
+      "entity": "LookupOwnerEnrollmentsCommand",
+      "table": "lookupownerenrollmentscommands"
+    },
+    {
+      "entity": "UnsubscribeEventHandler",
+      "table": "unsubscribeeventhandlers"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "deleteEnrollmentCommand",
+      "table": "deleteenrollmentcommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
 }

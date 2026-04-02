@@ -1,3 +1,6 @@
+# LEGACY — DO NOT RUN
+# This script is superseded by run_domain_engine.py (Gen 3 canonical entrypoint).
+# Retained for reference only. Running this file may corrupt domain state.
 import json
 mod = json.load(open('data/system_model.json', encoding='utf-8'))
 for m in mod['modules']:

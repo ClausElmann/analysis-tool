@@ -1,0 +1,8 @@
+{
+  "business_value": "medium",
+  "complexity": "medium",
+  "coupling": "medium",
+  "domain": "logging",
+  "rebuild_priority": 6,
+  "saved_utc": "2026-04-02T01:23:29.227387+00:00"
+}

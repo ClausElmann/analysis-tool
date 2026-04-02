@@ -1,14 +1,15 @@
-{
-  "domain": "Conversation",
-  "events": [
-    {
-      "event": "ConversationUnreadStatusChangedEvent",
-      "publishers": [
-        "ServiceAlert.Services/Conversations/ConversationService.cs"
-      ],
-      "handlers": [
-        "ConversationUnreadStatusChangedListener"
-      ]
-    }
-  ]
-}
+[
+  "AssignConversationPhoneNumberCommand",
+  "ConversationMessage",
+  "ConversationPartnerNameUpdateCommand",
+  "ConversationUnreadStatusChangedEvent",
+  "CreateConversationCommand",
+  "SendConversationReplyCommand",
+  "StatusUpdatesEvent",
+  "UpdateConversationPhoneNumberCommand",
+  "assignConversationPhoneNumberCommand",
+  "conversationPartnerNameUpdateCommand",
+  "createConversationCommand",
+  "sendConversationReplyCommand",
+  "updateConversationPhoneNumberCommand"
+]

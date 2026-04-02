@@ -53,7 +53,9 @@ DOMAIN_SEEDS: List[str] = [
 # Status constants
 STATUS_PENDING = "pending"
 STATUS_IN_PROGRESS = "in_progress"
-STATUS_STABLE = "stable"
+STATUS_STABLE = "stable"   # INTERNAL convergence hint from DomainLearningLoop only.
+                            # NOT a terminal persisted status.
+                            # Protocol re-evaluates "stable" domains on next call.
 
 # Protocol v1 status constants (additive — do not remove existing ones)
 STATUS_BLOCKED = "blocked"
@@ -189,7 +191,17 @@ class DomainState:
         tmp = self._state_path + ".tmp"
         with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(data, fh, indent=2, ensure_ascii=False)
-        os.replace(tmp, self._state_path)
+        # Retry the atomic rename — Windows may briefly lock the destination
+        # file (e.g. AV scan) after a recent write.
+        import time as _time
+        for _attempt in range(6):
+            try:
+                os.replace(tmp, self._state_path)
+                break
+            except PermissionError:
+                if _attempt == 5:
+                    raise
+                _time.sleep(0.3 * (2 ** _attempt))  # 0.3s, 0.6s, 1.2s, 2.4s, 4.8s
 
     # ------------------------------------------------------------------
     # Domain management

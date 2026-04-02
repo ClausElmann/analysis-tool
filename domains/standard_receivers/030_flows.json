@@ -1,0 +1,6 @@
+[
+  "ExpandStandardReceiverGroupCommandProcessor",
+  "SplitStandardReceiverCommandProcessor",
+  "StandardReceiverDataImportPostProcessor",
+  "StandardReceiverGroupMessageReceivedNotificationHandler"
+]

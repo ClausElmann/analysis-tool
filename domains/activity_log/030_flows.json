@@ -1,0 +1,7 @@
+[
+  "CreateSmsLogCommandProcessor",
+  "CreateSmsLogResponseCommandProcessor",
+  "DataImportActivityLoggerPostProcessor",
+  "LoggingVoiceMessageQueueEventProcessor",
+  "OutgoingHttpClientLoggingHandler"
+]

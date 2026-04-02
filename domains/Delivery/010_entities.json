@@ -1,4 +1,26 @@
-{
-  "domain": "Delivery",
-  "entities": []
-}
+[
+  "DeliveryDto",
+  "EboksController",
+  "EboksRepository",
+  "EboksService",
+  "GatewayApiMobileOriginatedMessageDto",
+  "IEboksRepository",
+  "IEboksService",
+  "IInfobipForwardingService",
+  "IInfobipScenarioService",
+  "IProcessedInboundEmailRepository",
+  "ISendGridBackgroundService",
+  "InboundParseEventHandler",
+  "InfobipCustomerVoiceSettingsChangedEventHandler",
+  "InfobipDeliveryReportDto",
+  "InfobipForwardingService",
+  "InfobipScenarioDto",
+  "InfobipScenarioService",
+  "MultiSmsMessageDto",
+  "ProcessedInboundEmailRepository",
+  "SendGridBackgroundService",
+  "SmsMessageDto",
+  "StrexDeliveryReportDto",
+  "and",
+  "names"
+]

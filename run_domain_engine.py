@@ -184,6 +184,13 @@ def main() -> int:
         verbose=not args.quiet,
     )
 
+    # Bulk-register all seeds into domain_state.json before any iteration.
+    # run_protocol_iteration only registers one domain per call, so without this
+    # the engine would loop forever on whichever domain was already in state.
+    engine._state.load()
+    engine._state.ensure_domains(seeds)
+    engine._state.save()
+
     # -- Run
     if args.once:
         result = engine.run_one_iteration()
@@ -191,18 +198,26 @@ def main() -> int:
     else:
         # Run until all domains are complete/blocked or max iterations reached
         _MAX_TOTAL = 500
+        _TERMINAL = {"complete", "blocked"}
+        _total_domains = len(seeds)
+        _domain_statuses: dict = {}
         runs = 0
         while runs < _MAX_TOTAL:
             result = engine.run_one_iteration()
             runs += 1
             status_after = result.get("status_after", "")
             domain = result.get("domain")
+            if domain:
+                _domain_statuses[domain] = status_after
+            done = sum(1 for s in _domain_statuses.values() if s in _TERMINAL)
+            pct = int(done / _total_domains * 100) if _total_domains else 0
             print(
-                f"[{runs:>3}] {str(domain):<30} → {status_after}  "
-                f"completeness={result.get('scores_after', {}).get('completeness', 0):.3f}"
+                f"[{runs:>3}] {str(domain):<30} -> {status_after:<20} "
+                f"c={result.get('scores_after', {}).get('completeness', 0):.3f}  "
+                f"[{done}/{_total_domains} done  {pct}%]"
             )
             if status_after == "all_complete":
-                print("[DomainEngine] All domains complete or blocked — done.")
+                print("[DomainEngine] All domains complete or blocked -- done.")
                 break
         else:
             print(f"[DomainEngine] Reached max iterations ({_MAX_TOTAL}).")

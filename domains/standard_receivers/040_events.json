@@ -1,0 +1,20 @@
+[
+  "AssignStandardReceiverGroupDistributionPhoneNumberCommand",
+  "ExpandStandardReceiverGroupCommand",
+  "RegisterStandardReceiverCommand",
+  "RegisterStandardReceiverGroupCommand",
+  "SplitStandardReceiverCommand",
+  "StandardReceiverGroupCreateCommand",
+  "StandardReceiverGroupExpandedEvent",
+  "StandardReceiverGroupMessageReceivedNotification",
+  "StandardReceiverGroupProfileCommand",
+  "StandardReceiverGroupProfileMappingCommand",
+  "StandardReceiverProfileCommand",
+  "UpdateProfileToGroupMappingsCommand",
+  "UpdateStandardReceiverGroupDistributionPhoneNumberCommand",
+  "UpdateStdReceiverMappingsForProfileCommand",
+  "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+  "standardReceiverGroupCreateCommand",
+  "standardReceiverGroupProfileMappingCommand",
+  "updateStandardReceiverGroupDistributionPhoneNumberCommand"
+]

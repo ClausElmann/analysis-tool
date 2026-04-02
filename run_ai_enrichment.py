@@ -46,7 +46,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from core.domain.ai_reasoner import HeuristicAIProvider, build_provider_from_env
 from core.domain.domain_ai_enricher import DomainAIEnricher
-from core.domain.domain_state import DOMAIN_SEEDS
+from core.domain.domain_model_store import DomainModelStore
+from core.domain.domain_scoring import compute_completeness
+from core.domain.domain_state import DOMAIN_SEEDS, DomainState
 
 _DEFAULT_SOLUTION = Path(r"C:\Udvikling\sms-service")
 _DEFAULT_DOMAINS  = Path(__file__).parent / "domains"
@@ -130,6 +132,10 @@ def main() -> None:
     total_start = time.time()
     summaries = {}
 
+    # DomainState for post-enrichment sync (M5)
+    _domains_root = str(args.domains_root)
+    _store = DomainModelStore(domains_root=_domains_root)
+
     for domain in domains:
         start = time.time()
         try:
@@ -141,6 +147,29 @@ def main() -> None:
         elapsed = time.time() - start
         if not args.quiet:
             print(f"  Done in {elapsed:.1f}s")
+
+        # M5: sync completeness_score to domain_state.json after enrichment.
+        # The enricher writes model files but does not update the global state.
+        # This keeps domain_state.json consistent with the enriched model so
+        # the protocol's completeness gate reflects real post-enrichment data.
+        if not args.dry_run and "error" not in summaries.get(domain, {}):
+            try:
+                enriched_model = _store.load_model(domain)
+                new_score = round(compute_completeness(enriched_model), 4)
+                ds = DomainState(domains_root=_domains_root)
+                ds.load()
+                prog = ds.get(domain)
+                if prog is not None and prog.completeness_score != new_score:
+                    old_score = prog.completeness_score
+                    prog.completeness_score = new_score
+                    ds.save()
+                    if not args.quiet:
+                        print(
+                            f"  [M5] domain_state.json[{domain}].completeness_score "
+                            f"updated {old_score} → {new_score}"
+                        )
+            except Exception as exc:  # noqa: BLE001
+                print(f"  [M5] WARNING: could not sync domain_state.json for {domain}: {exc}")
 
     # Final report
     print("\n" + "=" * 60)

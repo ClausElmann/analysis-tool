@@ -1,3 +1,6 @@
+# LEGACY — DO NOT RUN
+# This script is superseded by run_domain_engine.py (Gen 3 canonical entrypoint).
+# Retained for reference only. Running this file may corrupt domain state.
 """CLI entry point for the analysis tool."""
 
 import os

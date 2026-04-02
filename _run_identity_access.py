@@ -1,3 +1,6 @@
+# LEGACY — DO NOT RUN
+# This script is superseded by run_domain_engine.py (Gen 3 canonical entrypoint).
+# Retained for reference only. Running this file may corrupt domain state.
 """One-shot script: exhaust all matched assets for identity_access."""
 import sys
 sys.path.insert(0, ".")

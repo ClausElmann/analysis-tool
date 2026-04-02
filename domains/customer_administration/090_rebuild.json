@@ -1,0 +1,224 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T08:44:03.370426Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "MediatR Event Bus",
+      "source": "integration"
+    },
+    {
+      "method": "SAML2 SSO",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "AddressController",
+      "route": "/address",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CustomerController",
+      "route": "/customer",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CustomerOverviewDataDto",
+      "route": "/customeroverviewdatadto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CustomerProfileUsageOverviewDto",
+      "route": "/customerprofileusageoverviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminCustomerController",
+      "route": "/superadmincustomer",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "customerOverviewDataDto",
+      "route": "/customeroverviewdatadto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "customerProfileUsageOverviewDto",
+      "route": "/customerprofileusageoverviewdto",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CloneProspectProductsToCustomerCommand",
+      "CreateOrUpdateCustomerImportFtpSettingCommand",
+      "CustomerCreatedEvent",
+      "CustomerDeletedEvent",
+      "CustomerSubscriptionNotification",
+      "CustomerUpdatedEvent",
+      "CustomerVoiceSettingsChangedEvent",
+      "DeleteCustomerImportFtpSettingCommand",
+      "GetAddressInfoQuery",
+      "GetSentMessagesQuery",
+      "ITreeItemDeSelectedEvent",
+      "ITreeItemSelectedEvent",
+      "LookupAddressQuery",
+      "LookupAddressRecipientsQuery",
+      "LookupAddressesQuery",
+      "ProfileCommand",
+      "SingleMessageAddressCommand",
+      "UpdateProspectWithCustomerIdCommand",
+      "cloneProspectProductsToCustomerCommand",
+      "createOrUpdateCustomerImportFtpSettingCommand",
+      "deleteCustomerImportFtpSettingCommand",
+      "smsgroupScheduleCalendarEvent",
+      "updateProspectWithCustomerIdCommand"
+    ],
+    "rules": [
+      "guard",
+      "guard.ts",
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers.",
+      "should"
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "CustomerEventsHandler",
+    "InfobipCustomerVoiceSettingsChangedEventHandler",
+    "ProspectCreatedInEconomicNotificationHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "AddressController",
+      "table": "addresscontrollers"
+    },
+    {
+      "entity": "BiAddressTreeNodeManager",
+      "table": "biaddresstreenodemanagers"
+    },
+    {
+      "entity": "CloneProspectProductsToCustomerCommand",
+      "table": "cloneprospectproductstocustomercommands"
+    },
+    {
+      "entity": "CreateOrUpdateCustomerImportFtpSettingCommand",
+      "table": "createorupdatecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "CustomerController",
+      "table": "customercontrollers"
+    },
+    {
+      "entity": "CustomerEventsHandler",
+      "table": "customereventshandlers"
+    },
+    {
+      "entity": "CustomerRepository",
+      "table": "customerrepositorys"
+    },
+    {
+      "entity": "DeleteCustomerImportFtpSettingCommand",
+      "table": "deletecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "GetAddressInfoQuery",
+      "table": "getaddressinfoquerys"
+    },
+    {
+      "entity": "GetSentMessagesQuery",
+      "table": "getsentmessagesquerys"
+    },
+    {
+      "entity": "ICustomerRepository",
+      "table": "icustomerrepositorys"
+    },
+    {
+      "entity": "InfobipCustomerVoiceSettingsChangedEventHandler",
+      "table": "infobipcustomervoicesettingschangedeventhandlers"
+    },
+    {
+      "entity": "LookupAddressQuery",
+      "table": "lookupaddressquerys"
+    },
+    {
+      "entity": "LookupAddressRecipientsQuery",
+      "table": "lookupaddressrecipientsquerys"
+    },
+    {
+      "entity": "LookupAddressesQuery",
+      "table": "lookupaddressesquerys"
+    },
+    {
+      "entity": "ProfileCommand",
+      "table": "profilecommands"
+    },
+    {
+      "entity": "ProfileRepository",
+      "table": "profilerepositorys"
+    },
+    {
+      "entity": "ProspectCreatedInEconomicNotificationHandler",
+      "table": "prospectcreatedineconomicnotificationhandlers"
+    },
+    {
+      "entity": "SingleMessageAddressCommand",
+      "table": "singlemessageaddresscommands"
+    },
+    {
+      "entity": "SuperAdminCustomerController",
+      "table": "superadmincustomercontrollers"
+    },
+    {
+      "entity": "UpdateProspectWithCustomerIdCommand",
+      "table": "updateprospectwithcustomeridcommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "cloneProspectProductsToCustomerCommand",
+      "table": "cloneprospectproductstocustomercommands"
+    },
+    {
+      "entity": "createOrUpdateCustomerImportFtpSettingCommand",
+      "table": "createorupdatecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "deleteCustomerImportFtpSettingCommand",
+      "table": "deletecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "updateProspectWithCustomerIdCommand",
+      "table": "updateprospectwithcustomeridcommands"
+    }
+  ],
+  "known_integrations": [
+    "MediatR Event Bus",
+    "SAML2 SSO"
+  ],
+  "validation_rules": [
+    "guard",
+    "guard.ts",
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers.",
+    "should"
+  ]
+}

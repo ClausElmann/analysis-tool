@@ -1,0 +1,21 @@
+[
+  "CreateOrUpdateProfileFtpSettingCommand",
+  "ProfileCommand",
+  "ProfileMissingRoleMessage",
+  "ProfilePositiveListCopyLevelFiltersCommand",
+  "ProfilePositiveListLevelFilterQuery",
+  "ProfilePositiveListSelectLevelFiltersCommand",
+  "ProfilePositiveListSelectedLevelFilterQuery",
+  "StandardReceiverGroupProfileCommand",
+  "StandardReceiverGroupProfileMappingCommand",
+  "StandardReceiverProfileCommand",
+  "UpdateProfileAccountCommand",
+  "UpdateProfileToGroupMappingsCommand",
+  "UpdateStdReceiverMappingsForProfileCommand",
+  "createOrUpdateProfileFtpSettingCommand",
+  "standardReceiverGroupProfileMappingCommand",
+  "updateProfileAccountCommand",
+  "updateProfileToGroupMappingCommand",
+  "updateProfileToGroupMappingsCommand",
+  "updateStdReceiverMappingsForProfileCommand"
+]

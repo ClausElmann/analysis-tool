@@ -1,0 +1,23 @@
+[
+  "AttachEboksAddressCommandProcessor",
+  "AttachEboksCvrCommandProcessor",
+  "BenchmarkFinishedNotificationHandler",
+  "CheckEboksAmplifyForDoublesCommandProcessor",
+  "CheckEboksAmplifyOwnerForDoublesCommandProcessor",
+  "CheckEboksCvrForDoublesCommandProcessor",
+  "CheckEboksCvrNameMatchCommandProcessor",
+  "EboksAmplifyWorkloadProcessor",
+  "EboksCvrWorkloadProcessor",
+  "IntegrationTestHttpMessageHandler",
+  "LookupEboksAmplifyCommandProcessor",
+  "LookupEboksAmplifyOwnerCommandProcessor",
+  "LookupEboksCvrCommandProcessor",
+  "LookupEboksCvrOwnerCommandProcessor",
+  "NotifySupplyNumberSubscribersNotificationHandler",
+  "PinCodeEmailRequestedNotificationHandler",
+  "PinCodeSmsRequestedNotificationHandler",
+  "ProspectCreatedInEconomicNotificationHandler",
+  "SecondaryLookupForEboksFirstStrategyNotificationHandler",
+  "StartLookupBatchNotificationHandler",
+  "SubscribeUnsubscribeReceiptRequestedNotificationHandler"
+]

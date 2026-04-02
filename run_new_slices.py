@@ -1,3 +1,6 @@
+# LEGACY — DO NOT RUN
+# This script is superseded by run_domain_engine.py (Gen 3 canonical entrypoint).
+# Retained for reference only. Running this file may corrupt domain state.
 """Run only the 5 new slices: SLICE_3b, SLICE_12, SLICE_13, SLICE_14, SLICE_16."""
 import sys
 from core.execution_engine import ExecutionEngine, _KNOWN_SLICES

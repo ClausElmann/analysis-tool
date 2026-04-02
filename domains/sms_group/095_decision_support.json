@@ -1,0 +1,8 @@
+{
+  "business_value": "high",
+  "complexity": "high",
+  "coupling": "high",
+  "domain": "sms_group",
+  "rebuild_priority": 10,
+  "saved_utc": "2026-04-02T08:40:37.622621+00:00"
+}

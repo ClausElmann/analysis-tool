@@ -1,4 +1,21 @@
-{
-  "domain": "Webhook",
-  "entities": []
-}
+[
+  "GatewayApiController",
+  "IWebhookService",
+  "IWebhooksRepository",
+  "InfobipSmartResponseDto",
+  "InfobipWebhookController",
+  "NineteenNineteenController",
+  "RegisterWebhookCommand",
+  "SendgridController",
+  "StrexController",
+  "StrexReplyDto",
+  "WebMessageDto",
+  "WebhookEventTypeDto",
+  "WebhookMessagesBackgroundService",
+  "WebhookRegistrationDto",
+  "WebhookService",
+  "WebhooksController",
+  "WebhooksRepository",
+  "and",
+  "names"
+]

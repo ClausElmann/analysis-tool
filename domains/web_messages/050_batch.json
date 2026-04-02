@@ -1,0 +1,9 @@
+[
+  "ActiveJobsHandler",
+  "BatchApp",
+  "JobTaskReadModelExtended",
+  "JobTaskStatusCodeEnum",
+  "JobTaskStatusDtoExtended",
+  "Jobs",
+  "JobsController"
+]

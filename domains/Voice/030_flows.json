@@ -1,4 +1,8 @@
-{
-  "domain": "Voice",
-  "flows": []
-}
+[
+  "IVoiceMessageQueueEventProcessor",
+  "InfobipCustomerVoiceSettingsChangedEventHandler",
+  "LoggingVoiceMessageQueueEventProcessor",
+  "TonyVoiceMessageQueueEventProcessor",
+  "VoiceGatewayWorkloadProcessor",
+  "VoiceMessageStatusChangedEventHandler"
+]

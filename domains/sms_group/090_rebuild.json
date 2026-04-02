@@ -1,0 +1,424 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T08:40:37.620514Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "ApiClient",
+      "source": "integration"
+    },
+    {
+      "method": "HTTP REST Client",
+      "source": "integration"
+    },
+    {
+      "method": "SCIM 2.0",
+      "source": "integration"
+    },
+    {
+      "method": "SMS Gateway",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "Email2SmsWhitelistController",
+      "route": "/email2smswhitelist",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "MessageAccordionFormGroupModel",
+      "route": "/messageaccordionformgroupmodel",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ScimGroupsController",
+      "route": "/scimgroups",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupApprovalController",
+      "route": "/smsgroupapproval",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupQuickReponseSetupReadModel",
+      "route": "/smsgroupquickreponsesetupreadmodel",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupQuickResponseSetupDto",
+      "route": "/smsgroupquickresponsesetupdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupQuickResponseSetupUpdateCommand",
+      "route": "/smsgroupquickresponsesetupupdatecommand",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupQuickResponseStatisticsReadModel",
+      "route": "/smsgroupquickresponsestatisticsreadmodel",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupScheduleController",
+      "route": "/smsgroupschedule",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupStatusController",
+      "route": "/smsgroupstatus",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupStencilController",
+      "route": "/smsgroupstencil",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "smsGroupQuickResponseSetupDto",
+      "route": "/smsgroupquickresponsesetupdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "smsGroupQuickResponseStatisticsReadModel",
+      "route": "/smsgroupquickresponsestatisticsreadmodel",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "AssignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "CreateSmsLogCommand",
+      "CreateSmsLogResponseCommand",
+      "CreateSmsLogStatusCommand",
+      "CreateSmsLogsInStateEvent",
+      "ExpandStandardReceiverGroupCommand",
+      "LookupSmsGroupCommand",
+      "LookupSmsLogsQuery",
+      "PinCodeSmsRequestedNotification",
+      "RegisterStandardReceiverGroupCommand",
+      "ScheduleCommand",
+      "SendSmsGroupCommand",
+      "SmsGroupByMunicipalitiesCommand",
+      "SmsGroupCreateByLevelCommand",
+      "SmsGroupCreateCommand",
+      "SmsGroupDeletedNotification",
+      "SmsGroupFoundEvent",
+      "SmsGroupIdAndAddressesCommand",
+      "SmsGroupMarkedAsStencilEvent",
+      "SmsGroupQuickResponseSetupUpdateCommand",
+      "SmsGroupResponseOptionUpdateCommand",
+      "SmsGroupResponseSettingsUpdateCommand",
+      "SmsGroupScheduleCalendarEvent",
+      "SmsGroupScheduleCreatedEvent",
+      "SmsLogResponseCommand",
+      "SmsLogResponseEvent",
+      "SmsMessageUpdateCommand",
+      "SmsSentNotification",
+      "StandardReceiverGroupCreateCommand",
+      "StandardReceiverGroupExpandedEvent",
+      "StandardReceiverGroupMessageReceivedNotification",
+      "StandardReceiverGroupProfileCommand",
+      "StandardReceiverGroupProfileMappingCommand",
+      "UpdateProfileToGroupMappingsCommand",
+      "UpdateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "smsGroupByMunicipalitiesCommand",
+      "smsGroupScheduleCalendarEvent",
+      "smsLogResponseCommand",
+      "smsgroupScheduleCalendarEvent",
+      "standardReceiverGroupCreateCommand",
+      "standardReceiverGroupProfileMappingCommand",
+      "updateProfileToGroupMappingCommand",
+      "updateProfileToGroupMappingsCommand",
+      "updateStandardReceiverGroupDistributionPhoneNumberCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "CreateSmsLogCommandProcessor",
+    "CreateSmsLogResponseCommandProcessor",
+    "ExpandStandardReceiverGroupCommandProcessor",
+    "GatewayApiBulkApiWorkloadProcessor",
+    "GatewayApiBulkTestWorkloadProcessor",
+    "LookupSmsGroupCommandProcessor",
+    "PinCodeSmsRequestedNotificationHandler",
+    "SmsGatewayBrokerWorkloadProcessor",
+    "SmsGroupDeletedHandler",
+    "SmsGroupMarkedAsStencilEventHandler",
+    "SmsGroupScheduleCreatedEventHandler",
+    "StandardReceiverGroupMessageReceivedNotificationHandler",
+    "StrexGatewayWorkloadProcessor"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "AssignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "assignstandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "CreateSmsLogCommand",
+      "table": "createsmslogcommands"
+    },
+    {
+      "entity": "CreateSmsLogResponseCommand",
+      "table": "createsmslogresponsecommands"
+    },
+    {
+      "entity": "CreateSmsLogStatusCommand",
+      "table": "createsmslogstatuscommands"
+    },
+    {
+      "entity": "Email2SmsWhitelistController",
+      "table": "email2smswhitelistcontrollers"
+    },
+    {
+      "entity": "Email2SmsWhitelistRepository",
+      "table": "email2smswhitelistrepositorys"
+    },
+    {
+      "entity": "ExpandStandardReceiverGroupCommand",
+      "table": "expandstandardreceivergroupcommands"
+    },
+    {
+      "entity": "IEmail2SmsWhitelistRepository",
+      "table": "iemail2smswhitelistrepositorys"
+    },
+    {
+      "entity": "ISmsGroupApproverRepository",
+      "table": "ismsgroupapproverrepositorys"
+    },
+    {
+      "entity": "ISmsGroupScheduleRepository",
+      "table": "ismsgroupschedulerepositorys"
+    },
+    {
+      "entity": "ISmsGroupStatisticRepository",
+      "table": "ismsgroupstatisticrepositorys"
+    },
+    {
+      "entity": "ISmsGroupStencilRepository",
+      "table": "ismsgroupstencilrepositorys"
+    },
+    {
+      "entity": "ISmsLogBackgroundProcessingManager",
+      "table": "ismslogbackgroundprocessingmanagers"
+    },
+    {
+      "entity": "ISmsLogRepository",
+      "table": "ismslogrepositorys"
+    },
+    {
+      "entity": "LookupSmsGroupCommand",
+      "table": "lookupsmsgroupcommands"
+    },
+    {
+      "entity": "LookupSmsLogsQuery",
+      "table": "lookupsmslogsquerys"
+    },
+    {
+      "entity": "PinCodeSmsRequestedNotificationHandler",
+      "table": "pincodesmsrequestednotificationhandlers"
+    },
+    {
+      "entity": "RegisterStandardReceiverGroupCommand",
+      "table": "registerstandardreceivergroupcommands"
+    },
+    {
+      "entity": "ScheduleCommand",
+      "table": "schedulecommands"
+    },
+    {
+      "entity": "ScimGroupsController",
+      "table": "scimgroupscontrollers"
+    },
+    {
+      "entity": "SendSmsGroupCommand",
+      "table": "sendsmsgroupcommands"
+    },
+    {
+      "entity": "SmsGroupApprovalController",
+      "table": "smsgroupapprovalcontrollers"
+    },
+    {
+      "entity": "SmsGroupApproverRepository",
+      "table": "smsgroupapproverrepositorys"
+    },
+    {
+      "entity": "SmsGroupByMunicipalitiesCommand",
+      "table": "smsgroupbymunicipalitiescommands"
+    },
+    {
+      "entity": "SmsGroupCreateByLevelCommand",
+      "table": "smsgroupcreatebylevelcommands"
+    },
+    {
+      "entity": "SmsGroupCreateCommand",
+      "table": "smsgroupcreatecommands"
+    },
+    {
+      "entity": "SmsGroupDeletedHandler",
+      "table": "smsgroupdeletedhandlers"
+    },
+    {
+      "entity": "SmsGroupIdAndAddressesCommand",
+      "table": "smsgroupidandaddressescommands"
+    },
+    {
+      "entity": "SmsGroupMarkedAsStencilEventHandler",
+      "table": "smsgroupmarkedasstencileventhandlers"
+    },
+    {
+      "entity": "SmsGroupQuickResponseSetupUpdateCommand",
+      "table": "smsgroupquickresponsesetupupdatecommands"
+    },
+    {
+      "entity": "SmsGroupResponseOptionUpdateCommand",
+      "table": "smsgroupresponseoptionupdatecommands"
+    },
+    {
+      "entity": "SmsGroupResponseSettingsUpdateCommand",
+      "table": "smsgroupresponsesettingsupdatecommands"
+    },
+    {
+      "entity": "SmsGroupScheduleController",
+      "table": "smsgroupschedulecontrollers"
+    },
+    {
+      "entity": "SmsGroupScheduleCreatedEventHandler",
+      "table": "smsgroupschedulecreatedeventhandlers"
+    },
+    {
+      "entity": "SmsGroupScheduleRepository",
+      "table": "smsgroupschedulerepositorys"
+    },
+    {
+      "entity": "SmsGroupStatisticRepository",
+      "table": "smsgroupstatisticrepositorys"
+    },
+    {
+      "entity": "SmsGroupStatusController",
+      "table": "smsgroupstatuscontrollers"
+    },
+    {
+      "entity": "SmsGroupStencilController",
+      "table": "smsgroupstencilcontrollers"
+    },
+    {
+      "entity": "SmsGroupStencilRepository",
+      "table": "smsgroupstencilrepositorys"
+    },
+    {
+      "entity": "SmsLogBackgroundProcessingManager",
+      "table": "smslogbackgroundprocessingmanagers"
+    },
+    {
+      "entity": "SmsLogRepository",
+      "table": "smslogrepositorys"
+    },
+    {
+      "entity": "SmsLogResponseCommand",
+      "table": "smslogresponsecommands"
+    },
+    {
+      "entity": "SmsMessageUpdateCommand",
+      "table": "smsmessageupdatecommands"
+    },
+    {
+      "entity": "StandardReceiverGroupCreateCommand",
+      "table": "standardreceivergroupcreatecommands"
+    },
+    {
+      "entity": "StandardReceiverGroupMessageReceivedNotificationHandler",
+      "table": "standardreceivergroupmessagereceivednotificationhandlers"
+    },
+    {
+      "entity": "StandardReceiverGroupProfileCommand",
+      "table": "standardreceivergroupprofilecommands"
+    },
+    {
+      "entity": "StandardReceiverGroupProfileMappingCommand",
+      "table": "standardreceivergroupprofilemappingcommands"
+    },
+    {
+      "entity": "UpdateProfileToGroupMappingsCommand",
+      "table": "updateprofiletogroupmappingscommands"
+    },
+    {
+      "entity": "UpdateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "updatestandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "assignstandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "smsGroupByMunicipalitiesCommand",
+      "table": "smsgroupbymunicipalitiescommands"
+    },
+    {
+      "entity": "smsLogResponseCommand",
+      "table": "smslogresponsecommands"
+    },
+    {
+      "entity": "standardReceiverGroupCreateCommand",
+      "table": "standardreceivergroupcreatecommands"
+    },
+    {
+      "entity": "standardReceiverGroupProfileMappingCommand",
+      "table": "standardreceivergroupprofilemappingcommands"
+    },
+    {
+      "entity": "updateProfileToGroupMappingCommand",
+      "table": "updateprofiletogroupmappingcommands"
+    },
+    {
+      "entity": "updateProfileToGroupMappingsCommand",
+      "table": "updateprofiletogroupmappingscommands"
+    },
+    {
+      "entity": "updateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "updatestandardreceivergroupdistributionphonenumbercommands"
+    }
+  ],
+  "known_integrations": [
+    "ApiClient",
+    "HTTP REST Client",
+    "SCIM 2.0",
+    "SMS Gateway"
+  ],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
+}

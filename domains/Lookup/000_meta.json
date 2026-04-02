@@ -1,14 +1,9 @@
 {
-  "domain": "Lookup",
-  "confidence": 0.17,
-  "coverage": {
-    "api_endpoints": 0,
-    "batch_jobs": 2,
-    "events": 0,
-    "webhooks": 0,
-    "integrations": 0,
-    "background_services": 0
-  },
-  "complexity_score": 1,
-  "roi_score": 2
+  "completeness_score": 0.54,
+  "domain": "lookup",
+  "gaps_count": 4,
+  "iteration": 22,
+  "new_information_score": 0.0163,
+  "saved_utc": "2026-04-02T01:24:43.869751+00:00",
+  "status": "in_progress"
 }

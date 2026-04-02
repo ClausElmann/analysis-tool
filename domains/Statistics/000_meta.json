@@ -1,14 +1,9 @@
 {
-  "domain": "Statistics",
-  "confidence": 0.17,
-  "coverage": {
-    "api_endpoints": 0,
-    "batch_jobs": 8,
-    "events": 0,
-    "webhooks": 0,
-    "integrations": 0,
-    "background_services": 0
-  },
-  "complexity_score": 2,
-  "roi_score": 2
+  "completeness_score": 0.35,
+  "domain": "statistics",
+  "gaps_count": 6,
+  "iteration": 12,
+  "new_information_score": 0.0,
+  "saved_utc": "2026-04-02T01:34:44.211413+00:00",
+  "status": "in_progress"
 }

@@ -1,4 +1,17 @@
-{
-  "domain": "Subscription",
-  "events": []
-}
+[
+  "CustomerSubscriptionNotification",
+  "LookupOwnerSubscriptionsCommand",
+  "LookupSubscriptionsCommand",
+  "LookupSupplyNumbersSubscriptionsCommand",
+  "SubscribeAddressCommand",
+  "SubscribeCommand",
+  "SubscribeSupplyNumberCommand",
+  "SubscriptionNotification",
+  "UnsubscribeAddressCommand",
+  "UnsubscribeMessageReceivedEvent",
+  "UnsubscribeSupplyNumberCommand",
+  "UpdateSupplyNumberSubscriptionNameCommand",
+  "subscriptionNotification",
+  "updateAddressSubscriptionNameCommand",
+  "updateSupplyNumberSubscriptionNameCommand"
+]

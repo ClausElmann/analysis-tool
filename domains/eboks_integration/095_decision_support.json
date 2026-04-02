@@ -1,0 +1,8 @@
+{
+  "business_value": "high",
+  "complexity": "high",
+  "coupling": "medium",
+  "domain": "eboks_integration",
+  "rebuild_priority": 8,
+  "saved_utc": "2026-04-02T08:45:16.878006+00:00"
+}

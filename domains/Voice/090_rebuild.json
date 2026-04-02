@@ -1,4 +1,90 @@
 {
-  "domain": "Voice",
-  "rebuild_requirements": []
+  "_meta": {
+    "generated_at": "2026-04-02T01:37:34.233718Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "SuperAdminInvoiceController",
+      "route": "/superadmininvoice",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CallMessage",
+      "CallRecipientEntityEvent",
+      "CustomerVoiceSettingsChangedEvent",
+      "SSEEvent",
+      "VoiceGatewaySendMessageCommand",
+      "VoiceMessageQueueEvent",
+      "VoiceMessageStatusChangedEvent",
+      "VoiceMessageUpdateCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "IVoiceMessageQueueEventProcessor",
+    "InfobipCustomerVoiceSettingsChangedEventHandler",
+    "LoggingVoiceMessageQueueEventProcessor",
+    "TonyVoiceMessageQueueEventProcessor",
+    "VoiceGatewayWorkloadProcessor",
+    "VoiceMessageStatusChangedEventHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "IVoiceNumbersRepository",
+      "table": "ivoicenumbersrepositorys"
+    },
+    {
+      "entity": "InfobipCustomerVoiceSettingsChangedEventHandler",
+      "table": "infobipcustomervoicesettingschangedeventhandlers"
+    },
+    {
+      "entity": "JobReportEntity",
+      "table": "jobreportentitys"
+    },
+    {
+      "entity": "SuperAdminInvoiceController",
+      "table": "superadmininvoicecontrollers"
+    },
+    {
+      "entity": "VoiceGatewaySendMessageCommand",
+      "table": "voicegatewaysendmessagecommands"
+    },
+    {
+      "entity": "VoiceMessageStatusChangedEventHandler",
+      "table": "voicemessagestatuschangedeventhandlers"
+    },
+    {
+      "entity": "VoiceMessageUpdateCommand",
+      "table": "voicemessageupdatecommands"
+    },
+    {
+      "entity": "VoiceNumbersRepository",
+      "table": "voicenumbersrepositorys"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
 }

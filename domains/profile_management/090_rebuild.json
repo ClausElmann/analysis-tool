@@ -1,0 +1,188 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T01:30:09.941147Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "CustomerProfileUsageOverviewDto",
+      "route": "/customerprofileusageoverviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ProfileController",
+      "route": "/profile",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "customerProfileUsageOverviewDto",
+      "route": "/customerprofileusageoverviewdto",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CreateOrUpdateProfileFtpSettingCommand",
+      "ProfileCommand",
+      "ProfileMissingRoleMessage",
+      "ProfilePositiveListCopyLevelFiltersCommand",
+      "ProfilePositiveListLevelFilterQuery",
+      "ProfilePositiveListSelectLevelFiltersCommand",
+      "ProfilePositiveListSelectedLevelFilterQuery",
+      "StandardReceiverGroupProfileCommand",
+      "StandardReceiverGroupProfileMappingCommand",
+      "StandardReceiverProfileCommand",
+      "UpdateProfileAccountCommand",
+      "UpdateProfileToGroupMappingsCommand",
+      "UpdateStdReceiverMappingsForProfileCommand",
+      "createOrUpdateProfileFtpSettingCommand",
+      "standardReceiverGroupProfileMappingCommand",
+      "updateProfileAccountCommand",
+      "updateProfileToGroupMappingCommand",
+      "updateProfileToGroupMappingsCommand",
+      "updateStdReceiverMappingsForProfileCommand"
+    ],
+    "rules": [
+      "guard",
+      "guard.ts",
+      "if truly empty (use empty list, not null).",
+      "must",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [],
+  "ef_core_entities": [
+    {
+      "entity": "CreateOrUpdateProfileFtpSettingCommand",
+      "table": "createorupdateprofileftpsettingcommands"
+    },
+    {
+      "entity": "Email2SmsWhitelistRepository",
+      "table": "email2smswhitelistrepositorys"
+    },
+    {
+      "entity": "IEmail2SmsWhitelistRepository",
+      "table": "iemail2smswhitelistrepositorys"
+    },
+    {
+      "entity": "IProfileRepository",
+      "table": "iprofilerepositorys"
+    },
+    {
+      "entity": "IProfileRoleRepository",
+      "table": "iprofilerolerepositorys"
+    },
+    {
+      "entity": "IProfileStorageRepository",
+      "table": "iprofilestoragerepositorys"
+    },
+    {
+      "entity": "ProfileCommand",
+      "table": "profilecommands"
+    },
+    {
+      "entity": "ProfileController",
+      "table": "profilecontrollers"
+    },
+    {
+      "entity": "ProfilePositiveListCopyLevelFiltersCommand",
+      "table": "profilepositivelistcopylevelfilterscommands"
+    },
+    {
+      "entity": "ProfilePositiveListLevelFilterQuery",
+      "table": "profilepositivelistlevelfilterquerys"
+    },
+    {
+      "entity": "ProfilePositiveListSelectLevelFiltersCommand",
+      "table": "profilepositivelistselectlevelfilterscommands"
+    },
+    {
+      "entity": "ProfilePositiveListSelectedLevelFilterQuery",
+      "table": "profilepositivelistselectedlevelfilterquerys"
+    },
+    {
+      "entity": "ProfileRepository",
+      "table": "profilerepositorys"
+    },
+    {
+      "entity": "ProfileRoleRepository",
+      "table": "profilerolerepositorys"
+    },
+    {
+      "entity": "ProfileStorageRepository",
+      "table": "profilestoragerepositorys"
+    },
+    {
+      "entity": "StandardReceiverGroupProfileCommand",
+      "table": "standardreceivergroupprofilecommands"
+    },
+    {
+      "entity": "StandardReceiverGroupProfileMappingCommand",
+      "table": "standardreceivergroupprofilemappingcommands"
+    },
+    {
+      "entity": "StandardReceiverProfileCommand",
+      "table": "standardreceiverprofilecommands"
+    },
+    {
+      "entity": "UpdateProfileAccountCommand",
+      "table": "updateprofileaccountcommands"
+    },
+    {
+      "entity": "UpdateProfileToGroupMappingsCommand",
+      "table": "updateprofiletogroupmappingscommands"
+    },
+    {
+      "entity": "UpdateStdReceiverMappingsForProfileCommand",
+      "table": "updatestdreceivermappingsforprofilecommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "createOrUpdateProfileFtpSettingCommand",
+      "table": "createorupdateprofileftpsettingcommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "standardReceiverGroupProfileMappingCommand",
+      "table": "standardreceivergroupprofilemappingcommands"
+    },
+    {
+      "entity": "updateProfileAccountCommand",
+      "table": "updateprofileaccountcommands"
+    },
+    {
+      "entity": "updateProfileToGroupMappingCommand",
+      "table": "updateprofiletogroupmappingcommands"
+    },
+    {
+      "entity": "updateProfileToGroupMappingsCommand",
+      "table": "updateprofiletogroupmappingscommands"
+    },
+    {
+      "entity": "updateStdReceiverMappingsForProfileCommand",
+      "table": "updatestdreceivermappingsforprofilecommands"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "guard",
+    "guard.ts",
+    "if truly empty (use empty list, not null).",
+    "must",
+    "must be plain English or well-known identifiers."
+  ]
+}

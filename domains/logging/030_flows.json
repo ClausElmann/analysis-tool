@@ -1,0 +1,4 @@
+[
+  "LoggingVoiceMessageQueueEventProcessor",
+  "OutgoingHttpClientLoggingHandler"
+]

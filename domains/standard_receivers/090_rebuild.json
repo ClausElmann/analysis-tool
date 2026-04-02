@@ -1,0 +1,190 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T08:43:27.362951Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "HTTP REST Client",
+      "source": "integration"
+    },
+    {
+      "method": "SCIM 2.0",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "ScimGroupsController",
+      "route": "/scimgroups",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ScimUsersController",
+      "route": "/scimusers",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "StandardReceiverController",
+      "route": "/standardreceiver",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "AssignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "ExpandStandardReceiverGroupCommand",
+      "RegisterStandardReceiverCommand",
+      "RegisterStandardReceiverGroupCommand",
+      "SplitStandardReceiverCommand",
+      "StandardReceiverGroupCreateCommand",
+      "StandardReceiverGroupExpandedEvent",
+      "StandardReceiverGroupMessageReceivedNotification",
+      "StandardReceiverGroupProfileCommand",
+      "StandardReceiverGroupProfileMappingCommand",
+      "StandardReceiverProfileCommand",
+      "UpdateProfileToGroupMappingsCommand",
+      "UpdateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "UpdateStdReceiverMappingsForProfileCommand",
+      "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "standardReceiverGroupCreateCommand",
+      "standardReceiverGroupProfileMappingCommand",
+      "updateStandardReceiverGroupDistributionPhoneNumberCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "ExpandStandardReceiverGroupCommandProcessor",
+    "SplitStandardReceiverCommandProcessor",
+    "StandardReceiverDataImportPostProcessor",
+    "StandardReceiverGroupMessageReceivedNotificationHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "AssignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "assignstandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "ExpandStandardReceiverGroupCommand",
+      "table": "expandstandardreceivergroupcommands"
+    },
+    {
+      "entity": "IStandardReceiverRepository",
+      "table": "istandardreceiverrepositorys"
+    },
+    {
+      "entity": "RegisterStandardReceiverCommand",
+      "table": "registerstandardreceivercommands"
+    },
+    {
+      "entity": "RegisterStandardReceiverGroupCommand",
+      "table": "registerstandardreceivergroupcommands"
+    },
+    {
+      "entity": "ScimEntity",
+      "table": "scimentitys"
+    },
+    {
+      "entity": "ScimGroupsController",
+      "table": "scimgroupscontrollers"
+    },
+    {
+      "entity": "ScimUsersController",
+      "table": "scimuserscontrollers"
+    },
+    {
+      "entity": "SplitStandardReceiverCommand",
+      "table": "splitstandardreceivercommands"
+    },
+    {
+      "entity": "StandardReceiverController",
+      "table": "standardreceivercontrollers"
+    },
+    {
+      "entity": "StandardReceiverGroupCreateCommand",
+      "table": "standardreceivergroupcreatecommands"
+    },
+    {
+      "entity": "StandardReceiverGroupMessageReceivedNotificationHandler",
+      "table": "standardreceivergroupmessagereceivednotificationhandlers"
+    },
+    {
+      "entity": "StandardReceiverGroupProfileCommand",
+      "table": "standardreceivergroupprofilecommands"
+    },
+    {
+      "entity": "StandardReceiverGroupProfileMappingCommand",
+      "table": "standardreceivergroupprofilemappingcommands"
+    },
+    {
+      "entity": "StandardReceiverProfileCommand",
+      "table": "standardreceiverprofilecommands"
+    },
+    {
+      "entity": "StandardReceiverRepository",
+      "table": "standardreceiverrepositorys"
+    },
+    {
+      "entity": "StdReceiversDataManager",
+      "table": "stdreceiversdatamanagers"
+    },
+    {
+      "entity": "StdReceiversTreeNodeDataManager",
+      "table": "stdreceiverstreenodedatamanagers"
+    },
+    {
+      "entity": "UpdateProfileToGroupMappingsCommand",
+      "table": "updateprofiletogroupmappingscommands"
+    },
+    {
+      "entity": "UpdateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "updatestandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "UpdateStdReceiverMappingsForProfileCommand",
+      "table": "updatestdreceivermappingsforprofilecommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "assignstandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "standardReceiverGroupCreateCommand",
+      "table": "standardreceivergroupcreatecommands"
+    },
+    {
+      "entity": "standardReceiverGroupProfileMappingCommand",
+      "table": "standardreceivergroupprofilemappingcommands"
+    },
+    {
+      "entity": "updateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "updatestandardreceivergroupdistributionphonenumbercommands"
+    }
+  ],
+  "known_integrations": [
+    "HTTP REST Client",
+    "SCIM 2.0"
+  ],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
+}

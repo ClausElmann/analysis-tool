@@ -1,0 +1,15 @@
+[
+  "CreateSmsLogCommandProcessor",
+  "CreateSmsLogResponseCommandProcessor",
+  "ExpandStandardReceiverGroupCommandProcessor",
+  "GatewayApiBulkApiWorkloadProcessor",
+  "GatewayApiBulkTestWorkloadProcessor",
+  "LookupSmsGroupCommandProcessor",
+  "PinCodeSmsRequestedNotificationHandler",
+  "SmsGatewayBrokerWorkloadProcessor",
+  "SmsGroupDeletedHandler",
+  "SmsGroupMarkedAsStencilEventHandler",
+  "SmsGroupScheduleCreatedEventHandler",
+  "StandardReceiverGroupMessageReceivedNotificationHandler",
+  "StrexGatewayWorkloadProcessor"
+]

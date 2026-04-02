@@ -1,4 +1,124 @@
 {
-  "domain": "Conversation",
-  "rebuild_requirements": []
+  "_meta": {
+    "generated_at": "2026-04-02T01:13:04.861252Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "ConversationController",
+      "route": "/conversation",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "AssignConversationPhoneNumberCommand",
+      "ConversationMessage",
+      "ConversationPartnerNameUpdateCommand",
+      "ConversationUnreadStatusChangedEvent",
+      "CreateConversationCommand",
+      "SendConversationReplyCommand",
+      "StatusUpdatesEvent",
+      "UpdateConversationPhoneNumberCommand",
+      "assignConversationPhoneNumberCommand",
+      "conversationPartnerNameUpdateCommand",
+      "createConversationCommand",
+      "sendConversationReplyCommand",
+      "updateConversationPhoneNumberCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "ConversationCreatedHandler",
+    "ConversationMessageSentHandler",
+    "ConversationUnreadStatusHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "AssignConversationPhoneNumberCommand",
+      "table": "assignconversationphonenumbercommands"
+    },
+    {
+      "entity": "ConversationController",
+      "table": "conversationcontrollers"
+    },
+    {
+      "entity": "ConversationCreatedHandler",
+      "table": "conversationcreatedhandlers"
+    },
+    {
+      "entity": "ConversationMessageSentHandler",
+      "table": "conversationmessagesenthandlers"
+    },
+    {
+      "entity": "ConversationPartnerNameUpdateCommand",
+      "table": "conversationpartnernameupdatecommands"
+    },
+    {
+      "entity": "ConversationRepository",
+      "table": "conversationrepositorys"
+    },
+    {
+      "entity": "ConversationUnreadStatusHandler",
+      "table": "conversationunreadstatushandlers"
+    },
+    {
+      "entity": "CreateConversationCommand",
+      "table": "createconversationcommands"
+    },
+    {
+      "entity": "IConversationRepository",
+      "table": "iconversationrepositorys"
+    },
+    {
+      "entity": "SendConversationReplyCommand",
+      "table": "sendconversationreplycommands"
+    },
+    {
+      "entity": "UpdateConversationPhoneNumberCommand",
+      "table": "updateconversationphonenumbercommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "assignConversationPhoneNumberCommand",
+      "table": "assignconversationphonenumbercommands"
+    },
+    {
+      "entity": "conversationPartnerNameUpdateCommand",
+      "table": "conversationpartnernameupdatecommands"
+    },
+    {
+      "entity": "createConversationCommand",
+      "table": "createconversationcommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "sendConversationReplyCommand",
+      "table": "sendconversationreplycommands"
+    },
+    {
+      "entity": "updateConversationPhoneNumberCommand",
+      "table": "updateconversationphonenumbercommands"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
 }

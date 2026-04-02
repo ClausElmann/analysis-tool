@@ -1,12 +1,3 @@
-{
-  "domain": "Email",
-  "integrations": [],
-  "webhooks": [],
-  "background_services": [
-    {
-      "name": "EmailBackgroundService",
-      "type": "worker",
-      "host": "ServiceAlert.Services"
-    }
-  ]
-}
+[
+  "Email Notification"
+]

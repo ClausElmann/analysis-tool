@@ -1,0 +1,8 @@
+[
+  "HTTP REST Client",
+  "MediatR Event Bus",
+  "SAML2 SSO",
+  "SCIM 2.0",
+  "TOTP Authenticator",
+  "WebClient"
+]

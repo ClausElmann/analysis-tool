@@ -1,0 +1,347 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T00:04:59.837263Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "HTTP REST Client",
+      "source": "integration"
+    },
+    {
+      "method": "SCIM 2.0",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "AddressController",
+      "route": "/address",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "BaseController",
+      "route": "/base",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "BenchmarkController",
+      "route": "/benchmark",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FramWebController",
+      "route": "/framweb",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "GatewayApiController",
+      "route": "/gatewayapi",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "InfobipWebhookController",
+      "route": "/infobipwebhook",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "MessageController",
+      "route": "/message",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "NineteenNineteenController",
+      "route": "/nineteennineteen",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ProfileController",
+      "route": "/profile",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SearchController",
+      "route": "/search",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SendgridController",
+      "route": "/sendgrid",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "StandardReceiverController",
+      "route": "/standardreceiver",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "StatusController",
+      "route": "/status",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "StrexController",
+      "route": "/strex",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SubscriptionController",
+      "route": "/subscription",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminController",
+      "route": "/superadmin",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "TemplateController",
+      "route": "/template",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "UserController",
+      "route": "/user",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "WebhooksController",
+      "route": "/webhooks",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CreateWebMessageCommand",
+      "CreatedMessage",
+      "LookupAddressQuery",
+      "LookupAddressRecipientsQuery",
+      "LookupAddressesQuery",
+      "MessageMetadataUpdateCommand",
+      "ProfileCommand",
+      "RegisterStandardReceiverCommand",
+      "RegisterStandardReceiverGroupCommand",
+      "RegisterWebhookCommand",
+      "SingleMessageAddressCommand",
+      "SingleMessageCommand",
+      "SmsGroupCreateByLevelCommand",
+      "SmsGroupCreateCommand",
+      "SmsGroupIdAndAddressesCommand",
+      "StandardReceiverGroupProfileCommand",
+      "StandardReceiverProfileCommand",
+      "StartLookupBatchNotification",
+      "SubscribeCommand",
+      "UpdateUserCommand",
+      "UpdateWebMessageCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "IntegrationTestHttpMessageHandler",
+    "StartLookupBatchNotificationHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "AddressController",
+      "table": "addresscontrollers"
+    },
+    {
+      "entity": "BaseController",
+      "table": "basecontrollers"
+    },
+    {
+      "entity": "BenchmarkController",
+      "table": "benchmarkcontrollers"
+    },
+    {
+      "entity": "CreateWebMessageCommand",
+      "table": "createwebmessagecommands"
+    },
+    {
+      "entity": "FramWebController",
+      "table": "framwebcontrollers"
+    },
+    {
+      "entity": "GatewayApiController",
+      "table": "gatewayapicontrollers"
+    },
+    {
+      "entity": "InfobipWebhookController",
+      "table": "infobipwebhookcontrollers"
+    },
+    {
+      "entity": "IntegrationTestHttpMessageHandler",
+      "table": "integrationtesthttpmessagehandlers"
+    },
+    {
+      "entity": "LookupAddressQuery",
+      "table": "lookupaddressquerys"
+    },
+    {
+      "entity": "LookupAddressRecipientsQuery",
+      "table": "lookupaddressrecipientsquerys"
+    },
+    {
+      "entity": "LookupAddressesQuery",
+      "table": "lookupaddressesquerys"
+    },
+    {
+      "entity": "MessageController",
+      "table": "messagecontrollers"
+    },
+    {
+      "entity": "MessageMetadataUpdateCommand",
+      "table": "messagemetadataupdatecommands"
+    },
+    {
+      "entity": "NineteenNineteenController",
+      "table": "nineteennineteencontrollers"
+    },
+    {
+      "entity": "ProfileCommand",
+      "table": "profilecommands"
+    },
+    {
+      "entity": "ProfileController",
+      "table": "profilecontrollers"
+    },
+    {
+      "entity": "RegisterStandardReceiverCommand",
+      "table": "registerstandardreceivercommands"
+    },
+    {
+      "entity": "RegisterStandardReceiverGroupCommand",
+      "table": "registerstandardreceivergroupcommands"
+    },
+    {
+      "entity": "RegisterWebhookCommand",
+      "table": "registerwebhookcommands"
+    },
+    {
+      "entity": "SearchController",
+      "table": "searchcontrollers"
+    },
+    {
+      "entity": "SendgridController",
+      "table": "sendgridcontrollers"
+    },
+    {
+      "entity": "SingleMessageAddressCommand",
+      "table": "singlemessageaddresscommands"
+    },
+    {
+      "entity": "SingleMessageCommand",
+      "table": "singlemessagecommands"
+    },
+    {
+      "entity": "SmsGroupCreateByLevelCommand",
+      "table": "smsgroupcreatebylevelcommands"
+    },
+    {
+      "entity": "SmsGroupCreateCommand",
+      "table": "smsgroupcreatecommands"
+    },
+    {
+      "entity": "SmsGroupIdAndAddressesCommand",
+      "table": "smsgroupidandaddressescommands"
+    },
+    {
+      "entity": "StandardReceiverController",
+      "table": "standardreceivercontrollers"
+    },
+    {
+      "entity": "StandardReceiverGroupProfileCommand",
+      "table": "standardreceivergroupprofilecommands"
+    },
+    {
+      "entity": "StandardReceiverProfileCommand",
+      "table": "standardreceiverprofilecommands"
+    },
+    {
+      "entity": "StartLookupBatchNotificationHandler",
+      "table": "startlookupbatchnotificationhandlers"
+    },
+    {
+      "entity": "StatusController",
+      "table": "statuscontrollers"
+    },
+    {
+      "entity": "StrexController",
+      "table": "strexcontrollers"
+    },
+    {
+      "entity": "SubscribeCommand",
+      "table": "subscribecommands"
+    },
+    {
+      "entity": "SubscriptionController",
+      "table": "subscriptioncontrollers"
+    },
+    {
+      "entity": "SuperAdminController",
+      "table": "superadmincontrollers"
+    },
+    {
+      "entity": "TemplateController",
+      "table": "templatecontrollers"
+    },
+    {
+      "entity": "UpdateUserCommand",
+      "table": "updateusercommands"
+    },
+    {
+      "entity": "UpdateWebMessageCommand",
+      "table": "updatewebmessagecommands"
+    },
+    {
+      "entity": "UserController",
+      "table": "usercontrollers"
+    },
+    {
+      "entity": "WebhooksController",
+      "table": "webhookscontrollers"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [
+    "HTTP REST Client",
+    "SCIM 2.0"
+  ],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
+}

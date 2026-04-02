@@ -1,0 +1,7 @@
+[
+  "CloneProspectProductsToCustomerCommand",
+  "ProspectCreatedInEconomicNotification",
+  "SalesInfoQuery",
+  "UpdateProspectCommand",
+  "UpdateProspectWithCustomerIdCommand"
+]

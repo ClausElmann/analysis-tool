@@ -1,4 +1,6 @@
-{
-  "domain": "Voice",
-  "batch_jobs": []
-}
+[
+  "EnqueueJob",
+  "JobReport",
+  "JobReportEntity",
+  "Jobs"
+]

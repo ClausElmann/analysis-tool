@@ -288,6 +288,74 @@ def build_cross_analysis_prompt(
     return template.format_map(ctx)
 
 
+def build_rebuild_prompt(domain: str, model_summary: Optional[Dict[str, Any]] = None) -> str:
+    """Build an AI prompt for generating a structured V2 rebuild specification.
+
+    Requests canonical V2 rebuild schema output from the AI — must produce
+    structured JSON with the 14 canonical top-level keys.
+
+    Parameters
+    ----------
+    domain:
+        The domain name being rebuilt (e.g. ``"identity_access"``).
+    model_summary:
+        Optional dict with brief per-section summaries to give the AI
+        anchoring context (``entities``, ``flows``, ``rules``, etc.).
+
+    Returns
+    -------
+    str
+        A prompt string requesting structured JSON rebuild output.
+
+    .. note::
+        Output must be structured JSON matching rebuild schema v2.  This
+        prompt is wired from Phase L5 onwards.  Existing ``build_rebuild_spec()``
+        (heuristic, no AI) still runs in parallel until fully validated.
+    """
+    context_block = ""
+    if model_summary:
+        lines = []
+        for key in ("entities", "behaviors", "flows", "rules", "events", "integrations", "batch"):
+            items = model_summary.get(key) or []
+            if items:
+                sample = ", ".join(str(x) for x in items[:5])
+                lines.append(f"- {key} ({len(items)}): {sample}")
+        if lines:
+            context_block = "Current domain model snapshot:\n" + "\n".join(lines) + "\n\n"
+
+    return f"""\
+Analyze the software domain: {domain}
+
+{context_block}Output ONLY valid JSON matching rebuild schema v2 with this exact structure:
+{{
+  "_meta": {{
+    "schema_version": "2.0",
+    "generated_by": "ai_rebuild_prompt"
+  }},
+  "aggregates": ["<top-level domain aggregate name>", ...],
+  "entities": ["<entity or value object name>", ...],
+  "commands": ["<write operation: verb + noun, e.g. CreateUser>", ...],
+  "queries": ["<read operation: verb + noun, e.g. GetUserById>", ...],
+  "workflows": ["<end-to-end process or flow name>", ...],
+  "state_transitions": ["<state A \u2192 state B (trigger)>", ...],
+  "invariants": ["<business rule that must always hold>", ...],
+  "permissions": ["<role or policy name + what it allows>", ...],
+  "persistence": [{{"entity": "<name>", "table": "<table>"}}],
+  "integrations": ["<external system or API>", ...],
+  "background_processes": ["<scheduled job or batch process>", ...],
+  "ui_surfaces": ["<page, component, or screen name>", ...],
+  "events_emitted": ["<event published by this domain>", ...],
+  "events_consumed": ["<event consumed from another domain>", ...]
+}}
+Rules:
+- Output must be structured JSON matching rebuild schema v2.
+- No code snippets.  No raw string literals.  Plain English or identifiers only.
+- Keep each list item \u2264 80 chars.
+- Use empty list [] for sections with no known items.
+- All top-level keys must be present (use empty list, not null).
+"""
+
+
 def build_decision_support_prompt(domain: str) -> str:
     """Build an AI prompt for generating 095_decision_support.json.
 

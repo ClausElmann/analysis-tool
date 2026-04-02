@@ -1,0 +1,5 @@
+[
+  "CustomerEventsHandler",
+  "InfobipCustomerVoiceSettingsChangedEventHandler",
+  "ProspectCreatedInEconomicNotificationHandler"
+]

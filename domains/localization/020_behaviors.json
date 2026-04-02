@@ -1,149 +1,17 @@
 [
-  {
-    "id": "B001",
-    "name": "GetLocalizedResource",
-    "type": "FACT",
-    "description": "Looks up a translation string by ResourceName key and LanguageId. Returns the ResourceName itself (not empty string) if no match is found — fail-open by design.",
-    "source": "LocalizationService.GetLocalizedResource(resourceKey, languageId)",
-    "caching": "Results cached by key 'sms.lsr.{languageId}-{UPPER(resourceKey)}'. Cache invalidated on any write via RemoveByPattern('sms.lsr.').",
-    "fallback": "Returns resourceKey as-is when not found. Never returns null or empty.",
-    "used_by": ["StatusController (status description translation)", "MessageController (default group name, datetime format)", "UserController (login error message)"]
-  },
-  {
-    "id": "B002",
-    "name": "GetLocalizedResourceWithParams",
-    "type": "FACT",
-    "description": "Like B001 but performs token replacement in the result. Tokens are in format '{someKey}'. Runs ForEach Replace on the resolved string.",
-    "source": "LocalizationService.GetLocalizedResource(resourceKey, languageId, translationParams)",
-    "note": "No escaping of token values — if a value contains a '{anotherKey}' pattern, it would be double-replaced. Not observed as a bug in practice."
-  },
-  {
-    "id": "B003",
-    "name": "InsertLocaleStringResource",
-    "type": "FACT",
-    "description": "When a new resource key is added, the service auto-creates rows for ALL languages. The provided row gets the real value; all other language rows get 'Missing Translation' as placeholder.",
-    "source": "LocalizationService.InsertLocaleStringResource()",
-    "invariant": "A ResourceName always exists for every active language. No orphan rows.",
-    "cache_invalidation": "Clears full localization cache pattern on insert."
-  },
-  {
-    "id": "B004",
-    "name": "GetIncomplete",
-    "type": "FACT",
-    "description": "Returns all LocaleStringResource rows where any language version of the ResourceName has ResourceValue = 'Missing Translation'. Shows all language versions of that key, not just the missing one.",
-    "source": "LocalizationRepository.GetIncomplete()",
-    "sql_pattern": "CTE: SELECT ResourceName FROM LocaleStringResources WHERE ResourceValue = 'Missing Translation'. Main: SELECT all rows WHERE ResourceName IN that CTE."
-  },
-  {
-    "id": "B005",
-    "name": "GetLanguageLookup",
-    "type": "FACT",
-    "description": "Returns all resources for a language as an ILookup keyed by UPPER(ResourceName). Used for bulk lookups where many keys need resolving without individual DB roundtrips.",
-    "source": "LocalizationService.GetLanguageLookup(languageId)"
-  },
-  {
-    "id": "B006",
-    "name": "DateTimeFormatting",
-    "type": "FACT",
-    "description": "Localized date/datetime formatting using resource keys stored in DB. Format strings are stored as LocaleStringResources, not hardcoded.",
-    "source": "LocalizationService.ToShortDateString / ToDateTimeString / ToDateTimeWithTimeString / LocalDateFormat / LocalDateTimeFormat / DateTimeWithSecondsFormat",
-    "resource_keys": [
-      "shared.DateFormatShort",
-      "shared.DateTimeFormat",
-      "shared.DateTimeFormatWithTime",
-      "shared.DateTimeWithSecondsFormat"
-    ],
-    "note": "Format strings are standard .NET DateTime format patterns (e.g. 'dd-MM-yyyy'). Stored per language, enabling locale-appropriate formatting without code changes."
-  },
-  {
-    "id": "B007",
-    "name": "GetAllLanguages",
-    "type": "FACT",
-    "description": "Returns all Language rows. Cached for 10 hours (CacheTimeout.TenHours). Used by both LanguageService and internally by LocalizationService.InsertLocaleStringResource to enumerate languages.",
-    "source": "LanguageService.GetAllLanguages()",
-    "cache_key": "'ServiceAlert.language.all'"
-  },
-  {
-    "id": "B008",
-    "name": "BulkMerge (import)",
-    "type": "FACT",
-    "description": "Import from JSON file: deserializes LocaleStringResourceExportReadModel list and performs bulk UPSERT via Z.Dapper.Plus with key (LanguageId, ResourceName). Existing rows are updated; new rows inserted.",
-    "source": "LocalizationService.ImportLocaleStringResourcesAsync(path)",
-    "key": "(LanguageId, ResourceName) — matches UIX_LocaleStringResources_LanguageId_ResourceName"
-  },
-  {
-    "id": "B009",
-    "name": "Export to JSON",
-    "type": "FACT",
-    "description": "Serializes all LocaleStringResources to a JSON file via async query. Output includes LanguageId, ResourceName, ResourceValue. Id is excluded.",
-    "source": "LocalizationService.ExportLocaleStringResourcesAsync(path)"
-  },
-  {
-    "id": "B010",
-    "name": "GetResourcesJson — public translation bootstrap endpoint",
-    "type": "FACT",
-    "description": "Returns ALL localized resources for a given languageId as a flat JSON object keyed by UPPER(ResourceName). This is the endpoint the Angular frontend calls at bootstrap via BiHttpTranslateLoader. AllowAnonymous — required because it is also used by iFrame modules that may not have a bearer token.",
-    "source": "CommonController.GetResourcesJson(int languageId)",
-    "endpoint": "GET /api/Common/GetResourcesJson?languageId={id}",
-    "auth": "AllowAnonymous",
-    "caller": "BiHttpTranslateLoader.getTranslation(lang) — maps Angular lang code (e.g. 'da', 'sv') to BiCountryId and calls this endpoint",
-    "processing": "Calls _localizationService.GetAll(languageId), builds Dictionary<string,string>, returns Ok(dict). Keys are upper-cased to match BiTranslateService convention.",
-    "note": "No caching at HTTP level — caching is done inside LocalizationService.GetAll(). Duplicate key guard: only first occurrence added (ResourceName uniqueness maintained by DB unique index, so duplicates should not occur)."
-  },
-  {
-    "id": "B011",
-    "name": "Resources — paginated admin search",
-    "type": "FACT",
-    "description": "Returns paginated, filterable list of LanguageResourceModel for a given language. Supports searching by ResourceName substring and ResourceValue substring. Supports 'OnlyIncomplete' flag to show only keys with 'Missing Translation' value.",
-    "source": "CommonController.Resources(int languageId, LanguageResourcesQuery query)",
-    "endpoint": "POST /api/Common/Resources?languageId={id}",
-    "auth": "SuperAdmin",
-    "caller": "TranslationManagementService.getAllLocalizedResources(languageId, query)",
-    "processing": "Queries all resources for language, applies optional text filters in-memory, paginates via Paginate(query) extension method. Returns DataTableResultModel<LanguageResourceModel> with Total and Data."
-  },
-  {
-    "id": "B012",
-    "name": "InsertLocalizedResource — admin create",
-    "type": "FACT",
-    "description": "Creates a new LocaleStringResource for a specific language. Validates no existing resource with same ResourceName exists (case-insensitive check). After insert, auto-creates placeholder 'Missing Translation' rows for all other languages (via LocalizationService.InsertLocaleStringResource invariant B003).",
-    "source": "CommonController.InsertLocalizedResource(string resourceName, string resourceValue, int languageId)",
-    "endpoint": "POST /api/Common/InsertLocalizedResource?resourceName=X&resourceValue=Y&languageId=Z",
-    "auth": "SuperAdmin",
-    "caller": "TranslationManagementService.insertLocalizedResources(resourceName, resourceValue, languageId)",
-    "cache_effect": "Clears full 'sms.lsr.' cache pattern on insert."
-  },
-  {
-    "id": "B013",
-    "name": "UpdateLocalizedResource — admin edit",
-    "type": "FACT",
-    "description": "Updates an existing LocaleStringResource by Id. Validates id != 0, ResourceName and ResourceValue not empty, resource exists. Updates all three fields (ResourceName, ResourceValue, LanguageId).",
-    "source": "CommonController.UpdateLocalizedResource(int id, string resourceName, string resourceValue, int languageId)",
-    "endpoint": "POST /api/Common/UpdateLocalizedResource?id=X&resourceName=Y&resourceValue=Z&languageId=W",
-    "auth": "SuperAdmin",
-    "caller": "TranslationManagementService.updateLocalizedResource(id, resourceName, resourceValue, languageId)",
-    "cache_effect": "Clears full 'sms.lsr.' cache pattern on update.",
-    "known_bug": "GAP_005 — caller's tap() for frontend cache update hardcodes 'da'/'se' instead of using getLanguageCodeByLanguageId()"
-  },
-  {
-    "id": "B014",
-    "name": "DeleteLocalizedResource — admin delete",
-    "type": "FACT",
-    "description": "Deletes a LocaleStringResource by Id. Validates id != 0 and resource exists. NOTE: only deletes the single language row — does NOT delete all language versions of the same ResourceName. This can leave orphan 'Missing Translation' rows for other languages.",
-    "source": "CommonController.DeleteLocalizedResource(int id)",
-    "endpoint": "POST /api/Common/DeleteLocalizedResource?id={id}",
-    "auth": "SuperAdmin",
-    "caller": "TranslationManagementService.deleteLocalizedResource(id)",
-    "note": "UI confirms deletion with dialog before calling this endpoint."
-  },
-  {
-    "id": "B015",
-    "name": "DownloadResourcesExcel — export to spreadsheet",
-    "type": "FACT",
-    "description": "Exports all LocaleStringResources (or optionally a single language) as an Excel file. Uses FormattedExcelReportDownloader<TranslationRecord>. File name is localized via GetLocalizedResource('superAdministration.Translations.Translations').",
-    "source": "CommonController.DownloadResourcesExcel(int? languageId)",
-    "endpoint": "GET /api/Common/DownloadResourcesExcel?languageId={optional}",
-    "auth": "SuperAdmin",
-    "output": "FileContentResult — application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "caller": "TranslationManagementService.downloadResourcesExcel(languageId)"
-  }
+  "{'id': 'B001', 'name': 'GetLocalizedResource', 'type': 'FACT', 'description': 'Looks up a translation string by ResourceName key and LanguageId. Returns the ResourceName itself (not empty string) if no match is found — fail-open by design.', 'source': 'LocalizationService.GetLocalizedResource(resourceKey, languageId)', 'caching': \"Results cached by key 'sms.lsr.{languageId}-{UPPER(resourceKey)}'. Cache invalidated on any write via RemoveByPattern('sms.lsr.').\", 'fallback': 'Returns resourceKey as-is when not found. Never returns null or empty.', 'used_by': ['StatusController (status description translation)', 'MessageController (default group name, datetime format)', 'UserController (login error message)']}",
+  "{'id': 'B002', 'name': 'GetLocalizedResourceWithParams', 'type': 'FACT', 'description': \"Like B001 but performs token replacement in the result. Tokens are in format '{someKey}'. Runs ForEach Replace on the resolved string.\", 'source': 'LocalizationService.GetLocalizedResource(resourceKey, languageId, translationParams)', 'note': \"No escaping of token values — if a value contains a '{anotherKey}' pattern, it would be double-replaced. Not observed as a bug in practice.\"}",
+  "{'id': 'B003', 'name': 'InsertLocaleStringResource', 'type': 'FACT', 'description': \"When a new resource key is added, the service auto-creates rows for ALL languages. The provided row gets the real value; all other language rows get 'Missing Translation' as placeholder.\", 'source': 'LocalizationService.InsertLocaleStringResource()', 'invariant': 'A ResourceName always exists for every active language. No orphan rows.', 'cache_invalidation': 'Clears full localization cache pattern on insert.'}",
+  "{'id': 'B004', 'name': 'GetIncomplete', 'type': 'FACT', 'description': \"Returns all LocaleStringResource rows where any language version of the ResourceName has ResourceValue = 'Missing Translation'. Shows all language versions of that key, not just the missing one.\", 'source': 'LocalizationRepository.GetIncomplete()', 'sql_pattern': \"CTE: SELECT ResourceName FROM LocaleStringResources WHERE ResourceValue = 'Missing Translation'. Main: SELECT all rows WHERE ResourceName IN that CTE.\"}",
+  "{'id': 'B005', 'name': 'GetLanguageLookup', 'type': 'FACT', 'description': 'Returns all resources for a language as an ILookup keyed by UPPER(ResourceName). Used for bulk lookups where many keys need resolving without individual DB roundtrips.', 'source': 'LocalizationService.GetLanguageLookup(languageId)'}",
+  "{'id': 'B006', 'name': 'DateTimeFormatting', 'type': 'FACT', 'description': 'Localized date/datetime formatting using resource keys stored in DB. Format strings are stored as LocaleStringResources, not hardcoded.', 'source': 'LocalizationService.ToShortDateString / ToDateTimeString / ToDateTimeWithTimeString / LocalDateFormat / LocalDateTimeFormat / DateTimeWithSecondsFormat', 'resource_keys': ['shared.DateFormatShort', 'shared.DateTimeFormat', 'shared.DateTimeFormatWithTime', 'shared.DateTimeWithSecondsFormat'], 'note': \"Format strings are standard .NET DateTime format patterns (e.g. 'dd-MM-yyyy'). Stored per language, enabling locale-appropriate formatting without code changes.\"}",
+  "{'id': 'B007', 'name': 'GetAllLanguages', 'type': 'FACT', 'description': 'Returns all Language rows. Cached for 10 hours (CacheTimeout.TenHours). Used by both LanguageService and internally by LocalizationService.InsertLocaleStringResource to enumerate languages.', 'source': 'LanguageService.GetAllLanguages()', 'cache_key': \"'ServiceAlert.language.all'\"}",
+  "{'id': 'B008', 'name': 'BulkMerge (import)', 'type': 'FACT', 'description': 'Import from JSON file: deserializes LocaleStringResourceExportReadModel list and performs bulk UPSERT via Z.Dapper.Plus with key (LanguageId, ResourceName). Existing rows are updated; new rows inserted.', 'source': 'LocalizationService.ImportLocaleStringResourcesAsync(path)', 'key': '(LanguageId, ResourceName) — matches UIX_LocaleStringResources_LanguageId_ResourceName'}",
+  "{'id': 'B009', 'name': 'Export to JSON', 'type': 'FACT', 'description': 'Serializes all LocaleStringResources to a JSON file via async query. Output includes LanguageId, ResourceName, ResourceValue. Id is excluded.', 'source': 'LocalizationService.ExportLocaleStringResourcesAsync(path)'}",
+  "{'id': 'B010', 'name': 'GetResourcesJson — public translation bootstrap endpoint', 'type': 'FACT', 'description': 'Returns ALL localized resources for a given languageId as a flat JSON object keyed by UPPER(ResourceName). This is the endpoint the Angular frontend calls at bootstrap via BiHttpTranslateLoader. AllowAnonymous — required because it is also used by iFrame modules that may not have a bearer token.', 'source': 'CommonController.GetResourcesJson(int languageId)', 'endpoint': 'GET /api/Common/GetResourcesJson?languageId={id}', 'auth': 'AllowAnonymous', 'caller': \"BiHttpTranslateLoader.getTranslation(lang) — maps Angular lang code (e.g. 'da', 'sv') to BiCountryId and calls this endpoint\", 'processing': 'Calls _localizationService.GetAll(languageId), builds Dictionary<string,string>, returns Ok(dict). Keys are upper-cased to match BiTranslateService convention.', 'note': 'No caching at HTTP level — caching is done inside LocalizationService.GetAll(). Duplicate key guard: only first occurrence added (ResourceName uniqueness maintained by DB unique index, so duplicates should not occur).'}",
+  "{'id': 'B011', 'name': 'Resources — paginated admin search', 'type': 'FACT', 'description': \"Returns paginated, filterable list of LanguageResourceModel for a given language. Supports searching by ResourceName substring and ResourceValue substring. Supports 'OnlyIncomplete' flag to show only keys with 'Missing Translation' value.\", 'source': 'CommonController.Resources(int languageId, LanguageResourcesQuery query)', 'endpoint': 'POST /api/Common/Resources?languageId={id}', 'auth': 'SuperAdmin', 'caller': 'TranslationManagementService.getAllLocalizedResources(languageId, query)', 'processing': 'Queries all resources for language, applies optional text filters in-memory, paginates via Paginate(query) extension method. Returns DataTableResultModel<LanguageResourceModel> with Total and Data.'}",
+  "{'id': 'B012', 'name': 'InsertLocalizedResource — admin create', 'type': 'FACT', 'description': \"Creates a new LocaleStringResource for a specific language. Validates no existing resource with same ResourceName exists (case-insensitive check). After insert, auto-creates placeholder 'Missing Translation' rows for all other languages (via LocalizationService.InsertLocaleStringResource invariant B003).\", 'source': 'CommonController.InsertLocalizedResource(string resourceName, string resourceValue, int languageId)', 'endpoint': 'POST /api/Common/InsertLocalizedResource?resourceName=X&resourceValue=Y&languageId=Z', 'auth': 'SuperAdmin', 'caller': 'TranslationManagementService.insertLocalizedResources(resourceName, resourceValue, languageId)', 'cache_effect': \"Clears full 'sms.lsr.' cache pattern on insert.\"}",
+  "{'id': 'B013', 'name': 'UpdateLocalizedResource — admin edit', 'type': 'FACT', 'description': 'Updates an existing LocaleStringResource by Id. Validates id != 0, ResourceName and ResourceValue not empty, resource exists. Updates all three fields (ResourceName, ResourceValue, LanguageId).', 'source': 'CommonController.UpdateLocalizedResource(int id, string resourceName, string resourceValue, int languageId)', 'endpoint': 'POST /api/Common/UpdateLocalizedResource?id=X&resourceName=Y&resourceValue=Z&languageId=W', 'auth': 'SuperAdmin', 'caller': 'TranslationManagementService.updateLocalizedResource(id, resourceName, resourceValue, languageId)', 'cache_effect': \"Clears full 'sms.lsr.' cache pattern on update.\", 'known_bug': \"GAP_005 — caller's tap() for frontend cache update hardcodes 'da'/'se' instead of using getLanguageCodeByLanguageId()\"}",
+  "{'id': 'B014', 'name': 'DeleteLocalizedResource — admin delete', 'type': 'FACT', 'description': \"Deletes a LocaleStringResource by Id. Validates id != 0 and resource exists. NOTE: only deletes the single language row — does NOT delete all language versions of the same ResourceName. This can leave orphan 'Missing Translation' rows for other languages.\", 'source': 'CommonController.DeleteLocalizedResource(int id)', 'endpoint': 'POST /api/Common/DeleteLocalizedResource?id={id}', 'auth': 'SuperAdmin', 'caller': 'TranslationManagementService.deleteLocalizedResource(id)', 'note': 'UI confirms deletion with dialog before calling this endpoint.'}",
+  "{'id': 'B015', 'name': 'DownloadResourcesExcel — export to spreadsheet', 'type': 'FACT', 'description': \"Exports all LocaleStringResources (or optionally a single language) as an Excel file. Uses FormattedExcelReportDownloader<TranslationRecord>. File name is localized via GetLocalizedResource('superAdministration.Translations.Translations').\", 'source': 'CommonController.DownloadResourcesExcel(int? languageId)', 'endpoint': 'GET /api/Common/DownloadResourcesExcel?languageId={optional}', 'auth': 'SuperAdmin', 'output': 'FileContentResult — application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'caller': 'TranslationManagementService.downloadResourcesExcel(languageId)'}"
 ]

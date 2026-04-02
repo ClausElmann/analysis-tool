@@ -1,0 +1,8 @@
+[
+  "AsyncHandler",
+  "AttachPhoneCommandProcessor",
+  "CheckPhoneFiltersCommandProcessor",
+  "DeterminePhoneNumberTypeCommandProcessor",
+  "LookupSupplyNumbersSubscriptionsCommandProcessor",
+  "NotifySupplyNumberSubscribersNotificationHandler"
+]

@@ -1,4 +1,5 @@
-{
-  "domain": "Conversation",
-  "flows": []
-}
+[
+  "ConversationCreatedHandler",
+  "ConversationMessageSentHandler",
+  "ConversationUnreadStatusHandler"
+]

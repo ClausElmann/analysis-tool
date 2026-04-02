@@ -1,0 +1,20 @@
+[
+  "AsyncHandler",
+  "CompleteTeledataCommandProcessor",
+  "DataImportActivityLoggerPostProcessor",
+  "DataImportPositiveListAdditionalRecordsHandler",
+  "DataImportRecordValidationResultChunkHandler",
+  "FinnishImportStep",
+  "IDataImportAdditionalRecordsHandler",
+  "IDataImportPostProcessor",
+  "LookupNorwegianCompany1881DataCommandProcessor",
+  "LookupNorwegianCompanyContactDataCommandProcessor",
+  "LookupNorwegianPerson1881DataCommandProcessor",
+  "LookupNorwegianPersonContactDataCommandProcessor",
+  "LookupNorwegianTeledataCommandProcessor",
+  "LookupOwnerTeledataCommandProcessor",
+  "LookupTeledataCommandProcessor",
+  "PositiveListDataImportPostProcessor",
+  "StandardReceiverDataImportPostProcessor",
+  "WriteToDatabasePostProcessor"
+]

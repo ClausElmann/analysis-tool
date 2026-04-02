@@ -1,20 +1,915 @@
 {
   "_meta": {
     "domain": "identity_access",
-    "target_stack": "Blazor Server (or WASM-hosted)",
-    "backend_api": "Existing ASP.NET Core (ServiceAlert.Api) — keep API contracts intact during migration",
-    "generated": "manual enrichment from source code",
-    "version": "1.0"
+    "migrated_at": "2026-04-01T23:27:52.839407+00:00",
+    "migrated_from": "v1",
+    "schema_version": "2.0"
   },
-
-  "blazor_pages": [
+  "_v1_legacy": {
+    "_meta": {
+      "backend_api": "Existing ASP.NET Core (ServiceAlert.Api) — keep API contracts intact during migration",
+      "domain": "identity_access",
+      "generated": "manual enrichment from source code",
+      "target_stack": "Blazor Server (or WASM-hosted)",
+      "version": "1.0"
+    },
+    "api_contracts": [
+      {
+        "auth": "AllowAnonymous",
+        "error_codes": {
+          "300": "Must select profile (multiple profiles available)",
+          "401": "Invalid credentials",
+          "403": "User is locked out (too many failed attempts)",
+          "428": "2FA required"
+        },
+        "id": "API_001",
+        "request_dto": {
+          "fields": {
+            "Email": "string",
+            "Password": "string"
+          },
+          "type": "LoginEmailPasswordDto"
+        },
+        "response_dto": {
+          "fields": {
+            "AccessToken": "string",
+            "ExpiresAt": "DateTime",
+            "RefreshTokenModel": "UserRefreshToken",
+            "RequestedAt": "DateTime"
+          },
+          "type": "TokenDto"
+        },
+        "route": "/api/user/login",
+        "verb": "POST"
+      },
+      {
+        "auth": "AllowAnonymous",
+        "error_codes": {
+          "401": "RefreshToken invalid or expired"
+        },
+        "id": "API_002",
+        "query_params": {
+          "refreshToken": "string"
+        },
+        "response_dto": "TokenDto",
+        "route": "/api/user/refreshaccesstoken",
+        "verb": "GET"
+      },
+      {
+        "auth": "Authenticated",
+        "id": "API_003",
+        "note": "Deletes UserRefreshToken from DB. JWT access token is NOT server-side invalidated.",
+        "response": "200 OK",
+        "route": "/api/user/logout",
+        "verb": "POST"
+      },
+      {
+        "auth": "AllowAnonymous",
+        "id": "API_004",
+        "request_dto": {
+          "fields": {
+            "AuthenticatorCode": "string?",
+            "Email": "string",
+            "MethodUsed": "string (sms|email|authenticatorApp)",
+            "PinCode": "int",
+            "SmsGroupId": "int?"
+          },
+          "type": "TwoFactorModel"
+        },
+        "response_dto": "TokenDto",
+        "route": "/api/user/twofactor",
+        "verb": "POST"
+      },
+      {
+        "auth": "AllowAnonymous",
+        "id": "API_005",
+        "query_params": {
+          "email": "string"
+        },
+        "response": "200 OK",
+        "route": "/api/user/sendpincodebyemail",
+        "verb": "GET"
+      },
+      {
+        "auth": "AllowAnonymous",
+        "id": "API_006",
+        "query_params": {
+          "email": "string"
+        },
+        "response": "200 OK",
+        "route": "/api/user/sendpincodebysms",
+        "verb": "GET"
+      },
+      {
+        "auth": "AllowAnonymous",
+        "error_codes": {
+          "300": "Must select profile",
+          "428": "2FA required"
+        },
+        "id": "API_007",
+        "request_dto": {
+          "fields": {
+            "idToken": "string (MSAL idToken)",
+            "smsGroupId": "int?"
+          }
+        },
+        "response_dto": "TokenDto",
+        "route": "/api/user/loginad",
+        "verb": "POST"
+      },
+      {
+        "auth": "Authenticated",
+        "id": "API_008",
+        "query_params": {
+          "id": "int? (omit for current user)",
+          "inclDeleted": "bool?"
+        },
+        "response_dto": "UserDto",
+        "route": "/api/user",
+        "verb": "GET"
+      },
+      {
+        "auth": "Authenticated",
+        "id": "API_009",
+        "response_dto": {
+          "fields": {
+            "Email": "string",
+            "LanguageId": "int",
+            "MobileNumber": "string",
+            "Name": "string"
+          },
+          "type": "UserInfoDto"
+        },
+        "route": "/api/user/getuserinformation",
+        "verb": "GET"
+      },
+      {
+        "auth": "Authenticated",
+        "id": "API_010",
+        "known_bug": "Returns BadRequest even when update succeeds — missing return Ok() in success branch",
+        "request_dto": {
+          "fields": {
+            "Email": "string",
+            "Id": "int",
+            "LanguageId": "int",
+            "Name": "string",
+            "PhoneNumber": "long?",
+            "ReceiveNewsletter": "bool",
+            "TestMode": "bool",
+            "TimeZoneId": "string"
+          },
+          "type": "UpdateUserCommand"
+        },
+        "route": "/api/user/updateuser",
+        "verb": "PATCH"
+      },
+      {
+        "auth": "Authenticated",
+        "id": "API_011",
+        "query_params": {
+          "id": "int"
+        },
+        "required_role": "CustomerAdmin or SuperAdmin",
+        "route": "/api/user",
+        "verb": "DELETE"
+      },
+      {
+        "auth": "Authenticated",
+        "id": "API_012",
+        "query_params": {
+          "id": "int"
+        },
+        "required_role": "CustomerAdmin or SuperAdmin",
+        "route": "/api/user/reactivateuser",
+        "verb": "POST"
+      },
+      {
+        "auth": "Authenticated",
+        "id": "API_013",
+        "query_params": {
+          "userId": "int"
+        },
+        "required_role": "SuperAdmin",
+        "route": "/api/user/resetfailedloginandunlock",
+        "verb": "POST"
+      },
+      {
+        "auth": "Authenticated",
+        "id": "API_014",
+        "response": "base64-encoded PNG QR code string",
+        "route": "/api/user/getauthenticatorsecretqr",
+        "verb": "GET"
+      },
+      {
+        "auth": "Authenticated",
+        "id": "API_015",
+        "request_dto": {
+          "fields": {
+            "code": "string (6-digit TOTP)"
+          }
+        },
+        "route": "/api/user/confirmauthenticatorapp",
+        "verb": "POST"
+      }
+    ],
+    "authorization_model": {
+      "blazor_equivalent": {
+        "AppCanActivateGuard": "<AuthorizeRouteView> + RedirectToLogin component in NotAuthorized",
+        "SuperAdmin_bypass": "Implement custom IAuthorizationHandler that short-circuits when user has SuperAdmin role claim",
+        "UserRoleGuard": "[Authorize(Roles='SuperAdmin,CustomerAdmin')] on page + AuthorizationService.AuthorizeAsync() for fine-grained"
+      },
+      "impersonation": "Impersonating user gets a new JWT with impersonated user's claims + 'impersonateFromUserId' custom claim. Backend checks this claim to allow returning to original identity.",
+      "mechanism": "JWT Claims-based via [Authorize(Policy=...)] on controllers",
+      "policies_defined_in": "UserAuthenticationPolicyNames.cs",
+      "route_guards_angular": {
+        "AppCanActivateGuard": "Global guard — redirects unauthenticated users to /login",
+        "LimitedUserGuard": "Guards routes unavailable to limited-access user types",
+        "ProfileRoleGuard": "Guards routes requiring a specific profile to be selected",
+        "UserRoleGuard": "Role-based access — checks UserRoleEnum values against user's roles; SuperAdmin bypasses all role checks"
+      }
+    },
+    "blazor_pages": [
+      {
+        "auth_required": false,
+        "child_components": [
+          "LoginFormComponent.razor",
+          "PasswordResetRequestComponent.razor",
+          "TwoFactorPinComponent.razor",
+          "TwoFactorMethodSelectorComponent.razor",
+          "AuthenticatorAppCodeComponent.razor",
+          "AdLoginButtonComponent.razor"
+        ],
+        "events_emitted": [
+          "OnLoginSuccess(UserModel)",
+          "OnLoginFailed(string errorMessage)"
+        ],
+        "id": "PAGE_LOGIN",
+        "inputs": [
+          "email (string)",
+          "password (string)",
+          "twoFactorPin (string, 6 digits)"
+        ],
+        "layout": "GuestLayout",
+        "page_component": "LoginPage.razor",
+        "route": "/login",
+        "state_machine": {
+          "slides": {
+            "0": "Email + Password form (default)",
+            "1": "2FA — enter SMS/email PIN",
+            "2": "2FA — choose delivery method (SMS vs Email)",
+            "3": "Password reset — enter email",
+            "4": "Password reset — confirmation message",
+            "5": "2FA — enter authenticator app code"
+          },
+          "transitions": [
+            "0 → 1: POST /login returns 428 with method=sms or email",
+            "0 → 2: POST /login returns 300 (must choose 2FA method)",
+            "0 → 5: POST /login returns 428 with authenticatorApp=true",
+            "0 → 3: User clicks 'Forgot password'",
+            "3 → 4: POST password-reset-request succeeds",
+            "Any → 0: Back / Cancel"
+          ]
+        },
+        "title": "Login"
+      },
+      {
+        "auth_required": false,
+        "id": "PAGE_TRANSPARENT_LOGIN",
+        "layout": "GuestLayout",
+        "note": "Cookie-based login for iframe/embedded scenarios. Calls GET /api/user/logincookie.",
+        "page_component": "TransparentLoginPage.razor",
+        "route": "/transparent-login",
+        "title": "Transparent Login"
+      },
+      {
+        "api_calls": [
+          "GET /api/user/getuserinformation → UserInfoDto",
+          "POST /api/user/setuserinfo body:UserInfoDto"
+        ],
+        "auth_required": true,
+        "child_components": [
+          "UserInfoEditComponent.razor"
+        ],
+        "form_fields": [
+          {
+            "field": "Name",
+            "type": "text",
+            "validation": "required, max 200"
+          },
+          {
+            "field": "Email",
+            "type": "email",
+            "validation": "required, RFC 5322"
+          },
+          {
+            "field": "MobileNumber",
+            "type": "phone",
+            "validation": "libphonenumber format"
+          },
+          {
+            "field": "LanguageId",
+            "type": "select",
+            "validation": "required, must be published language"
+          },
+          {
+            "field": "ReceiveNewsletter",
+            "type": "checkbox"
+          }
+        ],
+        "id": "PAGE_USER_SETTINGS",
+        "layout": "MainLayout",
+        "page_component": "UserSettingsPage.razor",
+        "route": "/account/settings",
+        "title": "My Settings"
+      },
+      {
+        "api_calls": [
+          "GET /api/user/getauthenticatorsecretqr → base64 QR image",
+          "POST /api/user/confirmauthenticatorapp body:{ code: string }",
+          "POST /api/user/verifypassword body:PasswordVerificationModel"
+        ],
+        "auth_required": true,
+        "child_components": [
+          "TwoFactorSetupComponent.razor",
+          "AuthenticatorQrComponent.razor"
+        ],
+        "flow": [
+          "User clicks 'Enable 2FA via Authenticator'",
+          "Fetch QR code — display inline as <img src='data:image/png;base64,...' />",
+          "User scans QR, enters 6-digit verification code",
+          "POST confirm — success enables TOTP; error shows validation message"
+        ],
+        "id": "PAGE_USER_SECURITY",
+        "layout": "MainLayout",
+        "page_component": "UserSecurityPage.razor",
+        "route": "/account/security",
+        "title": "Security Settings"
+      },
+      {
+        "api_calls": [
+          "GET /api/user/getusers?customerId={id} → UserModel[]",
+          "GET /api/user/downloaduserswithprofilename?customerId={id} → binary/csv",
+          "DELETE /api/user?id={userId}",
+          "POST /api/user/reactivateuser?id={userId}",
+          "POST /api/user/resetfailedloginandunlock?userId={userId}"
+        ],
+        "auth_required": true,
+        "child_components": [
+          "UserListComponent.razor",
+          "UserCreateDialogComponent.razor",
+          "UserFilterComponent.razor"
+        ],
+        "id": "PAGE_ADMIN_USERS",
+        "layout": "AdminLayout",
+        "list_features": [
+          "search by name/email",
+          "filter by deleted",
+          "show locked status",
+          "bulk actions: unlock, delete, reactivate"
+        ],
+        "page_component": "UserManagementPage.razor",
+        "required_roles": [
+          "SuperAdmin",
+          "CustomerAdmin"
+        ],
+        "route": "/admin/users",
+        "title": "User Management"
+      },
+      {
+        "api_calls": [
+          "GET /api/user?id={id} → UserModel",
+          "PATCH /api/user/updateuser body:UpdateUserCommand",
+          "GET /api/user/getuserroles → UserRoleModel[]",
+          "POST /api/user/setuserroles body:{ userId, roleIds[] }"
+        ],
+        "auth_required": true,
+        "child_components": [
+          "UserEditFormComponent.razor",
+          "UserRoleAssignmentComponent.razor"
+        ],
+        "id": "PAGE_ADMIN_USER_DETAIL",
+        "layout": "AdminLayout",
+        "page_component": "UserDetailPage.razor",
+        "required_roles": [
+          "SuperAdmin",
+          "CustomerAdmin"
+        ],
+        "route": "/admin/users/{id:int}",
+        "title": "User Detail"
+      },
+      {
+        "auth_required": true,
+        "id": "PAGE_FAILED_AD_LOGINS",
+        "layout": "AdminLayout",
+        "note": "Internal super-admin report. Maps to failed-ad-logins.component.ts.",
+        "page_component": "FailedAdLoginsPage.razor",
+        "required_roles": [
+          "SuperAdmin"
+        ],
+        "route": "/admin/reports/failed-ad-logins",
+        "title": "Failed AD Logins Report"
+      }
+    ],
+    "blazor_state_model": {
+      "auth_provider": "Implement CustomAuthenticationStateProvider : AuthenticationStateProvider that reads CurrentUser from AuthenticationStateService",
+      "route_protection": "Use [Authorize] attribute on page components + AuthorizeRouteView in App.razor + RequireRole policy attributes",
+      "service": "AuthenticationStateService.cs (singleton or scoped per circuit)",
+      "state_shape": {
+        "AccessToken": "string?",
+        "AccessTokenExpiresAt": "DateTime?",
+        "ActiveCustomerId": "int",
+        "ActiveProfileId": "int",
+        "CurrentUser": "UserModel?",
+        "ImpersonatingFromUserId": "int?",
+        "IsAuthenticated": "bool (derived: CurrentUser != null)",
+        "IsImpersonating": "bool",
+        "UserRoles": "List<UserRoleModel>"
+      },
+      "token_refresh_strategy": "Interceptor pattern: before each API call check AccessTokenExpiresAt; if within 60s of expiry call /refreshaccesstoken; serialize concurrent refresh with SemaphoreSlim(1,1)",
+      "token_storage": "Server-side: store in memory (Blazor Server circuit). For WASM: ProtectedLocalStorage or sessionStorage."
+    },
+    "ef_core_entities": [
+      {
+        "entity": "User",
+        "key_columns": [
+          "Id (PK)",
+          "Email",
+          "Password",
+          "PasswordSalt",
+          "PasswordResetToken (Guid?)",
+          "AuthenticatorSecret",
+          "FailedLoginCount",
+          "IsLockedOut",
+          "DateLastLoginUtc",
+          "DateCreatedUtc",
+          "CurrentProfileId (FK→Profile)",
+          "CurrentCustomerId (FK→Customer)",
+          "ImpersonatingUserId (FK→User, self-ref)"
+        ],
+        "table": "User"
+      },
+      {
+        "entity": "UserRefreshToken",
+        "key_columns": [
+          "Id (PK)",
+          "UserId (FK→User)",
+          "Token (string)",
+          "DateCreatedUtc",
+          "DateExpiresUtc"
+        ],
+        "table": "UserRefreshToken"
+      },
+      {
+        "entity": "UserRole",
+        "key_columns": [
+          "Id (PK)",
+          "Name",
+          "Description",
+          "IsSuperAdmin (bool)",
+          "UserRoleCategoryId (int)",
+          "DateCreatedUtc"
+        ],
+        "table": "UserRole"
+      },
+      {
+        "entity": "UserRoleMapping",
+        "key_columns": [
+          "Id (PK)",
+          "UserId (FK→User)",
+          "UserRoleId (FK→UserRole)"
+        ],
+        "table": "UserRoleMapping"
+      },
+      {
+        "entity": "UserRoleCountryMapping",
+        "key_columns": [
+          "Id (PK)",
+          "UserRoleMappingId (FK→UserRoleMapping)",
+          "CountryId (FK→Country)"
+        ],
+        "table": "UserRoleCountryMapping"
+      },
+      {
+        "entity": "CustomerSamlSettings",
+        "key_columns": [
+          "Id (PK)",
+          "CustomerId (FK→Customer)",
+          "EntityId",
+          "MetadataUrl",
+          "EmailClaim"
+        ],
+        "table": "CustomerSamlSettings"
+      }
+    ],
+    "known_bugs_to_fix_during_rebuild": [
+      {
+        "description": "Missing return Ok() in success branch — always falls through to return BadRequest('Model is null')",
+        "fix": "Add return Ok() after _userService.UpdateUser(user) succeeds",
+        "id": "BUG_001",
+        "location": "UserController.UpdateUser()"
+      },
+      {
+        "description": "isRunningInIE() and IE browser warning — IE is end-of-life",
+        "fix": "Remove IE detection code entirely during Blazor rebuild",
+        "id": "BUG_002",
+        "location": "bi-login.component.ts"
+      },
+      {
+        "description": "Access token TTL (15 min) and refresh token TTL (30 min) are hardcoded TimeSpan constants — not configurable",
+        "fix": "Move to appsettings.json via IOptions<TokenSettings>",
+        "id": "BUG_003",
+        "location": "UserController constructor constants"
+      }
+    ],
+    "validation_rules_to_port": [
+      {
+        "angular_validator": "CustomValidators.email()",
+        "applies_to": "Login form, user edit form",
+        "blazor": "DataAnnotations [EmailAddress] + custom Validator",
+        "rule": "Email"
+      },
+      {
+        "angular_validator": "CustomValidators.digitsOnly()",
+        "applies_to": "TwoFactor forms",
+        "blazor": "[RegularExpression(@'^\\d+$')]",
+        "rule": "Digits only (2FA PIN)"
+      },
+      {
+        "angular_validator": "Validators.required",
+        "applies_to": "Login form",
+        "blazor": "[Required] — add min-length business rule from IAuthenticationService",
+        "rule": "Password required"
+      },
+      {
+        "angular_validator": "libphonenumber-js",
+        "applies_to": "User settings form",
+        "blazor": "libphonenumber-dotnet NuGet + custom Blazor validator",
+        "rule": "Phone number"
+      },
+      {
+        "applies_to": "Backend",
+        "note": "Server-enforced only (5 failed attempts). Client shows error message — no client-side enforcement needed.",
+        "rule": "Lockout enforcement"
+      }
+    ]
+  },
+  "aggregates": [],
+  "background_processes": [],
+  "commands": [
     {
-      "id": "PAGE_LOGIN",
-      "route": "/login",
-      "page_component": "LoginPage.razor",
-      "title": "Login",
+      "auth": "AllowAnonymous",
+      "error_codes": {
+        "300": "Must select profile (multiple profiles available)",
+        "401": "Invalid credentials",
+        "403": "User is locked out (too many failed attempts)",
+        "428": "2FA required"
+      },
+      "id": "API_001",
+      "request_dto": {
+        "fields": {
+          "Email": "string",
+          "Password": "string"
+        },
+        "type": "LoginEmailPasswordDto"
+      },
+      "response_dto": {
+        "fields": {
+          "AccessToken": "string",
+          "ExpiresAt": "DateTime",
+          "RefreshTokenModel": "UserRefreshToken",
+          "RequestedAt": "DateTime"
+        },
+        "type": "TokenDto"
+      },
+      "route": "/api/user/login",
+      "verb": "POST"
+    },
+    {
+      "auth": "AllowAnonymous",
+      "error_codes": {
+        "401": "RefreshToken invalid or expired"
+      },
+      "id": "API_002",
+      "query_params": {
+        "refreshToken": "string"
+      },
+      "response_dto": "TokenDto",
+      "route": "/api/user/refreshaccesstoken",
+      "verb": "GET"
+    },
+    {
+      "auth": "Authenticated",
+      "id": "API_003",
+      "note": "Deletes UserRefreshToken from DB. JWT access token is NOT server-side invalidated.",
+      "response": "200 OK",
+      "route": "/api/user/logout",
+      "verb": "POST"
+    },
+    {
+      "auth": "AllowAnonymous",
+      "id": "API_004",
+      "request_dto": {
+        "fields": {
+          "AuthenticatorCode": "string?",
+          "Email": "string",
+          "MethodUsed": "string (sms|email|authenticatorApp)",
+          "PinCode": "int",
+          "SmsGroupId": "int?"
+        },
+        "type": "TwoFactorModel"
+      },
+      "response_dto": "TokenDto",
+      "route": "/api/user/twofactor",
+      "verb": "POST"
+    },
+    {
+      "auth": "AllowAnonymous",
+      "id": "API_005",
+      "query_params": {
+        "email": "string"
+      },
+      "response": "200 OK",
+      "route": "/api/user/sendpincodebyemail",
+      "verb": "GET"
+    },
+    {
+      "auth": "AllowAnonymous",
+      "id": "API_006",
+      "query_params": {
+        "email": "string"
+      },
+      "response": "200 OK",
+      "route": "/api/user/sendpincodebysms",
+      "verb": "GET"
+    },
+    {
+      "auth": "AllowAnonymous",
+      "error_codes": {
+        "300": "Must select profile",
+        "428": "2FA required"
+      },
+      "id": "API_007",
+      "request_dto": {
+        "fields": {
+          "idToken": "string (MSAL idToken)",
+          "smsGroupId": "int?"
+        }
+      },
+      "response_dto": "TokenDto",
+      "route": "/api/user/loginad",
+      "verb": "POST"
+    },
+    {
+      "auth": "Authenticated",
+      "id": "API_008",
+      "query_params": {
+        "id": "int? (omit for current user)",
+        "inclDeleted": "bool?"
+      },
+      "response_dto": "UserDto",
+      "route": "/api/user",
+      "verb": "GET"
+    },
+    {
+      "auth": "Authenticated",
+      "id": "API_009",
+      "response_dto": {
+        "fields": {
+          "Email": "string",
+          "LanguageId": "int",
+          "MobileNumber": "string",
+          "Name": "string"
+        },
+        "type": "UserInfoDto"
+      },
+      "route": "/api/user/getuserinformation",
+      "verb": "GET"
+    },
+    {
+      "auth": "Authenticated",
+      "id": "API_010",
+      "known_bug": "Returns BadRequest even when update succeeds — missing return Ok() in success branch",
+      "request_dto": {
+        "fields": {
+          "Email": "string",
+          "Id": "int",
+          "LanguageId": "int",
+          "Name": "string",
+          "PhoneNumber": "long?",
+          "ReceiveNewsletter": "bool",
+          "TestMode": "bool",
+          "TimeZoneId": "string"
+        },
+        "type": "UpdateUserCommand"
+      },
+      "route": "/api/user/updateuser",
+      "verb": "PATCH"
+    },
+    {
+      "auth": "Authenticated",
+      "id": "API_011",
+      "query_params": {
+        "id": "int"
+      },
+      "required_role": "CustomerAdmin or SuperAdmin",
+      "route": "/api/user",
+      "verb": "DELETE"
+    },
+    {
+      "auth": "Authenticated",
+      "id": "API_012",
+      "query_params": {
+        "id": "int"
+      },
+      "required_role": "CustomerAdmin or SuperAdmin",
+      "route": "/api/user/reactivateuser",
+      "verb": "POST"
+    },
+    {
+      "auth": "Authenticated",
+      "id": "API_013",
+      "query_params": {
+        "userId": "int"
+      },
+      "required_role": "SuperAdmin",
+      "route": "/api/user/resetfailedloginandunlock",
+      "verb": "POST"
+    },
+    {
+      "auth": "Authenticated",
+      "id": "API_014",
+      "response": "base64-encoded PNG QR code string",
+      "route": "/api/user/getauthenticatorsecretqr",
+      "verb": "GET"
+    },
+    {
+      "auth": "Authenticated",
+      "id": "API_015",
+      "request_dto": {
+        "fields": {
+          "code": "string (6-digit TOTP)"
+        }
+      },
+      "route": "/api/user/confirmauthenticatorapp",
+      "verb": "POST"
+    }
+  ],
+  "entities": [
+    {
+      "entity": "User",
+      "key_columns": [
+        "Id (PK)",
+        "Email",
+        "Password",
+        "PasswordSalt",
+        "PasswordResetToken (Guid?)",
+        "AuthenticatorSecret",
+        "FailedLoginCount",
+        "IsLockedOut",
+        "DateLastLoginUtc",
+        "DateCreatedUtc",
+        "CurrentProfileId (FK→Profile)",
+        "CurrentCustomerId (FK→Customer)",
+        "ImpersonatingUserId (FK→User, self-ref)"
+      ],
+      "table": "User"
+    },
+    {
+      "entity": "UserRefreshToken",
+      "key_columns": [
+        "Id (PK)",
+        "UserId (FK→User)",
+        "Token (string)",
+        "DateCreatedUtc",
+        "DateExpiresUtc"
+      ],
+      "table": "UserRefreshToken"
+    },
+    {
+      "entity": "UserRole",
+      "key_columns": [
+        "Id (PK)",
+        "Name",
+        "Description",
+        "IsSuperAdmin (bool)",
+        "UserRoleCategoryId (int)",
+        "DateCreatedUtc"
+      ],
+      "table": "UserRole"
+    },
+    {
+      "entity": "UserRoleMapping",
+      "key_columns": [
+        "Id (PK)",
+        "UserId (FK→User)",
+        "UserRoleId (FK→UserRole)"
+      ],
+      "table": "UserRoleMapping"
+    },
+    {
+      "entity": "UserRoleCountryMapping",
+      "key_columns": [
+        "Id (PK)",
+        "UserRoleMappingId (FK→UserRoleMapping)",
+        "CountryId (FK→Country)"
+      ],
+      "table": "UserRoleCountryMapping"
+    },
+    {
+      "entity": "CustomerSamlSettings",
+      "key_columns": [
+        "Id (PK)",
+        "CustomerId (FK→Customer)",
+        "EntityId",
+        "MetadataUrl",
+        "EmailClaim"
+      ],
+      "table": "CustomerSamlSettings"
+    }
+  ],
+  "events_consumed": [],
+  "events_emitted": [],
+  "integrations": [],
+  "invariants": [],
+  "permissions": [],
+  "persistence": [
+    {
+      "entity": "User",
+      "key_columns": [
+        "Id (PK)",
+        "Email",
+        "Password",
+        "PasswordSalt",
+        "PasswordResetToken (Guid?)",
+        "AuthenticatorSecret",
+        "FailedLoginCount",
+        "IsLockedOut",
+        "DateLastLoginUtc",
+        "DateCreatedUtc",
+        "CurrentProfileId (FK→Profile)",
+        "CurrentCustomerId (FK→Customer)",
+        "ImpersonatingUserId (FK→User, self-ref)"
+      ],
+      "table": "User"
+    },
+    {
+      "entity": "UserRefreshToken",
+      "key_columns": [
+        "Id (PK)",
+        "UserId (FK→User)",
+        "Token (string)",
+        "DateCreatedUtc",
+        "DateExpiresUtc"
+      ],
+      "table": "UserRefreshToken"
+    },
+    {
+      "entity": "UserRole",
+      "key_columns": [
+        "Id (PK)",
+        "Name",
+        "Description",
+        "IsSuperAdmin (bool)",
+        "UserRoleCategoryId (int)",
+        "DateCreatedUtc"
+      ],
+      "table": "UserRole"
+    },
+    {
+      "entity": "UserRoleMapping",
+      "key_columns": [
+        "Id (PK)",
+        "UserId (FK→User)",
+        "UserRoleId (FK→UserRole)"
+      ],
+      "table": "UserRoleMapping"
+    },
+    {
+      "entity": "UserRoleCountryMapping",
+      "key_columns": [
+        "Id (PK)",
+        "UserRoleMappingId (FK→UserRoleMapping)",
+        "CountryId (FK→Country)"
+      ],
+      "table": "UserRoleCountryMapping"
+    },
+    {
+      "entity": "CustomerSamlSettings",
+      "key_columns": [
+        "Id (PK)",
+        "CustomerId (FK→Customer)",
+        "EntityId",
+        "MetadataUrl",
+        "EmailClaim"
+      ],
+      "table": "CustomerSamlSettings"
+    }
+  ],
+  "queries": [],
+  "state_transitions": [],
+  "ui_surfaces": [
+    {
       "auth_required": false,
-      "layout": "GuestLayout",
       "child_components": [
         "LoginFormComponent.razor",
         "PasswordResetRequestComponent.razor",
@@ -23,6 +918,19 @@
         "AuthenticatorAppCodeComponent.razor",
         "AdLoginButtonComponent.razor"
       ],
+      "events_emitted": [
+        "OnLoginSuccess(UserModel)",
+        "OnLoginFailed(string errorMessage)"
+      ],
+      "id": "PAGE_LOGIN",
+      "inputs": [
+        "email (string)",
+        "password (string)",
+        "twoFactorPin (string, 6 digits)"
+      ],
+      "layout": "GuestLayout",
+      "page_component": "LoginPage.razor",
+      "route": "/login",
       "state_machine": {
         "slides": {
           "0": "Email + Password form (default)",
@@ -41,67 +949,82 @@
           "Any → 0: Back / Cancel"
         ]
       },
-      "inputs": ["email (string)", "password (string)", "twoFactorPin (string, 6 digits)"],
-      "events_emitted": ["OnLoginSuccess(UserModel)", "OnLoginFailed(string errorMessage)"]
+      "title": "Login"
     },
     {
-      "id": "PAGE_TRANSPARENT_LOGIN",
-      "route": "/transparent-login",
-      "page_component": "TransparentLoginPage.razor",
-      "title": "Transparent Login",
       "auth_required": false,
+      "id": "PAGE_TRANSPARENT_LOGIN",
       "layout": "GuestLayout",
-      "note": "Cookie-based login for iframe/embedded scenarios. Calls GET /api/user/logincookie."
+      "note": "Cookie-based login for iframe/embedded scenarios. Calls GET /api/user/logincookie.",
+      "page_component": "TransparentLoginPage.razor",
+      "route": "/transparent-login",
+      "title": "Transparent Login"
     },
     {
-      "id": "PAGE_USER_SETTINGS",
-      "route": "/account/settings",
-      "page_component": "UserSettingsPage.razor",
-      "title": "My Settings",
-      "auth_required": true,
-      "layout": "MainLayout",
-      "child_components": ["UserInfoEditComponent.razor"],
       "api_calls": [
         "GET /api/user/getuserinformation → UserInfoDto",
         "POST /api/user/setuserinfo body:UserInfoDto"
       ],
+      "auth_required": true,
+      "child_components": [
+        "UserInfoEditComponent.razor"
+      ],
       "form_fields": [
-        { "field": "Name", "type": "text", "validation": "required, max 200" },
-        { "field": "Email", "type": "email", "validation": "required, RFC 5322" },
-        { "field": "MobileNumber", "type": "phone", "validation": "libphonenumber format" },
-        { "field": "LanguageId", "type": "select", "validation": "required, must be published language" },
-        { "field": "ReceiveNewsletter", "type": "checkbox" }
-      ]
+        {
+          "field": "Name",
+          "type": "text",
+          "validation": "required, max 200"
+        },
+        {
+          "field": "Email",
+          "type": "email",
+          "validation": "required, RFC 5322"
+        },
+        {
+          "field": "MobileNumber",
+          "type": "phone",
+          "validation": "libphonenumber format"
+        },
+        {
+          "field": "LanguageId",
+          "type": "select",
+          "validation": "required, must be published language"
+        },
+        {
+          "field": "ReceiveNewsletter",
+          "type": "checkbox"
+        }
+      ],
+      "id": "PAGE_USER_SETTINGS",
+      "layout": "MainLayout",
+      "page_component": "UserSettingsPage.razor",
+      "route": "/account/settings",
+      "title": "My Settings"
     },
     {
-      "id": "PAGE_USER_SECURITY",
-      "route": "/account/security",
-      "page_component": "UserSecurityPage.razor",
-      "title": "Security Settings",
-      "auth_required": true,
-      "layout": "MainLayout",
-      "child_components": ["TwoFactorSetupComponent.razor", "AuthenticatorQrComponent.razor"],
       "api_calls": [
         "GET /api/user/getauthenticatorsecretqr → base64 QR image",
         "POST /api/user/confirmauthenticatorapp body:{ code: string }",
         "POST /api/user/verifypassword body:PasswordVerificationModel"
+      ],
+      "auth_required": true,
+      "child_components": [
+        "TwoFactorSetupComponent.razor",
+        "AuthenticatorQrComponent.razor"
       ],
       "flow": [
         "User clicks 'Enable 2FA via Authenticator'",
         "Fetch QR code — display inline as <img src='data:image/png;base64,...' />",
         "User scans QR, enters 6-digit verification code",
         "POST confirm — success enables TOTP; error shows validation message"
-      ]
+      ],
+      "id": "PAGE_USER_SECURITY",
+      "layout": "MainLayout",
+      "page_component": "UserSecurityPage.razor",
+      "route": "/account/security",
+      "title": "Security Settings"
     },
     {
-      "id": "PAGE_ADMIN_USERS",
-      "route": "/admin/users",
-      "page_component": "UserManagementPage.razor",
-      "title": "User Management",
-      "auth_required": true,
-      "required_roles": ["SuperAdmin", "CustomerAdmin"],
-      "layout": "AdminLayout",
-      "child_components": ["UserListComponent.razor", "UserCreateDialogComponent.razor", "UserFilterComponent.razor"],
       "api_calls": [
         "GET /api/user/getusers?customerId={id} → UserModel[]",
         "GET /api/user/downloaduserswithprofilename?customerId={id} → binary/csv",
@@ -109,291 +1032,62 @@
         "POST /api/user/reactivateuser?id={userId}",
         "POST /api/user/resetfailedloginandunlock?userId={userId}"
       ],
-      "list_features": ["search by name/email", "filter by deleted", "show locked status", "bulk actions: unlock, delete, reactivate"]
+      "auth_required": true,
+      "child_components": [
+        "UserListComponent.razor",
+        "UserCreateDialogComponent.razor",
+        "UserFilterComponent.razor"
+      ],
+      "id": "PAGE_ADMIN_USERS",
+      "layout": "AdminLayout",
+      "list_features": [
+        "search by name/email",
+        "filter by deleted",
+        "show locked status",
+        "bulk actions: unlock, delete, reactivate"
+      ],
+      "page_component": "UserManagementPage.razor",
+      "required_roles": [
+        "SuperAdmin",
+        "CustomerAdmin"
+      ],
+      "route": "/admin/users",
+      "title": "User Management"
     },
     {
-      "id": "PAGE_ADMIN_USER_DETAIL",
-      "route": "/admin/users/{id:int}",
-      "page_component": "UserDetailPage.razor",
-      "title": "User Detail",
-      "auth_required": true,
-      "required_roles": ["SuperAdmin", "CustomerAdmin"],
-      "layout": "AdminLayout",
-      "child_components": ["UserEditFormComponent.razor", "UserRoleAssignmentComponent.razor"],
       "api_calls": [
         "GET /api/user?id={id} → UserModel",
         "PATCH /api/user/updateuser body:UpdateUserCommand",
         "GET /api/user/getuserroles → UserRoleModel[]",
         "POST /api/user/setuserroles body:{ userId, roleIds[] }"
-      ]
-    },
-    {
-      "id": "PAGE_FAILED_AD_LOGINS",
-      "route": "/admin/reports/failed-ad-logins",
-      "page_component": "FailedAdLoginsPage.razor",
-      "title": "Failed AD Logins Report",
+      ],
       "auth_required": true,
-      "required_roles": ["SuperAdmin"],
+      "child_components": [
+        "UserEditFormComponent.razor",
+        "UserRoleAssignmentComponent.razor"
+      ],
+      "id": "PAGE_ADMIN_USER_DETAIL",
       "layout": "AdminLayout",
-      "note": "Internal super-admin report. Maps to failed-ad-logins.component.ts."
+      "page_component": "UserDetailPage.razor",
+      "required_roles": [
+        "SuperAdmin",
+        "CustomerAdmin"
+      ],
+      "route": "/admin/users/{id:int}",
+      "title": "User Detail"
+    },
+    {
+      "auth_required": true,
+      "id": "PAGE_FAILED_AD_LOGINS",
+      "layout": "AdminLayout",
+      "note": "Internal super-admin report. Maps to failed-ad-logins.component.ts.",
+      "page_component": "FailedAdLoginsPage.razor",
+      "required_roles": [
+        "SuperAdmin"
+      ],
+      "route": "/admin/reports/failed-ad-logins",
+      "title": "Failed AD Logins Report"
     }
   ],
-
-  "api_contracts": [
-    {
-      "id": "API_001",
-      "verb": "POST",
-      "route": "/api/user/login",
-      "request_dto": {
-        "type": "LoginEmailPasswordDto",
-        "fields": { "Email": "string", "Password": "string" }
-      },
-      "response_dto": {
-        "type": "TokenDto",
-        "fields": { "AccessToken": "string", "ExpiresAt": "DateTime", "RequestedAt": "DateTime", "RefreshTokenModel": "UserRefreshToken" }
-      },
-      "auth": "AllowAnonymous",
-      "error_codes": {
-        "401": "Invalid credentials",
-        "403": "User is locked out (too many failed attempts)",
-        "300": "Must select profile (multiple profiles available)",
-        "428": "2FA required"
-      }
-    },
-    {
-      "id": "API_002",
-      "verb": "GET",
-      "route": "/api/user/refreshaccesstoken",
-      "query_params": { "refreshToken": "string" },
-      "response_dto": "TokenDto",
-      "auth": "AllowAnonymous",
-      "error_codes": { "401": "RefreshToken invalid or expired" }
-    },
-    {
-      "id": "API_003",
-      "verb": "POST",
-      "route": "/api/user/logout",
-      "auth": "Authenticated",
-      "response": "200 OK",
-      "note": "Deletes UserRefreshToken from DB. JWT access token is NOT server-side invalidated."
-    },
-    {
-      "id": "API_004",
-      "verb": "POST",
-      "route": "/api/user/twofactor",
-      "request_dto": {
-        "type": "TwoFactorModel",
-        "fields": {
-          "Email": "string",
-          "PinCode": "int",
-          "AuthenticatorCode": "string?",
-          "SmsGroupId": "int?",
-          "MethodUsed": "string (sms|email|authenticatorApp)"
-        }
-      },
-      "response_dto": "TokenDto",
-      "auth": "AllowAnonymous"
-    },
-    {
-      "id": "API_005",
-      "verb": "GET",
-      "route": "/api/user/sendpincodebyemail",
-      "query_params": { "email": "string" },
-      "auth": "AllowAnonymous",
-      "response": "200 OK"
-    },
-    {
-      "id": "API_006",
-      "verb": "GET",
-      "route": "/api/user/sendpincodebysms",
-      "query_params": { "email": "string" },
-      "auth": "AllowAnonymous",
-      "response": "200 OK"
-    },
-    {
-      "id": "API_007",
-      "verb": "POST",
-      "route": "/api/user/loginad",
-      "request_dto": {
-        "fields": { "idToken": "string (MSAL idToken)", "smsGroupId": "int?" }
-      },
-      "response_dto": "TokenDto",
-      "auth": "AllowAnonymous",
-      "error_codes": { "300": "Must select profile", "428": "2FA required" }
-    },
-    {
-      "id": "API_008",
-      "verb": "GET",
-      "route": "/api/user",
-      "query_params": { "id": "int? (omit for current user)", "inclDeleted": "bool?" },
-      "response_dto": "UserDto",
-      "auth": "Authenticated"
-    },
-    {
-      "id": "API_009",
-      "verb": "GET",
-      "route": "/api/user/getuserinformation",
-      "response_dto": {
-        "type": "UserInfoDto",
-        "fields": { "Name": "string", "MobileNumber": "string", "Email": "string", "LanguageId": "int" }
-      },
-      "auth": "Authenticated"
-    },
-    {
-      "id": "API_010",
-      "verb": "PATCH",
-      "route": "/api/user/updateuser",
-      "request_dto": {
-        "type": "UpdateUserCommand",
-        "fields": {
-          "Id": "int",
-          "Name": "string",
-          "Email": "string",
-          "PhoneNumber": "long?",
-          "LanguageId": "int",
-          "TimeZoneId": "string",
-          "TestMode": "bool",
-          "ReceiveNewsletter": "bool"
-        }
-      },
-      "auth": "Authenticated",
-      "known_bug": "Returns BadRequest even when update succeeds — missing return Ok() in success branch"
-    },
-    {
-      "id": "API_011",
-      "verb": "DELETE",
-      "route": "/api/user",
-      "query_params": { "id": "int" },
-      "auth": "Authenticated",
-      "required_role": "CustomerAdmin or SuperAdmin"
-    },
-    {
-      "id": "API_012",
-      "verb": "POST",
-      "route": "/api/user/reactivateuser",
-      "query_params": { "id": "int" },
-      "auth": "Authenticated",
-      "required_role": "CustomerAdmin or SuperAdmin"
-    },
-    {
-      "id": "API_013",
-      "verb": "POST",
-      "route": "/api/user/resetfailedloginandunlock",
-      "query_params": { "userId": "int" },
-      "auth": "Authenticated",
-      "required_role": "SuperAdmin"
-    },
-    {
-      "id": "API_014",
-      "verb": "GET",
-      "route": "/api/user/getauthenticatorsecretqr",
-      "response": "base64-encoded PNG QR code string",
-      "auth": "Authenticated"
-    },
-    {
-      "id": "API_015",
-      "verb": "POST",
-      "route": "/api/user/confirmauthenticatorapp",
-      "request_dto": { "fields": { "code": "string (6-digit TOTP)" } },
-      "auth": "Authenticated"
-    }
-  ],
-
-  "blazor_state_model": {
-    "service": "AuthenticationStateService.cs (singleton or scoped per circuit)",
-    "state_shape": {
-      "CurrentUser": "UserModel?",
-      "IsAuthenticated": "bool (derived: CurrentUser != null)",
-      "UserRoles": "List<UserRoleModel>",
-      "AccessToken": "string?",
-      "AccessTokenExpiresAt": "DateTime?",
-      "IsImpersonating": "bool",
-      "ImpersonatingFromUserId": "int?",
-      "ActiveCustomerId": "int",
-      "ActiveProfileId": "int"
-    },
-    "auth_provider": "Implement CustomAuthenticationStateProvider : AuthenticationStateProvider that reads CurrentUser from AuthenticationStateService",
-    "token_storage": "Server-side: store in memory (Blazor Server circuit). For WASM: ProtectedLocalStorage or sessionStorage.",
-    "token_refresh_strategy": "Interceptor pattern: before each API call check AccessTokenExpiresAt; if within 60s of expiry call /refreshaccesstoken; serialize concurrent refresh with SemaphoreSlim(1,1)",
-    "route_protection": "Use [Authorize] attribute on page components + AuthorizeRouteView in App.razor + RequireRole policy attributes"
-  },
-
-  "ef_core_entities": [
-    {
-      "entity": "User",
-      "table": "User",
-      "key_columns": ["Id (PK)", "Email", "Password", "PasswordSalt", "PasswordResetToken (Guid?)", "AuthenticatorSecret", "FailedLoginCount", "IsLockedOut", "DateLastLoginUtc", "DateCreatedUtc", "CurrentProfileId (FK→Profile)", "CurrentCustomerId (FK→Customer)", "ImpersonatingUserId (FK→User, self-ref)"]
-    },
-    {
-      "entity": "UserRefreshToken",
-      "table": "UserRefreshToken",
-      "key_columns": ["Id (PK)", "UserId (FK→User)", "Token (string)", "DateCreatedUtc", "DateExpiresUtc"]
-    },
-    {
-      "entity": "UserRole",
-      "table": "UserRole",
-      "key_columns": ["Id (PK)", "Name", "Description", "IsSuperAdmin (bool)", "UserRoleCategoryId (int)", "DateCreatedUtc"]
-    },
-    {
-      "entity": "UserRoleMapping",
-      "table": "UserRoleMapping",
-      "key_columns": ["Id (PK)", "UserId (FK→User)", "UserRoleId (FK→UserRole)"]
-    },
-    {
-      "entity": "UserRoleCountryMapping",
-      "table": "UserRoleCountryMapping",
-      "key_columns": ["Id (PK)", "UserRoleMappingId (FK→UserRoleMapping)", "CountryId (FK→Country)"]
-    },
-    {
-      "entity": "CustomerSamlSettings",
-      "table": "CustomerSamlSettings",
-      "key_columns": ["Id (PK)", "CustomerId (FK→Customer)", "EntityId", "MetadataUrl", "EmailClaim"]
-    }
-  ],
-
-  "authorization_model": {
-    "mechanism": "JWT Claims-based via [Authorize(Policy=...)] on controllers",
-    "policies_defined_in": "UserAuthenticationPolicyNames.cs",
-    "route_guards_angular": {
-      "AppCanActivateGuard": "Global guard — redirects unauthenticated users to /login",
-      "UserRoleGuard": "Role-based access — checks UserRoleEnum values against user's roles; SuperAdmin bypasses all role checks",
-      "ProfileRoleGuard": "Guards routes requiring a specific profile to be selected",
-      "LimitedUserGuard": "Guards routes unavailable to limited-access user types"
-    },
-    "blazor_equivalent": {
-      "AppCanActivateGuard": "<AuthorizeRouteView> + RedirectToLogin component in NotAuthorized",
-      "UserRoleGuard": "[Authorize(Roles='SuperAdmin,CustomerAdmin')] on page + AuthorizationService.AuthorizeAsync() for fine-grained",
-      "SuperAdmin_bypass": "Implement custom IAuthorizationHandler that short-circuits when user has SuperAdmin role claim"
-    },
-    "impersonation": "Impersonating user gets a new JWT with impersonated user's claims + 'impersonateFromUserId' custom claim. Backend checks this claim to allow returning to original identity."
-  },
-
-  "validation_rules_to_port": [
-    { "rule": "Email", "angular_validator": "CustomValidators.email()", "blazor": "DataAnnotations [EmailAddress] + custom Validator", "applies_to": "Login form, user edit form" },
-    { "rule": "Digits only (2FA PIN)", "angular_validator": "CustomValidators.digitsOnly()", "blazor": "[RegularExpression(@'^\\d+$')]", "applies_to": "TwoFactor forms" },
-    { "rule": "Password required", "angular_validator": "Validators.required", "blazor": "[Required] — add min-length business rule from IAuthenticationService", "applies_to": "Login form" },
-    { "rule": "Phone number", "angular_validator": "libphonenumber-js", "blazor": "libphonenumber-dotnet NuGet + custom Blazor validator", "applies_to": "User settings form" },
-    { "rule": "Lockout enforcement", "note": "Server-enforced only (5 failed attempts). Client shows error message — no client-side enforcement needed.", "applies_to": "Backend" }
-  ],
-
-  "known_bugs_to_fix_during_rebuild": [
-    {
-      "id": "BUG_001",
-      "location": "UserController.UpdateUser()",
-      "description": "Missing return Ok() in success branch — always falls through to return BadRequest('Model is null')",
-      "fix": "Add return Ok() after _userService.UpdateUser(user) succeeds"
-    },
-    {
-      "id": "BUG_002",
-      "location": "bi-login.component.ts",
-      "description": "isRunningInIE() and IE browser warning — IE is end-of-life",
-      "fix": "Remove IE detection code entirely during Blazor rebuild"
-    },
-    {
-      "id": "BUG_003",
-      "location": "UserController constructor constants",
-      "description": "Access token TTL (15 min) and refresh token TTL (30 min) are hardcoded TimeSpan constants — not configurable",
-      "fix": "Move to appsettings.json via IOptions<TokenSettings>"
-    }
-  ]
+  "workflows": []
 }

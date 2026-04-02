@@ -1,0 +1,6 @@
+[
+  "MessageTemplateCreateCommand",
+  "TemplateQuickResponseSetupUpdateCommand",
+  "TemplateResponseOptionUpdateCommand",
+  "TemplateResponseSettingsUpdateCommand"
+]

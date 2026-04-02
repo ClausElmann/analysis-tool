@@ -1,14 +1,9 @@
 {
-  "domain": "Monitoring",
-  "confidence": 0.17,
-  "coverage": {
-    "api_endpoints": 0,
-    "batch_jobs": 11,
-    "events": 0,
-    "webhooks": 0,
-    "integrations": 0,
-    "background_services": 0
-  },
-  "complexity_score": 3,
-  "roi_score": 2
+  "completeness_score": 0.2,
+  "domain": "monitoring",
+  "gaps_count": 6,
+  "iteration": 8,
+  "new_information_score": 0.0,
+  "saved_utc": "2026-04-02T00:07:22.977783+00:00",
+  "status": "in_progress"
 }

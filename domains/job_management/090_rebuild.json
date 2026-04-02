@@ -1,0 +1,68 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T01:22:46.364805Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "JobsController",
+      "route": "/jobs",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "JobTaskStatusChangedEvent"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "ActiveJobsHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "ActiveJobsHandler",
+      "table": "activejobshandlers"
+    },
+    {
+      "entity": "IJobRepository",
+      "table": "ijobrepositorys"
+    },
+    {
+      "entity": "JobReportEntity",
+      "table": "jobreportentitys"
+    },
+    {
+      "entity": "JobRepository",
+      "table": "jobrepositorys"
+    },
+    {
+      "entity": "JobsController",
+      "table": "jobscontrollers"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must",
+    "must be plain English or well-known identifiers."
+  ]
+}

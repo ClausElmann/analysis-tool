@@ -1,0 +1,8 @@
+{
+  "business_value": "medium",
+  "complexity": "high",
+  "coupling": "low",
+  "domain": "recipient_management",
+  "rebuild_priority": 6,
+  "saved_utc": "2026-04-02T00:09:37.238073+00:00"
+}

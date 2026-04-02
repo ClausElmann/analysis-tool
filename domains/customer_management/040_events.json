@@ -1,0 +1,15 @@
+[
+  "CloneProspectProductsToCustomerCommand",
+  "CreateOrUpdateCustomerImportFtpSettingCommand",
+  "CustomerCreatedEvent",
+  "CustomerDeletedEvent",
+  "CustomerSubscriptionNotification",
+  "CustomerUpdatedEvent",
+  "CustomerVoiceSettingsChangedEvent",
+  "DeleteCustomerImportFtpSettingCommand",
+  "UpdateProspectWithCustomerIdCommand",
+  "cloneProspectProductsToCustomerCommand",
+  "createOrUpdateCustomerImportFtpSettingCommand",
+  "deleteCustomerImportFtpSettingCommand",
+  "updateProspectWithCustomerIdCommand"
+]

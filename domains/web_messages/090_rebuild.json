@@ -1,0 +1,1496 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T08:45:55.855948Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "HTTP REST Client",
+      "source": "integration"
+    },
+    {
+      "method": "MediatR Event Bus",
+      "source": "integration"
+    },
+    {
+      "method": "SAML2 SSO",
+      "source": "integration"
+    },
+    {
+      "method": "SCIM 2.0",
+      "source": "integration"
+    },
+    {
+      "method": "TOTP Authenticator",
+      "source": "integration"
+    },
+    {
+      "method": "WebClient",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [
+    "require-roles.directive.ts"
+  ],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "ActivityLogController",
+      "route": "/activitylog",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "AddressController",
+      "route": "/address",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "AdminController",
+      "route": "/admin",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "BaseController",
+      "route": "/base",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "BaseEnrollmentsController",
+      "route": "/baseenrollments",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "BenchmarkController",
+      "route": "/benchmark",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "BiMapComponentAddressModel",
+      "route": "/bimapcomponentaddressmodel",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CitizenDialogueController",
+      "route": "/citizendialogue",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CommonController",
+      "route": "/common",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ContactPersonsController",
+      "route": "/contactpersons",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ConversationController",
+      "route": "/conversation",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CriticalAddressesController",
+      "route": "/criticaladdresses",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CustomerController",
+      "route": "/customer",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CustomerOverviewDataDto",
+      "route": "/customeroverviewdatadto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "CustomerProfileUsageOverviewDto",
+      "route": "/customerprofileusageoverviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "DataImportController",
+      "route": "/dataimport",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "DeveloperController",
+      "route": "/developer",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "EboksController",
+      "route": "/eboks",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "EboksDocumentPreviewDto",
+      "route": "/eboksdocumentpreviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "Email2SmsWhitelistController",
+      "route": "/email2smswhitelist",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "EmailDocumentPreviewDto",
+      "route": "/emaildocumentpreviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "EnrollmentAdminController",
+      "route": "/enrollmentadmin",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "EnrollmentController",
+      "route": "/enrollment",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ErrorController",
+      "route": "/error",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "FramWebController",
+      "route": "/framweb",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "GatewayApiController",
+      "route": "/gatewayapi",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "GdprController",
+      "route": "/gdpr",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "HumanResourceController",
+      "route": "/humanresource",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "InfobipWebhookController",
+      "route": "/infobipwebhook",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "InternalReportsController",
+      "route": "/internalreports",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "JobsController",
+      "route": "/jobs",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "KamstrupReportsController",
+      "route": "/kamstrupreports",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "LevelController",
+      "route": "/level",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "LogController",
+      "route": "/log",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "MapController",
+      "route": "/map",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "MessageAccordionFormGroupModel",
+      "route": "/messageaccordionformgroupmodel",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "MessageController",
+      "route": "/message",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "MonitoringController",
+      "route": "/monitoring",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "NewsletterController",
+      "route": "/newsletter",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "NineteenNineteenController",
+      "route": "/nineteennineteen",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "OperationalController",
+      "route": "/operational",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "OutgoingRequestLogsController",
+      "route": "/outgoingrequestlogs",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "PackagesController",
+      "route": "/packages",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "PipelineController",
+      "route": "/pipeline",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "PositiveListController",
+      "route": "/positivelist",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ProcessController",
+      "route": "/process",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ProfileController",
+      "route": "/profile",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "QuickResponseController",
+      "route": "/quickresponse",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "QuickResponsePageDataDto",
+      "route": "/quickresponsedatadto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "QuickResponseSetupDto",
+      "route": "/quickresponsesetupdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ReportController",
+      "route": "/report",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SalesforceController",
+      "route": "/salesforce",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ScimGroupsController",
+      "route": "/scimgroups",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "ScimUsersController",
+      "route": "/scimusers",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SearchController",
+      "route": "/search",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SendgridController",
+      "route": "/sendgrid",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupApprovalController",
+      "route": "/smsgroupapproval",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupQuickResponseSetupDto",
+      "route": "/smsgroupquickresponsesetupdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupScheduleController",
+      "route": "/smsgroupschedule",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupStatusController",
+      "route": "/smsgroupstatus",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SmsGroupStencilController",
+      "route": "/smsgroupstencil",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SocialMediaController",
+      "route": "/socialmedia",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "StandardReceiverController",
+      "route": "/standardreceiver",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "StatstidendeController",
+      "route": "/statstidende",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "StrexController",
+      "route": "/strex",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SubscribeModuleController",
+      "route": "/subscribemodule",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminApiKeysController",
+      "route": "/superadminapikeys",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminController",
+      "route": "/superadmin",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminCustomerController",
+      "route": "/superadmincustomer",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminInvoiceController",
+      "route": "/superadmininvoice",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminPhoneNumberProviderController",
+      "route": "/superadminphonenumberprovider",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminSalesInfoController",
+      "route": "/superadminsalesinfo",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminUserController",
+      "route": "/superadminuser",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SupportController",
+      "route": "/support",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "UserController",
+      "route": "/user",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "UserNudgingController",
+      "route": "/usernudging",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "VirtualPhoneNumbersController",
+      "route": "/virtualphonenumbers",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "WarningTemplateController",
+      "route": "/warningtemplate",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "WeatherWarningController",
+      "route": "/weatherwarning",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "WebMessageController",
+      "route": "/webmessage",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "WebhooksController",
+      "route": "/webhooks",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "benchmarkOverviewDto",
+      "route": "/benchmarkoverviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "customerOverviewDataDto",
+      "route": "/customeroverviewdatadto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "customerProfileUsageOverviewDto",
+      "route": "/customerprofileusageoverviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "eboksDocumentPreviewDto",
+      "route": "/eboksdocumentpreviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "emailDocumentPreviewDto",
+      "route": "/emaildocumentpreviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "quickResponseOptionDto",
+      "route": "/quickresponseoptiondto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "quickResponsePageDataDto",
+      "route": "/quickresponsedatadto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "quickResponseRecipientRespondentDto",
+      "route": "/quickresponserecipientrespondentdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "quickResponseSettingsDto",
+      "route": "/quickresponsesettingsdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "smsGroupQuickResponseSetupDto",
+      "route": "/smsgroupquickresponsesetupdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "smsGroupQuickResponseStatisticsReadModel",
+      "route": "/smsgroupquickresponsestatisticsreadmodel",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "templateQuickResponseSetupDto",
+      "route": "/templatequickresponsesetupdto",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "AddressSelectedEvent",
+      "AssignConversationPhoneNumberCommand",
+      "AssignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "BenchmarkUpdateCommand",
+      "ClientSentEvent",
+      "ConversationPartnerNameUpdateCommand",
+      "CreateConversationCommand",
+      "CreateOrUpdateCustomerImportFtpSettingCommand",
+      "CreateOrUpdateMapLayerMappingCommand",
+      "CreateOrUpdateProfileFtpSettingCommand",
+      "CreateSmsLogStatusCommand",
+      "CreateWebMessageCommand",
+      "DeleteCustomerImportFtpSettingCommand",
+      "DeleteEnrollmentCommand",
+      "DriftstatusWebMessagesMapModelCommand",
+      "DriftstatusWebMessagesModelCommand",
+      "EboksMessageUpdateCommand",
+      "EmailMessageUpdateCommand",
+      "GetAddressInfoQuery",
+      "GetSentMessagesQuery",
+      "IMessagePartWithMessage",
+      "ITreeItemDeSelectedEvent",
+      "ITreeItemSelectedEvent",
+      "MessageMetadataUpdateCommand",
+      "MsalEvent.cs",
+      "MsalEvent.ts",
+      "RegisterWebhookCommand",
+      "SaveSurveyNudgingResponseCommand",
+      "SaveUserNudgingResponseCommand",
+      "SecondaryLookupForEboksFirstStrategyNotification",
+      "SendConversationReplyCommand",
+      "SendSmsGroupCommand",
+      "SendTestMessageEvent",
+      "SetDisableAllBroadcastsCommand",
+      "SmsGroupByMunicipalitiesCommand",
+      "SmsGroupDeletedNotification",
+      "SmsLogResponseCommand",
+      "SmsMessageUpdateCommand",
+      "SocialMediaMessageUpdateCommand",
+      "StandardReceiverGroupCreateCommand",
+      "StatusUpdateCommand",
+      "SubscribeAddressCommand",
+      "SubscribeSupplyNumberCommand",
+      "UnsubscribeAddressCommand",
+      "UnsubscribeSupplyNumberCommand",
+      "UpdateConversationPhoneNumberCommand",
+      "UpdateEmailMessageStatusCommand",
+      "UpdateMapLayerCommand",
+      "UpdateMessageAddressCommand",
+      "UpdateProfileAccountCommand",
+      "UpdateProfileToGroupMappingsCommand",
+      "UpdateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "UpdateStdReceiverMappingsForProfileCommand",
+      "UpdateSupplyNumberSubscriptionNameCommand",
+      "UpdateWebMessageCommand",
+      "VoiceMessageStatusChangedEvent",
+      "VoiceMessageUpdateCommand",
+      "WebMessage",
+      "WebMessageUpdateCommand",
+      "WebhookMessage",
+      "assignConversationPhoneNumberCommand",
+      "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "cloneProspectProductsToCustomerCommand",
+      "conversationPartnerNameUpdateCommand",
+      "createConversationCommand",
+      "createLogCommand",
+      "createOrUpdateCustomerImportFtpSettingCommand",
+      "createOrUpdateMapLayerMappingCommand",
+      "createOrUpdateProfileFtpSettingCommand",
+      "deleteCustomerImportFtpSettingCommand",
+      "deleteEnrollmentCommand",
+      "driftstatusWebMessagesMapModelCommand",
+      "driftstatusWebMessagesModelCommand",
+      "getAddressInfoQuery",
+      "languageResourcesQuery",
+      "messageTemplateCreateCommand",
+      "saveSurveyNudgingResponseCommand",
+      "saveUserNudgingResponseCommand",
+      "sendConversationReplyCommand",
+      "setDisableAllBroadcastsCommand",
+      "smsGroupByMunicipalitiesCommand",
+      "smsGroupScheduleCalendarEvent",
+      "smsLogResponseCommand",
+      "smsgroupScheduleCalendarEvent",
+      "standardReceiverGroupCreateCommand",
+      "standardReceiverGroupProfileMappingCommand",
+      "subscribeAddressCommand",
+      "subscribeSupplyNumberCommand",
+      "unsubscribeAddressCommand",
+      "unsubscribeSupplyNumberCommand",
+      "updateAddressSubscriptionNameCommand",
+      "updateConversationPhoneNumberCommand",
+      "updateMapLayerCommand",
+      "updateProfileAccountCommand",
+      "updateProfileToGroupMappingCommand",
+      "updateProfileToGroupMappingsCommand",
+      "updateProspectCommand",
+      "updateProspectWithCustomerIdCommand",
+      "updateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "updateStdReceiverMappingsForProfileCommand",
+      "updateSupplyNumberSubscriptionNameCommand",
+      "webMessage"
+    ],
+    "rules": [
+      "guard",
+      "guard.ts",
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers.",
+      "require",
+      "require-roles.directive.ts"
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "ActiveJobsHandler",
+    "BiWizardStep",
+    "ConversationCreatedHandler",
+    "ConversationMessageSentHandler",
+    "ConversationUnreadStatusHandler",
+    "DateJsSetupHandler",
+    "EnrollmentStep",
+    "IClientSentEventHandler",
+    "ISaml2NotificationHandler",
+    "LookupProgressHandler",
+    "NotifySupplyNumberSubscribersNotificationHandler",
+    "PinCodeEmailRequestedNotificationHandler",
+    "PinCodeSmsRequestedNotificationHandler",
+    "ProgressWatcherInfoHandler",
+    "Saml2NotificationHandler",
+    "SmsGroupDeletedHandler",
+    "SubscribeUnsubscribeReceiptRequestedNotificationHandler",
+    "VoiceMessageStatusChangedEventHandler",
+    "WizardStep",
+    "wizardStep"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "ActiveJobsHandler",
+      "table": "activejobshandlers"
+    },
+    {
+      "entity": "ActivityLogController",
+      "table": "activitylogcontrollers"
+    },
+    {
+      "entity": "AddressController",
+      "table": "addresscontrollers"
+    },
+    {
+      "entity": "AdminController",
+      "table": "admincontrollers"
+    },
+    {
+      "entity": "AssignConversationPhoneNumberCommand",
+      "table": "assignconversationphonenumbercommands"
+    },
+    {
+      "entity": "AssignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "assignstandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "BaseController",
+      "table": "basecontrollers"
+    },
+    {
+      "entity": "BaseEnrollmentsController",
+      "table": "baseenrollmentscontrollers"
+    },
+    {
+      "entity": "BenchmarkController",
+      "table": "benchmarkcontrollers"
+    },
+    {
+      "entity": "BenchmarkUpdateCommand",
+      "table": "benchmarkupdatecommands"
+    },
+    {
+      "entity": "BiAddressTreeNodeManager",
+      "table": "biaddresstreenodemanagers"
+    },
+    {
+      "entity": "CitizenDialogueController",
+      "table": "citizendialoguecontrollers"
+    },
+    {
+      "entity": "CommonController",
+      "table": "commoncontrollers"
+    },
+    {
+      "entity": "ContactPersonsController",
+      "table": "contactpersonscontrollers"
+    },
+    {
+      "entity": "ConversationController",
+      "table": "conversationcontrollers"
+    },
+    {
+      "entity": "ConversationCreatedHandler",
+      "table": "conversationcreatedhandlers"
+    },
+    {
+      "entity": "ConversationMessageSentHandler",
+      "table": "conversationmessagesenthandlers"
+    },
+    {
+      "entity": "ConversationPartnerNameUpdateCommand",
+      "table": "conversationpartnernameupdatecommands"
+    },
+    {
+      "entity": "ConversationUnreadStatusHandler",
+      "table": "conversationunreadstatushandlers"
+    },
+    {
+      "entity": "CreateConversationCommand",
+      "table": "createconversationcommands"
+    },
+    {
+      "entity": "CreateOrUpdateCustomerImportFtpSettingCommand",
+      "table": "createorupdatecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "CreateOrUpdateMapLayerMappingCommand",
+      "table": "createorupdatemaplayermappingcommands"
+    },
+    {
+      "entity": "CreateOrUpdateProfileFtpSettingCommand",
+      "table": "createorupdateprofileftpsettingcommands"
+    },
+    {
+      "entity": "CreateSmsLogStatusCommand",
+      "table": "createsmslogstatuscommands"
+    },
+    {
+      "entity": "CreateWebMessageCommand",
+      "table": "createwebmessagecommands"
+    },
+    {
+      "entity": "CriticalAddressesController",
+      "table": "criticaladdressescontrollers"
+    },
+    {
+      "entity": "CustomerController",
+      "table": "customercontrollers"
+    },
+    {
+      "entity": "DataImportController",
+      "table": "dataimportcontrollers"
+    },
+    {
+      "entity": "DateJsSetupHandler",
+      "table": "datejssetuphandlers"
+    },
+    {
+      "entity": "DeleteCustomerImportFtpSettingCommand",
+      "table": "deletecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "DeleteEnrollmentCommand",
+      "table": "deleteenrollmentcommands"
+    },
+    {
+      "entity": "DeveloperController",
+      "table": "developercontrollers"
+    },
+    {
+      "entity": "EboksController",
+      "table": "ebokscontrollers"
+    },
+    {
+      "entity": "EboksMessageUpdateCommand",
+      "table": "eboksmessageupdatecommands"
+    },
+    {
+      "entity": "Email2SmsWhitelistController",
+      "table": "email2smswhitelistcontrollers"
+    },
+    {
+      "entity": "EmailMessageUpdateCommand",
+      "table": "emailmessageupdatecommands"
+    },
+    {
+      "entity": "EnrollmentAdminController",
+      "table": "enrollmentadmincontrollers"
+    },
+    {
+      "entity": "EnrollmentController",
+      "table": "enrollmentcontrollers"
+    },
+    {
+      "entity": "ErrorController",
+      "table": "errorcontrollers"
+    },
+    {
+      "entity": "FramWebController",
+      "table": "framwebcontrollers"
+    },
+    {
+      "entity": "GatewayApiController",
+      "table": "gatewayapicontrollers"
+    },
+    {
+      "entity": "GdprController",
+      "table": "gdprcontrollers"
+    },
+    {
+      "entity": "GetAddressInfoQuery",
+      "table": "getaddressinfoquerys"
+    },
+    {
+      "entity": "GetSentMessagesQuery",
+      "table": "getsentmessagesquerys"
+    },
+    {
+      "entity": "HumanResourceController",
+      "table": "humanresourcecontrollers"
+    },
+    {
+      "entity": "IClientSentEventHandler",
+      "table": "iclientsenteventhandlers"
+    },
+    {
+      "entity": "IMessageRepository",
+      "table": "imessagerepositorys"
+    },
+    {
+      "entity": "IMessageStatisticsRepository",
+      "table": "imessagestatisticsrepositorys"
+    },
+    {
+      "entity": "ISaml2NotificationHandler",
+      "table": "isaml2notificationhandlers"
+    },
+    {
+      "entity": "IWebMessageRepository",
+      "table": "iwebmessagerepositorys"
+    },
+    {
+      "entity": "IWebhooksRepository",
+      "table": "iwebhooksrepositorys"
+    },
+    {
+      "entity": "IWebinarRepository",
+      "table": "iwebinarrepositorys"
+    },
+    {
+      "entity": "InfobipWebhookController",
+      "table": "infobipwebhookcontrollers"
+    },
+    {
+      "entity": "InternalReportsController",
+      "table": "internalreportscontrollers"
+    },
+    {
+      "entity": "JobsController",
+      "table": "jobscontrollers"
+    },
+    {
+      "entity": "KamstrupReportsController",
+      "table": "kamstrupreportscontrollers"
+    },
+    {
+      "entity": "LevelController",
+      "table": "levelcontrollers"
+    },
+    {
+      "entity": "LogController",
+      "table": "logcontrollers"
+    },
+    {
+      "entity": "LookupProgressHandler",
+      "table": "lookupprogresshandlers"
+    },
+    {
+      "entity": "MapController",
+      "table": "mapcontrollers"
+    },
+    {
+      "entity": "MessageController",
+      "table": "messagecontrollers"
+    },
+    {
+      "entity": "MessageMetadataUpdateCommand",
+      "table": "messagemetadataupdatecommands"
+    },
+    {
+      "entity": "MessageRepository",
+      "table": "messagerepositorys"
+    },
+    {
+      "entity": "MessageStatisticsRepository",
+      "table": "messagestatisticsrepositorys"
+    },
+    {
+      "entity": "MonitoringController",
+      "table": "monitoringcontrollers"
+    },
+    {
+      "entity": "NewsletterController",
+      "table": "newslettercontrollers"
+    },
+    {
+      "entity": "NineteenNineteenController",
+      "table": "nineteennineteencontrollers"
+    },
+    {
+      "entity": "NotifySupplyNumberSubscribersNotificationHandler",
+      "table": "notifysupplynumbersubscribersnotificationhandlers"
+    },
+    {
+      "entity": "OperationalController",
+      "table": "operationalcontrollers"
+    },
+    {
+      "entity": "OutgoingRequestLogsController",
+      "table": "outgoingrequestlogscontrollers"
+    },
+    {
+      "entity": "PackagesController",
+      "table": "packagescontrollers"
+    },
+    {
+      "entity": "PinCodeEmailRequestedNotificationHandler",
+      "table": "pincodeemailrequestednotificationhandlers"
+    },
+    {
+      "entity": "PinCodeSmsRequestedNotificationHandler",
+      "table": "pincodesmsrequestednotificationhandlers"
+    },
+    {
+      "entity": "PipelineController",
+      "table": "pipelinecontrollers"
+    },
+    {
+      "entity": "PositiveListController",
+      "table": "positivelistcontrollers"
+    },
+    {
+      "entity": "ProcessController",
+      "table": "processcontrollers"
+    },
+    {
+      "entity": "ProfileController",
+      "table": "profilecontrollers"
+    },
+    {
+      "entity": "ProgressWatcherInfoHandler",
+      "table": "progresswatcherinfohandlers"
+    },
+    {
+      "entity": "QuickResponseController",
+      "table": "quickresponsecontrollers"
+    },
+    {
+      "entity": "RegisterWebhookCommand",
+      "table": "registerwebhookcommands"
+    },
+    {
+      "entity": "ReportController",
+      "table": "reportcontrollers"
+    },
+    {
+      "entity": "SalesforceController",
+      "table": "salesforcecontrollers"
+    },
+    {
+      "entity": "Saml2NotificationHandler",
+      "table": "saml2notificationhandlers"
+    },
+    {
+      "entity": "SaveSurveyNudgingResponseCommand",
+      "table": "savesurveynudgingresponsecommands"
+    },
+    {
+      "entity": "SaveUserNudgingResponseCommand",
+      "table": "saveusernudgingresponsecommands"
+    },
+    {
+      "entity": "ScimEntity",
+      "table": "scimentitys"
+    },
+    {
+      "entity": "ScimGroupsController",
+      "table": "scimgroupscontrollers"
+    },
+    {
+      "entity": "ScimUsersController",
+      "table": "scimuserscontrollers"
+    },
+    {
+      "entity": "SearchController",
+      "table": "searchcontrollers"
+    },
+    {
+      "entity": "SendConversationReplyCommand",
+      "table": "sendconversationreplycommands"
+    },
+    {
+      "entity": "SendSmsGroupCommand",
+      "table": "sendsmsgroupcommands"
+    },
+    {
+      "entity": "SendgridController",
+      "table": "sendgridcontrollers"
+    },
+    {
+      "entity": "SetDisableAllBroadcastsCommand",
+      "table": "setdisableallbroadcastscommands"
+    },
+    {
+      "entity": "SmsGroupApprovalController",
+      "table": "smsgroupapprovalcontrollers"
+    },
+    {
+      "entity": "SmsGroupByMunicipalitiesCommand",
+      "table": "smsgroupbymunicipalitiescommands"
+    },
+    {
+      "entity": "SmsGroupDeletedHandler",
+      "table": "smsgroupdeletedhandlers"
+    },
+    {
+      "entity": "SmsGroupScheduleController",
+      "table": "smsgroupschedulecontrollers"
+    },
+    {
+      "entity": "SmsGroupStatusController",
+      "table": "smsgroupstatuscontrollers"
+    },
+    {
+      "entity": "SmsGroupStencilController",
+      "table": "smsgroupstencilcontrollers"
+    },
+    {
+      "entity": "SmsLogResponseCommand",
+      "table": "smslogresponsecommands"
+    },
+    {
+      "entity": "SmsMessageUpdateCommand",
+      "table": "smsmessageupdatecommands"
+    },
+    {
+      "entity": "SocialMediaController",
+      "table": "socialmediacontrollers"
+    },
+    {
+      "entity": "SocialMediaMessageUpdateCommand",
+      "table": "socialmediamessageupdatecommands"
+    },
+    {
+      "entity": "StandardReceiverController",
+      "table": "standardreceivercontrollers"
+    },
+    {
+      "entity": "StandardReceiverGroupCreateCommand",
+      "table": "standardreceivergroupcreatecommands"
+    },
+    {
+      "entity": "StatstidendeController",
+      "table": "statstidendecontrollers"
+    },
+    {
+      "entity": "StatusUpdateCommand",
+      "table": "statusupdatecommands"
+    },
+    {
+      "entity": "StdReceiversDataManager",
+      "table": "stdreceiversdatamanagers"
+    },
+    {
+      "entity": "StdReceiversTreeNodeDataManager",
+      "table": "stdreceiverstreenodedatamanagers"
+    },
+    {
+      "entity": "StrexController",
+      "table": "strexcontrollers"
+    },
+    {
+      "entity": "SubscribeAddressCommand",
+      "table": "subscribeaddresscommands"
+    },
+    {
+      "entity": "SubscribeModuleController",
+      "table": "subscribemodulecontrollers"
+    },
+    {
+      "entity": "SubscribeSupplyNumberCommand",
+      "table": "subscribesupplynumbercommands"
+    },
+    {
+      "entity": "SubscribeUnsubscribeReceiptRequestedNotificationHandler",
+      "table": "subscribeunsubscribereceiptrequestednotificationhandlers"
+    },
+    {
+      "entity": "SuperAdminApiKeysController",
+      "table": "superadminapikeyscontrollers"
+    },
+    {
+      "entity": "SuperAdminController",
+      "table": "superadmincontrollers"
+    },
+    {
+      "entity": "SuperAdminCustomerController",
+      "table": "superadmincustomercontrollers"
+    },
+    {
+      "entity": "SuperAdminInvoiceController",
+      "table": "superadmininvoicecontrollers"
+    },
+    {
+      "entity": "SuperAdminPhoneNumberProviderController",
+      "table": "superadminphonenumberprovidercontrollers"
+    },
+    {
+      "entity": "SuperAdminSalesInfoController",
+      "table": "superadminsalesinfocontrollers"
+    },
+    {
+      "entity": "SuperAdminUserController",
+      "table": "superadminusercontrollers"
+    },
+    {
+      "entity": "SupportController",
+      "table": "supportcontrollers"
+    },
+    {
+      "entity": "UnsubscribeAddressCommand",
+      "table": "unsubscribeaddresscommands"
+    },
+    {
+      "entity": "UnsubscribeSupplyNumberCommand",
+      "table": "unsubscribesupplynumbercommands"
+    },
+    {
+      "entity": "UpdateConversationPhoneNumberCommand",
+      "table": "updateconversationphonenumbercommands"
+    },
+    {
+      "entity": "UpdateEmailMessageStatusCommand",
+      "table": "updateemailmessagestatuscommands"
+    },
+    {
+      "entity": "UpdateMapLayerCommand",
+      "table": "updatemaplayercommands"
+    },
+    {
+      "entity": "UpdateMessageAddressCommand",
+      "table": "updatemessageaddresscommands"
+    },
+    {
+      "entity": "UpdateProfileAccountCommand",
+      "table": "updateprofileaccountcommands"
+    },
+    {
+      "entity": "UpdateProfileToGroupMappingsCommand",
+      "table": "updateprofiletogroupmappingscommands"
+    },
+    {
+      "entity": "UpdateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "updatestandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "UpdateStdReceiverMappingsForProfileCommand",
+      "table": "updatestdreceivermappingsforprofilecommands"
+    },
+    {
+      "entity": "UpdateSupplyNumberSubscriptionNameCommand",
+      "table": "updatesupplynumbersubscriptionnamecommands"
+    },
+    {
+      "entity": "UpdateWebMessageCommand",
+      "table": "updatewebmessagecommands"
+    },
+    {
+      "entity": "UserController",
+      "table": "usercontrollers"
+    },
+    {
+      "entity": "UserNudgingController",
+      "table": "usernudgingcontrollers"
+    },
+    {
+      "entity": "VirtualPhoneNumbersController",
+      "table": "virtualphonenumberscontrollers"
+    },
+    {
+      "entity": "VoiceMessageStatusChangedEventHandler",
+      "table": "voicemessagestatuschangedeventhandlers"
+    },
+    {
+      "entity": "VoiceMessageUpdateCommand",
+      "table": "voicemessageupdatecommands"
+    },
+    {
+      "entity": "WarningTemplateController",
+      "table": "warningtemplatecontrollers"
+    },
+    {
+      "entity": "WeatherWarningController",
+      "table": "weatherwarningcontrollers"
+    },
+    {
+      "entity": "WebMessageController",
+      "table": "webmessagecontrollers"
+    },
+    {
+      "entity": "WebMessageRepository",
+      "table": "webmessagerepositorys"
+    },
+    {
+      "entity": "WebMessageUpdateCommand",
+      "table": "webmessageupdatecommands"
+    },
+    {
+      "entity": "WebhooksController",
+      "table": "webhookscontrollers"
+    },
+    {
+      "entity": "WebhooksRepository",
+      "table": "webhooksrepositorys"
+    },
+    {
+      "entity": "WebinarRepository",
+      "table": "webinarrepositorys"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "assignConversationPhoneNumberCommand",
+      "table": "assignconversationphonenumbercommands"
+    },
+    {
+      "entity": "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "assignstandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "cloneProspectProductsToCustomerCommand",
+      "table": "cloneprospectproductstocustomercommands"
+    },
+    {
+      "entity": "conversationPartnerNameUpdateCommand",
+      "table": "conversationpartnernameupdatecommands"
+    },
+    {
+      "entity": "createConversationCommand",
+      "table": "createconversationcommands"
+    },
+    {
+      "entity": "createLogCommand",
+      "table": "createlogcommands"
+    },
+    {
+      "entity": "createOrUpdateCustomerImportFtpSettingCommand",
+      "table": "createorupdatecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "createOrUpdateMapLayerMappingCommand",
+      "table": "createorupdatemaplayermappingcommands"
+    },
+    {
+      "entity": "createOrUpdateProfileFtpSettingCommand",
+      "table": "createorupdateprofileftpsettingcommands"
+    },
+    {
+      "entity": "deleteCustomerImportFtpSettingCommand",
+      "table": "deletecustomerimportftpsettingcommands"
+    },
+    {
+      "entity": "deleteEnrollmentCommand",
+      "table": "deleteenrollmentcommands"
+    },
+    {
+      "entity": "getAddressInfoQuery",
+      "table": "getaddressinfoquerys"
+    },
+    {
+      "entity": "languageResourcesQuery",
+      "table": "languageresourcesquerys"
+    },
+    {
+      "entity": "messageTemplateCreateCommand",
+      "table": "messagetemplatecreatecommands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "saveSurveyNudgingResponseCommand",
+      "table": "savesurveynudgingresponsecommands"
+    },
+    {
+      "entity": "saveUserNudgingResponseCommand",
+      "table": "saveusernudgingresponsecommands"
+    },
+    {
+      "entity": "sendConversationReplyCommand",
+      "table": "sendconversationreplycommands"
+    },
+    {
+      "entity": "setDisableAllBroadcastsCommand",
+      "table": "setdisableallbroadcastscommands"
+    },
+    {
+      "entity": "smsGroupByMunicipalitiesCommand",
+      "table": "smsgroupbymunicipalitiescommands"
+    },
+    {
+      "entity": "smsLogResponseCommand",
+      "table": "smslogresponsecommands"
+    },
+    {
+      "entity": "standardReceiverGroupCreateCommand",
+      "table": "standardreceivergroupcreatecommands"
+    },
+    {
+      "entity": "standardReceiverGroupProfileMappingCommand",
+      "table": "standardreceivergroupprofilemappingcommands"
+    },
+    {
+      "entity": "subscribeAddressCommand",
+      "table": "subscribeaddresscommands"
+    },
+    {
+      "entity": "subscribeSupplyNumberCommand",
+      "table": "subscribesupplynumbercommands"
+    },
+    {
+      "entity": "unsubscribeAddressCommand",
+      "table": "unsubscribeaddresscommands"
+    },
+    {
+      "entity": "unsubscribeSupplyNumberCommand",
+      "table": "unsubscribesupplynumbercommands"
+    },
+    {
+      "entity": "updateAddressSubscriptionNameCommand",
+      "table": "updateaddresssubscriptionnamecommands"
+    },
+    {
+      "entity": "updateConversationPhoneNumberCommand",
+      "table": "updateconversationphonenumbercommands"
+    },
+    {
+      "entity": "updateMapLayerCommand",
+      "table": "updatemaplayercommands"
+    },
+    {
+      "entity": "updateProfileAccountCommand",
+      "table": "updateprofileaccountcommands"
+    },
+    {
+      "entity": "updateProfileToGroupMappingCommand",
+      "table": "updateprofiletogroupmappingcommands"
+    },
+    {
+      "entity": "updateProfileToGroupMappingsCommand",
+      "table": "updateprofiletogroupmappingscommands"
+    },
+    {
+      "entity": "updateProspectCommand",
+      "table": "updateprospectcommands"
+    },
+    {
+      "entity": "updateProspectWithCustomerIdCommand",
+      "table": "updateprospectwithcustomeridcommands"
+    },
+    {
+      "entity": "updateStandardReceiverGroupDistributionPhoneNumberCommand",
+      "table": "updatestandardreceivergroupdistributionphonenumbercommands"
+    },
+    {
+      "entity": "updateStdReceiverMappingsForProfileCommand",
+      "table": "updatestdreceivermappingsforprofilecommands"
+    },
+    {
+      "entity": "updateSupplyNumberSubscriptionNameCommand",
+      "table": "updatesupplynumbersubscriptionnamecommands"
+    }
+  ],
+  "known_integrations": [
+    "HTTP REST Client",
+    "MediatR Event Bus",
+    "SAML2 SSO",
+    "SCIM 2.0",
+    "TOTP Authenticator",
+    "WebClient"
+  ],
+  "validation_rules": [
+    "guard",
+    "guard.ts",
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers.",
+    "require",
+    "require-roles.directive.ts"
+  ]
+}

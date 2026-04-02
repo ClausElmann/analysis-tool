@@ -214,3 +214,38 @@ def compute_saturation_score(gap_history: list) -> float:
     # 1 gap → 0.9, 2 → 0.8, …, 10+ → cap at unchanged_ratio
     size_bonus = max(0.0, 1.0 - gap_count * 0.1)
     return round(min(max(unchanged_ratio + size_bonus * 0.2, 0.0), 1.0), 4)
+
+
+def compute_substantive_completeness(model: Dict[str, Any]) -> float:
+    """Return a substantive completeness score in [0.0, 1.0].
+
+    Unlike ``compute_completeness`` (which is quantity-based), this function
+    rewards the *presence* of key structural sections regardless of count.
+    Intended for **logging only** \u2014 NOT used in completion gates or scoring
+    that affects domain status.
+
+    A domain scores 1.0 when all five structural signals are present:
+    * ``entities``     \u2014 at least 1 item
+    * ``flows``        \u2014 at least 1 item
+    * ``rules``        \u2014 at least 1 item
+    * ``integrations`` \u2014 at least 1 item
+    * rebuild structure \u2014 any of entities/flows/rules/integrations present
+
+    .. warning::
+        Do NOT call this function in completion-gate code.
+        It is a diagnostic metric only.
+    """
+    checks = [
+        bool(model.get("entities")),
+        bool(model.get("flows")),
+        bool(model.get("rules")),
+        bool(model.get("integrations")),
+        # rebuild structure present = at least 2 of the above sections filled
+        sum([
+            bool(model.get("entities")),
+            bool(model.get("flows")),
+            bool(model.get("rules")),
+            bool(model.get("integrations")),
+        ]) >= 2,
+    ]
+    return round(sum(checks) / len(checks), 4)

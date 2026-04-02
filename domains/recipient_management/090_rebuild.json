@@ -1,0 +1,71 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T00:09:37.237073Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "QuickResponseRecipientRespondentDto",
+      "route": "/quickresponserecipientrespondentdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "QuickResponseRecipientRespondentReadModel",
+      "route": "/quickresponserecipientrespondentreadmodel",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "quickResponseRecipientRespondentDto",
+      "route": "/quickresponserecipientrespondentdto",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CallRecipientEntityEvent",
+      "ExpandRecipientMunicipalityAddressesCommand",
+      "LookupAddressRecipientsQuery"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "ExpandRecipientMunicipalitiesCommandProcessor",
+    "NoRecipientWarningWorkloadProcessor"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "ExpandRecipientMunicipalityAddressesCommand",
+      "table": "expandrecipientmunicipalityaddressescommands"
+    },
+    {
+      "entity": "LookupAddressRecipientsQuery",
+      "table": "lookupaddressrecipientsquerys"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must",
+    "must be plain English or well-known identifiers."
+  ]
+}

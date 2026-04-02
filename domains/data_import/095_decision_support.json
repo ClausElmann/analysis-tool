@@ -1,0 +1,8 @@
+{
+  "business_value": "high",
+  "complexity": "high",
+  "coupling": "low",
+  "domain": "data_import",
+  "rebuild_priority": 7,
+  "saved_utc": "2026-04-02T01:18:09.221830+00:00"
+}

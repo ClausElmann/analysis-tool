@@ -1,4 +1,141 @@
 {
-  "domain": "Email",
-  "rebuild_requirements": []
+  "_meta": {
+    "generated_at": "2026-04-02T01:20:28.023157Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "Email Notification",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "Email2SmsWhitelistController",
+      "route": "/email2smswhitelist",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "EmailDocumentPreviewDto",
+      "route": "/emaildocumentpreviewdto",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "emailDocumentPreviewDto",
+      "route": "/emaildocumentpreviewdto",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "AttachEmailCommand",
+      "CheckEmailForDoublesCommand",
+      "EmailAttachedEvent",
+      "EmailCheckedForDoublesEvent",
+      "EmailMessage",
+      "EmailMessageCreatedEvent",
+      "EmailMessageUpdateCommand",
+      "InboundParseEvent",
+      "PinCodeEmailRequestedNotification",
+      "SendGridRootEvent",
+      "UpdateEmailMessageStatusCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "AttachEmailCommandProcessor",
+    "CheckEmailForDoublesCommandProcessor",
+    "EmailsWorkloadProcessor",
+    "InboundParseEventHandler",
+    "PinCodeEmailRequestedNotificationHandler",
+    "SendGridWorkloadDevProcessor",
+    "SendGridWorkloadProcessor"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "AttachEmailCommand",
+      "table": "attachemailcommands"
+    },
+    {
+      "entity": "CheckEmailForDoublesCommand",
+      "table": "checkemailfordoublescommands"
+    },
+    {
+      "entity": "Email2SmsWhitelistController",
+      "table": "email2smswhitelistcontrollers"
+    },
+    {
+      "entity": "Email2SmsWhitelistRepository",
+      "table": "email2smswhitelistrepositorys"
+    },
+    {
+      "entity": "EmailMessageUpdateCommand",
+      "table": "emailmessageupdatecommands"
+    },
+    {
+      "entity": "EmailRepository",
+      "table": "emailrepositorys"
+    },
+    {
+      "entity": "EmailTemplateRepository",
+      "table": "emailtemplaterepositorys"
+    },
+    {
+      "entity": "IEmail2SmsWhitelistRepository",
+      "table": "iemail2smswhitelistrepositorys"
+    },
+    {
+      "entity": "IEmailRepository",
+      "table": "iemailrepositorys"
+    },
+    {
+      "entity": "IEmailTemplateRepository",
+      "table": "iemailtemplaterepositorys"
+    },
+    {
+      "entity": "IProcessedInboundEmailRepository",
+      "table": "iprocessedinboundemailrepositorys"
+    },
+    {
+      "entity": "InboundParseEventHandler",
+      "table": "inboundparseeventhandlers"
+    },
+    {
+      "entity": "PinCodeEmailRequestedNotificationHandler",
+      "table": "pincodeemailrequestednotificationhandlers"
+    },
+    {
+      "entity": "ProcessedInboundEmailRepository",
+      "table": "processedinboundemailrepositorys"
+    },
+    {
+      "entity": "UpdateEmailMessageStatusCommand",
+      "table": "updateemailmessagestatuscommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [
+    "Email Notification"
+  ],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
 }

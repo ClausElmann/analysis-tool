@@ -1,4 +1,93 @@
 {
-  "domain": "Delivery",
-  "rebuild_requirements": []
+  "_meta": {
+    "generated_at": "2026-04-02T08:38:19.345421Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "ApiClient",
+      "source": "integration"
+    },
+    {
+      "method": "HTTP REST Client",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "EboksController",
+      "route": "/eboks",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "DeliveryEvent",
+      "EboksMessage",
+      "InboundParseEvent",
+      "SendGridRootEvent",
+      "SmsSentNotification"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "GatewayApiBulkApiWorkloadProcessor",
+    "GatewayApiBulkTestWorkloadProcessor",
+    "InboundParseEventHandler",
+    "InfobipCustomerVoiceSettingsChangedEventHandler"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "EboksController",
+      "table": "ebokscontrollers"
+    },
+    {
+      "entity": "EboksRepository",
+      "table": "eboksrepositorys"
+    },
+    {
+      "entity": "IEboksRepository",
+      "table": "ieboksrepositorys"
+    },
+    {
+      "entity": "IProcessedInboundEmailRepository",
+      "table": "iprocessedinboundemailrepositorys"
+    },
+    {
+      "entity": "InboundParseEventHandler",
+      "table": "inboundparseeventhandlers"
+    },
+    {
+      "entity": "InfobipCustomerVoiceSettingsChangedEventHandler",
+      "table": "infobipcustomervoicesettingschangedeventhandlers"
+    },
+    {
+      "entity": "ProcessedInboundEmailRepository",
+      "table": "processedinboundemailrepositorys"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [
+    "ApiClient",
+    "HTTP REST Client"
+  ],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers."
+  ]
 }

@@ -1,7 +1,3 @@
 [
-  {
-    "note": "No domain events found for the localization domain.",
-    "evidence": "grep search across ServiceAlert.Api, ServiceAlert.Services, ServiceAlert.Batch found no event publishing, no event bus references, and no domain event classes related to Language, LocaleStringResource, or Country.",
-    "assessment": "Localization is a pure utility/infrastructure domain. Changes to translations do not trigger business events — they are treated as configuration updates. This is consistent with the batch-script export/import tooling pattern (F003) rather than an event-driven flow."
-  }
+  "{'note': 'No domain events found for the localization domain.', 'evidence': 'grep search across ServiceAlert.Api, ServiceAlert.Services, ServiceAlert.Batch found no event publishing, no event bus references, and no domain event classes related to Language, LocaleStringResource, or Country.', 'assessment': 'Localization is a pure utility/infrastructure domain. Changes to translations do not trigger business events — they are treated as configuration updates. This is consistent with the batch-script export/import tooling pattern (F003) rather than an event-driven flow.'}"
 ]

@@ -1,0 +1,5 @@
+[
+  "CallRecipientEntityEvent",
+  "ExpandRecipientMunicipalityAddressesCommand",
+  "LookupAddressRecipientsQuery"
+]

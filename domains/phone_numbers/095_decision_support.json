@@ -1,0 +1,8 @@
+{
+  "business_value": "medium",
+  "complexity": "high",
+  "coupling": "medium",
+  "domain": "phone_numbers",
+  "rebuild_priority": 7,
+  "saved_utc": "2026-04-02T01:26:13.804729+00:00"
+}

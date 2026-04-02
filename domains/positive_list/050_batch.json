@@ -1,0 +1,7 @@
+[
+  "ActiveJobsClientEventConnectEventListener",
+  "BatchCommandEventListener",
+  "BatchedCommandsCompletedEventListener",
+  "JobTaskStatusChangedEventListener",
+  "Jobs"
+]

@@ -1,4 +1,7 @@
-{
-  "domain": "Delivery",
-  "events": []
-}
+[
+  "DeliveryEvent",
+  "EboksMessage",
+  "InboundParseEvent",
+  "SendGridRootEvent",
+  "SmsSentNotification"
+]

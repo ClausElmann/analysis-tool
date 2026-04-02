@@ -1,0 +1,10 @@
+[
+  "BatchApp",
+  "BatchCommandEventListener",
+  "BatchedCommandsCompletedEvent",
+  "BatchedCommandsCompletedEventListener",
+  "ILookupBatchCommandProcessor",
+  "LookupBatchCommandProcessorBase",
+  "RunBatchedCommandsCommand",
+  "RunBatchedCommandsCommandProcessor"
+]

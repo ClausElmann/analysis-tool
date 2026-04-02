@@ -1,0 +1,7 @@
+[
+  "guard",
+  "guard.ts",
+  "if truly empty (use empty list, not null).",
+  "must be plain English or well-known identifiers.",
+  "should"
+]

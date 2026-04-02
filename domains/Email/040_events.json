@@ -1,4 +1,13 @@
-{
-  "domain": "Email",
-  "events": []
-}
+[
+  "AttachEmailCommand",
+  "CheckEmailForDoublesCommand",
+  "EmailAttachedEvent",
+  "EmailCheckedForDoublesEvent",
+  "EmailMessage",
+  "EmailMessageCreatedEvent",
+  "EmailMessageUpdateCommand",
+  "InboundParseEvent",
+  "PinCodeEmailRequestedNotification",
+  "SendGridRootEvent",
+  "UpdateEmailMessageStatusCommand"
+]

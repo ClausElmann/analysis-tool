@@ -1,0 +1,114 @@
+{
+  "_meta": {
+    "generated_at": "2026-04-02T00:08:19.186489Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "PipelineController",
+      "route": "/pipeline",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SalesforceController",
+      "route": "/salesforce",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "SuperAdminSalesInfoController",
+      "route": "/superadminsalesinfo",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "CloneProspectProductsToCustomerCommand",
+      "ProspectCreatedInEconomicNotification",
+      "SalesInfoQuery",
+      "UpdateProspectCommand",
+      "UpdateProspectWithCustomerIdCommand"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must",
+      "must be plain English or well-known identifiers."
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [],
+  "ef_core_entities": [
+    {
+      "entity": "CloneProspectProductsToCustomerCommand",
+      "table": "cloneprospectproductstocustomercommands"
+    },
+    {
+      "entity": "IPipelinesRepository",
+      "table": "ipipelinesrepositorys"
+    },
+    {
+      "entity": "ISalesInfoRepository",
+      "table": "isalesinforepositorys"
+    },
+    {
+      "entity": "ISalesforceRepository",
+      "table": "isalesforcerepositorys"
+    },
+    {
+      "entity": "PipelineController",
+      "table": "pipelinecontrollers"
+    },
+    {
+      "entity": "PipelinesRepository",
+      "table": "pipelinesrepositorys"
+    },
+    {
+      "entity": "SalesInfoQuery",
+      "table": "salesinfoquerys"
+    },
+    {
+      "entity": "SalesInfoRepository",
+      "table": "salesinforepositorys"
+    },
+    {
+      "entity": "SalesforceController",
+      "table": "salesforcecontrollers"
+    },
+    {
+      "entity": "SalesforceRepository",
+      "table": "salesforcerepositorys"
+    },
+    {
+      "entity": "SuperAdminSalesInfoController",
+      "table": "superadminsalesinfocontrollers"
+    },
+    {
+      "entity": "UpdateProspectCommand",
+      "table": "updateprospectcommands"
+    },
+    {
+      "entity": "UpdateProspectWithCustomerIdCommand",
+      "table": "updateprospectwithcustomeridcommands"
+    },
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    }
+  ],
+  "known_integrations": [],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must",
+    "must be plain English or well-known identifiers."
+  ]
+}

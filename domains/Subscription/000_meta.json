@@ -1,14 +1,9 @@
 {
-  "domain": "Subscription",
-  "confidence": 0.17,
-  "coverage": {
-    "api_endpoints": 0,
-    "batch_jobs": 1,
-    "events": 0,
-    "webhooks": 0,
-    "integrations": 0,
-    "background_services": 0
-  },
-  "complexity_score": 1,
-  "roi_score": 2
+  "completeness_score": 0.58,
+  "domain": "subscription",
+  "gaps_count": 3,
+  "iteration": 24,
+  "new_information_score": 0.0168,
+  "saved_utc": "2026-04-02T01:36:05.601159+00:00",
+  "status": "in_progress"
 }

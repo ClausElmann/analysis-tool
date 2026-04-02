@@ -1,14 +1,9 @@
 {
-  "domain": "Delivery",
-  "confidence": 0.17,
-  "coverage": {
-    "api_endpoints": 0,
-    "batch_jobs": 8,
-    "events": 0,
-    "webhooks": 0,
-    "integrations": 0,
-    "background_services": 0
-  },
-  "complexity_score": 2,
-  "roi_score": 2
+  "completeness_score": 0.84,
+  "domain": "delivery",
+  "gaps_count": 3,
+  "iteration": 8,
+  "new_information_score": 0.0379,
+  "saved_utc": "2026-04-02T08:38:19.344423+00:00",
+  "status": "in_progress"
 }

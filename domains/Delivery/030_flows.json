@@ -1,4 +1,6 @@
-{
-  "domain": "Delivery",
-  "flows": []
-}
+[
+  "GatewayApiBulkApiWorkloadProcessor",
+  "GatewayApiBulkTestWorkloadProcessor",
+  "InboundParseEventHandler",
+  "InfobipCustomerVoiceSettingsChangedEventHandler"
+]

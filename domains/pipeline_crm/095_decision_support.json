@@ -1,0 +1,8 @@
+{
+  "business_value": "low",
+  "complexity": "high",
+  "coupling": "low",
+  "domain": "pipeline_crm",
+  "rebuild_priority": 4,
+  "saved_utc": "2026-04-02T01:27:12.379057+00:00"
+}
