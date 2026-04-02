@@ -35,7 +35,9 @@ _REQUIRED_FILES: list[str] = [
     "030_flows.json",
     "070_rules.json",
     "090_rebuild.json",
-    "095_decision_support.json",
+    # decision_support removed from gate:
+    # not produced by AI chain (see SLICE-06)
+    # kept as optional future enhancement
 ]
 
 # Minimum item counts per section (must ALL be satisfied)

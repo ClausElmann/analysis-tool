@@ -25,7 +25,7 @@ Protocol flow
 
 Completion thresholds (stricter than existing loop thresholds)
 --------------------------------------------------------------
-* completeness  >= 0.95
+* completeness  >= 0.90
 * consistency   >= 0.90
 * saturation    >= 0.90
 * stable_iterations >= 3 consecutive passing iterations
@@ -40,6 +40,7 @@ from typing import Any, Dict, List, Optional
 
 from core.domain.domain_asset_matcher import match_assets
 from core.domain.domain_scoring import (
+    COMPLETENESS_THRESHOLD,
     compute_saturation_score,
     cross_source_consistency_score,
 )
@@ -47,6 +48,7 @@ from core.domain.domain_state import (
     STATUS_BLOCKED,
     STATUS_COMPLETE,
     STATUS_IN_PROGRESS,
+    STATUS_STABLE,
     STATUS_STABLE_CANDIDATE,
     DomainProgress,
     DomainState,
@@ -56,7 +58,7 @@ from core.domain.domain_state import (
 # Protocol thresholds
 # ---------------------------------------------------------------------------
 
-PROTOCOL_COMPLETENESS_GATE: float = 0.95   # stricter than existing 0.90
+PROTOCOL_COMPLETENESS_GATE: float = COMPLETENESS_THRESHOLD  # shared with domain_scoring.COMPLETENESS_THRESHOLD (0.90)
 PROTOCOL_CONSISTENCY_GATE: float = 0.90
 PROTOCOL_SATURATION_GATE: float = 0.90
 PROTOCOL_STABLE_REQUIRED: int = 3         # consecutive passing iterations
@@ -163,10 +165,9 @@ def select_next_domain(state: DomainState) -> Optional[str]:
             return state.active_domain
 
     # Rule 2: choose next best
-    # NOTE: "stable" is intentionally excluded — it is a loop-internal convergence
-    # hint only and must NOT be treated as terminal. Domains set to "stable" by
-    # DomainLearningLoop are re-evaluated by the protocol on the next call.
-    terminal = {STATUS_COMPLETE, STATUS_BLOCKED}
+    # "stable" is terminal for selection purposes — a stable domain has converged
+    # and awaits quality-gate promotion to "complete".  It must not be re-selected.
+    terminal = {STATUS_COMPLETE, STATUS_BLOCKED, STATUS_STABLE}
     candidates: List[DomainProgress] = [
         p for p in state.all_domains() if p.status not in terminal
     ]

@@ -228,7 +228,8 @@ class TestRunIterationPersistence:
     def test_memory_file_written(self, setup, tmp_path):
         loop, *_ = setup
         loop.run_iteration("messaging", _assets())
-        memory_path = tmp_path / "data" / "domain_memory.json"
+        # SLICE-08: per-domain file replaces monolith for partitioned saves
+        memory_path = tmp_path / "data" / "memory" / "messaging.json"
         assert memory_path.exists()
 
     def test_domain_model_files_written(self, setup, tmp_path):

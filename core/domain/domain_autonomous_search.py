@@ -30,7 +30,6 @@ from typing import Any, Dict, List, Optional
 
 from core.domain.domain_query_engine import (
     DomainQueryEngine,
-    _GAP_TYPE_PREFERRED_SOURCES,
     _score_asset,
 )
 from core.domain.domain_gap_types import GapType, GAP_SOURCE_ROUTING, GAP_PRIORITY

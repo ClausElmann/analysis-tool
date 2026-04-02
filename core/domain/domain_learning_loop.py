@@ -157,8 +157,8 @@ class DomainLearningLoop:
         # 1. Load current domain model
         old_model = self._store.load_model(domain_name)
 
-        # 2. Ensure memory is loaded
-        self._memory.load()
+        # 2. Ensure memory is loaded (per-domain — SLICE-08)
+        self._memory.load(domain_name)
 
         # 3. Detect gaps in the current model
         gaps = self._reasoner.detect_gaps(old_model, domain_name)
@@ -291,7 +291,7 @@ class DomainLearningLoop:
 
         # Update stable-streak counter (v2: all 4 conditions)
         is_convergent = (
-            completeness >= COMPLETENESS_THRESHOLD_V2
+            completeness >= COMPLETENESS_THRESHOLD
             and consistency >= CONSISTENCY_THRESHOLD
             and saturation >= SATURATION_THRESHOLD
             and new_info < NEW_INFO_THRESHOLD
@@ -369,7 +369,7 @@ class DomainLearningLoop:
                     + "; ".join(failures)
                 )
 
-        self._memory.save()
+        self._memory.save(domain_name)
         self._state.save()
 
         return {
@@ -428,7 +428,7 @@ class DomainLearningLoop:
         """Return *True* when the domain has converged sufficiently.
 
         v2 requires all four conditions:
-        * ``completeness_score >= 0.85`` (``COMPLETENESS_THRESHOLD_V2``)
+        * ``completeness_score >= 0.90`` (``COMPLETENESS_THRESHOLD``)
         * ``consistency_score >= 0.80`` (``CONSISTENCY_THRESHOLD``) — default 1.0
         * ``saturation_score >= 0.90`` (``SATURATION_THRESHOLD``) — default 1.0
         * ``new_information_score < 0.02`` (``NEW_INFO_THRESHOLD``)
@@ -452,7 +452,7 @@ class DomainLearningLoop:
             return False
 
         return (
-            completeness >= COMPLETENESS_THRESHOLD_V2
+            completeness >= COMPLETENESS_THRESHOLD
             and consistency >= CONSISTENCY_THRESHOLD
             and saturation >= SATURATION_THRESHOLD
             and new_info < NEW_INFO_THRESHOLD

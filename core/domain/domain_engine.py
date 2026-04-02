@@ -1,5 +1,13 @@
-"""DomainEngine v1 — autonomous domain analysis loop.
+"""DomainEngine v1 — DEPRECATED. Use domain_engine_v3.py.
 
+.. deprecated::
+    This is the legacy v1 engine. The canonical engine is
+    ``core/domain/domain_engine_v3.py``. This module is retained for
+    reference only and will be removed in a future cleanup slice.
+    Do NOT call this from new code.
+
+Original description
+--------------------
 Processes ONE domain per ``run_once()`` call.  Designed to run for hours
 or days by calling ``run_once()`` or ``run_all()`` in a loop.
 
@@ -15,6 +23,13 @@ Guarantees
 from __future__ import annotations
 
 import os
+import warnings
+
+warnings.warn(
+    "domain_engine.py (v1) is deprecated. Use domain_engine_v3.py instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 

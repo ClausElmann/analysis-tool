@@ -12,6 +12,8 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List
 
+from core.domain.domain_gap_types import GapType, GAP_SOURCE_ROUTING
+
 # ---------------------------------------------------------------------------
 # Asset type priority (higher = more valuable)
 # ---------------------------------------------------------------------------
@@ -28,18 +30,6 @@ _TYPE_PRIORITY: Dict[str, int] = {
     "pdf_section":        1,
 }
 
-# ---------------------------------------------------------------------------
-# Gap-type to preferred source types — bonus applied during scoring
-# ---------------------------------------------------------------------------
-
-_GAP_TYPE_PREFERRED_SOURCES: Dict[str, List[str]] = {
-    "missing_entity":        ["sql_table", "sql_procedure", "code_file", "work_items_batch"],
-    "missing_flow":          ["code_file", "batch", "event", "webhook", "background"],
-    "weak_rule":             ["wiki_section", "work_items_batch", "code_file"],
-    "orphan_event":          ["event", "webhook", "background"],
-    "incomplete_integration":["code_file", "webhook"],
-    "missing_context":       ["wiki_section", "pdf_section", "work_items_batch"],
-}
 
 
 # ---------------------------------------------------------------------------
@@ -97,7 +87,7 @@ def _score_asset(
     if gap_types:
         preferred_count = 0
         for gtype in gap_types:
-            preferred = _GAP_TYPE_PREFERRED_SOURCES.get(gtype, [])
+            preferred = GAP_SOURCE_ROUTING.get(GapType.normalize(gtype), [])
             if asset_type in preferred:
                 preferred_count += 1
         if gap_types:

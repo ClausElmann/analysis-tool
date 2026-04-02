@@ -28,6 +28,8 @@ import os
 import re
 from typing import Any, Dict, List, Optional
 
+from core.domain.domain_gap_types import GapType
+
 from core.domain.ai.semantic_analyzer import INSIGHT_KEYS, analyze as _semantic_analyze
 from core.domain.ai_prompt_builder import build_prompt
 
@@ -55,14 +57,7 @@ _EVIDENCE_WEIGHTS: Dict[str, float] = {
 # Gap type constants
 # ---------------------------------------------------------------------------
 
-GAP_TYPES = (
-    "missing_entity",
-    "missing_flow",
-    "orphan_event",
-    "weak_rule",
-    "incomplete_integration",
-    "missing_context",
-)
+GAP_TYPES = GapType.ALL  # canonical 10-type set (UPPERCASE); replaces legacy 6-item tuple
 
 # Per-section targets mirror domain_scoring._SECTION_TARGETS
 _SECTION_TARGETS: Dict[str, int] = {
@@ -676,11 +671,11 @@ class AIReasoner:
             if count >= target:
                 continue
 
-            gap_type = _SECTION_GAP_TYPE.get(section, "missing_context")
+            gap_type = GapType.normalize(_SECTION_GAP_TYPE.get(section, "missing_context"))
             shortfall = target - count
             priority = "high" if count == 0 else ("medium" if count < target // 2 + 1 else "low")
             slug = _slug(f"{section}_{shortfall}")
-            gap_id = f"gap:{domain_name}:{gap_type}:{slug}"
+            gap_id = f"gap:{domain_name}:{gap_type.lower()}:{slug}"
 
             # Suggest search terms based on section and domain
             suggested_terms = [section, domain_name.replace("_", " ")]
@@ -712,11 +707,11 @@ class AIReasoner:
         # Also flag missing flows when flow_stubs exist in cross-analysis
         if not (domain_model.get("flows") or []):
             if domain_model.get("behaviors"):
-                gap_id = f"gap:{domain_name}:missing_flow:no_explicit_flows"
+                gap_id = f"gap:{domain_name}:{GapType.MISSING_FLOW.lower()}:no_explicit_flows"
                 gaps.append(
                     {
                         "id": gap_id,
-                        "type": "missing_flow",
+                        "type": GapType.MISSING_FLOW,
                         "priority": "medium",
                         "description": "Behaviors exist but no explicit flows documented",
                         "suggested_terms": ["flow", "pipeline", "process", "workflow"],
@@ -726,11 +721,11 @@ class AIReasoner:
 
         # Add missing_context gap when rebuild section is empty
         if not (domain_model.get("rebuild") or []):
-            gap_id = f"gap:{domain_name}:missing_context:no_rebuild_notes"
+            gap_id = f"gap:{domain_name}:{GapType.MISSING_CONTEXT.lower()}:no_rebuild_notes"
             gaps.append(
                 {
                     "id": gap_id,
-                    "type": "missing_context",
+                    "type": GapType.MISSING_CONTEXT,
                     "priority": "low",
                     "description": "No rebuild notes — domain cannot be reconstructed",
                     "suggested_terms": ["rebuild", "reconstruct", "implement"],

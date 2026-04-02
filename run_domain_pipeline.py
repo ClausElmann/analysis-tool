@@ -1,6 +1,15 @@
 # LEGACY — DO NOT RUN
 # This script is superseded by run_domain_engine.py (Gen 3 canonical entrypoint).
 # Retained for reference only. Running this file may corrupt domain state.
+#
+# DEPRECATION: This script uses DomainEngine v1 (core/domain_engine.py).
+# The canonical entrypoint is run_domain_engine.py (uses domain_engine_v3.py).
+import warnings as _warnings
+_warnings.warn(
+    "run_domain_pipeline.py is deprecated. Use run_domain_engine.py instead.",
+    DeprecationWarning,
+    stacklevel=1,
+)
 """
 run_domain_pipeline.py — Entry point for the AI-powered domain extraction system.
 

@@ -1,0 +1,4 @@
+# requirements.txt — analysis-tool
+
+openai
+pymupdf        # fitz — PDF reading (PyMuPDF)

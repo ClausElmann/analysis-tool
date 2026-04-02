@@ -1,8 +1,9 @@
 """Domain memory — persistent AI-derived knowledge per domain and per asset.
 
-Stored at ``data/domain_memory.json``.
+Post SLICE-08: per-domain files stored under ``data/memory/<domain>.json``.
+Monolithic ``data/domain_memory.json`` is migrated on first partitioned load.
 
-Structure::
+Structure (per-domain file)::
 
     {
       "domains": {
@@ -68,34 +69,93 @@ class DomainMemory:
     Parameters
     ----------
     data_root:
-        Directory where ``domain_memory.json`` is stored.
+        Directory where memory files are stored.
     """
 
     _FILENAME = "domain_memory.json"
+    _PRE_PARTITION_FILENAME = "domain_memory.json.pre-partition"
+    _MEMORY_SUBDIR = "memory"
 
     def __init__(self, data_root: str) -> None:
         self._data_root = os.path.abspath(data_root)
         self._path = os.path.join(self._data_root, self._FILENAME)
+        self._memory_dir = os.path.join(self._data_root, self._MEMORY_SUBDIR)
         self._data: Dict[str, Any] = {"domains": {}}
 
     # ------------------------------------------------------------------
-    # Persistence
+    # Persistence — partitioned (SLICE-08)
     # ------------------------------------------------------------------
 
-    def load(self) -> None:
-        """Load memory from disk.  Resets in-memory data first.
-        No-op if the file does not exist.
+    def _is_partitioned(self) -> bool:
+        """Return True if the per-domain memory directory exists."""
+        return os.path.isdir(self._memory_dir)
+
+    def _domain_file(self, domain: str) -> str:
+        """Return absolute path to the per-domain memory file."""
+        return os.path.join(self._memory_dir, f"{domain}.json")
+
+    def _migrate(self) -> None:
+        """One-time migration: split monolith → per-domain files.
+
+        Writes every domain's file to ``data/memory/`` FIRST, then
+        renames the monolith to ``domain_memory.json.pre-partition``.
+        The original file is never deleted.
         """
         raw = _load_json(self._path)
+        os.makedirs(self._memory_dir, exist_ok=True)
         if isinstance(raw, dict) and "domains" in raw:
-            self._data = raw
-        else:
-            self._data = {"domains": {}}
+            for domain_name, domain_data in raw["domains"].items():
+                per_domain = {"domains": {domain_name: domain_data}}
+                _write_atomic(self._domain_file(domain_name), per_domain)
+        pre_partition = os.path.join(self._data_root, self._PRE_PARTITION_FILENAME)
+        os.rename(self._path, pre_partition)
 
-    def save(self) -> None:
-        """Atomically write memory to disk."""
+    def load(self, domain: Optional[str] = None) -> None:
+        """Load memory from disk.
+
+        If *domain* is given, loads only that domain's per-domain file.
+        Triggers one-time migration from the monolithic file when the
+        monolith exists but ``data/memory/`` does not yet.
+
+        If *domain* is ``None`` (legacy behaviour), loads the monolithic
+        file.  No-op if the file does not exist.
+        """
+        if domain is not None:
+            if not self._is_partitioned() and os.path.isfile(self._path):
+                self._migrate()
+            if self._is_partitioned():
+                raw = _load_json(self._domain_file(domain))
+                if isinstance(raw, dict) and "domains" in raw:
+                    self._data.setdefault("domains", {})
+                    domain_rec = raw["domains"].get(domain)
+                    if domain_rec is not None:
+                        self._data["domains"][domain] = domain_rec
+            # else: fresh environment — leave self._data as-is (empty)
+        else:
+            # Legacy: load full monolith
+            raw = _load_json(self._path)
+            if isinstance(raw, dict) and "domains" in raw:
+                self._data = raw
+            else:
+                self._data = {"domains": {}}
+
+    def save(self, domain: Optional[str] = None) -> None:
+        """Atomically write memory to disk.
+
+        If *domain* is given, writes only that domain's per-domain file
+        under ``data/memory/``.  Creates the directory if needed.
+
+        If *domain* is ``None`` (legacy behaviour), writes the full
+        monolithic file.
+        """
         os.makedirs(self._data_root, exist_ok=True)
-        _write_atomic(self._path, self._data)
+        if domain is not None:
+            os.makedirs(self._memory_dir, exist_ok=True)
+            domain_data = self._data.get("domains", {}).get(domain, {})
+            per_domain = {"domains": {domain: domain_data}}
+            _write_atomic(self._domain_file(domain), per_domain)
+        else:
+            _write_atomic(self._path, self._data)
 
     # ------------------------------------------------------------------
     # Internal domain accessor

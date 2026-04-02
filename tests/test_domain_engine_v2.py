@@ -34,9 +34,9 @@ from core.domain.ai_reasoner import (
 from core.domain.domain_learning_loop import DomainLearningLoop, _REQUIRED_STABLE_STREAK
 from core.domain.domain_memory import DomainMemory
 from core.domain.domain_model_store import DomainModelStore, _FILE_MAP
+from core.domain.domain_gap_types import GAP_SOURCE_ROUTING, GapType
 from core.domain.domain_query_engine import (
     DomainQueryEngine,
-    _GAP_TYPE_PREFERRED_SOURCES,
     _score_asset,
 )
 from core.domain.domain_scoring import (
@@ -477,9 +477,9 @@ class TestDomainModelStoreV2:
 
 
 class TestGapTypeAwareScoring:
-    def test_gap_type_preferred_sources_dict_present(self):
-        assert isinstance(_GAP_TYPE_PREFERRED_SOURCES, dict)
-        assert "missing_entity" in _GAP_TYPE_PREFERRED_SOURCES
+    def test_gap_source_routing_dict_present(self):
+        assert isinstance(GAP_SOURCE_ROUTING, dict)
+        assert GapType.MISSING_ENTITY in GAP_SOURCE_ROUTING
 
     def test_preferred_source_gets_bonus(self):
         asset_preferred = {"id": "sql1", "type": "sql_table", "path": "db/table.sql", "content": ""}

@@ -94,6 +94,9 @@ class DomainProgress:
     saturation_score: float = 0.0
     last_processed_assets: List[str] = field(default_factory=list)
 
+    # SLICE-03: bounded retry for blocked domains
+    retry_count: int = 0
+
     # ------------------------------------------------------------------
 
     def to_dict(self) -> Dict[str, Any]:
@@ -126,6 +129,8 @@ class DomainProgress:
             consistency_score=float(d.get("consistency_score", 0.0)),
             saturation_score=float(d.get("saturation_score", 0.0)),
             last_processed_assets=list(d.get("last_processed_assets", [])),
+            # SLICE-03: default 0 when loading records that predate this field
+            retry_count=int(d.get("retry_count", 0)),
         )
 
 
