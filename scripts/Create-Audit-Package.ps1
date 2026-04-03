@@ -32,7 +32,8 @@ $ProjectRoots = @(
 $ExcludedFolders = @(
     "bin", "obj", ".vs", ".git", "node_modules",
     "__pycache__", ".pytest_cache", "TestResults",
-    "Screenshots", ".venv", "venv", ".idea"
+    "Screenshots", ".venv", "venv", ".idea",
+    "output", "raw"
 )
 
 $ExcludedExtensions = @(
@@ -43,7 +44,10 @@ $ExcludedExtensions = @(
     ".woff", ".woff2", ".ttf", ".eot", ".otf",
     ".pdf", ".mp4", ".mp3", ".wav", ".avi",
     ".db", ".sqlite", ".mdf", ".ldf",
-    ".cache", ".suo", ".dbmdl", ".jfm", ".bim"
+    ".cache", ".suo", ".dbmdl", ".jfm", ".bim",
+    ".map",                        # CSS/JS source maps — generated, no review value
+    ".log", ".jsonl",             # runtime engine output — transient, not source
+    ".pre-partition"               # analysis-tool internal data partition files
 )
 
 # ---------------------------------------------------------------------------
