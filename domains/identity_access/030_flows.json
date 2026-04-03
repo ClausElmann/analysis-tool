@@ -104,5 +104,39 @@
     "type": "FACT",
     "trigger": "Inbound API call from Azure-hosted service using Managed Identity token",
     "description": "Custom ASP.NET Core AuthenticationHandler. Validates Azure Managed Identity Bearer tokens for internal service-to-service calls. NOT for end-user login."
+  },
+  {
+    "steps": [
+      "1. User logged in to ServiceAlert with CanSendByLocationAlert ProfileRole",
+      "2. User selects LocationAlert as send method in ServiceAlert UI",
+      "3. ServiceAlert calls /LocationAlert/GetSessionTicket (internal)",
+      "4. ServiceAlert creates LocationAlertSession row: SessionId=newGUID, TicketId=newGUID, DateTicketExpiresUtc=NOW()+1min, DateSessionExpiresUtc=NOW()+8h. Invalidates existing sessions for UserId.",
+      "5. ServiceAlert returns TicketId to UI",
+      "6. UI redirects user to LocationAlert URL with ?ticket={TicketId}&site=SA",
+      "7. LocationAlert calls /LocationAlert/exchangeTicketForSessionId with ticket",
+      "8. ServiceAlert validates ticket (exists, not expired, not redeemed). Sets DateTicketRedeemedUtc=NOW(). Returns SessionId.",
+      "9. LocationAlert calls /LocationAlert/hentBrukerProfil using SessionId header",
+      "10. ServiceAlert returns user/profile data in V24 format",
+      "11. LocationAlert establishes session with client using SessionId",
+      "12. Periodically: LocationAlert calls /LocationAlert/isSessionActive. ServiceAlert validates + renews DateSessionExpiresUtc.",
+      "13. Logout: LocationAlert calls /LocationAlert/logout. ServiceAlert invalidates session. Returns RedirectUrl to ServiceAlert /logout. Browser redirects. ServiceAlert refresh token revoked."
+    ],
+    "name": "LocationAlertSSOFromServiceAlert",
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md"
+  },
+  {
+    "steps": [
+      "1. User goes to LocationAlert directly (not via ServiceAlert)",
+      "2. User enters credentials in LocationAlert UI",
+      "3. LocationAlert calls /LocationAlert/login with credentials",
+      "3a. If MFA required: returns blank SessionId. LocationAlert prompts for PIN. User submits PIN via /LocationAlert/verifypincode. On success: returns real SessionId.",
+      "3b. If no MFA: returns SessionId immediately",
+      "4. Session created WITHOUT TicketId in LocationAlertSessions",
+      "5. LocationAlert calls hentBrukerProfil to get profile info",
+      "6. Same heartbeat/logout flow as SSO path"
+    ],
+    "name": "LocationAlertDirectLoginFlow",
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md",
+    "transition_note": "During V24→ServiceAlert migration: LocationAlert first tries V24 login. If V24 fails → tries ServiceAlert. This allows customers to be migrated one at a time."
   }
 ]

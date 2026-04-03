@@ -1,12 +1,19 @@
 {
-  "completeness_score": 0.97,
+  "completeness_score": 0.98,
   "domain": "identity_access",
   "gaps_count": 1,
-  "gaps_open": ["GAP_004"],
-  "gaps_closed": ["GAP_001", "GAP_002", "GAP_003", "GAP_005"],
+  "gaps_open": [
+    "GAP_004"
+  ],
+  "gaps_closed": [
+    "GAP_001",
+    "GAP_002",
+    "GAP_003",
+    "GAP_005"
+  ],
   "iteration": 32,
   "new_information_score": 0.97,
-  "saved_utc": "2026-03-30T21:00:00.000000+00:00",
+  "saved_utc": "2026-03-30T23:00:00+02:00",
   "status": "complete",
   "enrichment_note": "Copilot pass (iter 32): Closed GAP_001 (logout IS implemented — UserController.Logout()), GAP_005 (all NudgeTypes mapped: MessageSendToOwner/Eboks/Voice/Survey/AuthenticatorApp). Rebuilt 010_entities (full User+RefreshToken entity with all fields), 020_behaviors (was empty — now 10 behaviors from source), 030_flows (was 1 entry — now 7 complete flows), 070_rules (was garbage — now 12 business rules from source). Source verified: UserController.cs, UserService.cs, User.cs, UserRefreshToken.cs, bi-login.component.ts, IAuthenticationService.cs, nudgeType.ts, user-nudging.service.ts.",
   "source_files_verified": [
@@ -18,5 +25,6 @@
     "ServiceAlert.Web/ClientApp/src/features/bi-login/bi-login.component.ts",
     "ServiceAlert.Web/ClientApp/app-globals/openapi-models/model/nudgeType.ts",
     "ServiceAlert.Web/ClientApp/src/core/services/user-nudging.service.ts"
-  ]
+  ],
+  "scan_sources_added": "2026-04-04"
 }

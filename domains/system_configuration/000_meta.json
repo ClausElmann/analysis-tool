@@ -1,0 +1,12 @@
+{
+  "status": "stable_candidate",
+  "gap_notes": [
+    "AppSetting enum has 50+ keys — only key examples captured, not full enum"
+  ],
+  "new_information_score": 0.91,
+  "gaps_count": 1,
+  "saved_utc": "2026-04-03T10:00:00+02:00",
+  "completeness_score": 0.94,
+  "iteration": 10,
+  "domain": "system_configuration"
+}

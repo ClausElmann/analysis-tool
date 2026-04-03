@@ -1,0 +1,12 @@
+[
+  {
+    "description": "'Sms.applicationsettings' cache key. IApplicationSettingService.Get() returns cached copy. Save() invalidates. No distributed cache — per-instance.",
+    "name": "MemoryCache",
+    "type": "InProcessCache"
+  },
+  {
+    "description": "No direct integration. RequestLogLevel(160) AppSetting gates whether HTTP request/response logs are forwarded to App Insights via RequestResponseLoggingMiddleware.",
+    "name": "ApplicationInsights",
+    "type": "Monitoring"
+  }
+]

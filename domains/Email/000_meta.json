@@ -1,9 +1,9 @@
 {
-  "completeness_score": 0.69,
-  "domain": "email",
-  "gaps_count": 4,
-  "iteration": 14,
-  "new_information_score": 0.1555,
-  "saved_utc": "2026-04-02T01:20:28.022158+00:00",
-  "status": "in_progress"
+  "gaps_count": 1,
+  "iteration": 15,
+  "domain": "Email",
+  "completeness_score": 0.91,
+  "saved_utc": "2026-04-03T10:00:00+02:00",
+  "status": "stable_candidate",
+  "new_information_score": 0.22
 }

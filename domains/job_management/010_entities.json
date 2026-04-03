@@ -1,15 +1,227 @@
 [
-  "ActiveJobsHandler",
-  "IJobRepository",
-  "IJobService",
-  "JobReportEntity",
-  "JobRepository",
-  "JobService",
-  "JobTaskDto",
-  "JobTaskStatusDto",
-  "JobsController",
-  "and",
-  "jobTaskDto",
-  "jobTaskStatusDto",
-  "names"
+  {
+    "table": "Jobs",
+    "name": "Job",
+    "notes": "Named job registry. Name = ServiceAlertBatchAction enum string. Parent of JobTasks.",
+    "type": "AggregateRoot",
+    "fields": [
+      "Id INT IDENTITY",
+      "Name NVARCHAR(50)"
+    ]
+  },
+  {
+    "table": "JobTasks",
+    "name": "JobTask",
+    "notes": "One execution instance of a Job. Tracks Azure Batch job/task IDs. Created per run.",
+    "type": "Entity",
+    "fields": [
+      "Id BIGINT IDENTITY",
+      "JobId INT FK->Jobs",
+      "AzureJobId NVARCHAR",
+      "AzureTaskId NVARCHAR",
+      "StatusCode INT",
+      "Parameters NVARCHAR",
+      "DateCreatedUtc DATETIME",
+      "DateUpdatedUtc DATETIME"
+    ]
+  },
+  {
+    "table": "JobTaskStatuses",
+    "name": "JobTaskStatus",
+    "notes": "Append-only status history per JobTask. StatusCode: Queued=0, Running=100, Finished=200.",
+    "type": "ValueObject",
+    "fields": [
+      "Id",
+      "JobTaskId FK",
+      "StatusCode INT",
+      "Message NVARCHAR",
+      "DateCreatedUtc DATETIME"
+    ]
+  },
+  {
+    "table": null,
+    "name": "ServiceAlertBatchAction",
+    "categories": [
+      "address_import",
+      "phone_import",
+      "owner_import",
+      "robinson_import",
+      "lookup_pipeline",
+      "gateway_delivery",
+      "cleanup",
+      "statistics",
+      "archive",
+      "watchdog"
+    ],
+    "values": [
+      "subscription_notifications",
+      "import_dk_addresses",
+      "import_se_addresses",
+      "import_no_addresses",
+      "import_no_properties",
+      "import_dk_owner_addresses",
+      "import_dk_owner_bfe_lookup",
+      "import_dk_owner_publish_data",
+      "recheck_missing_bfes",
+      "poslist_ftp_import",
+      "import_robinsons",
+      "prelookup",
+      "lookup",
+      "gateway_api_bulk",
+      "gateway_unwire_bulk",
+      "gateway_emails",
+      "gateway_voice",
+      "gateway_webmessages",
+      "send_emails_sendgrid",
+      "statstidende",
+      "cleanup_azure",
+      "cleanup_azure_profile_storage_files",
+      "cleanup_messages",
+      "cleanup_systemlogs",
+      "cleanup_bisnode_sweden",
+      "cleanup_deletedsubscriptions",
+      "cleanup_kamstrup_ready",
+      "cleanup_duplicate_redundant_logs",
+      "cleanup_positivelists",
+      "cleanup_sendertips",
+      "cleanup_emailmessages",
+      "cleanup_statstidendedata",
+      "cleanup_eboksmessages",
+      "cleanup_requestlogs",
+      "cleanup_enrollees",
+      "cleanup_deactivated_users",
+      "cleanup_deactivated_customers",
+      "cleanup_deactivated_profiles",
+      "cleanup_prospects",
+      "cleanup_smslogsstatuses",
+      "cleanup_dataimport_files",
+      "cleanup_dataimportrows",
+      "cleanup_iframerequests",
+      "cleanup_clientevents",
+      "cleanup_maprequest",
+      "statistics_write_emailMessages",
+      "statistics_write_requestlogs",
+      "statistics_write_addressdata",
+      "statistics_write_phonedata",
+      "archive_message",
+      "archive_messages",
+      "watchdog_databasecheck",
+      "watchdog_fatalerrors",
+      "watchdog_version",
+      "monitoring_address_imports"
+    ],
+    "type": "Enum"
+  },
+  {
+    "name": "JobTaskStatusCode",
+    "values": [
+      "Queued=0",
+      "Running=100",
+      "Finished=200"
+    ],
+    "type": "Enum"
+  },
+  {
+    "methods": [
+      "GetRecentAndOngoingTasksAsync() → IReadOnlyCollection<JobTaskDto>",
+      "GetTaskAsync(long jobTaskId) → JobTaskDto",
+      "LogJobTaskStatusAsync(jobName, statusCode, azureJobId, azureTaskId, parameters)"
+    ],
+    "name": "IJobService",
+    "type": "Interface"
+  },
+  {
+    "dependencies": [
+      "IJobRepository"
+    ],
+    "name": "JobService",
+    "implements": "IJobService",
+    "type": "Service"
+  },
+  {
+    "name": "IJobRepository",
+    "table_access": [
+      "Jobs",
+      "JobTasks",
+      "JobTaskStatuses"
+    ],
+    "type": "Interface"
+  },
+  {
+    "name": "JobTaskDto",
+    "type": "ReadModel",
+    "fields": [
+      "Id",
+      "JobName",
+      "StatusCode",
+      "AzureJobId",
+      "AzureTaskId",
+      "Parameters",
+      "DateCreatedUtc",
+      "StatusHistory: List<JobTaskStatusDto>"
+    ]
+  },
+  {
+    "name": "JobTaskStatusDto",
+    "type": "ReadModel",
+    "fields": [
+      "StatusCode",
+      "Message",
+      "DateCreatedUtc"
+    ]
+  },
+  {
+    "payload": [
+      "JobTaskId",
+      "JobName",
+      "NewStatusCode"
+    ],
+    "name": "JobTaskStatusChangedEvent",
+    "type": "MediatRNotification"
+  },
+  {
+    "name": "ActiveJobsClientEventConnectEventListener",
+    "action": "Push update to SSE clients",
+    "type": "EventHandler",
+    "handles": "JobTaskStatusChangedEvent"
+  },
+  {
+    "table": "ProcessTasks",
+    "name": "ProcessTask",
+    "notes": "CRM/workflow manual task assignment. Separate from Azure Batch Jobs.",
+    "type": "Entity",
+    "fields": [
+      "Id INT",
+      "SubjectId INT (FK type UNKNOWN)",
+      "ProcessTaskTemplatesId INT FK",
+      "ResponsibleUserId INT nullable",
+      "DateDeadlineUtc DATE",
+      "DateCompletedUtc DATETIME nullable",
+      "Comment NVARCHAR"
+    ]
+  },
+  {
+    "table": "ProcessTaskTemplates",
+    "name": "ProcessTaskTemplate",
+    "notes": "Template definitions for ProcessTasks. Full schema UNKNOWN.",
+    "type": "Entity"
+  },
+  {
+    "table": "Quartz.NET",
+    "name": "QuartzNET",
+    "notes": "Quartz.NET scheduler state. Cron trigger definitions and fire-time tracking.",
+    "type": "InfrastructureTable"
+  },
+  {
+    "table": "ClientEvents",
+    "name": "ClientEvent",
+    "description": "SSE event record. Key = subscription group name (e.g. ConversationsUnread/<id>). Payload = JSON. Background service polls this table to push events to clients. Multiple web servers each track last-sent Id independently.",
+    "source": "wiki:Server-Sent-Event-Stream.md",
+    "columns": [
+      "Id",
+      "Key",
+      "DateCreatedUtc",
+      "Payload nvarchar(max)"
+    ]
+  }
 ]

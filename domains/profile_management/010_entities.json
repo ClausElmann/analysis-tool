@@ -116,5 +116,33 @@
   "warningProfileSettingsDto",
   "webMessageMapModuleProfileModel",
   "webMessageProfileSetupModel",
-  "webmessageModuleProfileModel"
+  "webmessageModuleProfileModel",
+  {
+    "table": "ProfileRolePrices",
+    "name": "ProfileRolePrice",
+    "description": "Pricing per ProfileRole. Each ProfileRole can have an associated price — used for subscription billing. Profile capability model directly tied to commercial offering.",
+    "source": "wiki:Domain-Description/Profiles.md"
+  },
+  {
+    "table": "CustomerAccounts",
+    "name": "CustomerAccount",
+    "description": "Child entity of Customer. Likely holds billing/account information. Referenced in Customer entity diagram alongside CustomerFtpSettings, CustomerSamlSettings, CustomerSubscriptionSettings.",
+    "source": "wiki:Domain-Description/Customers.md"
+  },
+  {
+    "table": "CustomerGdprResponsibles",
+    "name": "CustomerGdprResponsible",
+    "description": "GDPR responsible contact per customer. Multiple per customer.",
+    "source": "wiki:Domain-Description/Customers.md"
+  },
+  {
+    "table": "UserRoleGroups",
+    "name": "UserRoleGroup",
+    "description": "Groups of UserRoles that can be assigned to customers via UserRoleGroupMappings. Customer-level role policy grouping.",
+    "source": "wiki:Domain-Description/Customers.md",
+    "relations": [
+      "UserRoleGroupMappings → UserRole",
+      "CustomerUserRoleMapping → UserRole"
+    ]
+  }
 ]

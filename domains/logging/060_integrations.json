@@ -1,3 +1,14 @@
 [
-  "HTTP REST Client"
+  {
+    "description": "All log events forwarded to Application Insights via TelemetryClient. Enables cloud-based log aggregation, alerts, and dashboards.",
+    "name": "AzureApplicationInsights",
+    "direction": "outbound",
+    "type": "TelemetryTarget"
+  },
+  {
+    "description": "FinalEmailLogger uses IEmailService to send email on Fatal-level events.",
+    "name": "SendGrid(viaEmailService)",
+    "direction": "outbound",
+    "type": "AlertTarget"
+  }
 ]

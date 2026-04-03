@@ -1,0 +1,17 @@
+[
+  "RULE: All credentials (API keys, batch account info, SMTP) stored in ApplicationSettings ONLY. Never hardcoded.",
+  "RULE: CreateDefault() is idempotent — safe to run multiple times. Does NOT overwrite existing values.",
+  "RULE: Cache key 'Sms.applicationsettings' loads ALL settings at once (not per-key). Cache invalidation is full-clear on Save().",
+  "RULE: GetUncached() must be used in Admin UI to avoid showing stale values.",
+  "RULE: FileTypeIdFromExtension() returning null = file rejected. FileTypes table is the allowlist for uploads.",
+  "RULE: IdentifierTypes are country-specific. Norway uses org-nr, Denmark uses CVR, Finland uses y-number.",
+  "RULE: AppSetting enum values are defined in code — the enum numeric Id IS the row ID in ApplicationSettings. Never insert free-text keys.",
+  "RULE: DisableAllBroadcasts(184) and DisableAllSystemMessages(206) are emergency kill-switches. Checked before any delivery. If true: no messages sent.",
+  "RULE[wiki:DB-Design-Guidelines]: Table names plural, CamelCase, no underscores. Column names camelCase, no underscores. No FK constraints (by convention). No cascading deletes. All timestamps are UTC.",
+  "RULE[wiki:DB-Design-Guidelines]: Indexes named IX_<tablename>_<columns>. Create indexes on FK columns unless justified not to. Use stored procedures for complex data operations.",
+  "RULE[wiki:Code-standard]: Layer separation: Repository (data access) → Service (business logic) → Controller (HTTP). ReadModel = read-only domain data. DataModel = Dapper transition class. DTO = controller layer only.",
+  "RULE[wiki:Blob-storage]: errorlogs container receives 3 types: (1) Dapper DB connection failure, (2) Dapper license invalid, (3) SendGrid email send error response.",
+  "RULE[wiki:Blob-storage]: profilestorage container = user file uploads (managed by IProfileStorageService). profileimports/customerimports/importedfiles = DataImporter input routing.",
+  "RULE[wiki:Azure-AD-Setup]: Azure AD app requires admin consent once per customer organization. Configured via Azure AD portal → Enterprise Applications → Permissions.",
+  "RULE[wiki+git]: Strex gateway enable/disable controlled by dedicated AppSetting (#12049 git). Gateway-specific settings also stored as AppSettings (e.g. new Strex settings added in #12119)."
+]

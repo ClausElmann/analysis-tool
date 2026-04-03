@@ -1,10 +1,179 @@
 [
-  "CreateLogCommand",
-  "FullLoggingApplicationSettingsService",
-  "ILogRepository",
-  "LogRepository",
-  "LogService",
-  "OutgoingHttpClientLoggingHandler",
-  "and",
-  "names"
+  {
+    "table": "Logs",
+    "name": "Log",
+    "notes": "General system error/event log. Written by ISystemLogger.InsertLog(). Read by admin log viewer.",
+    "type": "Entity",
+    "fields": [
+      "Id INT IDENTITY",
+      "LogLevelId INT",
+      "ShortMessage NVARCHAR(1500)",
+      "FullMessage NVARCHAR(MAX)",
+      "IpAddress NVARCHAR(200)",
+      "PageUrl NVARCHAR(200)",
+      "ReferrerUrl NVARCHAR(200)",
+      "DateCreatedUtc DATETIME",
+      "Module NVARCHAR",
+      "DataObject NVARCHAR(MAX)",
+      "IsHandled BIT nullable",
+      "UserId INT nullable FK->Users"
+    ]
+  },
+  {
+    "name": "LogEntry",
+    "notes": "In-memory variant of Log used in some query contexts. Same fields as Log plus LogType enum. Not a DB table.",
+    "type": "ViewModel"
+  },
+  {
+    "name": "LogLevel",
+    "values": [
+      "Debug=10",
+      "Information=20",
+      "Warning=30",
+      "Error=40",
+      "Fatal=50"
+    ],
+    "type": "Enum"
+  },
+  {
+    "table": "RequestLogs",
+    "name": "RequestLog",
+    "notes": "Full HTTP request/response capture. Only written when RequestLogLevel AppSetting > 0. Used for debugging and support.",
+    "type": "Entity",
+    "fields": [
+      "Id",
+      "Path",
+      "Method",
+      "QueryString",
+      "Payload NVARCHAR(MAX)",
+      "Response NVARCHAR(MAX)",
+      "StatusCode INT",
+      "Ticks INT",
+      "RequestedOnUtc DATETIME",
+      "IpAddress",
+      "Hostname",
+      "UserId INT nullable"
+    ]
+  },
+  {
+    "table": "OutgoingRequestLogs",
+    "name": "OutgoingRequestLog",
+    "notes": "Outbound HTTP call log. Written by OutgoingHttpClientLoggingHandler (DelegatingHandler injected into all external HttpClient instances). Used for compliance and debugging.",
+    "type": "Entity",
+    "fields": [
+      "Id",
+      "CustomerId INT",
+      "ProfileId INT",
+      "Url NVARCHAR",
+      "Method NVARCHAR",
+      "RequestBody NVARCHAR(MAX)",
+      "ResponseBody NVARCHAR(MAX)",
+      "StatusCode INT",
+      "DurationMs INT",
+      "DateCreatedUtc DATETIME"
+    ]
+  },
+  {
+    "table": "NorwegianOutgoingRequestLogs",
+    "name": "NorwegianOutgoingRequestLog",
+    "notes": "Specialized log for Norwegian KRR/KoFuVi API calls. Used for billing compliance (per-request Norwegian API quota tracking).",
+    "type": "Entity",
+    "fields": [
+      "Id",
+      "CustomerId INT",
+      "ProfileId INT",
+      "RequestType NVARCHAR",
+      "IdentifierValue NVARCHAR",
+      "DateCreatedUtc DATETIME"
+    ]
+  },
+  {
+    "table": "MapRequestLogs",
+    "name": "MapRequestLog",
+    "notes": "Tracks map tile render requests per profile. Used for map API billing/quota. Written by MapRequestLogger.",
+    "type": "Entity",
+    "fields": [
+      "Id",
+      "ProfileId INT",
+      "TileCount INT",
+      "DateCreatedUtc DATETIME"
+    ]
+  },
+  {
+    "table": "ImpersonationLogs",
+    "name": "ImpersonationLog",
+    "notes": "Audit record written when a SuperAdmin starts impersonating another user.",
+    "type": "Entity",
+    "fields": [
+      "Id",
+      "ImpersonatingUserId INT",
+      "ImpersonatedUserId INT",
+      "CustomerId INT",
+      "DateCreatedUtc DATETIME"
+    ]
+  },
+  {
+    "methods": [
+      "InsertLog(logLevel, shortMessage, fullMessage, user, module, dataObject) → int",
+      "GetAllLogsAsync(fromUtc, toUtc, message, logLevel, pageIndex, pageSize) → IPagedList<Log>"
+    ],
+    "name": "ISystemLogger",
+    "type": "Interface"
+  },
+  {
+    "dependencies": [
+      "ILogService",
+      "IWebHelper"
+    ],
+    "name": "DefaultLogger",
+    "implements": "ISystemLogger",
+    "notes": "Primary logger implementation. Truncates ShortMessage to 1500 chars. Also serializes dataObject to JSON.",
+    "type": "Service"
+  },
+  {
+    "name": "ApplicationInsightsLogger",
+    "implements": "ISystemLogger",
+    "notes": "Forwards all log events to Azure Application Insights via TelemetryClient.",
+    "type": "Service"
+  },
+  {
+    "name": "FinalEmailLogger",
+    "implements": "ISystemLogger",
+    "notes": "On Fatal-level events: sends email notification to configured admin address via IEmailService.",
+    "implements_also": "IFinalMailSystemLogger",
+    "type": "Service"
+  },
+  {
+    "name": "IMailLogger",
+    "notes": "Sends email on critical log entries. Used by FinalEmailLogger.",
+    "type": "Service"
+  },
+  {
+    "methods": [
+      "Get(id) → LogEntry",
+      "GetLastFatal() → Result<LogEntry>",
+      "GetAsync(fromUtc,toUtc,logLevel,message) → IEnumerable<Log>",
+      "Get(fromDateUtc,toDateUtc) → IEnumerable<LogEntry>",
+      "Get(logLevel) → IEnumerable<LogEntry>",
+      "Create(log)"
+    ],
+    "name": "ILogService",
+    "type": "Interface"
+  },
+  {
+    "name": "RequestResponseLoggingMiddleware",
+    "trigger": "Every HTTP request when RequestLogLevel AppSetting != off",
+    "type": "Middleware",
+    "notes": "Captures full request path, method, query, payload, response body, status code, ticks (duration). Controlled by AppSetting RequestLogLevel(160): 'All', 'Error', or off."
+  },
+  {
+    "name": "OutgoingHttpClientLoggingHandler",
+    "notes": "Injected into all registered HttpClient instances. Intercepts outbound HTTP calls, writes OutgoingRequestLog rows.",
+    "type": "DelegatingHandler"
+  },
+  {
+    "name": "FullLoggingApplicationSettingsService",
+    "notes": "Decorates IApplicationSettingService. Logs every AppSetting read to system log when FullLogging is enabled. Used for debugging settings access.",
+    "type": "DecoratorService"
+  }
 ]

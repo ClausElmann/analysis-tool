@@ -1,10 +1,10 @@
 {
   "_global": {
-    "active_domain": "localization",
+    "active_domain": "system_configuration",
     "iteration_counter": 1558
   },
   "activity_log": {
-    "completeness_score": 0.84,
+    "completeness_score": 0.92,
     "consecutive_stable_iterations": 0,
     "consistency_score": 0.6667,
     "current_focus": "",
@@ -14,8 +14,8 @@
       "gap:activity_log:missing_entity:behaviors_5",
       "gap:activity_log:weak_rule:rules_1"
     ],
-    "iteration": 26,
-    "last_change_at": "2026-04-02T08:37:53.755498+00:00",
+    "iteration": 22,
+    "last_change_at": "2026-04-02T10:37:53.755498+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Middleware/FullLoggingApplicationSettingsService.cs",
       "code:ServiceAlert.Api/Middleware/RequestResponseLoggingMiddlewareFilter.cs",
@@ -391,7 +391,7 @@
       "labels:ns:outgoingrequestlogs"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T08:37:53.872383+00:00",
+    "last_updated_utc": "2026-04-02T10:37:53.872383+02:00",
     "matched_asset_ids": [],
     "name": "activity_log",
     "new_information_score": 0.032,
@@ -772,7 +772,7 @@
     ],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "blocked"
+    "status": "stable_candidate"
   },
   "address_management": {
     "completeness_score": 0.58,
@@ -786,7 +786,7 @@
       "gap:address_management:missing_entity:behaviors_5"
     ],
     "iteration": 66,
-    "last_change_at": "2026-04-02T01:12:12.437986+00:00",
+    "last_change_at": "2026-04-02T03:12:12.437986+02:00",
     "last_processed_assets": [
       "code:Architecture/Diagrams/AddressesComponentDiagram.cs",
       "code:Architecture/Diagrams/AddressesContainerDiagram.cs",
@@ -1712,7 +1712,7 @@
       "pdf:Brugervejledning-til-ServiceAlert.pdf:7"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:12:24.138507+00:00",
+    "last_updated_utc": "2026-04-02T03:12:24.138507+02:00",
     "matched_asset_ids": [],
     "name": "address_management",
     "new_information_score": 0.0,
@@ -2660,10 +2660,10 @@
       "gap:benchmark:missing_flow:flows_2"
     ],
     "iteration": 16,
-    "last_change_at": "2026-04-01T23:57:44.842974+00:00",
+    "last_change_at": "2026-04-02T01:57:44.842974+02:00",
     "last_processed_assets": [],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-01T23:58:10.800103+00:00",
+    "last_updated_utc": "2026-04-02T01:58:10.800103+02:00",
     "matched_asset_ids": [],
     "name": "benchmark",
     "new_information_score": 0.0,
@@ -2830,7 +2830,7 @@
       "gap:conversation:weak_rule:rules_1"
     ],
     "iteration": 12,
-    "last_change_at": "2026-04-02T01:12:52.947177+00:00",
+    "last_change_at": "2026-04-02T03:12:52.947177+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Core/Domain/Conversations/Dto/ConversationPhoneNumberWithUnreadCountReadModel.cs",
       "code:ServiceAlert.Core/Domain/Conversations/Entities/Conversation.cs",
@@ -2927,7 +2927,7 @@
       "labels:ns:conversations"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:13:05.368852+00:00",
+    "last_updated_utc": "2026-04-02T03:13:05.368852+02:00",
     "matched_asset_ids": [],
     "name": "conversation",
     "new_information_score": 0.0,
@@ -3042,7 +3042,7 @@
       "gap:customer_administration:missing_entity:behaviors_5"
     ],
     "iteration": 12,
-    "last_change_at": "2026-04-02T08:44:04.281028+00:00",
+    "last_change_at": "2026-04-02T10:44:04.281028+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/ModelFactories/Address/IAddressFactory.cs",
       "code:ServiceAlert.Api/ModelFactories/Profile/IProfileFactory.cs",
@@ -4091,7 +4091,7 @@
       "wiki:Master-Plan.md:20"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T08:44:04.281028+00:00",
+    "last_updated_utc": "2026-04-02T10:44:04.281028+02:00",
     "matched_asset_ids": [],
     "name": "customer_administration",
     "new_information_score": 0.0263,
@@ -4293,7 +4293,7 @@
       "gap:customer_management:missing_entity:behaviors_5"
     ],
     "iteration": 12,
-    "last_change_at": "2026-04-02T08:44:40.577551+00:00",
+    "last_change_at": "2026-04-02T10:44:40.577551+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Contracts/ModelFactories/Customers/CustomerFactory.cs",
       "code:ServiceAlert.Contracts/ModelFactories/Customers/CustomerLogFactory.cs",
@@ -4746,7 +4746,7 @@
       "wiki:Master-Plan.md:20"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T08:44:40.577551+00:00",
+    "last_updated_utc": "2026-04-02T10:44:40.577551+02:00",
     "matched_asset_ids": [],
     "name": "customer_management",
     "new_information_score": 0.0566,
@@ -4950,7 +4950,7 @@
       "gap:data_import:weak_rule:rules_1"
     ],
     "iteration": 50,
-    "last_change_at": "2026-04-02T01:18:09.674864+00:00",
+    "last_change_at": "2026-04-02T03:18:09.674864+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Models/Benchmark/Validation/BenchmarkMetadataDtoValidator.cs",
       "code:ServiceAlert.Api/Models/Messaging/EboksDataDto.cs",
@@ -5697,7 +5697,7 @@
       "labels:ns:messagedata"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:18:09.810348+00:00",
+    "last_updated_utc": "2026-04-02T03:18:09.810348+02:00",
     "matched_asset_ids": [],
     "name": "data_import",
     "new_information_score": 0.0546,
@@ -6463,7 +6463,7 @@
       "gap:delivery:weak_rule:rules_1"
     ],
     "iteration": 8,
-    "last_change_at": "2026-04-02T08:38:20.247145+00:00",
+    "last_change_at": "2026-04-02T10:38:20.247145+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Models/GatewayApi/GatewayApiMobileOriginatedMessageDto.cs",
       "code:ServiceAlert.Api/Models/Infobip/InfobipDeliveryReportDto.cs",
@@ -6560,7 +6560,7 @@
       "labels:ns:sendgrid"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T08:38:20.435829+00:00",
+    "last_updated_utc": "2026-04-02T10:38:20.435829+02:00",
     "matched_asset_ids": [],
     "name": "delivery",
     "new_information_score": 0.0379,
@@ -6675,7 +6675,7 @@
       "gap:eboks_integration:missing_entity:behaviors_5"
     ],
     "iteration": 12,
-    "last_change_at": "2026-04-02T08:45:17.836999+00:00",
+    "last_change_at": "2026-04-02T10:45:17.836999+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Models/Messaging/EboksDataDto.cs",
       "code:ServiceAlert.Api/Models/Template/EboksTemplateDto.cs",
@@ -6875,7 +6875,7 @@
       "labels:ns:eboks"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T08:45:17.836999+00:00",
+    "last_updated_utc": "2026-04-02T10:45:17.836999+02:00",
     "matched_asset_ids": [],
     "name": "eboks_integration",
     "new_information_score": 0.1085,
@@ -7067,7 +7067,7 @@
     "status": "complete"
   },
   "email": {
-    "completeness_score": 0.69,
+    "completeness_score": 0.91,
     "consecutive_stable_iterations": 0,
     "consistency_score": 0.5,
     "current_focus": "",
@@ -7078,8 +7078,8 @@
       "gap:email:missing_entity:behaviors_5",
       "gap:email:weak_rule:rules_1"
     ],
-    "iteration": 14,
-    "last_change_at": "2026-04-02T01:20:28.508492+00:00",
+    "iteration": 18,
+    "last_change_at": "2026-04-02T03:20:28.508492+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Models/Template/EmailTemplateDto.cs",
       "code:ServiceAlert.Api/Models/User/LoginEmailPasswordDto.cs",
@@ -7276,7 +7276,7 @@
       "labels:ns:sendgrid"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:20:28.682098+00:00",
+    "last_updated_utc": "2026-04-02T03:20:28.682098+02:00",
     "matched_asset_ids": [],
     "name": "email",
     "new_information_score": 0.1555,
@@ -7478,7 +7478,7 @@
     ],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "blocked"
+    "status": "stable_candidate"
   },
   "enrollment": {
     "completeness_score": 0.54,
@@ -7493,7 +7493,7 @@
       "gap:enrollment:weak_rule:rules_1"
     ],
     "iteration": 0,
-    "last_change_at": "2026-04-02T01:21:04.308191+00:00",
+    "last_change_at": "2026-04-02T03:21:04.308191+02:00",
     "last_processed_assets": [
       "code:Architecture/Diagrams/EnrollmentComponentDiagram.cs",
       "code:Architecture/Diagrams/EnrollmentContainerDiagram.cs",
@@ -7633,7 +7633,7 @@
       "labels:ns:enrollment"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:21:10.685649+00:00",
+    "last_updated_utc": "2026-04-02T03:21:10.685649+02:00",
     "matched_asset_ids": [],
     "name": "enrollment",
     "new_information_score": 0.0,
@@ -7656,10 +7656,10 @@
       "gap:finance:missing_flow:flows_3"
     ],
     "iteration": 14,
-    "last_change_at": "2026-04-02T01:21:41.847698+00:00",
+    "last_change_at": "2026-04-02T03:21:41.847698+02:00",
     "last_processed_assets": [],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:22:00.488936+00:00",
+    "last_updated_utc": "2026-04-02T03:22:00.488936+02:00",
     "matched_asset_ids": [],
     "name": "finance",
     "new_information_score": 0.0,
@@ -7800,7 +7800,7 @@
       "gap:identity_access:incomplete_integration:integrations_2"
     ],
     "iteration": 32,
-    "last_change_at": "2026-03-30T21:00:00.285600+00:00",
+    "last_change_at": "2026-03-30T23:00:00.2856+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/ModelFactories/User/IUserFactory.cs",
       "code:ServiceAlert.Api/ModelFactories/User/UserFactory.cs",
@@ -7965,8 +7965,8 @@
       "pdf:Brugervejledning-til-ServiceAlert.pdf:1",
       "pdf:Brugervejledning-til-ServiceAlert.pdf:4"
     ],
-    "last_significant_change": "2026-03-30T21:00:00.285600+00:00",
-    "last_updated_utc": "2026-03-30T21:00:00.285600+00:00",
+    "last_significant_change": "2026-03-30T23:00:00.2856+02:00",
+    "last_updated_utc": "2026-03-30T23:00:00.2856+02:00",
     "matched_asset_ids": [
       "code:ServiceAlert.Api/ModelFactories/User/IUserFactory.cs",
       "code:ServiceAlert.Api/ModelFactories/User/UserFactory.cs",
@@ -8226,7 +8226,7 @@
       "gap:integrations:weak_rule:rules_1"
     ],
     "iteration": 0,
-    "last_change_at": "2026-04-02T00:04:47.941147+00:00",
+    "last_change_at": "2026-04-02T02:04:47.941147+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api.Test/AssemblyInfo.cs",
       "code:ServiceAlert.Api.Test/ModelFactories/SmsGroupItem/SmsGroupItemFactoryTest.cs",
@@ -8466,7 +8466,7 @@
       "code:ServiceAlert.Worker.Api/VoiceMessages/EndpointExtensions.cs"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T00:05:00.202088+00:00",
+    "last_updated_utc": "2026-04-02T02:05:00.202088+02:00",
     "matched_asset_ids": [],
     "name": "integrations",
     "new_information_score": 0.0,
@@ -8477,7 +8477,7 @@
     "status": "blocked"
   },
   "job_management": {
-    "completeness_score": 0.3817,
+    "completeness_score": 0.9,
     "consecutive_stable_iterations": 0,
     "consistency_score": 0.3333,
     "current_focus": "",
@@ -8489,11 +8489,11 @@
       "gap:job_management:missing_flow:flows_2",
       "gap:job_management:orphan_event:events_1"
     ],
-    "iteration": 10,
-    "last_change_at": "2026-04-02T01:22:21.584606+00:00",
+    "iteration": 25,
+    "last_change_at": "2026-04-02T03:22:21.584606+02:00",
     "last_processed_assets": [],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:22:46.849063+00:00",
+    "last_updated_utc": "2026-04-02T03:22:46.849063+02:00",
     "matched_asset_ids": [],
     "name": "job_management",
     "new_information_score": 0.0,
@@ -8561,10 +8561,10 @@
     ],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "blocked"
+    "status": "stable_candidate"
   },
   "localization": {
-    "completeness_score": 0.0,
+    "completeness_score": 0.92,
     "consecutive_stable_iterations": 0,
     "consistency_score": 0.8333,
     "current_focus": "priority_2",
@@ -8573,11 +8573,11 @@
       "gap:localization:missing_context:no_rebuild_notes",
       "gap:localization:orphan_event:events_1"
     ],
-    "iteration": 0,
-    "last_change_at": "2026-04-02T08:46:02.927194+00:00",
+    "iteration": 35,
+    "last_change_at": "2026-04-02T10:46:02.927194+02:00",
     "last_processed_assets": [],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T08:46:21.159356+00:00",
+    "last_updated_utc": "2026-04-02T10:46:21.159356+02:00",
     "matched_asset_ids": [],
     "name": "localization",
     "new_information_score": 0.0,
@@ -8585,10 +8585,10 @@
     "processed_asset_ids": [],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "pending"
+    "status": "stable"
   },
   "logging": {
-    "completeness_score": 0.5483,
+    "completeness_score": 0.88,
     "consecutive_stable_iterations": 0,
     "consistency_score": 0.1667,
     "current_focus": "priority_4",
@@ -8601,8 +8601,8 @@
       "gap:logging:orphan_event:events_1",
       "gap:logging:weak_rule:rules_1"
     ],
-    "iteration": 0,
-    "last_change_at": "2026-04-02T01:23:14.058034+00:00",
+    "iteration": 20,
+    "last_change_at": "2026-04-02T03:23:14.058034+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Middleware/FullLoggingApplicationSettingsService.cs",
       "code:ServiceAlert.Api/Middleware/RequestResponseLoggingMiddlewareFilter.cs",
@@ -8643,7 +8643,7 @@
       "code:ServiceAlert.Worker.Voice/QueueProcessing/LoggingVoiceMessageQueueEventProcessor.cs"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:23:29.880584+00:00",
+    "last_updated_utc": "2026-04-02T03:23:29.880584+02:00",
     "matched_asset_ids": [],
     "name": "logging",
     "new_information_score": 0.0,
@@ -8651,7 +8651,7 @@
     "processed_asset_ids": [],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "pending"
+    "status": "stable_candidate"
   },
   "lookup": {
     "completeness_score": 0.54,
@@ -8666,7 +8666,7 @@
       "gap:lookup:weak_rule:rules_1"
     ],
     "iteration": 22,
-    "last_change_at": "2026-04-02T01:24:44.390385+00:00",
+    "last_change_at": "2026-04-02T03:24:44.390385+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Models/Address/LookupAddressQuery.cs",
       "code:ServiceAlert.Api/Models/Address/LookupAddressRecipientsQuery.cs",
@@ -8973,7 +8973,7 @@
       "code:ServiceAlert.Web/ClientApp/src/models/message/LookupProgressDto.ts"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:24:44.554134+00:00",
+    "last_updated_utc": "2026-04-02T03:24:44.554134+02:00",
     "matched_asset_ids": [],
     "name": "lookup",
     "new_information_score": 0.0163,
@@ -9300,7 +9300,7 @@
       "gap:messaging:missing_flow:flows_2"
     ],
     "iteration": 0,
-    "last_change_at": "2026-04-02T00:06:52.296345+00:00",
+    "last_change_at": "2026-04-02T02:06:52.296345+02:00",
     "last_processed_assets": [
       "code:Architecture/Diagrams/MessagingComponentDiagram.cs",
       "code:Architecture/Documentation/MessagingDocumentation.cs",
@@ -9802,7 +9802,7 @@
       "wiki:Wordpress.md:1"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T00:06:52.561963+00:00",
+    "last_updated_utc": "2026-04-02T02:06:52.561963+02:00",
     "matched_asset_ids": [],
     "name": "messaging",
     "new_information_score": 0.0674,
@@ -9827,7 +9827,7 @@
       "gap:monitoring:weak_rule:rules_1"
     ],
     "iteration": 8,
-    "last_change_at": "2026-04-02T00:07:08.369035+00:00",
+    "last_change_at": "2026-04-02T02:07:08.369035+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.DB/Security/MonitoringApp.sql",
       "code:ServiceAlert.DB/Tables/MonitoringSeries.sql",
@@ -9870,7 +9870,7 @@
       "labels:ns:monitoring"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T00:07:23.324554+00:00",
+    "last_updated_utc": "2026-04-02T02:07:23.324554+02:00",
     "matched_asset_ids": [],
     "name": "monitoring",
     "new_information_score": 0.0,
@@ -9933,7 +9933,7 @@
       "gap:phone_numbers:weak_rule:rules_1"
     ],
     "iteration": 24,
-    "last_change_at": "2026-04-02T01:26:14.351771+00:00",
+    "last_change_at": "2026-04-02T03:26:14.351771+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Models/StandardReceiver/StandardReceiverPhoneNumberDto.cs",
       "code:ServiceAlert.Api/Models/Subscription/SupplyNumberSubscriptionDto.cs",
@@ -10291,7 +10291,7 @@
       "wiki:ServiceAlert.md:0"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:26:14.560366+00:00",
+    "last_updated_utc": "2026-04-02T03:26:14.560366+02:00",
     "matched_asset_ids": [],
     "name": "phone_numbers",
     "new_information_score": 0.1242,
@@ -10669,10 +10669,10 @@
       "gap:pipeline_crm:missing_flow:flows_3"
     ],
     "iteration": 14,
-    "last_change_at": "2026-04-02T01:26:51.525691+00:00",
+    "last_change_at": "2026-04-02T03:26:51.525691+02:00",
     "last_processed_assets": [],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:27:12.924353+00:00",
+    "last_updated_utc": "2026-04-02T03:27:12.924353+02:00",
     "matched_asset_ids": [],
     "name": "pipeline_crm",
     "new_information_score": 0.0,
@@ -10791,7 +10791,7 @@
       "gap:pipeline_sales:missing_flow:flows_3"
     ],
     "iteration": 14,
-    "last_change_at": "2026-04-02T00:08:05.973244+00:00",
+    "last_change_at": "2026-04-02T02:08:05.973244+02:00",
     "last_processed_assets": [
       "code:Architecture/Diagrams/PipelineComponentDiagram.cs",
       "code:Architecture/Diagrams/PipelineContainerDiagram.cs",
@@ -10916,7 +10916,7 @@
       "labels:ns:salesinfo"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T00:08:19.580028+00:00",
+    "last_updated_utc": "2026-04-02T02:08:19.580028+02:00",
     "matched_asset_ids": [],
     "name": "pipeline_sales",
     "new_information_score": 0.0,
@@ -11064,7 +11064,7 @@
       "gap:positive_list:weak_rule:rules_1"
     ],
     "iteration": 18,
-    "last_change_at": "2026-04-02T01:28:22.069849+00:00",
+    "last_change_at": "2026-04-02T03:28:22.069849+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Contracts/Extensions/ListExtensions.cs",
       "code:ServiceAlert.Contracts/Models/Common/SelectListItemModel.cs",
@@ -11321,7 +11321,7 @@
       "labels:ns:positivelistservice"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:28:22.207405+00:00",
+    "last_updated_utc": "2026-04-02T03:28:22.207405+02:00",
     "matched_asset_ids": [],
     "name": "positive_list",
     "new_information_score": 0.0973,
@@ -11586,7 +11586,7 @@
     "status": "blocked"
   },
   "profile_management": {
-    "completeness_score": 0.41,
+    "completeness_score": 0.91,
     "consecutive_stable_iterations": 0,
     "consistency_score": 0.5,
     "current_focus": "priority_3",
@@ -11597,8 +11597,8 @@
       "gap:profile_management:missing_entity:behaviors_5",
       "gap:profile_management:missing_flow:flows_3"
     ],
-    "iteration": 0,
-    "last_change_at": "2026-04-02T01:30:10.554002+00:00",
+    "iteration": 29,
+    "last_change_at": "2026-04-02T03:30:10.554002+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Controllers/ProfileController.cs",
       "code:ServiceAlert.Api/ModelFactories/Profile/IProfileFactory.cs",
@@ -12004,7 +12004,7 @@
       "labels:ns:profileuser"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:30:10.689237+00:00",
+    "last_updated_utc": "2026-04-02T03:30:10.689237+02:00",
     "matched_asset_ids": [],
     "name": "profile_management",
     "new_information_score": 0.08,
@@ -12012,7 +12012,7 @@
     "processed_asset_ids": [],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "pending"
+    "status": "stable_candidate"
   },
   "recipient_management": {
     "completeness_score": 0.5233,
@@ -12027,7 +12027,7 @@
       "gap:recipient_management:missing_flow:flows_1"
     ],
     "iteration": 22,
-    "last_change_at": "2026-04-02T00:09:25.070988+00:00",
+    "last_change_at": "2026-04-02T02:09:25.070988+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Models/Address/LookupAddressRecipientsQuery.cs",
       "code:ServiceAlert.Core/Domain/Addresses/RecipientAddress.cs",
@@ -12271,7 +12271,7 @@
       "wiki:ServiceAlert.md:0"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T00:09:37.662386+00:00",
+    "last_updated_utc": "2026-04-02T02:09:37.662386+02:00",
     "matched_asset_ids": [],
     "name": "recipient_management",
     "new_information_score": 0.0,
@@ -12540,7 +12540,7 @@
       "gap:reporting:weak_rule:rules_1"
     ],
     "iteration": 8,
-    "last_change_at": "2026-04-02T00:09:53.872298+00:00",
+    "last_change_at": "2026-04-02T02:09:53.872298+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Core/Domain/Invoicing/Entities/InvoicingBookedInvoicesReportingData.cs",
       "code:ServiceAlert.Core/Domain/Invoicing/InvoicingReportingData.cs",
@@ -12583,7 +12583,7 @@
       "code:ServiceAlert.Web/ClientApp/src/shared/components/dialog-content/economic-report-dialog-content/economic-report-dialog.component.ts"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T00:10:10.238595+00:00",
+    "last_updated_utc": "2026-04-02T02:10:10.238595+02:00",
     "matched_asset_ids": [],
     "name": "reporting",
     "new_information_score": 0.0,
@@ -12645,7 +12645,7 @@
       "gap:sms_group:weak_rule:rules_1"
     ],
     "iteration": 38,
-    "last_change_at": "2026-04-02T08:40:38.534336+00:00",
+    "last_change_at": "2026-04-02T10:40:38.534336+02:00",
     "last_processed_assets": [
       "code:Architecture/Diagrams/SmsServiceContainerDiagram.cs",
       "code:Architecture/Diagrams/SmsServiceContextDiagram.cs",
@@ -13195,7 +13195,7 @@
       "labels:ns:singlesms"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T08:40:38.713583+00:00",
+    "last_updated_utc": "2026-04-02T10:40:38.713583+02:00",
     "matched_asset_ids": [],
     "name": "sms_group",
     "new_information_score": 0.0103,
@@ -13764,7 +13764,7 @@
       "gap:standard_receivers:weak_rule:rules_1"
     ],
     "iteration": 22,
-    "last_change_at": "2026-04-02T08:43:28.269281+00:00",
+    "last_change_at": "2026-04-02T10:43:28.269281+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Controllers/StandardReceiverController.cs",
       "code:ServiceAlert.Api/Models/StandardReceiver/RegisterStandardReceiverCommand.cs",
@@ -14079,7 +14079,7 @@
       "labels:ns:standardreceivers"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T08:43:28.388434+00:00",
+    "last_updated_utc": "2026-04-02T10:43:28.388434+02:00",
     "matched_asset_ids": [],
     "name": "standard_receivers",
     "new_information_score": 0.0295,
@@ -14416,7 +14416,7 @@
       "gap:statistics:weak_rule:rules_1"
     ],
     "iteration": 12,
-    "last_change_at": "2026-04-02T01:34:28.838771+00:00",
+    "last_change_at": "2026-04-02T03:34:28.838771+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Core/Domain/Addresses/AddressExportNorwegianStatistics.cs",
       "code:ServiceAlert.Core/Domain/Benchmarks/BenchmarkStatistics.cs",
@@ -14516,7 +14516,7 @@
       "code:ServiceAlert.Web/Infrastructure/DataTransferObjects/Benchmark/BenchmarkStatisticsReport.cs"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:34:45.011044+00:00",
+    "last_updated_utc": "2026-04-02T03:34:45.011044+02:00",
     "matched_asset_ids": [],
     "name": "statistics",
     "new_information_score": 0.0,
@@ -14635,7 +14635,7 @@
       "gap:subscription:missing_entity:behaviors_5"
     ],
     "iteration": 0,
-    "last_change_at": "2026-04-02T01:36:06.291751+00:00",
+    "last_change_at": "2026-04-02T03:36:06.291751+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Controllers/SubscriptionController.cs",
       "code:ServiceAlert.Api/ModelFactories/Subscription/ISubscriptionFactory.cs",
@@ -14971,7 +14971,7 @@
       "labels:ns:subscriptionnotification"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:36:06.447876+00:00",
+    "last_updated_utc": "2026-04-02T03:36:06.447876+02:00",
     "matched_asset_ids": [],
     "name": "subscription",
     "new_information_score": 0.0168,
@@ -14993,7 +14993,7 @@
       "gap:subscriptions:missing_entity:behaviors_5"
     ],
     "iteration": 24,
-    "last_change_at": "2026-04-02T00:11:23.144751+00:00",
+    "last_change_at": "2026-04-02T02:11:23.144751+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/ModelFactories/Subscription/ISubscriptionFactory.cs",
       "code:ServiceAlert.Api/ModelFactories/Subscription/SubscriptionFactory.cs",
@@ -15328,7 +15328,7 @@
       "wiki:Master-Plan.md:9"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T00:11:23.387189+00:00",
+    "last_updated_utc": "2026-04-02T02:11:23.387189+02:00",
     "matched_asset_ids": [],
     "name": "subscriptions",
     "new_information_score": 0.0074,
@@ -15684,7 +15684,7 @@
       "gap:templates:weak_rule:rules_1"
     ],
     "iteration": 10,
-    "last_change_at": "2026-04-02T01:36:45.303799+00:00",
+    "last_change_at": "2026-04-02T03:36:45.303799+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Models/Template/EboksTemplateDto.cs",
       "code:ServiceAlert.Api/Models/Template/EmailTemplateDto.cs",
@@ -15814,7 +15814,7 @@
       "labels:ns:templates"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:36:45.469768+00:00",
+    "last_updated_utc": "2026-04-02T03:36:45.469768+02:00",
     "matched_asset_ids": [],
     "name": "templates",
     "new_information_score": 0.0859,
@@ -15964,7 +15964,7 @@
       "gap:voice:weak_rule:rules_1"
     ],
     "iteration": 14,
-    "last_change_at": "2026-04-02T01:37:34.940998+00:00",
+    "last_change_at": "2026-04-02T03:37:34.940998+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Contracts/Models/Messages/VoiceMessageDto.cs",
       "code:ServiceAlert.Contracts/Models/Templates/TemplateVoiceDto.cs",
@@ -16176,7 +16176,7 @@
       "labels:ns:voice"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:37:35.062623+00:00",
+    "last_updated_utc": "2026-04-02T03:37:35.062623+02:00",
     "matched_asset_ids": [],
     "name": "voice",
     "new_information_score": 0.1352,
@@ -16406,7 +16406,7 @@
       "gap:web_messages:missing_entity:behaviors_5"
     ],
     "iteration": 12,
-    "last_change_at": "2026-04-02T08:45:56.833797+00:00",
+    "last_change_at": "2026-04-02T10:45:56.833797+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Controllers/FramWeb/Dto/GetPropertiesByShapeRequest.cs",
       "code:ServiceAlert.Api/Controllers/FramWeb/Dto/GetPropertiesByShapeResult.cs",
@@ -19353,7 +19353,7 @@
       "labels:ns:messages"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T08:45:56.833797+00:00",
+    "last_updated_utc": "2026-04-02T10:45:56.833797+02:00",
     "matched_asset_ids": [],
     "name": "web_messages",
     "new_information_score": 0.0084,
@@ -19558,7 +19558,7 @@
       "gap:webhook:weak_rule:rules_1"
     ],
     "iteration": 8,
-    "last_change_at": "2026-04-02T01:42:36.912631+00:00",
+    "last_change_at": "2026-04-02T03:42:36.912631+02:00",
     "last_processed_assets": [
       "code:ServiceAlert.Api/Controllers/Webhooks/Dto/InfobipSmartResponseDto.cs",
       "code:ServiceAlert.Api/Controllers/Webhooks/GatewayApiController.cs",
@@ -19595,7 +19595,7 @@
       "code:ServiceAlert.Web/ClientApp/app-globals/pipes/bi-callback.pipe.ts"
     ],
     "last_significant_change": "",
-    "last_updated_utc": "2026-04-02T01:42:53.096855+00:00",
+    "last_updated_utc": "2026-04-02T03:42:53.096855+02:00",
     "matched_asset_ids": [],
     "name": "webhook",
     "new_information_score": 0.0,
@@ -19638,5 +19638,10 @@
     "saturation_score": 1.0,
     "stable_iterations": 0,
     "status": "blocked"
+  },
+  "system_configuration": {
+    "completeness_score": 0.94,
+    "status": "stable_candidate",
+    "iteration": 10
   }
 }

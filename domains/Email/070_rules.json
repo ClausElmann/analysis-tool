@@ -1,4 +1,38 @@
 [
-  "if truly empty (use empty list, not null).",
-  "must be plain English or well-known identifiers."
+  {
+    "detail": "Every email except MasterTemplate itself must be injected into MasterTemplate HTML via c:\\Udvikling\\analysis-tool\\domains\\Email\\020_behaviors.jsonMAIN_CONTENTc:\\Udvikling\\analysis-tool\\domains\\Email\\020_behaviors.json placeholder. GetTemplateByNameEnum() enforces this automatically.",
+    "rule": "MasterTemplate wraps all other templates via c:\\Udvikling\\analysis-tool\\domains\\Email\\020_behaviors.jsonMAIN_CONTENTc:\\Udvikling\\analysis-tool\\domains\\Email\\020_behaviors.json"
+  },
+  {
+    "detail": "Status progression: Importing→Queued→SendingToGateway→SentToGateway. SentToGateway→Delivered→Opened (from SendGrid webhook). DefaultNoChangeStatuses prevents downgrading from Delivered/Opened. Retry states: QueuedFirstRetry, SendingToGatewayFirstRetry, QueuedSecondRetry, SendingToGatewaySecondRetry.",
+    "rule": "EmailMessage status lifecycle is forward-only except retries"
+  },
+  {
+    "detail": "EmailAttachment.FileContent is VARBINARY(MAX). Unlike ProfileStorageFiles (Azure Blob), email attachments are stored directly in SQL. Implication: large attachments inflate DB size.",
+    "rule": "Email attachments stored as binary in DB — not blob storage"
+  },
+  {
+    "detail": "EmailMessage.TestMode=true sets SentToGatewaySandbox status. SendGrid sandbox mode may be enabled depending on configuration. Does NOT suppress sending.",
+    "rule": "TestMode=true emails are still sent but marked as sandboxed"
+  },
+  {
+    "detail": "Email2SmsWhitelistEntries(ProfileId, Email) — sender email must be present for the target profile. DuplicateEntryException thrown on duplicate insert. ProfileNotFoundException if profile missing.",
+    "rule": "Email2SMS requires whitelist entry per profile"
+  },
+  {
+    "detail": "EmailMessage.BccEmails is a single NVARCHAR(500) field with semicolon-separated addresses. UseBcc controls whether BCC is applied.",
+    "rule": "BCC emails are semicolon-separated"
+  },
+  {
+    "detail": "EmailCategoryEnum must be set: SupportMails(1), BulkEmails(2), PasswordMails(3), BroadcastReceiptMails(5), etc. Used for SendGrid category tagging and statistics.",
+    "rule": "CategoryEnum required for all emails"
+  },
+  {
+    "detail": "Table of blacklisted domains. Checked before saving EmailMessage — validation error if recipient email domain is in list.",
+    "rule": "BlockedTemporaryEmailAddressDomains prevents disposable email usage"
+  },
+  "RULE[wiki:Blob-storage]: SendGrid error responses written to 'errorlogs' Azure Blob container. Container holds raw HTTP response from SendGrid on failure. Used for debugging delivery failures.",
+  "RULE[wiki:Background-services]: Email delivery is SPLIT into two background services: (1) EmailBackgroundService: SmsLog → EmailMessage conversion + queueing. (2) SendGridBackgroundService: EmailMessage → SendGrid API send. This split enables system emails (password reset, notifications) to be sent WITHOUT a SmsLogId by queuing directly as EmailMessage.",
+  "RULE[wiki:Broadcast-delivery-flow]: Email is one of 5 broadcast delivery channels: SMS (GatewayAPI bulk FTP or single API), Email (SendGrid), Voice (Infobip), Web messages, InfoPortal.",
+  "RULE[wiki:Domain-Description/Customers.md]: CustomerAccount is a child entity of Customer — likely used for email/billing account context."
 ]

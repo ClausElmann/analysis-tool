@@ -51,7 +51,10 @@
     "name": "LoginEmailPasswordDto",
     "source": "ServiceAlert.Api/Models/User/LoginEmailPasswordDto.cs",
     "type": "FACT",
-    "fields": ["Email (string)", "Password (string)"]
+    "fields": [
+      "Email (string)",
+      "Password (string)"
+    ]
   },
   {
     "name": "TokenDto",
@@ -68,7 +71,16 @@
     "name": "UpdateUserCommand",
     "source": "ServiceAlert.Api/Models/User/UpdateUserCommand.cs",
     "type": "FACT",
-    "fields": ["Id (int)", "Name (string)", "Email (string)", "PhoneNumber (long?)", "TimeZoneId (string)", "LanguageId (int)", "ReceiveNewsletter (bool)", "TestMode (bool)"]
+    "fields": [
+      "Id (int)",
+      "Name (string)",
+      "Email (string)",
+      "PhoneNumber (long?)",
+      "TimeZoneId (string)",
+      "LanguageId (int)",
+      "ReceiveNewsletter (bool)",
+      "TestMode (bool)"
+    ]
   },
   {
     "name": "UserDto",
@@ -80,20 +92,35 @@
     "name": "UserInfoDto",
     "source": "ServiceAlert.Api/Models/User/UserInfoDto.cs",
     "type": "FACT",
-    "fields": ["Name (string)", "MobileNumber (string)", "Email (string)", "LanguageId (int)"]
+    "fields": [
+      "Name (string)",
+      "MobileNumber (string)",
+      "Email (string)",
+      "LanguageId (int)"
+    ]
   },
   {
     "name": "CustomerSamlSettings",
     "source": "ServiceAlert.Core/Domain/Customers/Entities/SamlSettings/CustomerSamlSettings.cs",
     "type": "FACT",
-    "fields": ["EntityId (string — IdP entity URI)", "MetadataUrl (string — IdP SAML metadata URL)", "EmailClaim (string — attribute name for email in SAML assertion)"],
+    "fields": [
+      "EntityId (string — IdP entity URI)",
+      "MetadataUrl (string — IdP SAML metadata URL)",
+      "EmailClaim (string — attribute name for email in SAML assertion)"
+    ],
     "scope": "Per-customer — each customer can configure its own SAML IdP"
   },
   {
     "name": "NudgeType (enum)",
     "source": "ServiceAlert.Web/ClientApp/app-globals/openapi-models/model/nudgeType.ts",
     "type": "FACT",
-    "values": ["MessageSendToOwner", "Eboks", "Voice", "Survey", "AuthenticatorApp"],
+    "values": [
+      "MessageSendToOwner",
+      "Eboks",
+      "Voice",
+      "Survey",
+      "AuthenticatorApp"
+    ],
     "note": "AuthenticatorApp nudge: prompts user to set up 2FA authenticator app. Other nudges are cross-domain (messaging/eboks/voice)."
   },
   {
@@ -113,5 +140,26 @@
     "source": "ServiceAlert.Services/Authentication/ManagedIdentityAuthenticationHandler.cs",
     "type": "FACT",
     "note": "Custom ASP.NET Core AuthenticationHandler for Azure Managed Identity. Used for service-to-service calls (NOT user login). Validates Azure MSI tokens on inbound service requests."
+  },
+  {
+    "rules": [
+      "Creating new ticket (GetSessionTicket) INVALIDATES all existing sessions for UserId",
+      "TicketId is single-use (1 min TTL)",
+      "Session TTL = 8 hours sliding"
+    ],
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md + devops:#12150",
+    "name": "LocationAlertSession",
+    "columns": [
+      "SessionId uniqueidentifier NOT NULL PK",
+      "UserId int NOT NULL",
+      "ProfileId int NOT NULL",
+      "TicketId uniqueidentifier NULL",
+      "DateTicketExpiresUtc datetime NULL",
+      "DateTicketRedeemedUtc datetime NULL",
+      "DateSessionExpiresUtc datetime NOT NULL"
+    ],
+    "lifecycle": "Created on GetSessionTicket (with ticket) or /login (without ticket). TicketId redeemed on exchangeTicketForSessionId. DateSessionExpiresUtc renewed +8h on each IsSessionActive. Row invalidated on logout or when GetSessionTicket creates new session.",
+    "table": "LocationAlertSessions",
+    "description": "Session registry for LocationAlert-to-ServiceAlert SSO. One row per active LocationAlert session. TicketId is null for direct logins. SessionId used by LocationAlert as bearer token for all API calls. Session expires if DateSessionExpiresUtc passed or user logs out."
   }
 ]

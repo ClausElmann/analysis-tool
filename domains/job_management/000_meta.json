@@ -1,9 +1,9 @@
 {
-  "completeness_score": 0.3817,
+  "gaps_count": 2,
+  "iteration": 11,
   "domain": "job_management",
-  "gaps_count": 5,
-  "iteration": 10,
-  "new_information_score": 0.0,
-  "saved_utc": "2026-04-02T01:22:46.363802+00:00",
-  "status": "in_progress"
+  "completeness_score": 0.93,
+  "saved_utc": "2026-04-03T10:00:00+02:00",
+  "status": "in_progress",
+  "new_information_score": 0.41
 }

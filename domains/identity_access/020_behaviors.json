@@ -153,5 +153,150 @@
     "type": "FACT",
     "description": "Returns current user data from WorkContext. Two endpoints: full UserDto (GET /user) and lightweight UserInfoDto (GET /user/info).",
     "access_control": "CanUserAccessUser(currentUserId, requestedId) — users can only access themselves or users they manage"
+  },
+  {
+    "description": "User navigates to /sso/{customerId}. System reads CustomerSamlSettings (EntityId, MetadataUrl, EmailClaim). Redirects to customer IdP. IdP returns SAML assertion. System extracts email from claim named in EmailClaim (often NameID for Azure AD). Looks up User by email. Completes login and issues JWT+RefreshToken.",
+    "name": "SamlSSOLogin",
+    "rules": [
+      "Users MUST navigate via /sso/{customerId} — cannot bookmark direct login page",
+      "EmailClaim field = name of SAML claim containing email, found by testing with actual IdP login",
+      "SustainSys.Saml2 library used. Metadata published at /Saml2",
+      "SAML cert stored in Azure Key Vault, loaded via WEBSITE_LOAD_CERTIFICATES + Saml2:CertificateThumbprint app settings"
+    ],
+    "source": "wiki+code"
+  },
+  {
+    "description": "Annual renewal (cert expires Oct 19). Process: verify DNS validation → manual renew in cert portal → export public key → notify customer → upload new cert to App Service → update thumbprint on staging slot → swap deployment slots.",
+    "name": "SamlCertRenewal",
+    "rules": [
+      "ONLY send public key to customers (never private key)",
+      "Cert swap via deployment slot swap (not manual override)",
+      "Staging slot holds next cert; production slot holds current",
+      "IdP systems support overlapping certs — safe to distribute new cert before swap"
+    ],
+    "source": "wiki:Authentication/SSO.md"
+  },
+  {
+    "description": "Azure AD customers require admin consent granted once per organization in Azure AD portal → Enterprise Applications → SMS-Service Azure AD Login → Permissions → Grant admin consent.",
+    "name": "AzureADSSO",
+    "rules": [
+      "Without admin consent: each user sees consent popup on every login",
+      "Admin consent is a one-time per-tenant operation performed by customer IT admin"
+    ],
+    "source": "wiki:Authentication/Azure-AD-Setup.md"
+  },
+  {
+    "description": "SLO (Single Logout): user logs out at IdP → IdP sends SLO request to /Saml2 handler → refresh token invalidated → user redirected to other SPs for SLO → final logout complete. KNOWN RISK: access token remains valid in browser for up to 15min after SLO (no server-side JWT revocation).",
+    "name": "SingleLogout",
+    "rules": [
+      "SLO is supported by SustainSys library",
+      "Access token expiry is the only bound on post-SLO window",
+      "Consider browser-side token destruction for complete SLO implementation"
+    ],
+    "source": "wiki:Authentication/Authentication.md"
+  },
+  {
+    "description": "User clicks 'Glemt adgangskode?' → enters email → system sends password reset email. User sets new password meeting requirements: min 8 chars, at least one digit, one lowercase, one uppercase, one special char from set: *$-+?_&=!%/{}()#",
+    "name": "PasswordReset",
+    "rules": [
+      "Password min 8 chars",
+      "Must contain: 1 digit, 1 lowercase, 1 uppercase, 1 special from: *$-+?_&=!%/{}()#",
+      "'Send email for new password' button also available from admin user edit page",
+      "Reset email may land in spam/junk folder — documented in user guide"
+    ],
+    "source": "pdf:Brugervejledning-administration.pdf+code"
+  },
+  {
+    "description": "System monitors whether SSO sign-in is operational. SSO availability check runs periodically. Monitoring preserves exception details for easier debugging if SSO login is unavailable.",
+    "name": "SSOMonitoring",
+    "source": "git:#11974",
+    "trigger": "Background monitoring job"
+  },
+  {
+    "trigger": "User with CanSendByLocationAlert selects LocationAlert as send method in ServiceAlert UI.",
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md + devops:#12149",
+    "name": "LocationAlertGetSessionTicket",
+    "path": "/LocationAlert/GetSessionTicket",
+    "auth": "Requires valid ServiceAlert JWT (standard login)",
+    "description": "When user with CanSendByLocationAlert ProfileRole launches LocationAlert from ServiceAlert, ServiceAlert creates a LocationAlertSession row with a one-time TicketId (GUID, expires 1 minute). Returns the TicketId to the UI. UI redirects user to LocationAlert with ticket as query parameter + '&site=SA'. Creating a ticket INVALIDATES all existing LocationAlertSessions for the UserId."
+  },
+  {
+    "response_success": {
+      "SessionId": "{Guid}"
+    },
+    "description": "LocationAlert calls ServiceAlert with the ticket received from browser redirect. ServiceAlert validates ticket (not expired, not redeemed, exists). Returns a SessionId (GUID). Records DateTicketRedeemedUtc. The SessionId is used by LocationAlert for all subsequent calls.",
+    "auth": "Header: X-V24-Service: Lokasjonsvarsling (anonymous to ServiceAlert users)",
+    "body": {
+      "Ticket": "{Guid}"
+    },
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md + devops:#12152",
+    "response_failure": "404 Not Found (ticket expired, already redeemed, or doesn't exist)",
+    "name": "LocationAlertRedeemTicket",
+    "path": "/LocationAlert/exchangeTicketForSessionId",
+    "rules": [
+      "Ticket TTL = 1 minute",
+      "Ticket is single-use — DateTicketRedeemedUtc set on redeem",
+      "Same 404 response for expired/redeemed/missing — no oracle attack surface"
+    ]
+  },
+  {
+    "name": "LocationAlertDirectLogin",
+    "path": "/LocationAlert/login",
+    "rules": [
+      "Session created without ticket when user logs in via LocationAlert credentials",
+      "Lockout: 423 Locked (not 403 like normal login)"
+    ],
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md + devops:#12155",
+    "body": {
+      "PeerAddr": "client-ip",
+      "UserID": "username",
+      "Password": "password"
+    },
+    "auth": "Header: X-V24-Service: Lokasjonsvarsling (no JWT)",
+    "mfa_path": "If MFA: blank SessionId returned → user enters PIN → /LocationAlert/verifypincode",
+    "description": "LocationAlert passes user credentials directly to ServiceAlert for validation. If no MFA: returns SessionId immediately. If MFA required: sends PIN to user's phone, returns blank SessionId (LocationAlert prompts for PIN). On failure: 401 Unauthorized. On lockout: 423 Locked. Creates LocationAlertSession WITHOUT a TicketId."
+  },
+  {
+    "body": {
+      "PinCode": "pincode",
+      "UserID": "username",
+      "Password": "password",
+      "PeerAddr": "client-ip"
+    },
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md + devops:#12156",
+    "name": "LocationAlertVerifyPinCode",
+    "path": "/LocationAlert/verifypincode",
+    "auth": "Header: X-V24-Service: Lokasjonsvarsling",
+    "description": "Confirms 2FA PIN for LocationAlert MFA flow. On success returns SessionId. Session is now fully active."
+  },
+  {
+    "integration_note": "Response shape is fixed to match Varsling24 API contract — cannot be changed without coordinating with LocationAlert team.",
+    "municipality_source": "Municipality positive list configured for the customer. First = main/Hoved.",
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md + devops:#12153",
+    "name": "LocationAlertGetUserProfile",
+    "path": "/LocationAlert/hentBrukerProfil",
+    "auth": "Headers: X-V24-Service: Lokasjonsvarsling + SessionId: {Guid}",
+    "description": "Returns profile information in Varsling24 format. Firmanavn (customer name), Orgnr (company reg), Kommunenr/navn (municipality from positive list — first = hoved, all listed). SmsAvsender (SmsSendAs). Bruker (userId, full name, email, mobile, Admin=SuperAdmin flag, Simulering=AlwaysTestMode, Tilgang.LokasjonsVarsling=CanSendByLocationAlert)."
+  },
+  {
+    "rules": [
+      "Session must be renewed — not just validated",
+      "440 status code is non-standard (telnet legacy) — required by LocationAlert",
+      "Check CanSendByLocationAlert on each heartbeat — if role removed, session becomes invalid"
+    ],
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md + devops:#12154",
+    "name": "LocationAlertIsSessionActive",
+    "path": "/LocationAlert/isSessionActive",
+    "auth": "Headers: X-V24-Service: Lokasjonsvarsling + SessionId: {Guid}",
+    "session_ttl": "8 hours (sliding, renewed on each heartbeat)",
+    "description": "Periodic heartbeat from LocationAlert. Validates: session exists, not expired, user still has CanSendByLocationAlert. If valid: renews DateSessionExpiresUtc to NOW()+8 hours. Returns 200 with SessionId. If invalid: 440 Login Time-out with blank SessionId."
+  },
+  {
+    "single_sign_out": "RedirectUrl in response enables LocationAlert frontend to redirect user to ServiceAlert /logout, where ServiceAlert refresh token is also revoked.",
+    "source": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md + devops:#12157",
+    "name": "LocationAlertLogout",
+    "path": "/LocationAlert/logout",
+    "auth": "Headers: X-V24-Service: Lokasjonsvarsling + SessionId: {Guid}",
+    "description": "Invalidates the LocationAlertSession. If session had a TicketId (user came via ServiceAlert SSO): response includes RedirectUrl pointing to ServiceAlert logout page, allowing single-sign-out. If session was direct login (no TicketId): returns empty JSON."
   }
 ]

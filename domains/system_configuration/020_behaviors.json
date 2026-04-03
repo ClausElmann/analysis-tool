@@ -1,0 +1,36 @@
+[
+  {
+    "description": "Loads all settings from ApplicationSettings table into memory cache keyed 'Sms.applicationsettings'. Returns value for given key. Returns defaultSetting if row not found. Cache never expires — invalidated only on Save().",
+    "name": "ReadCachedSetting",
+    "rules": [
+      "Never bypass via direct DB access",
+      "defaultSetting fallback allows safe first-run before CreateDefault() runs"
+    ],
+    "signature": "IApplicationSettingService.Get(AppSetting, defaultSetting) → string",
+    "trigger": "Any service needing a config value. Called on virtually every request."
+  },
+  {
+    "description": "Bypasses cache, reads directly from DB. Used in Admin UI to show current live value without stale data.",
+    "name": "ReadUncachedSetting",
+    "signature": "IApplicationSettingService.GetUncached(AppSetting) → string",
+    "trigger": "Admin reads current setting in Settings UI."
+  },
+  {
+    "description": "UPSERTs the setting value in ApplicationSettings table. Sets DateLastUpdatedUtc. Invalidates the entire 'Sms.applicationsettings' cache entry after save.",
+    "name": "SaveSetting",
+    "signature": "IApplicationSettingService.Save(AppSetting, value)",
+    "trigger": "Admin saves new value in Settings UI."
+  },
+  {
+    "description": "Checks all AppSetting enum values. For each that does NOT have a row in ApplicationSettings, inserts a row with an empty or known-safe DefaultValue. Run on application startup and by a maintenance batch job.",
+    "name": "CreateDefaultSettings",
+    "signature": "IApplicationSettingService.CreateDefault()",
+    "trigger": "Application startup / CreateDefaultSettings batch job."
+  },
+  {
+    "description": "Looks up FileTypes table for a row matching the given extension (case-insensitive). Returns FileType.Id if found, null if extension is not registered (= import/upload rejected).",
+    "name": "ResolveFileType",
+    "signature": "IFileTypeService.FileTypeIdFromExtension(extension) → int?",
+    "trigger": "File upload validation in ProfileStorage and import services."
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "ApplicationStartupConfigFlow",
+    "steps": [
+      "1. Application starts",
+      "2. IApplicationSettingService.CreateDefault() called",
+      "3. Missing AppSetting rows inserted with default values",
+      "4. First Get() call loads all settings into cache",
+      "5. All services receive config via DI-injected IApplicationSettingService"
+    ]
+  },
+  {
+    "name": "AdminSettingEditFlow",
+    "steps": [
+      "1. Admin navigates to Settings UI",
+      "2. GetUncached() called for each AppSetting to show live values",
+      "3. Admin edits value and POSTs",
+      "4. Save(setting, newValue) called → DB upsert + cache invalidated",
+      "5. All subsequent Get() calls see new value"
+    ]
+  },
+  {
+    "name": "FileUploadValidationFlow",
+    "steps": [
+      "1. File upload received (profile storage or import)",
+      "2. Extract file extension from filename",
+      "3. FileTypeIdFromExtension(ext) → must return non-null",
+      "4. If null: reject with 'FileType not supported' error",
+      "5. If found: FileTypeId stored with file metadata in ProfileStorageFiles"
+    ]
+  }
+]

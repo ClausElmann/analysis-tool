@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "description": "Inserts an ActivityLog row (if not exists for type+objectId) and an ActivityLogEntry row. descriptionTranslationKey is a locale resource key — resolved at display time. Used to show 'who did what and when' per data object.",
+    "name": "CreateActivityLogEntry",
+    "signature": "CreateActivityLogEntryAsync(activityLogType, objectId, descriptionTranslationKey, descriptionTranslationParms, userId)",
+    "trigger": "Service operations that mutate customer-owned data: broadcast created, subscription import completed, positive list uploaded, standard receiver imported.",
+    "data": [
+      "ActivityLogs",
+      "ActivityLogEntries",
+      "ActivityLogEntryTypes"
+    ]
+  },
+  {
+    "description": "Batch variant of CreateActivityLogEntry. Used when multiple events occur in one operation (e.g. bulk import completing).",
+    "name": "CreateActivityLogEntries",
+    "signature": "CreateActivityLogEntriesAsync(IEnumerable<ActivityLogDto>)",
+    "trigger": "Bulk import operations, batch job completions.",
+    "data": [
+      "ActivityLogs",
+      "ActivityLogEntries"
+    ]
+  },
+  {
+    "description": "Returns activity log entries for a specific object (e.g. all activity for FtpSetting Id=42). Optional maxRecords limits response. Used by admin UI to show change history per entity.",
+    "name": "GetActivityLogs",
+    "signature": "GetActivityLogsAsync(type, objectId, maxRecordsToReturn) → IReadOnlyCollection<ActivityLogReadModel>",
+    "trigger": "Admin UI requests history for a data object.",
+    "data": [
+      "ActivityLogs",
+      "ActivityLogEntries",
+      "ActivityLogEntryTypes"
+    ]
+  }
+]

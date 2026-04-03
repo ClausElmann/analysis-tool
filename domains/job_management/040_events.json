@@ -1,3 +1,10 @@
-[
-  "JobTaskStatusChangedEvent"
-]
+{
+  "payload": "JobTaskId, JobName, NewStatusCode, AzureJobId, AzureTaskId",
+  "name": "JobTaskStatusChangedEvent",
+  "trigger": "IJobService.LogJobTaskStatusAsync() on status transition",
+  "handlers": [
+    "ActiveJobsClientEventConnectEventListener → push to SSE admin clients",
+    "JobTaskStatusChangedEventListener → UNKNOWN additional handling"
+  ],
+  "pattern": "MediatR INotification"
+}

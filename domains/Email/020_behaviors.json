@@ -1,1 +1,71 @@
-[]
+[
+  {
+    "description": "Creates EmailMessage row with Status=Importing, then Queued. If sendFast=true: pushes directly to ISingleSendGridProcessingChannel for immediate dispatch. Otherwise: background service polling loop picks it up. Attachments stored as EmailAttachment rows (binary in DB). sendTo and bccEmails support semicolon-separated multiple addresses.",
+    "name": "SaveAndQueueEmail",
+    "signature": "IEmailService.Save(fromEmail, fromName, sendTo, sendToName, replyTo, subject, body, testMode, categoryEnum, bccEmails, priorityOrder, externalRefId, smsLogId, attachments, isCcOrBcc, sendFast)",
+    "trigger": "Any system-initiated email: password reset, user creation, broadcast receipt, approval notification, webhook alarm, weekly report, support inquiry, subscription import receipt.",
+    "data": [
+      "EmailMessages",
+      "EmailAttachments"
+    ]
+  },
+  {
+    "description": "Bulk variant of Save(). Creates one EmailMessage per recipient in the collection. Used for broadcast receipt emails where multiple recipients receive the same message.",
+    "name": "SendEmailMessages(bulk)",
+    "signature": "SendEmailMessages(IEnumerable<EmailRecipientDto>, fromEmail, fromName, replyTo, subject, body, testMode, categoryEnum, ...)",
+    "trigger": "EmailSendBroadcastReceiptAsync() for multi-recipient broadcast receipts.",
+    "data": [
+      "EmailMessages"
+    ]
+  },
+  {
+    "description": "1. Fetches named EmailTemplate by (languageId, templateName). 2. Fetches MasterTemplate for same languageId. 3. Injects named template HTML into MasterTemplate via activity_log completeMAIN_CONTENTactivity_log complete replacement. 4. MergeEmailFields() substitutes {{key}} placeholders with provided data values. Returns merged EmailTemplate ready for Save().",
+    "name": "GetTemplateAndMerge",
+    "signature": "IEmailTemplateService.GetTemplateByNameEnum(languageId, templateName, masterTemplateEnum)",
+    "trigger": "Any service building an email before calling IEmailService.Save().",
+    "data": [
+      "EmailTemplates"
+    ]
+  },
+  {
+    "description": "Background service (SendGridWorkloadProcessor / SingleSendGridProcessingChannel) polls EmailMessages WHERE Status=Queued ORDER BY PriorityOrder. For each message: reads body+attachments, calls SendGrid API via HttpClient. On success: sets Status=SentToGateway, stores XmessageId. On failure: sets Status=SentToGatewayFailed or queues retry (QueuedFirstRetry/QueuedSecondRetry).",
+    "name": "SendGridDelivery",
+    "trigger": "Background service polling (continuous). SendFast path: channel push.",
+    "data": [
+      "EmailMessages",
+      "EmailAttachments",
+      "ApplicationSettings(SendGridAPIKey=130, SendGridHost=229)"
+    ]
+  },
+  {
+    "description": "InboundParseEventHandler receives POST from SendGrid. Two uses: (1) Delivery status webhooks: maps SendGrid event type to EmailStatus enum, calls UpdateEmailMessageStatusesAsync() to update EmailMessage.Status. Rules: Delivered→Opened and Delivered→Delivered are ignored (no downgrade). (2) Inbound email parse (Email2SMS): checks Email2SmsWhitelistEntries — if sender is whitelisted for profile, parses email body → triggers SMS send.",
+    "name": "SendGridWebhookProcessing",
+    "trigger": "POST /api/inbound from SendGrid webhook.",
+    "data": [
+      "EmailMessages",
+      "ProcessedInboundEmails (dedup)",
+      "Email2SmsWhitelistEntries"
+    ]
+  },
+  {
+    "description": "Generates broadcast receipt email. Uses EmailContentGeneratorFactory to select correct generator based on group type (ByAddress, ByStandardReceivers). Merges statistics, recipient counts, channel breakdown. Sends to first email in list as main receiver + optional additional recipients.",
+    "name": "BroadcastReceiptEmail",
+    "signature": "EmailSendBroadcastReceiptAsync(SmsGroup, sendToEmailsAndNames, Profile, phoneAndEmailsOnly, testMode)",
+    "trigger": "Broadcast (SmsGroup) completes execution.",
+    "data": [
+      "EmailMessages",
+      "EmailTemplates",
+      "SmsGroups",
+      "SmsGroupStatistics"
+    ]
+  },
+  {
+    "description": "Reads embedded HTML resource files (bundled in assembly), compares to DB templates, upserts changed templates. Ensures DB template content stays in sync with deployed code. Run on startup or on deploy.",
+    "name": "UpdatedTemplatesFromResources",
+    "signature": "IEmailTemplateService.UpdateTemplatesFromEmbeddedResources()",
+    "trigger": "App startup or admin manual trigger.",
+    "data": [
+      "EmailTemplates"
+    ]
+  }
+]
