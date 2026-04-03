@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "green-ai UI model schema — defines the shape/contract for every reusable UI model used by Blazor pages and components. Used by AI to generate correct strongly-typed component parameters.",
+  "version": "1.0.0",
+  "last_updated": "2026-04-03",
+  "ssot_source": "analysis-tool/docs/UI_MODEL_SCHEMA.json",
+  "code_source": "c:/Udvikling/green-ai/src/GreenAi.Api/Features",
+
+  "schema_conventions": {
+    "response_suffix": "All response types end in 'Response' (e.g. GetUsersResponse)",
+    "list_property": "List items exposed as IReadOnlyList<T> or List<T>",
+    "nullable_reference": "null = not loaded / not applicable; non-null invariant for required properties",
+    "strongly_typed_ids": "All Id fields use strongly-typed wrappers (UserId, CustomerId, ProfileId, ProfileId) — never raw int"
+  },
+
+  "response_models": {
+    "CustomerSettingsResponse": {
+      "path": "Features/CustomerAdmin/GetCustomerSettings/CustomerSettingsResponse.cs",
+      "used_by_page": "Components/Pages/CustomerAdmin/Index.razor (SettingsTab)",
+      "properties": {
+        "CustomerId": "CustomerId",
+        "CustomerName": "string"
+      }
+    },
+    "GetUsersResponse": {
+      "path": "Features/CustomerAdmin/GetUsers/GetUsersResponse.cs",
+      "used_by_page": "Components/Pages/CustomerAdmin/Index.razor (UserList tab)",
+      "properties": {
+        "Users": "List<UserSummary>"
+      },
+      "nested": {
+        "UserSummary": {
+          "UserId": "UserId",
+          "Email": "string",
+          "IsActive": "bool"
+        }
+      }
+    },
+    "GetUserDetailsResponse": {
+      "path": "Features/CustomerAdmin/GetUsers/GetUserDetailsResponse.cs",
+      "used_by_page": "Components/Pages/CustomerAdmin/UserDetail.razor",
+      "properties": {
+        "UserId": "UserId",
+        "Email": "string",
+        "IsActive": "bool",
+        "Profiles": "List<ProfileSummaryInUser>"
+      },
+      "nested": {
+        "ProfileSummaryInUser": {
+          "ProfileId": "ProfileId",
+          "ProfileName": "string"
+        }
+      }
+    },
+    "GetProfilesResponse": {
+      "path": "Features/CustomerAdmin/GetProfiles/GetProfilesResponse.cs",
+      "used_by_page": "Components/Pages/CustomerAdmin/Index.razor (ProfileList tab)",
+      "properties": {
+        "Profiles": "List<ProfileSummary>"
+      },
+      "nested": {
+        "ProfileSummary": {
+          "ProfileId": "ProfileId",
+          "DisplayName": "string",
+          "IsActive": "bool"
+        }
+      }
+    },
+    "GetProfileDetailsResponse": {
+      "path": "Features/CustomerAdmin/GetProfiles/GetProfileDetailsResponse.cs",
+      "used_by_page": "Components/Pages/CustomerAdmin/ProfileDetail.razor",
+      "properties": {
+        "ProfileId": "ProfileId",
+        "DisplayName": "string",
+        "IsActive": "bool"
+      }
+    },
+    "ChangeUserEmailResponse": {
+      "path": "Features/Identity/ChangeUserEmail/ChangeUserEmailResponse.cs",
+      "used_by_page": null,
+      "properties": {
+        "NewEmail": "string"
+      }
+    }
+  },
+
+  "component_parameter_contracts": {
+    "description": "Expected [Parameter] shapes for shared Blazor components",
+    "UserList": {
+      "razor_file": "Components/CustomerAdmin/UserList.razor",
+      "parameters": {
+        "Users": "List<UserSummary>",
+        "OnDelete": "EventCallback<UserId>"
+      }
+    },
+    "ProfileList": {
+      "razor_file": "Components/CustomerAdmin/ProfileList.razor",
+      "parameters": {
+        "Profiles": "List<ProfileSummary>",
+        "OnDelete": "EventCallback<ProfileId>"
+      }
+    },
+    "SettingsTab": {
+      "razor_file": "Components/CustomerAdmin/SettingsTab.razor",
+      "parameters": {
+        "CustomerId": "int (raw — customer id for display)",
+        "CustomerName": "string"
+      }
+    }
+  },
+
+  "ui_state_pattern": {
+    "description": "Standard Blazor page local state fields",
+    "always_present": [
+      "bool _loading = true",
+      "CancellationTokenSource? _cts"
+    ],
+    "error_state": "string? _errorMessage (null = no error)",
+    "data_fields": "nullable until loaded — e.g. GetUsersResponse? _users",
+    "loading_end": "_loading = false; StateHasChanged();"
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "green-ai context model — how working context (user, customer, profile) is established and flows through the system. Machine-readable. Used by AI to determine what ICurrentUser state is available at each layer.",
+  "version": "1.0.0",
+  "last_updated": "2026-04-03",
+  "ssot_source": "analysis-tool/docs/CONTEXT_MODEL.json",
+  "code_source": "c:/Udvikling/green-ai/src/GreenAi.Api",
+
+  "identity_model": {
+    "description": "Three-tier identity. Each tier must be established before the next can be accessed.",
+    "tiers": [
+      {
+        "id": "user",
+        "established_by": "POST /auth/login — credentials validated",
+        "jwt_claim": "sub (UserId)",
+        "type": "UserId (strongly typed int)",
+        "available_after": "login response"
+      },
+      {
+        "id": "customer",
+        "established_by": "POST /auth/select-customer — membership resolved",
+        "jwt_claim": "customer_id (CustomerId)",
+        "type": "CustomerId (strongly typed int)",
+        "available_after": "select-customer response OR auto-select if single membership",
+        "auto_select_rule": "single membership → skip select-customer, include customer_id in login response"
+      },
+      {
+        "id": "profile",
+        "established_by": "POST /auth/select-profile — final JWT issued with ProfileId",
+        "jwt_claim": "profile_id (ProfileId)",
+        "type": "ProfileId (strongly typed int)",
+        "available_after": "select-profile response OR auto-select if single profile",
+        "auto_select_rule": "single profile → skip select-profile, include profile_id in login/select-customer response",
+        "invariant": "ProfileId(0) MUST NEVER be issued. Guards exist in SelectProfileHandler."
+      }
+    ]
+  },
+
+  "icurrentuser_contract": {
+    "interface": "src/GreenAi.Api/SharedKernel/Auth/ICurrentUser.cs",
+    "implementation_api": "src/GreenAi.Api/SharedKernel/Auth/BlazorPrincipalHolder.cs",
+    "properties": {
+      "UserId":    { "type": "UserId",     "available_after": "PrincipalHolder.Set(authState.User)" },
+      "CustomerId":{ "type": "CustomerId", "available_after": "PrincipalHolder.Set(authState.User)" },
+      "ProfileId": { "type": "ProfileId",  "available_after": "PrincipalHolder.Set(authState.User)" },
+      "LanguageId":{ "type": "LanguageId", "available_after": "PrincipalHolder.Set(authState.User)" }
+    },
+    "blazor_contract": {
+      "set_in": "OnAfterRenderAsync(bool firstRender) — ONLY on firstRender == true",
+      "set_before": "ANY Mediator.Send call",
+      "never_set_in": "OnInitializedAsync — prerender runs before circuit, JWT unavailable"
+    }
+  },
+
+  "handler_context_availability": {
+    "description": "What ICurrentUser properties are populated at each handler layer",
+    "pre_auth_handlers": {
+      "examples": ["LoginHandler", "RefreshTokenHandler", "GetApiTokenHandler"],
+      "available": ["none — ICurrentUser is empty; handlers use explicit command parameters"],
+      "pipeline_marker": "none"
+    },
+    "authenticated_handlers": {
+      "examples": ["SelectCustomerHandler", "SelectProfileHandler", "ChangePasswordHandler"],
+      "available": ["UserId"],
+      "pipeline_marker": "IRequireAuthentication"
+    },
+    "profile_handlers": {
+      "examples": ["GetCustomerSettingsHandler", "GetUsersHandler", "ChangeUserEmailHandler"],
+      "available": ["UserId", "CustomerId", "ProfileId", "LanguageId"],
+      "pipeline_marker": "IRequireAuthentication",
+      "tenant_rule": "ALL SQL queries against tenant tables MUST include WHERE CustomerId = @CustomerId"
+    }
+  },
+
+  "context_flow_per_layer": {
+    "endpoint": {
+      "context_access": "none — endpoints call mediator.Send only, never access ICurrentUser",
+      "pattern": "endpoint-pattern.md"
+    },
+    "pipeline": {
+      "context_access": "authorizationBehavior reads ICurrentUser.UserId to check IsAuthenticated",
+      "pattern": "pipeline-behaviors.md"
+    },
+    "handler": {
+      "context_access": "full — inject ICurrentUser, use UserId/CustomerId/ProfileId",
+      "pattern": "handler-pattern.md"
+    },
+    "repository": {
+      "context_access": "indirect — handler passes CustomerId/ProfileId as parameters to SQL",
+      "pattern": "dapper-patterns.md"
+    },
+    "blazor_page": {
+      "context_access": "PrincipalHolder.Set(authState.User) gives ICurrentUser to all handlers dispatched from this page",
+      "pattern": "blazor-page-pattern.md"
+    }
+  },
+
+  "tenant_isolation_rules": [
+    {
+      "rule": "ALL queries against tenant tables require WHERE CustomerId = @CustomerId",
+      "tenant_tables": ["Users", "Customers", "Profiles", "ProfileUserMappings", "UserCustomerMemberships"],
+      "enforcement": "sql-conventions.md + Validate-GreenAiCompliance.ps1"
+    },
+    {
+      "rule": "Pre-auth tables (UserRoles, ProfileRoles, Languages, Countries) have NO CustomerId",
+      "pre_auth_tables": ["UserRoles", "UserRoleMappings", "ProfileRoles", "ProfileRoleMappings", "Languages", "Countries"],
+      "why": "These are global reference data, not per-tenant data"
+    }
+  ]
+}
