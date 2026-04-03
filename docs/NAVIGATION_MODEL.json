@@ -1,0 +1,1260 @@
+{
+  "domain": "ServiceAlert",
+  "extracted_from": "docs/ANGULAR_ROUTE_TREE.md",
+  "date": "2026-04-02",
+  "apps": [
+    {
+      "id": "main-app",
+      "name": "ServiceAlert Main Application",
+      "auth": "required"
+    },
+    {
+      "id": "subscription-app",
+      "name": "Subscription App",
+      "auth": "none (anonymous enrollment)"
+    },
+    {
+      "id": "quick-response-app",
+      "name": "Quick Response App",
+      "auth": "none (anonymous)"
+    },
+    {
+      "id": "iframe-modules",
+      "name": "iFrame Modules",
+      "auth": "none (anonymous embedded)"
+    }
+  ],
+
+  "context_model": {
+    "description": "Describes how working context (which customer/profile to operate on) is established per section. This is a LAYOUT-LEVEL concern, not a route concern. It determines what appears in the app shell above the page content.",
+    "updated": "2026-04-02",
+    "modes": [
+      {
+        "id": "profile-implicit",
+        "applies_to_sections": ["root", "admin"],
+        "selector_visible_on_page": false,
+        "context_source": "global app-shell profile dropdown",
+        "context_params": [],
+        "description": "User always operates within their own customer. Profile is selected once in the global shell dropdown and is implicit on all pages. No context selectors appear on individual pages.",
+        "blazor_implication": "No context selector component needed on pages in these sections. Profile/customer is read from app state (ICurrentUser or equivalent)."
+      },
+      {
+        "id": "super-admin-explicit",
+        "applies_to_sections": ["admin/super"],
+        "selector_visible_on_page": true,
+        "context_source": "per-page context selector bar",
+        "context_params": ["countryId", "customerId", "profileId"],
+        "selector_cascade": ["country → customer → profile"],
+        "description": "Super-admin operates ON BEHALF of any customer in the system. A context selector bar (country + customer + profile dropdowns) appears at the top of each super-admin page. Changing the selector reloads the page data for the selected context. Profile may be optional on some pages (e.g. customer-level views only need country + customer).",
+        "profile_required": "on most pages, but not all — some pages are customer-scoped only (e.g. customers/:id detail)",
+        "blazor_implication": "Super-admin layout needs a shared context selector component. Selected context stored in scoped state (e.g. SuperAdminContextState). Pages subscribe/react to context changes."
+      }
+    ],
+    "section_to_mode_map": {
+      "root": "profile-implicit",
+      "admin": "profile-implicit",
+      "admin/super": "super-admin-explicit"
+    },
+    "deep_link_note": "For super-admin, deep links must encode context in URL: /admin/super/{capability}?countryId=X&customerId=Y&profileId=Z — or use route segments. This enables bookmarkable, shareable super-admin URLs."
+  },
+  "capabilities": [
+
+    {
+      "name": "frontpage",
+      "app": "main-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "login",
+      "app": "main-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "transparent-login",
+      "app": "main-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "password-reset",
+      "app": "main-app",
+      "section": "root",
+      "type": "flow",
+      "depth": 1,
+      "note": "Two distinct entry paths (reset-password, new-password) sharing the same component — separate route for requesting reset vs. setting new password via link",
+      "structure": {
+        "steps": [
+          { "step": 1, "name": "request-reset", "path": "reset-password" },
+          { "step": 2, "name": "set-new-password", "path": "new-password" }
+        ],
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": ["reset-password", "new-password"] }
+        ]
+      }
+    },
+
+    {
+      "name": "terms-and-conditions",
+      "app": "main-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "support",
+      "app": "main-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "broadcasting",
+      "app": "main-app",
+      "section": "root",
+      "type": "workspace",
+      "depth": "UNKNOWN",
+      "note": "BroadcastingModule loaded lazily — internal structure not read. This is the main hub after login.",
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": ["UNKNOWN — module not read"] }
+        ]
+      }
+    },
+
+    {
+      "name": "broadcasting-limited",
+      "app": "main-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "note": "Separate entry point for limited users — same domain as broadcasting but restricted view",
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "message-wizard",
+      "app": "main-app",
+      "section": "root",
+      "type": "flow",
+      "depth": 2,
+      "note": "Standard message-sending wizard. Step 1 is a branching selection of recipient method. Steps 2-4 are linear. Guards restrict access to specific recipient methods based on profile roles.",
+      "structure": {
+        "steps": [
+          {
+            "step": 1,
+            "name": "recipient-selection",
+            "branching": true,
+            "options": [
+              "by-address",
+              "by-excel",
+              "by-map",
+              "by-level",
+              "by-municipality",
+              "std-receivers",
+              "std-receivers-ext"
+            ]
+          },
+          { "step": 2, "name": "write-message" },
+          { "step": 3, "name": "confirm" },
+          { "step": 4, "name": "complete" }
+        ],
+        "levels": [
+          {
+            "level": 1,
+            "type": "list",
+            "params": [],
+            "elements": ["recipient-selection-shell", "write-message", "confirm", "complete"]
+          },
+          {
+            "level": 2,
+            "type": "list",
+            "params": [],
+            "elements": ["by-address", "by-excel", "by-map", "by-level", "by-municipality", "std-receivers", "std-receivers-ext"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "message-wizard-scheduled",
+      "app": "main-app",
+      "section": "root",
+      "type": "flow",
+      "depth": 2,
+      "note": "Scheduled message wizard. Same recipient-selection branching as standard wizard, but adds schedule-setup step. write-message and confirm components partially UNKNOWN (routing file truncated).",
+      "structure": {
+        "steps": [
+          {
+            "step": 1,
+            "name": "recipient-selection",
+            "branching": true,
+            "options": ["by-address", "by-excel", "by-map", "by-level", "by-municipality", "std-receivers"]
+          },
+          { "step": 2, "name": "write-message" },
+          { "step": 3, "name": "schedule-setup" },
+          { "step": 4, "name": "confirm" }
+        ],
+        "levels": [
+          {
+            "level": 1,
+            "type": "list",
+            "params": [],
+            "elements": ["recipient-selection-shell", "write-message", "schedule-setup", "confirm"]
+          },
+          {
+            "level": 2,
+            "type": "list",
+            "params": [],
+            "elements": ["by-address", "by-excel", "by-map", "by-level", "by-municipality", "std-receivers"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "message-wizard-stencil",
+      "app": "main-app",
+      "section": "root",
+      "type": "flow",
+      "depth": 2,
+      "note": "Stencil creation wizard. Reuses the same module as message-wizard-scheduled with a data flag (isCreatingStencil=true). Navigation structure identical to message-wizard-scheduled.",
+      "structure": {
+        "steps": [
+          {
+            "step": 1,
+            "name": "recipient-selection",
+            "branching": true,
+            "options": ["by-address", "by-excel", "by-map", "by-level", "by-municipality", "std-receivers"]
+          },
+          { "step": 2, "name": "write-message" },
+          { "step": 3, "name": "schedule-setup" },
+          { "step": 4, "name": "confirm" }
+        ],
+        "levels": [
+          {
+            "level": 1,
+            "type": "list",
+            "params": [],
+            "elements": ["recipient-selection-shell", "write-message", "schedule-setup", "confirm"]
+          },
+          {
+            "level": 2,
+            "type": "list",
+            "params": [],
+            "elements": ["by-address", "by-excel", "by-map", "by-level", "by-municipality", "std-receivers"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "my-user",
+      "app": "main-app",
+      "section": "root",
+      "type": "workspace",
+      "depth": 2,
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "list",
+            "params": [],
+            "elements": ["my-user-shell"]
+          },
+          {
+            "level": 2,
+            "type": "tabs",
+            "params": [],
+            "elements": ["user-info-edit", "security"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "status",
+      "app": "main-app",
+      "section": "root",
+      "type": "workspace",
+      "depth": 3,
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "list",
+            "params": [],
+            "elements": ["status-overview-list"]
+          },
+          {
+            "level": 2,
+            "type": "detail",
+            "params": ["smsGroupId"],
+            "elements": ["sms-group-detail"]
+          },
+          {
+            "level": 3,
+            "type": "tabs",
+            "params": ["smsGroupId"],
+            "elements": ["overview", "addresses", "statusReport", "message-content"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "sms-conversations",
+      "app": "main-app",
+      "section": "root",
+      "type": "workspace",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "benchmark",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 2,
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["index", "statistics", "kpis", "administration", "overview", "settings"]
+          },
+          {
+            "level": 2,
+            "type": "detail",
+            "params": ["id"],
+            "elements": ["create", "edit"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "std-receivers-setup",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 3,
+      "note": "Level 3 tabs inferred from RouteNames — create-edit-delete-receivers.routes and receiver-groups.routes not read",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["std-receivers", "receiver-groups", "profile-mapping", "receiver-upload", "subscription-module", "keywords-module", "ad-provisioning"]
+          },
+          {
+            "level": 2,
+            "type": "detail",
+            "params": ["receiverId", "groupId"],
+            "elements": ["receiver-detail", "group-detail"]
+          },
+          {
+            "level": 3,
+            "type": "tabs",
+            "params": ["receiverId or groupId"],
+            "elements": ["info", "grouping", "profile-access", "UNKNOWN — routes not read"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "customer-admin",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 3,
+      "note": "customer-admin.module not read — all paths inferred from RouteNames. Profile edit tab structure extensive (14 tabs).",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["settings", "users", "profiles", "social-media", "gdpr", "sms-conversations"]
+          },
+          {
+            "level": 2,
+            "type": "detail",
+            "params": ["userId", "profileId"],
+            "elements": ["user-detail", "profile-detail", "create-profile"]
+          },
+          {
+            "level": 3,
+            "type": "tabs",
+            "params": ["userId or profileId"],
+            "elements": [
+              "user-profiles",
+              "user-roles",
+              "profile-info",
+              "profile-roles",
+              "profile-account",
+              "profile-api-keys",
+              "profile-users",
+              "profile-map",
+              "profile-social-media",
+              "profile-email2sms",
+              "profile-ready-reports",
+              "profile-statstidende",
+              "profile-ftp-setup",
+              "profile-distribution"
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "message-examples",
+      "app": "main-app",
+      "section": "admin",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "message-templates",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Module not read — tab structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["templates", "merge-fields", "template-access", "weather-warnings", "warning-templates", "trimble-templates"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "searching",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Module not read — tab structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["phone-email", "address", "report"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "statstidende",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 2,
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["receivers"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "web-messages",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Module not read — tab structure inferred from RouteNames only. Contains nested iFrame configuration views.",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["messages", "iFrame-driftstatus", "iFrame-driftstatus-map", "iFrame-driftstatus-setup", "iFrame-driftstatus-map-setup"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "subscribe-unsubscribe",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Module not read — tab structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["iFrame-subscription", "iFrame-subscription-setup", "subscription-report", "subscription-notification", "excel-upload", "enrollment-app"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "scheduled-broadcasts",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 2,
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["calendar", "list"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "critical-addresses",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Routing file not read — structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["addresses", "industry-codes", "excel-upload"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "file-management",
+      "app": "main-app",
+      "section": "admin",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Routing file not read — structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["profile-storage-files"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "translations",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "communication",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 3,
+      "note": "Module not read — tab structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["operationalMessages", "news-letter", "data-processor-agreements"]
+          },
+          {
+            "level": 2,
+            "type": "list",
+            "params": [],
+            "elements": ["data-processor-agreements-list"]
+          },
+          {
+            "level": 3,
+            "type": "detail",
+            "params": [],
+            "elements": ["create", "edit"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "pos-lists",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Module not read — tab structure inferred from RouteNames only. Heavily tabbed interface.",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": [
+              "upload-pos-list",
+              "municipality-setup",
+              "uploaded-pos-lists",
+              "positive-lookup",
+              "negative-list",
+              "import-corrections",
+              "import-fof-corrections",
+              "additional-import-addresses",
+              "index"
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "customers",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 4,
+      "note": "Module not read — all child routes inferred from RouteNames only. contact-persons has nested create/edit at level 4.",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "list",
+            "params": [],
+            "elements": ["customer-list", "create-customer", "map"]
+          },
+          {
+            "level": 2,
+            "type": "detail",
+            "params": ["id"],
+            "elements": ["customer-detail"]
+          },
+          {
+            "level": 3,
+            "type": "tabs",
+            "params": ["id"],
+            "elements": ["profiles", "users", "settings", "admin", "ftpSettings", "api-keys", "gdpr", "contact-persons"]
+          },
+          {
+            "level": 4,
+            "type": "sub-tabs",
+            "params": ["id"],
+            "elements": ["contact-persons/create", "contact-persons/edit/:contactId"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "users",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 3,
+      "note": "Module not read — all child routes inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["users-index", "profile-selection", "contact-persons-index"]
+          },
+          {
+            "level": 2,
+            "type": "detail",
+            "params": ["id"],
+            "elements": ["user-detail"]
+          },
+          {
+            "level": 3,
+            "type": "tabs",
+            "params": ["id"],
+            "elements": ["data", "subscriptions"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "settings",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Module not read — tab structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["packages-setup", "functions", "sales-info", "profile-roles-country-mapping", "user-roles-country-mapping"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "log",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "invoicing",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Routing file not read — tab structure inferred from RouteNames only. Heavily tabbed financial interface.",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": [
+              "economic-transfer",
+              "framweb-export",
+              "load-invoices",
+              "accrual",
+              "summary",
+              "budget-follow-up",
+              "product-catalog",
+              "mappings",
+              "upload"
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "phonenumber-providers",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 3,
+      "note": "Module not read — structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["providers", "imports", "lookupSwedishSkipList"]
+          },
+          {
+            "level": 2,
+            "type": "list",
+            "params": [],
+            "elements": ["provider-list", "create"]
+          },
+          {
+            "level": 3,
+            "type": "detail",
+            "params": ["id"],
+            "elements": ["provider-detail"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "monitoring",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Module not read — tab structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["dashboard", "map", "nodeJobs"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "enrollment-management",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 3,
+      "note": "Super-admin enrollment sender management — distinct from the anonymous enrollment app (subscription-app)",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["senders", "statistics", "reports"]
+          },
+          {
+            "level": 2,
+            "type": "list",
+            "params": [],
+            "elements": ["sender-list", "create"]
+          },
+          {
+            "level": 3,
+            "type": "detail",
+            "params": ["id"],
+            "elements": ["edit"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "human-resources",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 2,
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["absences", "holidays", "salary", "driving", "employees"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "internal-reports",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 2,
+      "note": "Anomaly: path is /admin/internal-reports (no 'super/' prefix), unlike all other super-admin routes",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["virtual-phone-numbers", "failed-ad-logins", "nudging-report", "webinar-report", "krr-kofuvi-statistics"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "salesforce",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 2,
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "tabs",
+            "params": [],
+            "elements": ["opportunities", "forecast-evaluation", "pipeline", "development", "modified"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "inbound-call-redirect",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "list",
+      "depth": 1,
+      "note": "Navigation target directly via :phone param — likely a redirect/lookup page, minimal UI",
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "detail", "params": ["phone"], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "map-layers",
+      "app": "main-app",
+      "section": "admin/super",
+      "type": "workspace",
+      "depth": 3,
+      "note": "Routing file not read — structure inferred from RouteNames only",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "list",
+            "params": [],
+            "elements": ["map-layers-list"]
+          },
+          {
+            "level": 2,
+            "type": "detail",
+            "params": ["id"],
+            "elements": ["map-layer-detail"]
+          },
+          {
+            "level": 3,
+            "type": "tabs",
+            "params": ["id"],
+            "elements": ["access"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "pipeline",
+      "app": "main-app",
+      "section": "root",
+      "type": "workspace",
+      "depth": 4,
+      "note": "Super-admin only. customer-prospect-create-edit.routing not read — prospect detail children inferred from RouteNames.",
+      "structure": {
+        "levels": [
+          {
+            "level": 1,
+            "type": "list",
+            "params": [],
+            "elements": ["pipeline-dashboard", "prospects", "create-customer", "edit-termination", "edit-process-tasks"]
+          },
+          {
+            "level": 2,
+            "type": "list",
+            "params": [],
+            "elements": ["prospect-list"]
+          },
+          {
+            "level": 3,
+            "type": "detail",
+            "params": ["prospectId", "customerId", "processType"],
+            "elements": ["prospect-detail", "create-customer-detail", "edit-termination-detail", "edit-process-tasks-detail"]
+          },
+          {
+            "level": 4,
+            "type": "tabs",
+            "params": ["prospectId"],
+            "elements": ["edit-info", "edit-tasks"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "enrollment",
+      "app": "subscription-app",
+      "section": "root",
+      "type": "flow",
+      "depth": 2,
+      "note": "Anonymous 3-step enrollment flow. Guard prevents re-entering if enrollment already in progress.",
+      "structure": {
+        "steps": [
+          { "step": 1, "name": "mobile-and-pin" },
+          { "step": 2, "name": "enter-address" },
+          { "step": 3, "name": "sender-selection" }
+        ],
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": ["enrollment-shell"] },
+          {
+            "level": 2,
+            "type": "list",
+            "params": [],
+            "elements": ["step-1", "step-2", "step-3"]
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "about",
+      "app": "subscription-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "privacy-policy",
+      "app": "subscription-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "terms-and-conditions",
+      "app": "subscription-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "my-senders",
+      "app": "subscription-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "login",
+      "app": "subscription-app",
+      "section": "root",
+      "type": "UNKNOWN",
+      "depth": "UNKNOWN",
+      "note": "EnLoginModule not read — internal structure unknown",
+      "structure": {
+        "levels": []
+      }
+    },
+
+    {
+      "name": "unsubscribe-sender",
+      "app": "subscription-app",
+      "section": "root",
+      "type": "UNKNOWN",
+      "depth": "UNKNOWN",
+      "note": "UnsubscribeSenderModule not read — internal structure unknown",
+      "structure": {
+        "levels": []
+      }
+    },
+
+    {
+      "name": "welcome",
+      "app": "subscription-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "note": "Default catch-all route — welcome/landing page",
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "quick-response",
+      "app": "quick-response-app",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "note": "Single component for both root and /:tag. The tag param is optional and controls which response is displayed. No navigation — single-screen app.",
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "detail", "params": ["tag (optional)"], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "driftstatus",
+      "app": "iframe-modules",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "note": "Embeddable iframe component. No internal navigation. Path: /iFrame/driftstatus",
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "driftstatus-map",
+      "app": "iframe-modules",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "note": "Embeddable map iframe component. No internal navigation. Path: /iFrame/driftstatus-map",
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "subscription-iframe",
+      "app": "iframe-modules",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "note": "Embeddable subscription form (standard). No internal navigation. Path: /iFrame/subscription",
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    },
+
+    {
+      "name": "std-receivers-subscription-iframe",
+      "app": "iframe-modules",
+      "section": "root",
+      "type": "list",
+      "depth": 1,
+      "note": "Embeddable subscription form (std-receiver variant). No internal navigation. Path: /iFrame/std-receivers",
+      "structure": {
+        "levels": [
+          { "level": 1, "type": "list", "params": [], "elements": [] }
+        ]
+      }
+    }
+
+  ],
+
+  "unknowns": [
+    "broadcasting (main-app): BroadcastingModule internal structure not read — this is the primary post-login workspace",
+    "broadcasting (main-app): limitedUserGuardFunc(true) vs limitedUserGuardFunc(false) implies two distinct user tiers with different capabilities — access model not fully understood",
+    "password-reset: unclear whether reset-password and new-password are genuinely a 2-step sequential flow or two independent entry points — both share the same component",
+    "message-wizard-scheduled/write-message: guard presence unknown — routing file was truncated",
+    "message-wizard-scheduled/confirm: component name unknown — routing file was truncated",
+    "std-receivers-setup/std-receivers: create-edit-delete-receivers.routes not read — internal CRUD structure (incl. :receiverId detail and its tabs) unknown",
+    "std-receivers-setup/receiver-groups: receiver-groups.routes not read — internal structure (incl. :groupId detail and its tabs) unknown",
+    "std-receivers-setup/subscription-module: subscription-module-setup.module not read — internal structure unknown",
+    "customer-admin: customer-admin.module not read — ALL routes inferred from RouteNames only",
+    "message-templates: module not read — tab count and CRUD depth unknown",
+    "searching: module not read — whether search results are a list or inline unknown",
+    "web-messages: module not read — iFrame config views may have depth > 2",
+    "subscribe-unsubscribe (admin): module not read — enrollment-app sub-route may have significant depth",
+    "critical-addresses: routing file not read",
+    "file-management: routing file not read",
+    "super/customers: module not read — structure inferred from RouteNames only",
+    "super/users: module not read — structure inferred from RouteNames only",
+    "super/settings: module not read — tab structure inferred from RouteNames only",
+    "super/phonenumberproviders: module not read — structure inferred from RouteNames only",
+    "super/monitoring: module not read — tab structure inferred from RouteNames only",
+    "super/communication: module not read — tab structure inferred from RouteNames only",
+    "super/pos-lists: module not read — 9 tabs suggests significant complexity",
+    "super/invoicing: routing file not read — 9 tabs suggests significant financial complexity",
+    "super/mapLayers: routing file not read",
+    "pipeline/prospects: customer-prospect-create-edit.routing not read — depth 4 assumes tabs at level 4 from RouteNames",
+    "enrollment-dashboard: referenced in RouteNames.routeNotRequiringProfile but NO route definition found in any routing file — may be removed or exist outside read scope",
+    "super/prospects: defined in RouteNames.adminRoutes.subRoutes.superAdmin but absent from super-administration-routing.module.ts — likely dead code",
+    "subscription-app/login: EnLoginModule not read — depth and structure fully unknown",
+    "subscription-app/unsubscribe-sender: UnsubscribeSenderModule not read — depth and structure fully unknown",
+    "iframe-modules routing mechanism: path resolution is imperative (switch on window.location.pathname) not standard Angular router — implies no deep-linking support within each iframe component",
+    "internal-reports anomaly: path is /admin/internal-reports without 'super/' prefix, unlike all other super-admin routes — likely a naming inconsistency in the legacy system"
+  ]
+}

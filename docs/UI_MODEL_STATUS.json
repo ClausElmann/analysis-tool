@@ -1,0 +1,164 @@
+{
+  "capability": "status",
+  "type": "workspace",
+  "generated": "2026-04-02",
+  "source": "docs/NAVIGATION_MODEL.json + direct Angular source analysis",
+
+  "context": {
+    "mode": "profile-implicit",
+    "page_local": true,
+    "note": "Normal users: context from global app-shell — no in-page selector. Super-admin: page-local country+customer+profile selector on the list page only (not in layout). Selector has okButton pattern — data loads on explicit trigger, not cascade.",
+    "super_admin_selector": {
+      "type": "country + customer + profile",
+      "trigger": "okButton",
+      "scope": "filters the sms-group list for selected context",
+      "location": "query-list page only"
+    }
+  },
+
+  "full_model": {
+    "structure": [
+      {
+        "type": "query-list",
+        "entity": "message",
+        "filters": [
+          { "name": "date-range", "fields": ["fromDate", "toDate"] },
+          { "name": "super-admin-context", "condition": "IsSuperAdmin", "type": "page-local", "fields": ["countryId", "customerId", "profileId"] }
+        ],
+        "actions": ["search"],
+        "columns": ["groupName", "messageText", "dateTimeOfCreation", "dateTimeOfBroadcast", "sendMethod", "customerName (super-admin only)"],
+        "features": ["globalTextFilter", "exportToExcel", "saveStateForBackNavigation"],
+        "children": [
+          {
+            "type": "detail",
+            "entity": "message",
+            "params": ["smsGroupId"],
+            "header": "messageName",
+            "header_flags": ["test-mode indicator"],
+            "actions": ["back"],
+            "children": [
+              {
+                "type": "tabs",
+                "default": "overview",
+                "items": [
+                  {
+                    "name": "overview",
+                    "type": "dashboard",
+                    "always_visible": true,
+                    "panels": [
+                      { "name": "message-info", "content": "name, send-method, date, status — read-only display" },
+                      { "name": "addresses-count-statistic", "content": "count of targeted addresses" },
+                      { "name": "message-count-statistic", "content": "delivery counts: sent / failed / pending" },
+                      { "name": "actions", "content": "resend (dialog), delete, download-excel, activity-log, approve", "roles": ["SmsGroupApprover for approve"] },
+                      { "name": "quick-response-statistics", "content": "response option counts", "condition": "message has quickResponseSetup" },
+                      { "name": "individual-message-settings", "content": "lookup type, timing, address filter settings", "condition": "message used email/SMS/voice/eBoks individual send" }
+                    ]
+                  },
+                  {
+                    "name": "addresses",
+                    "type": "view-toggle",
+                    "toggle": "radio-button (List | Map)",
+                    "condition": "message is looked up AND (not eBoks-pending) AND message has addresses",
+                    "views": [
+                      { "name": "list", "type": "list", "entity": "address" },
+                      { "name": "map", "type": "custom", "entity": "address", "note": "map visualization — read-only" }
+                    ]
+                  },
+                  {
+                    "name": "status-report",
+                    "type": "list",
+                    "entity": "delivery-status-item",
+                    "features": ["globalMultiSelectFilter", "exportToExcel"],
+                    "condition": "UNKNOWN"
+                  },
+                  {
+                    "name": "message-content",
+                    "type": "dashboard",
+                    "condition": "UNKNOWN",
+                    "panels": [
+                      { "name": "metadata", "content": "send settings, timing, message-type summary" },
+                      { "name": "eboks-data", "content": "eBoks-specific fields", "condition": "message is eBoks type" }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  "light_model": {
+    "structure": [
+      {
+        "type": "query-list",
+        "entity": "message",
+        "filters": [
+          { "name": "date-range", "fields": ["fromDate", "toDate"] },
+          { "name": "super-admin-context", "condition": "IsSuperAdmin", "type": "page-local" }
+        ],
+        "actions": ["search"],
+        "features": ["globalTextFilter"],
+        "children": [
+          {
+            "type": "detail",
+            "entity": "message",
+            "params": ["smsGroupId"],
+            "children": [
+              {
+                "type": "tabs",
+                "default": "overview",
+                "items": [
+                  {
+                    "name": "overview",
+                    "type": "dashboard",
+                    "panels": [
+                      { "name": "message-info" },
+                      { "name": "addresses-count-statistic" },
+                      { "name": "message-count-statistic" },
+                      { "name": "actions", "actions": ["resend", "delete"] }
+                    ],
+                    "deferred_panels": ["quick-response-statistics", "individual-message-settings"]
+                  },
+                  {
+                    "name": "addresses",
+                    "type": "view-toggle",
+                    "views": [
+                      { "name": "list", "type": "list", "entity": "address" }
+                    ],
+                    "deferred_views": ["map"],
+                    "condition": "message has addresses"
+                  }
+                ],
+                "deferred_tabs": ["status-report", "message-content"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  "blazor_routing_sketch": {
+    "routes": [
+      "/status",
+      "/status/{smsGroupId}",
+      "/status/{smsGroupId}/overview",
+      "/status/{smsGroupId}/addresses",
+      "/status/{smsGroupId}/status-report",
+      "/status/{smsGroupId}/message-content"
+    ],
+    "redirect": "/status/{smsGroupId} \u2192 /status/{smsGroupId}/overview"
+  },
+
+  "unknowns": [
+    "status-report tab visibility condition",
+    "message-content tab visibility condition",
+    "super-admin resend: can super-admin resend on behalf of another customer from status page?",
+    "query-list default state: auto-load last 30 days, or empty until search triggered?",
+    "delete: soft or hard delete? confirmation dialog?",
+    "activity-log: dialog or separate route/tab?",
+    "addresses map-view: shared component with wizard by-map, or separate read-only visualization?"
+  ]
+}

@@ -1,0 +1,396 @@
+{
+  "capability": "customer-admin",
+  "type": "workspace",
+  "generated": "2026-04-02",
+  "source": "docs/NAVIGATION_MODEL.json + docs/NAVIGATION_ARCHITECTURE.md",
+
+  "context": {
+    "mode": "profile-implicit",
+    "requires_selector": false,
+    "note": "Authenticated customer is resolved from JWT claims. No customer selection step. Profile is selected globally in app shell and flows implicitly into all admin operations."
+  },
+
+  "design_notes": [
+    "customer-admin is NOT a list of customers — it is the admin area for the currently authenticated customer (self-service admin).",
+    "The workspace entry point is a single customer entity with top-level tab navigation.",
+    "Two sub-entities (user, profile) have their own list → detail → tabs flow within this workspace.",
+    "Profile detail has 12 configuration tabs — the deepest and most complex structure in this capability.",
+    "User detail has 2 tabs (profiles assigned, roles assigned).",
+    "4 customer-level areas (settings, social-media, gdpr, sms-conversations) are single-level forms or lists with no sub-navigation."
+  ],
+
+  "full_model": {
+    "entry": {
+      "entity": "customer",
+      "view": "detail",
+      "note": "No customer selection step — context is always the authenticated user's customer"
+    },
+
+    "structure": [
+      {
+        "type": "detail",
+        "entity": "customer",
+        "children": [
+          {
+            "type": "tabs",
+            "items": [
+
+              {
+                "name": "settings",
+                "type": "form",
+                "entity": "customer-settings",
+                "depth": 1,
+                "children": []
+              },
+
+              {
+                "name": "users",
+                "type": "list",
+                "entity": "user",
+                "depth": 1,
+                "actions": ["create"],
+                "children": [
+                  {
+                    "type": "detail",
+                    "entity": "user",
+                    "params": ["userId"],
+                    "depth": 2,
+                    "actions": ["edit", "delete"],
+                    "children": [
+                      {
+                        "type": "tabs",
+                        "depth": 3,
+                        "items": [
+                          {
+                            "name": "user-profiles",
+                            "type": "list",
+                            "entity": "profile-assignment",
+                            "note": "Profiles assigned to this user — manageable list"
+                          },
+                          {
+                            "name": "user-roles",
+                            "type": "list",
+                            "entity": "role-assignment",
+                            "note": "Roles assigned to this user — manageable list"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "form",
+                    "entity": "user",
+                    "name": "create-user",
+                    "depth": 2
+                  }
+                ]
+              },
+
+              {
+                "name": "profiles",
+                "type": "list",
+                "entity": "profile",
+                "depth": 1,
+                "actions": ["create"],
+                "children": [
+                  {
+                    "type": "detail",
+                    "entity": "profile",
+                    "params": ["profileId"],
+                    "depth": 2,
+                    "actions": ["edit", "delete"],
+                    "children": [
+                      {
+                        "type": "tabs",
+                        "depth": 3,
+                        "items": [
+                          {
+                            "name": "info",
+                            "type": "form",
+                            "entity": "profile-info"
+                          },
+                          {
+                            "name": "roles",
+                            "type": "form",
+                            "entity": "profile-roles"
+                          },
+                          {
+                            "name": "account",
+                            "type": "form",
+                            "entity": "profile-account"
+                          },
+                          {
+                            "name": "api-keys",
+                            "type": "list",
+                            "entity": "api-key",
+                            "actions": ["create", "revoke"]
+                          },
+                          {
+                            "name": "users",
+                            "type": "list",
+                            "entity": "user",
+                            "note": "Users with access to this profile"
+                          },
+                          {
+                            "name": "map",
+                            "type": "custom",
+                            "entity": "profile-map",
+                            "note": "Geographic map configuration for this profile"
+                          },
+                          {
+                            "name": "social-media",
+                            "type": "form",
+                            "entity": "profile-social-media"
+                          },
+                          {
+                            "name": "email2sms",
+                            "type": "form",
+                            "entity": "profile-email2sms"
+                          },
+                          {
+                            "name": "ready-reports",
+                            "type": "form",
+                            "entity": "profile-ready-reports"
+                          },
+                          {
+                            "name": "statstidende",
+                            "type": "form",
+                            "entity": "profile-statstidende"
+                          },
+                          {
+                            "name": "ftp-setup",
+                            "type": "form",
+                            "entity": "profile-ftp-setup"
+                          },
+                          {
+                            "name": "distribution",
+                            "type": "form",
+                            "entity": "profile-distribution",
+                            "note": "Distribution to std-receiver groups"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "form",
+                    "entity": "profile",
+                    "name": "create-profile",
+                    "depth": 2
+                  }
+                ]
+              },
+
+              {
+                "name": "social-media",
+                "type": "form",
+                "entity": "customer-social-media",
+                "depth": 1,
+                "note": "Customer-level social media configuration (distinct from profile-level social-media tab)",
+                "children": []
+              },
+
+              {
+                "name": "gdpr",
+                "type": "form",
+                "entity": "customer-gdpr",
+                "depth": 1,
+                "children": []
+              },
+
+              {
+                "name": "sms-conversations",
+                "type": "list",
+                "entity": "sms-conversation",
+                "depth": 1,
+                "note": "SMS inbox/conversation view scoped to this customer",
+                "children": []
+              }
+
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  "light_model": {
+    "entry": {
+      "entity": "customer",
+      "view": "detail",
+      "note": "Same entry as full model — no customer selection step"
+    },
+
+    "design_notes": [
+      "Light model keeps the 3 primary entities: settings, users, profiles.",
+      "Omits: social-media, gdpr, sms-conversations (secondary, rarely first-visited).",
+      "User detail: both tabs retained — small and essential.",
+      "Profile detail: reduced to 4 core tabs (info, roles, account, api-keys). All 8 specialist tabs deferred.",
+      "Create flows retained for both user and profile — without them the workspace is not functional."
+    ],
+
+    "structure": [
+      {
+        "type": "detail",
+        "entity": "customer",
+        "children": [
+          {
+            "type": "tabs",
+            "items": [
+
+              {
+                "name": "settings",
+                "type": "form",
+                "entity": "customer-settings",
+                "depth": 1,
+                "children": []
+              },
+
+              {
+                "name": "users",
+                "type": "list",
+                "entity": "user",
+                "depth": 1,
+                "actions": ["create"],
+                "children": [
+                  {
+                    "type": "detail",
+                    "entity": "user",
+                    "params": ["userId"],
+                    "depth": 2,
+                    "actions": ["edit", "delete"],
+                    "children": [
+                      {
+                        "type": "tabs",
+                        "depth": 3,
+                        "items": [
+                          {
+                            "name": "user-profiles",
+                            "type": "list",
+                            "entity": "profile-assignment"
+                          },
+                          {
+                            "name": "user-roles",
+                            "type": "list",
+                            "entity": "role-assignment"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "form",
+                    "entity": "user",
+                    "name": "create-user",
+                    "depth": 2
+                  }
+                ]
+              },
+
+              {
+                "name": "profiles",
+                "type": "list",
+                "entity": "profile",
+                "depth": 1,
+                "actions": ["create"],
+                "children": [
+                  {
+                    "type": "detail",
+                    "entity": "profile",
+                    "params": ["profileId"],
+                    "depth": 2,
+                    "actions": ["edit", "delete"],
+                    "children": [
+                      {
+                        "type": "tabs",
+                        "depth": 3,
+                        "note": "Full model has 12 tabs — light model exposes 4 core tabs only",
+                        "items": [
+                          {
+                            "name": "info",
+                            "type": "form",
+                            "entity": "profile-info"
+                          },
+                          {
+                            "name": "roles",
+                            "type": "form",
+                            "entity": "profile-roles"
+                          },
+                          {
+                            "name": "account",
+                            "type": "form",
+                            "entity": "profile-account"
+                          },
+                          {
+                            "name": "api-keys",
+                            "type": "list",
+                            "entity": "api-key",
+                            "actions": ["create", "revoke"]
+                          }
+                        ],
+                        "deferred_tabs": ["users", "map", "social-media", "email2sms", "ready-reports", "statstidende", "ftp-setup", "distribution"]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "form",
+                    "entity": "profile",
+                    "name": "create-profile",
+                    "depth": 2
+                  }
+                ]
+              }
+
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  "blazor_routing_sketch": {
+    "note": "Derived directly from UI model structure above — not copied from Angular",
+    "routes": [
+      "/admin/customer",
+      "/admin/customer/settings",
+      "/admin/customer/users",
+      "/admin/customer/users/create",
+      "/admin/customer/users/{userId}",
+      "/admin/customer/users/{userId}/user-profiles",
+      "/admin/customer/users/{userId}/user-roles",
+      "/admin/customer/profiles",
+      "/admin/customer/profiles/create",
+      "/admin/customer/profiles/{profileId}",
+      "/admin/customer/profiles/{profileId}/info",
+      "/admin/customer/profiles/{profileId}/roles",
+      "/admin/customer/profiles/{profileId}/account",
+      "/admin/customer/profiles/{profileId}/api-keys",
+      "/admin/customer/profiles/{profileId}/users",
+      "/admin/customer/profiles/{profileId}/map",
+      "/admin/customer/profiles/{profileId}/social-media",
+      "/admin/customer/profiles/{profileId}/email2sms",
+      "/admin/customer/profiles/{profileId}/ready-reports",
+      "/admin/customer/profiles/{profileId}/statstidende",
+      "/admin/customer/profiles/{profileId}/ftp-setup",
+      "/admin/customer/profiles/{profileId}/distribution",
+      "/admin/customer/social-media",
+      "/admin/customer/gdpr",
+      "/admin/customer/sms-conversations"
+    ]
+  },
+
+  "unknowns": [
+    "customer-admin.module was not read — all structure inferred from RouteNames constants only",
+    "settings: unknown whether this is a single form or has internal sub-sections",
+    "social-media (customer level): relationship to profile-level social-media tab is unclear — may overlap in function",
+    "gdpr: unknown whether this is a static form, a list of consents, or a GDPR deletion/export workflow",
+    "sms-conversations (customer level): unknown whether this is the same component as the root /sms-conversations view or a scoped sub-view",
+    "user detail: unknown whether user creation is a multi-step form or a single-page form",
+    "profile/map tab: 'custom' type flagged — unknown whether this is an embedded map widget, a map region selector, or a map data configuration form",
+    "profile/ready-reports: unknown content — could be a report output list, a subscription config, or a scheduling form",
+    "profile/statstidende: domain-specific — relationship to /admin/statstidende capability unclear",
+    "profile/distribution: unknown whether this is a static assignment form or a searchable many-to-many selection",
+    "create-user flow: unknown whether profile/role assignment is part of create wizard or post-create edit only",
+    "profile detail: unknown whether all 12 tabs are always visible or conditionally rendered based on customer feature flags"
+  ]
+}

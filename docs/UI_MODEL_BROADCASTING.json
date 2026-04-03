@@ -1,0 +1,187 @@
+{
+  "capability": "broadcasting",
+  "type": "hub",
+  "generated": "2026-04-02",
+  "source": "docs/NAVIGATION_MODEL.json + direct Angular source analysis (broadcasting.component.ts/.html, scenarios, send-methods-list, latest-msg-box, unapproved-msg-box)",
+
+  "context": {
+    "mode": "profile-implicit",
+    "requires_selector": false,
+    "note": "All panels operate within the authenticated user current profile. Hub re-initializes all panels on profileChanged$ event."
+  },
+
+  "design_notes": [
+    "Broadcasting is the primary post-login hub — not a list/detail workspace.",
+    "No hierarchy within the hub. All panels are independent and co-equal.",
+    "Top panels are action-oriented (launchers + quick-send).",
+    "Bottom panels are informational — status-lists showing recent activity per state category.",
+    "Clicking a bottom-panel item navigates OUT to the status capability.",
+    "LimitedUser role variant: /broadcasting-limited — UNKNOWN how it differs."
+  ],
+
+  "full_model": {
+    "panels": [
+      {
+        "name": "send-methods",
+        "type": "launcher",
+        "purpose": "Present all available broadcast methods as an icon-grid. Each item is a direct entry point into the message-wizard at a specific recipient-selection step. Items are role-filtered per profile.",
+        "data_behavior": {
+          "mode": "static",
+          "refresh": "none"
+        },
+        "items": [
+          { "name": "by-address",      "role": "CanSendByAddressSelection" },
+          { "name": "by-map",          "role": "CanSendByMap" },
+          { "name": "by-excel",        "role": "CanUploadStreetList" },
+          { "name": "by-level",        "role": null },
+          { "name": "by-municipality", "role": null },
+          { "name": "std-receivers",   "role": "CanSelectStdReceivers OR CanSendByOnlyStdReceivers" }
+        ],
+        "interaction": {
+          "type": "start-flow",
+          "target": "message-wizard",
+          "note": "Navigates to /message-wizard/{step} with selected send method pre-set"
+        }
+      },
+      {
+        "name": "scenarios",
+        "type": "list",
+        "purpose": "Saved broadcast scenarios (templates). Each scenario is a pre-configured message setup. Clicking starts the wizard pre-filled with the scenario's recipient and message data.",
+        "data_behavior": {
+          "mode": "static",
+          "refresh": "none"
+        },
+        "condition": "showScenarios (profile feature flag)",
+        "actions": {
+          "start": "role: any profile member",
+          "create": "role: CanManageScenarios",
+          "edit":   "role: CanManageScenarios",
+          "delete": "role: CanManageScenarios"
+        },
+        "interaction": {
+          "type": "start-flow",
+          "target": "message-wizard",
+          "note": "Pre-fills wizard state from selected scenario"
+        }
+      },
+      {
+        "name": "quick-send",
+        "type": "form",
+        "purpose": "Send a single SMS or email directly without entering the full wizard. Tab-switched between SMS and Email channels.",
+        "data_behavior": {
+          "mode": "user-triggered",
+          "refresh": "on-action"
+        },
+        "condition": "profile.CanSendSingleSmsAndEmail AND customerAutosignature is set",
+        "tabs": [
+          {
+            "name": "single-sms",
+            "fields": ["recipient-phone", "message-text", "template", "send-as-name", "sms-reply-number", "delay"]
+          },
+          {
+            "name": "single-email",
+            "fields": ["recipient-email", "subject", "message-text", "template", "delay"]
+          }
+        ],
+        "interaction": {
+          "type": "inline-action",
+          "note": "Submit sends immediately. No navigation. Success reloads sent-messages panel."
+        }
+      },
+      {
+        "name": "messages",
+        "type": "status-list",
+        "entity": "sms-group",
+        "data_behavior": {
+          "mode": "dynamic",
+          "refresh": "interval",
+          "note": "Each group loaded independently. Interval duration UNKNOWN."
+        },
+        "groups": [
+          {
+            "name": "sent",
+            "status_filter": "sent",
+            "purpose": "Show most recently dispatched broadcasts. Read-only overview. Clicking an item allows user to review full delivery status.",
+            "columns": ["name", "send-method", "date-sent", "recipient-count"],
+            "role_gated": ["activity-log link (SuperAdmin or impersonation only)"],
+            "interaction": {
+              "type": "navigate",
+              "target": "status",
+              "note": "Navigates to /status/{smsGroupId}/overview"
+            }
+          },
+          {
+            "name": "planned",
+            "status_filter": "planned",
+            "purpose": "Show scheduled broadcasts not yet sent. Allows deletion before dispatch.",
+            "interaction": {
+              "primary": { "type": "navigate", "target": "status" },
+              "secondary": { "type": "inline-action", "action": "delete" }
+            }
+          },
+          {
+            "name": "unapproved",
+            "status_filter": "unapproved",
+            "purpose": "Show messages waiting for approver sign-off. Inline approve/reject without leaving the hub.",
+            "condition": "user is SmsGroupApprover for current profile",
+            "interaction": {
+              "type": "inline-action",
+              "actions": ["approve", "reject"],
+              "note": "Approval/rejection updates item state. Item moves out of this group on action."
+            }
+          },
+          {
+            "name": "unfinished",
+            "status_filter": "unfinished",
+            "purpose": "Show draft messages started but not submitted. Allows cleanup or resumption.",
+            "interaction": {
+              "primary": { "type": "navigate", "target": "status" },
+              "secondary": { "type": "inline-action", "action": "delete" }
+            }
+          }
+        ]
+      }
+    ]
+  },
+
+  "light_model": {
+    "panels": [
+      {
+        "name": "send-methods",
+        "type": "launcher",
+        "purpose": "Role-filtered broadcast method icon-grid. Core MVP entry point.",
+        "interaction": { "type": "start-flow", "target": "message-wizard" }
+      },
+      {
+        "name": "sent-messages",
+        "type": "status-list",
+        "entity": "sms-group",
+        "status_filter": "sent",
+        "purpose": "Latest sent broadcasts — visibility into recent activity.",
+        "interaction": { "type": "navigate", "target": "status" }
+      },
+      {
+        "name": "planned-messages",
+        "type": "status-list",
+        "entity": "sms-group",
+        "status_filter": "planned",
+        "purpose": "Upcoming scheduled broadcasts with delete action.",
+        "interaction": {
+          "primary": { "type": "navigate", "target": "status" },
+          "secondary": { "type": "inline-action", "action": "delete" }
+        }
+      }
+    ],
+    "deferred_panels": ["scenarios", "quick-send", "unapproved-messages", "unfinished-messages"]
+  },
+
+  "unknowns": [
+    "status-list item count: how many items shown per panel (last 5? 10? configurable?)",
+    "unfinished-messages: clicking an item — does it resume wizard at last step, or restart at recipient-selection?",
+    "broadcasting-limited variant: /broadcasting-limited — same hub with fewer panels, or entirely different component?",
+    "quick-send on success: does the sent-messages panel refresh automatically (SSE/polling), or only on manual reload?",
+    "unapproved-messages after action: does item animate out immediately (optimistic UI), or waits for server confirmation?",
+    "messages panel (status-list groups): are groups loaded in a single API call (all statuses) or one request per group?",
+    "interval refresh: what is the polling interval for dynamic status-list groups?"
+  ]
+}

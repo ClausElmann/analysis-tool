@@ -1,0 +1,171 @@
+{
+  "model": "UI_MODEL_SUPER_ADMIN_CONTEXT",
+  "generated": "2026-04-02",
+  "source": "docs/NAVIGATION_MODEL.json + domain clarification",
+
+  "summary": "Super-admin in ServiceAlert operates on behalf of any customer in the system. Rather than being scoped to one customer (like a normal admin), super-admin pages show data for a chosen context: country → customer → (optionally) profile. This context is selected explicitly via a shared selector bar that appears on all super-admin pages. Normal admin has no such selector — context comes implicitly from the logged-in user's own customer and active profile.",
+
+  "user_roles": [
+    {
+      "role": "admin",
+      "description": "A user of a customer (e.g. GreenAi employee using ServiceAlert as a customer). Operates within their own customer only. Active profile is selected in the global app-shell once per session.",
+      "context_mode": "profile-implicit",
+      "context_selector_on_page": false
+    },
+    {
+      "role": "super-admin",
+      "description": "A GreenAi employee with elevated access. Can administer any customer in the system. Must explicitly select which customer context to work in on each super-admin page.",
+      "context_mode": "super-admin-explicit",
+      "context_selector_on_page": true,
+      "note": "A super-admin also has their own customer context (GreenAi) and uses the normal admin section for that. Only the /admin/super/* area requires explicit context selection."
+    }
+  ],
+
+  "context_selector": {
+    "description": "A shared UI component rendered at the top of all super-admin pages. Provides cascading dropdowns for country → customer → profile. Persists selection in scoped state during the super-admin session.",
+    "levels": [
+      {
+        "level": 1,
+        "name": "country",
+        "param": "countryId",
+        "required": true,
+        "type": "dropdown",
+        "data_source": "all countries with customers",
+        "behavior": "selecting country filters customer dropdown"
+      },
+      {
+        "level": 2,
+        "name": "customer",
+        "param": "customerId",
+        "required": true,
+        "type": "dropdown (searchable)",
+        "data_source": "customers filtered by selected country",
+        "behavior": "selecting customer filters profile dropdown"
+      },
+      {
+        "level": 3,
+        "name": "profile",
+        "param": "profileId",
+        "required": "conditional — required on profile-scoped pages, optional on customer-scoped pages",
+        "type": "dropdown",
+        "data_source": "profiles for selected customer",
+        "behavior": "selecting profile reloads page data"
+      }
+    ],
+    "scope_variants": [
+      {
+        "id": "country-only",
+        "selectors_visible": ["country"],
+        "example_pages": ["UNKNOWN — no confirmed example in route analysis"]
+      },
+      {
+        "id": "country-and-customer",
+        "selectors_visible": ["country", "customer"],
+        "example_pages": ["customers (list)", "customers/:id (detail)", "pos-lists", "phonenumber-providers", "monitoring"]
+      },
+      {
+        "id": "country-customer-profile",
+        "selectors_visible": ["country", "customer", "profile"],
+        "example_pages": ["users", "benchmark", "std-receivers-setup", "message-templates", "scheduled-broadcasts", "critical-addresses", "searching", "web-messages", "subscribe-unsubscribe", "file-management"]
+      }
+    ],
+    "persistence": "context selection persists across navigation within super-admin section — navigating from /admin/super/users to /admin/super/customers retains country+customer selection",
+    "deep_link": "context encoded as query parameters for bookmarkable URLs: ?countryId=X&customerId=Y&profileId=Z"
+  },
+
+  "layout_model": {
+    "normal_admin_layout": {
+      "id": "AdminLayout",
+      "shell_elements": [
+        "top navigation bar",
+        "global profile dropdown (profile selector — sets active profile for entire session)",
+        "left sidebar or top nav for admin sections"
+      ],
+      "per_page_context": "none — page reads context from app state (current customer + active profile)",
+      "applies_to": ["section: root", "section: admin"]
+    },
+    "super_admin_layout": {
+      "id": "SuperAdminLayout",
+      "shell_elements": [
+        "top navigation bar",
+        "global profile dropdown (for super-admin's own GreenAi profile — separate from work context)",
+        "super-admin context selector bar (country + customer + profile dropdowns)",
+        "left sidebar or top nav for super-admin sections"
+      ],
+      "per_page_context": "explicit — pages receive context from SuperAdminContextState",
+      "applies_to": ["section: admin/super"],
+      "blazor_component": "SuperAdminLayout.razor (separate layout from AdminLayout.razor)"
+    }
+  },
+
+  "blazor_design": {
+    "state_service": {
+      "name": "SuperAdminContextState",
+      "properties": [
+        "SelectedCountryId: int?",
+        "SelectedCustomerId: int?",
+        "SelectedProfileId: int?"
+      ],
+      "lifetime": "Scoped (per Blazor Server circuit)",
+      "events": ["OnContextChanged — fired when any selector changes, pages subscribe to reload data"]
+    },
+    "context_selector_component": {
+      "name": "SuperAdminContextSelector",
+      "placement": "inside SuperAdminLayout, above page content",
+      "inputs": ["required: bool[] (which levels to show)"],
+      "outputs": ["OnContextChanged event"],
+      "behavior": "cascading dropdowns — each level loads options based on parent selection"
+    },
+    "route_strategy": {
+      "option_a": {
+        "name": "query-parameter encoding",
+        "example": "/admin/super/users?countryId=1&customerId=42&profileId=7",
+        "pros": "clean page URLs, context easily shareable, deep-linking works",
+        "cons": "context must be extracted from URL on every page load"
+      },
+      "option_b": {
+        "name": "route segment encoding",
+        "example": "/admin/super/1/42/7/users",
+        "pros": "context always visible in URL, strict deep-link",
+        "cons": "longer URLs, segments add to route complexity"
+      },
+      "recommendation": "option_a (query parameters) — consistent with how most admin tools handle cross-cutting context"
+    },
+    "page_pattern": {
+      "description": "Each super-admin page injects SuperAdminContextState, subscribes to OnContextChanged, and loads data based on current context. Pages must handle 'no context selected' gracefully.",
+      "skeleton": [
+        "@inject SuperAdminContextState Context",
+        "@implements IDisposable",
+        "OnInitialized: Context.OnContextChanged += Reload",
+        "Reload(): fetch data using Context.SelectedCustomerId etc.",
+        "Dispose(): Context.OnContextChanged -= Reload"
+      ]
+    }
+  },
+
+  "normal_admin_vs_super_admin_comparison": {
+    "description": "Same functional capability (e.g. 'manage users') exists in both admin and super-admin but with different context handling",
+    "example_capability": "users",
+    "admin_version": {
+      "path": "/admin/customer/users",
+      "context": "always the logged-in user's own customer + active profile",
+      "context_selector": "none — from app state",
+      "data_scope": "users belonging to my customer only"
+    },
+    "super_admin_version": {
+      "path": "/admin/super/users?customerId=X",
+      "context": "selected customer from super-admin context selector",
+      "context_selector": "country + customer dropdowns visible on page",
+      "data_scope": "users belonging to selected customer"
+    },
+    "blazor_implication": "These are likely the SAME Blazor component parameterized differently — not two separate components. The component receives customerId as a parameter; the source (app state vs context selector) is the layout's concern."
+  },
+
+  "unknowns": [
+    "Which specific super-admin pages require only country+customer (no profile) vs country+customer+profile — not determinable from route analysis alone",
+    "Whether the context selector persists across browser refresh or resets on reload — session vs localStorage",
+    "Whether super-admin can impersonate a user/profile context or only observe data for that context",
+    "Whether 'country' is a true first-class entity or just a filter convenience (e.g. are there country-level settings?)",
+    "Whether the global profile dropdown (super-admin's own GreenAi profile) and the super-admin context selector are ever in conflict — e.g. can a super-admin select GreenAi as the work context?"
+  ]
+}

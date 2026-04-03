@@ -1,0 +1,218 @@
+{
+  "capability": "message-wizard",
+  "type": "flow",
+  "generated": "2026-04-02",
+  "source": "docs/NAVIGATION_MODEL.json + direct Angular source analysis (message-wizard-base.component.ts, message-wizard.component.ts, wizard.shared.service.ts)",
+
+  "context": {
+    "mode": "profile-implicit",
+    "requires_selector": false,
+    "note": "Wizard operates within the authenticated user's current profile context. No selector shown. Profile roles determine which recipient-selection options are visible."
+  },
+
+  "flow": {
+    "state": {
+      "type": "flow-state",
+      "persistence": "memory",
+      "note": "WizardSharedService holds all wizard state in Angular. NOT persisted to server during flow — only submitted at confirm. Exception: ?smsGroupId= seeds state from server (edit/resend). State lost on browser refresh.",
+      "blazor_implication": "Implement as scoped Blazor service (MessageWizardState). On refresh without smsGroupId: redirect to /broadcasting."
+    },
+
+    "navigation": {
+      "mode": "controlled",
+      "allow_direct_url": false,
+      "deep_link_exception": "?smsGroupId=X — seeds state from server, then allows direct step URL"
+    },
+
+    "variants": [
+      { "name": "message-wizard",           "entry_route": "/message-wizard/{step}",           "note": "Standard immediate broadcast." },
+      { "name": "message-wizard-scheduled", "entry_route": "/message-wizard-scheduled/{step}", "note": "Scheduled broadcast. write-message replaced by write-scheduled-message." },
+      { "name": "message-wizard-stencil",   "entry_route": "/message-wizard-stencil/{step}",   "note": "Create reusable stencil. isCreatingStencil=true changes confirm submit behavior." }
+    ],
+
+    "state_flags": {
+      "canSelectStdReceivers": "profile.CanSelectStdReceivers AND thereAreSelectableStdReceiverGroups",
+      "skipWriteMessageStep":  "profile.hasStdReceiversExtended=true OR sendMethod=BySmsLogs",
+      "hideAddressesStep":     "sendMethod=BySmsLogs OR sendMethod=ByStdReceivers (address selection node not rendered)"
+    },
+
+    "nodes": [
+      {
+        "id": "recipient-selection",
+        "type": "selection-step",
+        "is_entry": true,
+        "note": "User selects HOW to define recipients. Options are role-filtered.",
+        "options": [
+          { "name": "by-address",        "role": "CanSendByAddressSelection" },
+          { "name": "by-map",            "role": "CanSendByMap" },
+          { "name": "by-excel",          "role": "CanUploadStreetList" },
+          { "name": "by-level",          "role": null },
+          { "name": "by-municipality",   "role": null },
+          { "name": "std-receivers",     "role": "CanSelectStdReceivers OR CanSendByOnlyStdReceivers" },
+          { "name": "std-receivers-ext", "role": "StdReceiverExtended" }
+        ]
+      },
+      {
+        "id": "std-receivers-intermediate",
+        "type": "input-step",
+        "entry_condition": "canSelectStdReceivers=true AND selected option is NOT std-receivers/std-receivers-ext",
+        "note": "Allows adding std-receiver groups on top of address-based selection."
+      },
+      {
+        "id": "write-message",
+        "type": "input-step",
+        "skip_condition": "skipWriteMessageStep=true",
+        "note": "Compose message: text, subject, channels (SMS/email/eBoks/voice), templates, merge fields.",
+        "variant_override": {
+          "message-wizard-scheduled": "replaced by write-scheduled-message node (adds scheduling: date/time, recurrence)"
+        }
+      },
+      {
+        "id": "confirm",
+        "type": "review-step",
+        "note": "Read-only summary: recipients + message. Map preview if by-map. Actions: submit, save-draft, back.",
+        "actions": ["submit", "save-draft", "back"],
+        "variant_differences": {
+          "message-wizard":           "immediate send",
+          "message-wizard-scheduled": "has scheduling-setup sub-form; submit schedules",
+          "message-wizard-stencil":   "submit saves as stencil (isCreatingStencil=true)"
+        }
+      },
+      {
+        "id": "complete",
+        "type": "terminal-step",
+        "entry_condition": "previous URL contained /confirm (canMatch guard)",
+        "note": "Confirms outcome. Back navigation blocked — cannot re-enter wizard.",
+        "actions": ["go-to-broadcasting", "create-new"]
+      }
+    ],
+
+    "edges": [
+      {
+        "from": "recipient-selection",
+        "to":   "std-receivers-intermediate",
+        "direction": "forward",
+        "condition": "canSelectStdReceivers=true AND selected option NOT IN [std-receivers, std-receivers-ext]"
+      },
+      {
+        "from": "recipient-selection",
+        "to":   "write-message",
+        "direction": "forward",
+        "condition": "canSelectStdReceivers=false OR selected option IN [std-receivers, std-receivers-ext]"
+      },
+      {
+        "from": "std-receivers-intermediate",
+        "to":   "confirm",
+        "direction": "forward",
+        "condition": "skipWriteMessageStep=true"
+      },
+      {
+        "from": "std-receivers-intermediate",
+        "to":   "write-message",
+        "direction": "forward",
+        "condition": "skipWriteMessageStep=false"
+      },
+      {
+        "from": "write-message",
+        "to":   "confirm",
+        "direction": "forward",
+        "condition": "always"
+      },
+      {
+        "from": "confirm",
+        "to":   "complete",
+        "direction": "forward",
+        "condition": "submit succeeded"
+      },
+      {
+        "from": "std-receivers-intermediate",
+        "to":   "recipient-selection",
+        "direction": "back",
+        "condition": "always"
+      },
+      {
+        "from": "write-message",
+        "to":   "std-receivers-intermediate",
+        "direction": "back",
+        "condition": "canSelectStdReceivers=true"
+      },
+      {
+        "from": "write-message",
+        "to":   "recipient-selection",
+        "direction": "back",
+        "condition": "canSelectStdReceivers=false"
+      },
+      {
+        "from": "confirm",
+        "to":   "write-message",
+        "direction": "back",
+        "condition": "skipWriteMessageStep=false"
+      },
+      {
+        "from": "confirm",
+        "to":   "std-receivers-intermediate",
+        "direction": "back",
+        "condition": "skipWriteMessageStep=true AND canSelectStdReceivers=true"
+      },
+      {
+        "from": "confirm",
+        "to":   "recipient-selection",
+        "direction": "back",
+        "condition": "skipWriteMessageStep=true AND canSelectStdReceivers=false"
+      }
+    ]
+  },
+
+  "light_model": {
+    "note": "Standard message-wizard variant only. std-receivers-intermediate and write-message skip-paths deferred.",
+    "flow": {
+      "state": { "type": "flow-state", "persistence": "memory" },
+      "navigation": { "mode": "controlled", "allow_direct_url": false },
+      "nodes": [
+        { "id": "recipient-selection",  "type": "selection-step", "is_entry": true,
+          "options": ["by-address", "by-excel", "by-map", "by-level", "by-municipality", "std-receivers"],
+          "deferred_options": ["std-receivers-ext"] },
+        { "id": "write-message",        "type": "input-step",    "note": "SMS only in MVP. Email/eBoks/voice deferred." },
+        { "id": "confirm",              "type": "review-step",   "actions": ["submit", "back"] },
+        { "id": "complete",             "type": "terminal-step" }
+      ],
+      "edges": [
+        { "from": "recipient-selection", "to": "write-message", "direction": "forward", "condition": "always" },
+        { "from": "write-message",       "to": "confirm",       "direction": "forward", "condition": "always" },
+        { "from": "confirm",             "to": "complete",      "direction": "forward", "condition": "submit succeeded" },
+        { "from": "write-message",       "to": "recipient-selection", "direction": "back", "condition": "always" },
+        { "from": "confirm",             "to": "write-message",       "direction": "back", "condition": "always" }
+      ],
+      "deferred_variants": ["message-wizard-scheduled", "message-wizard-stencil"],
+      "deferred_nodes": ["std-receivers-intermediate"]
+    }
+  },
+
+  "blazor_routing_sketch": {
+    "routes": [
+      "/message-wizard/{step}",
+      "/message-wizard/by-address",
+      "/message-wizard/by-map",
+      "/message-wizard/by-excel",
+      "/message-wizard/by-level",
+      "/message-wizard/by-municipality",
+      "/message-wizard/std-receivers",
+      "/message-wizard/std-receivers-ext",
+      "/message-wizard/write-message",
+      "/message-wizard/confirm",
+      "/message-wizard/complete",
+      "/message-wizard-scheduled/{step}",
+      "/message-wizard-stencil/{step}"
+    ],
+    "guard_behavior": "Any step URL without valid wizard state: NavigationManager.NavigateTo('/broadcasting'). Exception: ?smsGroupId=X loads from server, then allows."
+  },
+
+  "unknowns": [
+    "save-draft: auto-saved on each step, or only explicitly at confirm?",
+    "by-address step: is address tree selection a sub-flow within the step, or single-page component?",
+    "LimitedUser variant: /create-message uses message-wizard-limited — separate flow or restricted version of same wizard?",
+    "write-message skip via BySmsLogs: does wizard go recipient-selection directly to confirm (no std-receivers step either)?",
+    "stencil edit: when editing existing stencil (?smsGroupId=X, isCreatingStencil=true), does wizard start at recipient-selection or confirm?",
+    "browser back button: fully blocked inside wizard, or only canDeactivate on complete step?"
+  ]
+}
