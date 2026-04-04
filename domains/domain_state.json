@@ -1,7 +1,23 @@
 {
   "_global": {
     "active_domain": "system_configuration",
-    "iteration_counter": 1558
+    "iteration_counter": 1558,
+    "reference_artifacts": ["product_scope"],
+    "note": "product_scope is a LOCKED reference artifact — engine must not enrich it against source code"
+  },
+  "product_scope": {
+    "completeness_score": 1.0,
+    "consistency_score": 1.0,
+    "saturation_score": 1.0,
+    "new_information_score": 0.0,
+    "evidence_balance_score": 1.0,
+    "type": "reference_artifact",
+    "status": "locked",
+    "iteration": 1,
+    "gaps": [],
+    "last_change_at": "2026-04-04T00:00:00+00:00",
+    "source_document": "docs/PRODUCT_CAPABILITY_MAP.json",
+    "note": "Read-only reference. Describes sms-service product capabilities conceptually for green-ai. 15 product areas, 6-step core loop, 8 anti-patterns, 5-phase build plan."
   },
   "activity_log": {
     "completeness_score": 0.92,

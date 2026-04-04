@@ -1,0 +1,491 @@
+{
+  "_meta": {
+    "title": "Portal Foundation Extraction — sms-service → domain-agnostic SaaS platform",
+    "created": "2026-04-04",
+    "method": "Cross-Domain Foundation Extractor (5-step protocol)",
+    "source_domains_analyzed": 37,
+    "source_scores": "identity_access(0.98), system_configuration(0.94), localization(0.92), job_management(0.93), email(0.91), profile_management(0.91), activity_log(0.92), customer_management(0.88), logging(0.88), customer_administration(0.88), web_messages(0.88), eboks_integration(0.88), delivery(0.84), sms_group(0.84), standard_receivers(0.84), ...",
+    "companion": "docs/PRODUCT_CAPABILITY_MAP.json",
+    "rule": "This artifact describes what is REUSABLE and DOMAIN-AGNOSTIC from sms-service. It does NOT describe what to build in green-ai. It informs the platform layer design.",
+    "step_summary": "5 steps: (1) classify 37 domains, (2) extract 24 generic capabilities, (3) group into 9 foundation modules, (4) define minimal portal (Golden Core), (5) reusability score per domain"
+  },
+
+  "step_1_classification": {
+    "description": "Each domain classified as GENERIC, DOMAIN_SPECIFIC, or HYBRID based on evidence of reusability across SaaS systems.",
+    "classification_rules": {
+      "GENERIC": "Appears in most multi-tenant SaaS portals regardless of vertical. Could be copy-pasted to a CRM, an HRIS, or an e-commerce platform with no concept changes.",
+      "HYBRID": "Core concept is generic (contact management, templates, consent) but sms-service adds domain-specific content, carriers, or country-specific logic. The concept is reusable; the implementation is not.",
+      "DOMAIN_SPECIFIC": "Unique to utility company notification systems, Nordic address registries, or specific carrier integrations. Not reusable as-is."
+    },
+    "classification": [
+      { "name": "identity_access", "type": "GENERIC", "reason": "Authentication, JWT sessions, role-based permissions, lockout, password reset appear in every multi-tenant SaaS. The specific roles (SuperAdmin, ManageUsers) are named for sms-service but the pattern (global user roles + per-workspace capability flags) is a widely recognized access model." },
+      { "name": "system_configuration", "type": "GENERIC", "reason": "Typed key-value application settings with cache and per-startup defaults exist in virtually every SaaS backend. The specific AppSetting enum values are sms-service-specific but the IApplicationSettingService pattern is universal." },
+      { "name": "localization", "type": "GENERIC", "reason": "Multi-language label storage and resolution (ILocalizationService.GetString(key, languageId)) is a standard SaaS concern. The label content is domain-specific; the infrastructure is not." },
+      { "name": "logging", "type": "GENERIC", "reason": "Structured logging with user context stamps, error alerting, outbound HTTP logging, and request/response capture are universal infrastructure. The specific BlobErrorLogger and FinalEmailLogger triggers are sms-service-specific variants of a generic alert pattern." },
+      { "name": "activity_log", "type": "GENERIC", "reason": "Audit trail using translation keys stored at write-time and resolved at read-time is a reusable compliance pattern. The ActivityLogType enum values are domain-specific but the pattern (header + parameterized entry lines + i18n resolution) is generic." },
+      { "name": "customer_management", "type": "GENERIC", "reason": "Organizational tenant entity is the outer partition key in every multi-tenant SaaS. CustomerUserMappings (explicit user-to-tenant membership) and per-tenant config tables are standard SaaS patterns." },
+      { "name": "profile_management", "type": "HYBRID", "reason": "The concept of a sub-tenant workspace with per-workspace capability flags is generic (comparable to 'Team' or 'Workspace' in Slack/Notion). The specific 63 ProfileRoleNames values are entirely sms-service specific. The DoesProfileHaveRole() gate pattern is reusable." },
+      { "name": "email", "type": "GENERIC", "reason": "Transactional system email (password reset, critical alerts, invoice notifications) via an ESP (SendGrid) is universal. The broadcast email path and SmsLog linkage is domain-specific." },
+      { "name": "job_management", "type": "GENERIC", "reason": "Background job scheduling (Quartz.NET cron), IHostedService workers, and a batch execution engine are universal infrastructure. The specific ServiceAlertBatchAction enum values (54+) are domain-specific. The JobCurrentUser pattern (ICurrentUser for non-HTTP context) is a generic architectural solve." },
+      { "name": "customer_administration", "type": "GENERIC", "reason": "Multi-tier admin operations (SuperAdmin, TenantAdmin, WorkspaceAdmin) are standard SaaS concerns. The CloneProspectProductsToCustomer onboarding pattern is also common (template gallery → new customer). The specific role names are sms-service-specific." },
+      { "name": "monitoring", "type": "GENERIC", "reason": "Health endpoints, dependency watchdogs, and Azure Monitor/AppInsights integration exist in every production SaaS. Current scan score (0.20) means details are unconfirmed, but the concept is clearly generic." },
+      { "name": "standard_receivers", "type": "HYBRID", "reason": "The concept of named contact lists scoped to a workspace is generic (comparable to 'distribution list' or 'audience segment'). SCIM sync is generic. The specific expansion-to-phone-number logic and the SMS delivery coupling are domain-specific." },
+      { "name": "templates", "type": "HYBRID", "reason": "Parameterized message templates with merge fields are generic (email marketing, notification systems, CRMs all use this). The E-boks formal structure and SMS character-limit constraints are domain-specific." },
+      { "name": "positive_list", "type": "HYBRID", "reason": "Opt-in consent management (only send to those who consented) is a generic GDPR-adjacent pattern. The specific KRR filter (Norwegian national opt-out register) and KVHX-based positive list are domain-specific implementations of that generic concept." },
+      { "name": "data_import", "type": "HYBRID", "reason": "Bulk CSV/Azure Blob import pipeline (upload file → validate rows → apply mappings → save ImportConfiguration) is a reusable pattern. The specific address import and person data import content is domain-specific." },
+      { "name": "webhook", "type": "HYBRID", "reason": "Outbound webhook delivery with registration, retry, and status tracking is a standard SaaS developer-surface pattern. The specific trigger events (carrier callbacks) are domain-specific." },
+      { "name": "integrations", "type": "HYBRID", "reason": "Public API with API-key auth scoped to a workspace (ProfileApiKey) is a reusable pattern. The specific API endpoints are domain-specific. The carrier status callback receiver is domain-specific." },
+      { "name": "statistics", "type": "HYBRID", "reason": "Usage and outcome aggregation metrics (counts per time period per workspace) is a generic SaaS analytics need. The specific metrics (SMS delivery rates, address lookup hit rates) are domain-specific." },
+      { "name": "subscription", "type": "HYBRID", "reason": "Anonymous-token-based opt-in subscription (citizen self-service) is somewhat generic — comparable to newsletter subscription or alert preference management. The supply-number and address specifics are domain-specific." },
+      { "name": "web_messages", "type": "HYBRID", "reason": "Iframe embed widget for citizen portal showing recent notifications is partially reusable as a 'notification inbox widget' pattern. The anonymous token auth and AbsenceValidation are domain-specific." },
+      { "name": "client_events", "type": "GENERIC", "reason": "Server-Sent Events (SSE) for real-time browser push of background job status updates is a generic infrastructure pattern, not specific to SMS." },
+      { "name": "user_nudging", "type": "GENERIC", "reason": "In-portal onboarding tips and nudges is a standard SaaS UX concern, not SMS-specific." },
+      { "name": "gdpr_compliance", "type": "HYBRID", "reason": "GDPR erasure rights, data retention enforcement, and data processor agreement tracking are legally required in any European SaaS. The specific Robinson lists and KRR are Norway-specific. The retention enforcement via MonthToDeleteMessages is a generic pattern (just named for SMS)." },
+      { "name": "sms_group", "type": "DOMAIN_SPECIFIC", "reason": "Broadcasting to address-resolved recipients via SMS is the core sms-service product capability. The concept contains address scoping, SmsLog lifecycle, and carrier routing — entirely domain-specific. The generic reusable concept is 'broadcast/campaign'; the implementation is not." },
+      { "name": "delivery", "type": "DOMAIN_SPECIFIC", "reason": "Multi-carrier delivery routing (GatewayAPI, Infobip, SendGrid, e-Boks) is specific to the notification delivery problem. The ICarrierClient abstraction pattern is reusable but only in the context of a notification system." },
+      { "name": "address_management", "type": "DOMAIN_SPECIFIC", "reason": "Maintaining a local copy of Nordic address registers (KVHX/BBR/Matrikkelen), nightly import pipelines, and address hierarchy lookups are entirely specific to Nordic utility company notification use cases." },
+      { "name": "lookup", "type": "DOMAIN_SPECIFIC", "reason": "CPR (DK), CVR (DK), NFS (NO), KRR (NO) resident/owner resolution are country-specific statutory registries unique to Nordic address-based notification." },
+      { "name": "voice", "type": "DOMAIN_SPECIFIC", "reason": "Voice message delivery via Infobip TTS/scenarios is a notification delivery channel specific to emergency and utility alerts." },
+      { "name": "eboks_integration", "type": "DOMAIN_SPECIFIC", "reason": "Danish digital post (e-Boks) is a country-specific government-mandated digital mailbox. No analog outside Denmark." },
+      { "name": "conversation", "type": "DOMAIN_SPECIFIC", "reason": "Two-way SMS conversation management is specific to the SMS notification channel. The general concept of threaded messaging exists elsewhere but the carrier integration and profile phone number management make this domain-specific." },
+      { "name": "phone_numbers", "type": "DOMAIN_SPECIFIC", "reason": "Inbound SMS phone number management per workspace is specific to two-way SMS carriers." },
+      { "name": "enrollment", "type": "DOMAIN_SPECIFIC", "reason": "Citizen self-enrollment in address-based utility notification services is specific to the product." },
+      { "name": "people", "type": "DOMAIN_SPECIFIC", "reason": "Norwegian person data import for resident lookups is fully country-specific." },
+      { "name": "finance", "type": "DOMAIN_SPECIFIC", "reason": "e-conomic invoicing integration is sms-service billing — not a reusable platform concern." },
+      { "name": "pipeline_crm", "type": "DOMAIN_SPECIFIC", "reason": "Internal sales CRM is operationally specific to the sms-service sales team." },
+      { "name": "pipeline_sales", "type": "DOMAIN_SPECIFIC", "reason": "Internal sales pipeline is operationally specific." },
+      { "name": "benchmark", "type": "DOMAIN_SPECIFIC", "reason": "Broadcast performance comparison across municipalities is entirely product-specific." },
+      { "name": "weather_warning", "type": "DOMAIN_SPECIFIC", "reason": "Weather warning alert templates are product-specific feature content." }
+    ],
+    "counts": { "GENERIC": 12, "HYBRID": 11, "DOMAIN_SPECIFIC": 14 }
+  },
+
+  "step_2_capabilities": {
+    "description": "Reusable capabilities extracted from GENERIC domains and the generic parts of HYBRID domains. These appear to exist in most multi-tenant SaaS portals.",
+    "capabilities": [
+      {
+        "name": "authentication",
+        "description": "Email+password login with SHA256→Argon2id migration, account lockout after N failures, session token issuance (JWT access token + DB-backed refresh token), logout (delete refresh tokens). HTTP context resolved via middleware.",
+        "comes_from_domains": ["identity_access"],
+        "key_pattern": "Thin JWT (UserId only at minimum). Session sync via DB User.CurrentTenantId. Silent token refresh on expiry."
+      },
+      {
+        "name": "session_management",
+        "description": "JWT-based access tokens (short TTL) + DB-backed refresh tokens (sliding TTL). Per-request context resolution by middleware. Tenant/workspace selection persisted in DB and propagated via next token refresh.",
+        "comes_from_domains": ["identity_access"],
+        "key_pattern": "User.CurrentTenantId + User.CurrentWorkspaceId stored in DB. Never rely solely on JWT claims for current selection — always verify against DB on selection change."
+      },
+      {
+        "name": "user_management",
+        "description": "CRUD users, invite flow, password reset, user status (active/locked/invited), 2FA configuration storage.",
+        "comes_from_domains": ["identity_access", "customer_administration"],
+        "key_pattern": "User is global (not tenant-scoped). Tenant membership is explicit via TenantUserMappings junction table."
+      },
+      {
+        "name": "multi_tenancy",
+        "description": "Every data entity has a TenantId foreign key (the outer partition key). All SELECT queries must include WHERE TenantId = @currentTenantId. Explicit user-to-tenant membership via TenantUserMappings.",
+        "comes_from_domains": ["customer_management"],
+        "key_pattern": "CustomerUserMappings(TenantId, UserId). Customer membership does NOT auto-grant access to sub-workspaces."
+      },
+      {
+        "name": "workspace_scoping",
+        "description": "Sub-tenant operational context (comparable to Team/Workspace/Project). User must have explicit access grant to each workspace. Per-workspace capability flags control which features are active.",
+        "comes_from_domains": ["profile_management"],
+        "key_pattern": "WorkspaceUserMappings(WorkspaceId, UserId) is explicit — tenant membership does NOT auto-grant workspace access. DoesWorkspaceHaveCapability(workspaceId, flag) is the global feature gate."
+      },
+      {
+        "name": "role_based_access_control",
+        "description": "Two independent role systems: global admin UserRoles (per user, no tenant scope) and per-workspace capability flags (ProfileRoles). Both are flat junction tables — no inheritance, no hierarchy.",
+        "comes_from_domains": ["identity_access", "profile_management"],
+        "key_pattern": "UserRoleMappings(UserId, RoleId) — no TenantId. WorkspaceCapabilityMappings(WorkspaceId, CapabilityId). These are distinct: admin roles control what you can administer; capability flags control what you can do operationally."
+      },
+      {
+        "name": "permission_service",
+        "description": "Single injectable service: CanUserAccessTenant(), CanUserAccessWorkspace(), DoesUserHaveRole(), DoesWorkspaceHaveCapability(). Backed by Dapper + in-memory cache.",
+        "comes_from_domains": ["identity_access", "profile_management"],
+        "key_pattern": "All capability checks route through this service. No direct DB queries for permissions in feature code."
+      },
+      {
+        "name": "federated_authentication",
+        "description": "SAML2 SSO per tenant (CustomerSamlSettings), Azure AD / Entra ID via MSAL, SCIM 2.0 inbound provisioning for user sync from HR systems.",
+        "comes_from_domains": ["identity_access"],
+        "key_pattern": "Per-tenant SAML config. SCIM token is a per-tenant bearer token (not per-user). All SSO paths converge at the same JWT issuance step."
+      },
+      {
+        "name": "app_settings",
+        "description": "Typed key-value application settings stored in DB, loaded at startup, full-cache invalidated on save. Accessed via IApplicationSettingService.Get(SettingKey, default). Feature flags and external credentials both live here.",
+        "comes_from_domains": ["system_configuration"],
+        "key_pattern": "Settings as enum keys (not magic strings). Default values seeded at startup via CreateDefault() — idempotent."
+      },
+      {
+        "name": "localization",
+        "description": "Label storage in LocaleStringResources(ResourceKey, Value, LanguageId). ILocalizationService.GetString(key, languageId) returns label or key-as-fallback. Full dictionary endpoint for client-side label loading.",
+        "comes_from_domains": ["localization"],
+        "key_pattern": "LanguageId from User entity at request time — not in JWT. Unknown key returns key name, never null."
+      },
+      {
+        "name": "structured_logging",
+        "description": "ISystemLogger with context-stamped entries (UserId + TenantId). Multiple output targets: DB rows, Azure AppInsights, email on Fatal. Outbound HTTP logging via DelegatingHandler auto-injected into all HttpClients.",
+        "comes_from_domains": ["logging"],
+        "key_pattern": "Log at abstraction layer — never call AppInsights or Serilog directly in feature code. Request/response logging gated by AppSetting (off / Error / All)."
+      },
+      {
+        "name": "audit_trail",
+        "description": "IActivityLogService.CreateLog(type, objectId) + AddEntry(logId, translationKey, params). Stores key+parameters only — never resolved text. Resolved at read-time via ILocalizationService. Index on (ResourceKey, DateCreated) for compliance queries.",
+        "comes_from_domains": ["activity_log"],
+        "key_pattern": "Activity log type enum is extensible. Audit entries are immutable once written."
+      },
+      {
+        "name": "transactional_email",
+        "description": "System email for password reset, critical alerts, and notifications. Separate from broadcast/marketing email path. Sent via ESP (SendGrid) directly — not through the delivery queue.",
+        "comes_from_domains": ["email"],
+        "key_pattern": "System email must work even when the broadcast delivery pipeline is down. Separate code path, separate sending credentials."
+      },
+      {
+        "name": "background_jobs",
+        "description": "IHostedService workers for queue processing. Azure Batch for large-scale batch execution. Quartz.NET for cron scheduling. JobCurrentUser (implements ICurrentUser for non-HTTP context — same interface, different population path).",
+        "comes_from_domains": ["job_management"],
+        "key_pattern": "JobCurrentUser is critical — every feature that uses ICurrentUser must work in both HTTP and batch contexts without code changes."
+      },
+      {
+        "name": "health_monitoring",
+        "description": "Health endpoint returning version, DB connectivity, critical dependency status. Azure Monitor + Application Insights integration for uptime and performance alerting.",
+        "comes_from_domains": ["monitoring", "logging"],
+        "key_pattern": "Health endpoint must not require authentication. Returns structured JSON for orchestrator health checks."
+      },
+      {
+        "name": "admin_ui_operations",
+        "description": "Tenant creation, user invitation, workspace assignment, capability flag management, onboarding template clone. Multi-tier: SuperAdmin, TenantAdmin, WorkspaceAdmin.",
+        "comes_from_domains": ["customer_administration", "customer_management", "profile_management"],
+        "key_pattern": "Blocked by identity_access foundation — admin writes UserRoleMappings and WorkspaceUserMappings that ICurrentUser reads. Requires the permission service to already be live."
+      },
+      {
+        "name": "file_storage_abstraction",
+        "description": "IBlobStorageService over Azure Blob Storage with typed container names as constants. Upload, download, delete, generate SAS URL. Used for logo storage, error logs, import files, certificates.",
+        "comes_from_domains": ["system_configuration", "data_import"],
+        "key_pattern": "Container names are constants, never magic strings. No Azure SDK calls outside the abstraction layer."
+      },
+      {
+        "name": "real_time_push",
+        "description": "Server-Sent Events (SSE) for pushing background job status updates to the browser. ClientEvents table polled by IHostedService. Lib.AspNetCore.ServerSentEvents NuGet.",
+        "comes_from_domains": ["client_events", "job_management"],
+        "key_pattern": "Used to update browser when long-running jobs complete (import, broadcast send). Simpler than WebSocket for one-way push."
+      },
+      {
+        "name": "contact_lists",
+        "description": "Named, workspace-scoped lists of external contacts (phone number, name). Groups for collective addressing. Expanded at use-time to individual contacts.",
+        "comes_from_domains": ["standard_receivers"],
+        "generic_name": "ContactList / DistributionList / AudienceSegment",
+        "key_pattern": "Lists are per workspace (not per tenant). Expansion to individual contacts happens at send time, not at list creation time."
+      },
+      {
+        "name": "message_templates",
+        "description": "Workspace-scoped parameterized message templates. Merge fields {{key}} substituted from recipient data at send-time. Per-channel variants (text, HTML).",
+        "comes_from_domains": ["templates"],
+        "key_pattern": "Template engine choice is a major architectural decision — Handlebars vs Scriban vs simple {{}} substitution. Decide before implementing."
+      },
+      {
+        "name": "bulk_import",
+        "description": "File upload (CSV/XLSX) → validate rows → configurable column mappings → save ImportConfiguration for reuse → process in background job.",
+        "comes_from_domains": ["data_import"],
+        "key_pattern": "ImportConfiguration stored per workspace allows non-technical users to re-use mappings without IT support."
+      },
+      {
+        "name": "webhook_delivery",
+        "description": "Workspace registers an outbound webhook URL. System delivers events via HTTP POST with retry (exponential backoff) and delivery log.",
+        "comes_from_domains": ["webhook"],
+        "key_pattern": "Event payload must be stable and versioned. Retry log is a compliance artifact."
+      },
+      {
+        "name": "public_api",
+        "description": "Workspace-scoped API keys (hash stored, plaintext returned once). Versioned REST API. Rate limiting per key.",
+        "comes_from_domains": ["integrations"],
+        "key_pattern": "API key is scoped to workspace (not user). Store SHA256(key). Return plaintext only at creation."
+      },
+      {
+        "name": "consent_management",
+        "description": "Opt-in list management: only contact people who have explicitly consented. Filter chain: consent check → duplicate removal → restriction check → audit record of filtered recipients.",
+        "comes_from_domains": ["positive_list"],
+        "key_pattern": "Filter chain is ordered. Each step can short-circuit. Filtered-out records must be preserved with reason (compliance)."
+      },
+      {
+        "name": "data_retention",
+        "description": "Per-tenant configurable retention period. Batch job deletes old records after N months. C# only (no SP) for auditability. MonthToDeleteMessages applied per tenant.",
+        "comes_from_domains": ["system_configuration", "job_management", "gdpr_compliance"],
+        "key_pattern": "Retention enforcement is a background batch job, not a real-time operation."
+      }
+    ],
+    "count": 24
+  },
+
+  "step_3_foundation_modules": {
+    "description": "24 capabilities grouped into 9 foundation modules. Modules are ordered by build dependency.",
+    "foundation_modules": [
+      {
+        "name": "IdentityModule",
+        "contains": ["authentication", "session_management", "user_management", "federated_authentication"],
+        "required_for_any_portal": true,
+        "priority": "HIGH",
+        "build_order": 1,
+        "reason": "Every authenticated user interaction depends on this. Cannot build anything else first.",
+        "interfaces": ["ICurrentUser", "IAuthenticationService", "ITokenService"],
+        "security_hardening": ["Argon2id password hashing", "JWT with short TTL", "Refresh token rotation", "Lockout on repeated failure"]
+      },
+      {
+        "name": "TenancyModule",
+        "contains": ["multi_tenancy", "workspace_scoping"],
+        "required_for_any_portal": true,
+        "priority": "HIGH",
+        "build_order": 2,
+        "reason": "Data partitioning requires tenant context. Without it, WHERE clauses are incorrect and data leaks across tenants.",
+        "interfaces": ["ICurrentUser.TenantId", "ICurrentUser.WorkspaceId"],
+        "note": "The partition key pattern (every table has TenantId FK, workspace is secondary partition) is the most critical DB design decision in the entire system. Must be settled before ANY feature table is created."
+      },
+      {
+        "name": "AuthorizationModule",
+        "contains": ["role_based_access_control", "permission_service"],
+        "required_for_any_portal": true,
+        "priority": "HIGH",
+        "build_order": 3,
+        "reason": "Feature gates require DoesWorkspaceHaveCapability() to be callable. Without it, all features are either always-on or always-off.",
+        "interfaces": ["IPermissionService"],
+        "note": "Two independent systems: global admin roles (UserRoles) + per-workspace capability flags. Both backed by flat junction tables. No inheritance."
+      },
+      {
+        "name": "ConfigurationModule",
+        "contains": ["app_settings", "file_storage_abstraction"],
+        "required_for_any_portal": true,
+        "priority": "HIGH",
+        "build_order": 1,
+        "reason": "External credentials (SMTP, blob, external APIs) must be readable before any service can initialize. File storage needed by most other modules (logos, certificates, import files).",
+        "interfaces": ["IApplicationSettingService", "IBlobStorageService"]
+      },
+      {
+        "name": "LocalizationModule",
+        "contains": ["localization"],
+        "required_for_any_portal": true,
+        "priority": "HIGH",
+        "build_order": 4,
+        "reason": "Appears required for any portal serving multiple countries or languages. ICurrentUser.LanguageId drives the active label set. Activity log resolution also depends on this.",
+        "interfaces": ["ILocalizationService"],
+        "note": "Could be deferred in English-only single-language portals, but almost always needed soon after launch."
+      },
+      {
+        "name": "ObservabilityModule",
+        "contains": ["structured_logging", "audit_trail", "health_monitoring"],
+        "required_for_any_portal": true,
+        "priority": "HIGH",
+        "build_order": 2,
+        "reason": "Logging must be available from the first line of application code. Health monitoring is required for cloud deployment. Audit trail is required for compliance from day 1.",
+        "interfaces": ["ISystemLogger", "IActivityLogService"],
+        "note": "Structured logging and health monitoring are non-negotiable for production SaaS. Audit trail is optional for very simple portals but almost always required once there is customer data."
+      },
+      {
+        "name": "CommunicationModule",
+        "contains": ["transactional_email", "real_time_push"],
+        "required_for_any_portal": false,
+        "priority": "HIGH",
+        "build_order": 5,
+        "reason": "Transactional email is required as soon as there are user accounts (password reset, invite, notification). Real-time push is needed only when there are long-running operations surfaced in the UI.",
+        "interfaces": ["IEmailService", "IClientEventService"],
+        "note": "Transactional email approaches required; real-time push is optional but greatly improves UX for async operations."
+      },
+      {
+        "name": "InfrastructureModule",
+        "contains": ["background_jobs", "data_retention"],
+        "required_for_any_portal": false,
+        "priority": "MEDIUM",
+        "build_order": 5,
+        "reason": "Background jobs become necessary as soon as there are async operations (import, delivery, cleanup). Data retention is a GDPR compliance requirement for any European SaaS handling personal data.",
+        "interfaces": ["IJobService", "IHostedService", "JobCurrentUser"],
+        "note": "JobCurrentUser (ICurrentUser for non-HTTP context) is a critical pattern — without it, features that use ICurrentUser break in batch contexts."
+      },
+      {
+        "name": "AdminModule",
+        "contains": ["admin_ui_operations"],
+        "required_for_any_portal": false,
+        "priority": "MEDIUM",
+        "build_order": 6,
+        "reason": "Tenant creation and user management are always needed but can be bootstrapped via seed scripts initially. A full admin UI is needed once there are > 1 customer. Must come AFTER IdentityModule + TenancyModule + AuthorizationModule are stable.",
+        "note": "Circular dependency risk: admin UI writes UserRoleMappings and WorkspaceUserMappings that ICurrentUser reads. Must be built after the permission service is fully live."
+      },
+      {
+        "name": "DeveloperSurfaceModule",
+        "contains": ["public_api", "webhook_delivery", "bulk_import"],
+        "required_for_any_portal": false,
+        "priority": "MEDIUM",
+        "build_order": 7,
+        "reason": "These capabilities make the portal programmable by customers. Needed in phase 2+ when the core product loop is stable.",
+        "note": "API key must be stored as hash. Return plaintext only once. This is ANTI-04 from the product scope anti-patterns."
+      },
+      {
+        "name": "EngagementModule",
+        "contains": ["contact_lists", "message_templates", "consent_management"],
+        "required_for_any_portal": false,
+        "priority": "MEDIUM",
+        "build_order": 7,
+        "reason": "Required when the portal needs to contact external people (customers, citizens, employees). Not needed for pure internal tooling.",
+        "note": "These are bridge modules between the generic portal foundation and the domain-specific features (SMS, email, address lookup). They appear generic but their content is driven by domain-specific requirements."
+      }
+    ],
+    "build_order_summary": "ConfigurationModule + ObservabilityModule → IdentityModule → TenancyModule → AuthorizationModule → LocalizationModule → CommunicationModule + InfrastructureModule → AdminModule → DeveloperSurfaceModule + EngagementModule"
+  },
+
+  "step_4_minimal_portal": {
+    "description": "The smallest possible system that is still a valid multi-tenant SaaS portal. A developer can log in, see their workspace, and the system is ready for the first feature domain.",
+    "minimal_portal": {
+      "modules_required": [
+        "ConfigurationModule (app settings + health endpoint)",
+        "ObservabilityModule (logging + audit trail stubs)",
+        "IdentityModule (login + JWT + refresh + logout + password reset)",
+        "TenancyModule (tenant entity + workspace entity + membership resolution)",
+        "AuthorizationModule (IPermissionService with DoesHaveRole + DoesHaveCapability)",
+        "LocalizationModule (ILocalizationService + minimum seed data)"
+      ],
+      "must_have_capabilities": [
+        "authentication",
+        "session_management",
+        "user_management (CRUD + invite + status)",
+        "multi_tenancy (tenant entity + user-to-tenant mapping + data partitioning)",
+        "workspace_scoping (workspace entity + user-to-workspace mapping + capability flags)",
+        "role_based_access_control (UserRoles global + workspace capability flags)",
+        "permission_service (CanAccess checks + DoesHaveCapability gate)",
+        "app_settings (DB-backed key-value with cache)",
+        "structured_logging (ISystemLogger + request context stamps)",
+        "localization (ILocalizationService + language resolution)",
+        "transactional_email (password reset, invite emails)",
+        "health_monitoring (GET /health endpoint)"
+      ],
+      "user_flows": [
+        {
+          "flow": "Admin seeds first tenant + workspace + user",
+          "steps": ["Run seed script", "User receives invite email", "User sets password", "Login succeeds"]
+        },
+        {
+          "flow": "User logs in and reaches workspace",
+          "steps": ["POST /auth/login → 200 (accessToken + refreshToken)", "If 1 workspace → auto-select", "If N workspaces → GET /auth/select-workspace → JWT updated", "Authenticated request → ICurrentUser populated in DI"]
+        },
+        {
+          "flow": "Token refresh",
+          "steps": ["Access token expires (15min)", "Client sends refresh token → GET /auth/refresh → new accessToken", "If refresh expired (480min) → redirect to login"]
+        },
+        {
+          "flow": "Password reset",
+          "steps": ["POST /auth/password-reset-request (email)", "System sends email with reset link", "User clicks link → POST /auth/password-reset-confirm (token + new password)", "Next login uses new password"]
+        },
+        {
+          "flow": "Feature gate check",
+          "steps": ["Request arrives → CurrentUserMiddleware resolves ICurrentUser", "Service calls IPermissionService.DoesWorkspaceHaveCapability(workspaceId, flag)", "True → feature executes. False → HTTP 403."]
+        }
+      ],
+      "minimum_db_tables": [
+        "Users (Id, Email, PasswordHash, LanguageId, CurrentTenantId, CurrentWorkspaceId, IsLockedOut, FailedLoginCount)",
+        "UserRefreshTokens (Id, UserId, Token, ExpiresAt)",
+        "Tenants (Id, Name, CountryId, LanguageId)",
+        "TenantUserMappings (TenantId, UserId)",
+        "Workspaces (Id, TenantId, Name, Deleted)",
+        "WorkspaceUserMappings (WorkspaceId, UserId)",
+        "WorkspaceCapabilities (Id, Name)",
+        "WorkspaceCapabilityMappings (WorkspaceId, CapabilityId)",
+        "UserRoles (Id, Name)",
+        "UserRoleMappings (UserId, RoleId)",
+        "ApplicationSettings (Id, Key, Value)",
+        "Languages (Id, Code, Name)",
+        "LocaleStringResources (Id, ResourceKey, Value, LanguageId)",
+        "Logs (Id, Level, Message, UserId, TenantId, DateCreated)"
+      ],
+      "minimum_api_endpoints": [
+        "GET /health",
+        "POST /api/auth/login",
+        "GET /api/auth/refresh",
+        "POST /api/auth/logout",
+        "POST /api/auth/select-tenant",
+        "POST /api/auth/select-workspace",
+        "GET /api/auth/me",
+        "POST /api/auth/password-reset-request",
+        "POST /api/auth/password-reset-confirm",
+        "GET /api/localization/{languageId}"
+      ],
+      "security_requirements": [
+        "profileId=0 (workspaceId=0) → hard HTTP 401 in middleware. No fallback.",
+        "tenantId=0 → hard HTTP 401 in middleware.",
+        "JWT has short TTL (15min). Refresh token sliding (480min).",
+        "Password: Argon2id hashing from day 1 (no SHA256).",
+        "API keys: store SHA256(key), plaintext returned once only.",
+        "Two ICurrentUser implementations are FORBIDDEN. Single middleware only."
+      ],
+      "excluded_from_golden_core": [
+        "SMS, Email broadcast, Voice, E-boks (all delivery channels)",
+        "Address management and owner lookup",
+        "Subscription and enrollment (citizen self-service)",
+        "Reporting and statistics",
+        "2FA, SAML2, Azure AD SSO (advanced auth — phase 2)",
+        "SCIM provisioning",
+        "Public API and webhooks (developer surface — phase 2)",
+        "Background job workers (not needed until first async feature)",
+        "File storage (not needed until first file upload feature)",
+        "Conversation and phone numbers",
+        "Web embed (citizen portal iframe)"
+      ]
+    }
+  },
+
+  "step_5_reusability": {
+    "description": "Reusability score (0.0–1.0) for each domain: how reusable is it across different SaaS verticals (not just notification systems)?",
+    "scoring_method": "Evidence-based inference. Score = (conceptual_portability × 0.5) + (implementation_portability × 0.3) + (interface_stability × 0.2). Not a mathematical formula — a holistic inference.",
+    "reusability": [
+      { "domain": "identity_access", "score": 0.92, "notes": "The access model (User → Tenant → Workspace, global UserRoles, workspace capability flags, thin JWT + DB-sync) appears reusable in any SaaS. SHA256 passwords (-), SAML per tenant (+), LocationAlert SSO is sms-service-specific (-)." },
+      { "domain": "system_configuration", "score": 0.88, "notes": "IApplicationSettingService pattern is universal. AppSetting enum values are domain-specific but the infrastructure is not. File type allowlist concept is reusable." },
+      { "domain": "localization", "score": 0.95, "notes": "ILocalizationService + LocaleStringResources pattern is among the most reusable artifacts in the system. Only the label content is domain-specific." },
+      { "domain": "logging", "score": 0.85, "notes": "ISystemLogger + context stamps + outbound HTTP logging are reusable. BlobErrorLogger target (3 specific trigger types) is somewhat sms-service specific, but the pattern is not." },
+      { "domain": "activity_log", "score": 0.88, "notes": "Translation-key audit trail pattern is highly reusable. ActivityLogType enum values are domain-specific but the header+entries+i18n design is general." },
+      { "domain": "customer_management", "score": 0.82, "notes": "Tenant entity is universal. CustomerSamlSettings and ScimTokenUUID are SSO-specific but the general tenant config table pattern is reusable. FtpSettings are domain-specific." },
+      { "domain": "profile_management", "score": 0.65, "notes": "Sub-tenant workspace concept is reusable. 63 ProfileRoleNames values are entirely domain-specific. DoesProfileHaveRole() gate pattern is reusable. The name 'Profile' is confusing — should be 'Workspace' or 'Team' in a generic system." },
+      { "domain": "email", "score": 0.80, "notes": "System/transactional email is universal. The coupling to SmsLog for broadcast email is domain-specific. ESP abstraction (not using SendGrid SDK directly) would increase reusability." },
+      { "domain": "job_management", "score": 0.72, "notes": "JobCurrentUser pattern is highly reusable. IHostedService background workers are universal. ServiceAlertBatchAction enum (54 actions) is domain-specific. Azure Batch integration is reusable." },
+      { "domain": "customer_administration", "score": 0.70, "notes": "Multi-tier admin pattern (SuperAdmin, TenantAdmin, WorkspaceAdmin) is reusable. CloneProspectProductsToCustomer onboarding pattern is reusable. Specific role names and CustomerAccountInvoicing are domain-specific." },
+      { "domain": "monitoring", "score": 0.90, "notes": "Health endpoint + dependency checks + Azure Monitor is universally applicable. Current score (0.20) means we have little evidence, but what exists is clearly generic." },
+      { "domain": "standard_receivers", "score": 0.50, "notes": "Contact list concept is reusable (distribution lists, audience segments). Expansion-to-phone-number logic and SMS coupling are domain-specific. SCIM sync is reusable." },
+      { "domain": "templates", "score": 0.60, "notes": "Parameterized message template concept is reusable. E-boks structure and SMS character limit constraints are domain-specific. Merge field pattern is universal." },
+      { "domain": "positive_list", "score": 0.45, "notes": "Opt-in list concept is reusable. KRR filter and KVHX-based list storage are Norway/Denmark specific. The filter chain pipeline pattern is reusable." },
+      { "domain": "data_import", "score": 0.62, "notes": "CSV import pipeline with saved column mappings is reusable. Specific address and people import content is domain-specific." },
+      { "domain": "webhook", "score": 0.75, "notes": "Webhook registration, delivery, retry, and log pattern is a standard SaaS developer surface. Specific trigger events are domain-specific." },
+      { "domain": "integrations", "score": 0.55, "notes": "Public API with workspace-scoped API keys is reusable. Carrier status callback receivers are domain-specific. The hash-not-store pattern for API keys is universally applicable." },
+      { "domain": "statistics", "score": 0.40, "notes": "Generic analytics aggregation pattern (counts per period per workspace) is reusable. Specific metrics (SMS delivery rates, address lookup stats) are domain-specific." },
+      { "domain": "client_events", "score": 0.80, "notes": "SSE for real-time job status updates is a reusable infrastructure pattern. ClientEvents polling table approach is one specific implementation of a generic real-time push concern." },
+      { "domain": "user_nudging", "score": 0.78, "notes": "Onboarding tip/nudge system for user engagement is generic SaaS UX. Current implementation (NudgeType enum) is domain-specific in content." },
+      { "domain": "gdpr_compliance", "score": 0.58, "notes": "Data retention enforcement (MonthToDeleteMessages → batch cleanup) is reusable. Robinson list and KRR specifics are Nordic-specific. GDPR erasure right pattern is European SaaS universal." },
+      { "domain": "subscription", "score": 0.30, "notes": "Anonymous token subscription concept is partially reusable (newsletter subscribe, alert preferences). Address and supply-number coupling is domain-specific." },
+      { "domain": "web_messages", "score": 0.28, "notes": "Embed widget concept is somewhat reusable but the iframe + anonymous token + AbsenceValidation coupling is almost entirely domain-specific." },
+      { "domain": "sms_group", "score": 0.10, "notes": "The broadcast/campaign concept is reusable (name it Broadcast) but the address-scoping, SmsLog lifecycle, and carrier routing make the implementation entirely domain-specific." },
+      { "domain": "delivery", "score": 0.15, "notes": "ICarrierClient abstraction pattern is reusable. Every carrier and every channel is specific to notification delivery." },
+      { "domain": "address_management", "score": 0.05, "notes": "Nordic address register import is almost entirely domain-specific. The idea of maintaining a local address cache is reusable but the implementation (KVHX, BBR, Matrikkelen) is not." },
+      { "domain": "lookup", "score": 0.05, "notes": "CPR/CVR/NFS/KRR are country-specific government APIs. Not reusable outside Nordic utility notification context." },
+      { "domain": "voice", "score": 0.12, "notes": "ICarrierClient pattern is reusable. Infobip SDK calls and VoiceBackgroundService are domain-specific." },
+      { "domain": "eboks_integration", "score": 0.02, "notes": "Danish governmental digital mailbox. No analog outside Denmark." },
+      { "domain": "conversation", "score": 0.18, "notes": "Two-way messaging thread concept is generic. The specific carrier phone number management and SMS coupling are domain-specific." },
+      { "domain": "phone_numbers", "score": 0.12, "notes": "Carrier inbound number management is specific to SMS two-way. Not a generic SaaS concern." },
+      { "domain": "enrollment", "score": 0.12, "notes": "Citizen self-enrollment is specific to public utility notification. Anonymous token pattern has partial reuse." },
+      { "domain": "finance", "score": 0.05, "notes": "e-conomic invoicing integration is specific to sms-service billing operations." },
+      { "domain": "benchmark", "score": 0.08, "notes": "Broadcast performance comparison is domain-specific operational reporting." },
+      { "domain": "pipeline_crm", "score": 0.0, "notes": "Internal sales CRM — not reusable in the product platform layer." },
+      { "domain": "pipeline_sales", "score": 0.0, "notes": "Internal sales pipeline — not reusable." },
+      { "domain": "people", "score": 0.0, "notes": "Norwegian person data import for NFS/KRR lookups — fully domain-specific." },
+      { "domain": "weather_warning", "score": 0.05, "notes": "Weather warning alert feature — domain-specific content in the broadcast system." }
+    ],
+    "distribution": {
+      "highly_reusable_0.75_plus": ["localization(0.95)", "identity_access(0.92)", "monitoring(0.90)", "system_configuration(0.88)", "activity_log(0.88)", "logging(0.85)", "client_events(0.80)", "email(0.80)", "user_nudging(0.78)", "webhook(0.75)"],
+      "partially_reusable_0.40_to_0.74": ["job_management(0.72)", "customer_administration(0.70)", "profile_management(0.65)", "data_import(0.62)", "templates(0.60)", "gdpr_compliance(0.58)", "integrations(0.55)", "standard_receivers(0.50)", "positive_list(0.45)", "statistics(0.40)"],
+      "mostly_domain_specific_0_to_0.39": ["subscription(0.30)", "web_messages(0.28)", "conversation(0.18)", "voice(0.12)", "phone_numbers(0.12)", "enrollment(0.12)", "sms_group(0.10)", "delivery(0.15)", "weather_warning(0.05)", "address_management(0.05)", "lookup(0.05)", "finance(0.05)", "eboks_integration(0.02)", "benchmark(0.08)", "pipeline_crm(0.0)", "pipeline_sales(0.0)", "people(0.0)"]
+    }
+  },
+
+  "synthesis": {
+    "key_insight": "The top 10 reusable domains in sms-service are almost exactly the 9 modules in FOUNDATION_BUILD_PLAN.json — this is independent confirmation that the foundation plan is correctly identifying the platform layer from the product layer.",
+    "platform_layer_boundary": "Domains scoring > 0.75 constitute the platform layer. Domains scoring < 0.40 are sms-service product features. Domains between 0.40 and 0.75 are the bridge (generic concept, domain-specific implementation).",
+    "most_reusable_pattern": "The access model (User → Tenant → Workspace, global roles + workspace capability flags, thin JWT, single ICurrentUser middleware) is the most architecturally valuable extraction from sms-service. It appears in all SaaS access patterns across verticals.",
+    "most_deceptive_domain": "profile_management scores 0.65 because the concept (sub-tenant workspace with capability flags) is generic but the execution (63 ProfileRoleNames enum) is entirely domain-specific. Green-ai must take the concept and re-derive the capability flag list from first principles.",
+    "anti_patterns_prevent_reuse": "ANTI-01 (SmsGroup naming), ANTI-02 (SmsLog storing all channels), ANTI-03 (SP business logic), and ANTI-06 (two ICurrentUser implementations) all directly reduce reusability scores. Fixing them is not optional for building a reusable platform.",
+    "recommendation": "Build the platform layer (modules 1-6) before the first domain feature. The platform layer is confirmed domain-agnostic by this analysis. The first domain feature (broadcast/delivery) will stress-test the platform layer design — if it requires platform changes, those changes should be made to the platform, not worked around in the feature."
+  }
+}

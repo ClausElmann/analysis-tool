@@ -1,0 +1,483 @@
+{
+  "_meta": {
+    "title": "Green-AI Platform — Capability Build Checklist",
+    "purpose": "Track done-criteria for each of the 24 generic capabilities. Use during implementation sprints. A capability is DONE only when ALL criteria in done_when_all_true are satisfied.",
+    "companion": "docs/GENERIC_CAPABILITIES_DEEP_ANALYSIS.json — full detail per capability",
+    "legend": {
+      "status": "not_started | in_progress | blocked | done",
+      "done_when_all_true": "Checkable criteria. Tick each off in order."
+    }
+  },
+
+  "milestones": {
+    "M0": "Golden Core — minimal portal, user can log in and access workspace",
+    "M1": "Operational Platform — admin can manage tenants/users/workspaces",
+    "M2": "Developer Surface — API keys, webhooks, bulk import",
+    "M3": "Engagement Layer — contacts, templates, consent",
+    "M4": "Advanced Auth — SAML2, SCIM, Azure AD SSO"
+  },
+
+  "capabilities": [
+
+    {
+      "cap_id": "CAP-09",
+      "name": "app_settings",
+      "milestone": "M0",
+      "build_order": 1,
+      "status": "not_started",
+      "done_when_all_true": [
+        "ApplicationSettings table created and migrations applied",
+        "SettingKey enum created with all 20 platform keys",
+        "IApplicationSettingService implemented (Get, GetBool, GetInt, GetList, SaveAsync, CreateDefaultsAsync)",
+        "CreateDefaultsAsync() called at app startup and is idempotent (run twice = no error)",
+        "Full-load in-memory cache implemented — invalidates on SaveAsync",
+        "Unit tests: Get returns defaultValue when key missing, SaveAsync invalidates cache"
+      ]
+    },
+    {
+      "cap_id": "CAP-11",
+      "name": "structured_logging",
+      "milestone": "M0",
+      "build_order": 1,
+      "status": "not_started",
+      "done_when_all_true": [
+        "Logs, RequestLogs, OutgoingRequestLogs tables created",
+        "ISystemLogger interface defined with 5 log-level methods",
+        "DatabaseLogger implementation: writes to Logs table via Dapper",
+        "OutgoingHttpClientLoggingHandler DelegatingHandler registered for all HttpClient instances",
+        "RequestResponseLoggingMiddleware: off by default, active when RequestLogLevel > 0",
+        "FatalEmailLogger: sends synchronous email on Fatal level",
+        "ApplicationInsightsLogger: conditional on AppSetting.ApplicationInsightsConnectionString",
+        "Unit tests: ISystemLogger.LogError writes to Logs with correct LogLevelId=40",
+        "Sensitive field redaction implemented (password, token fields stripped from request body)"
+      ]
+    },
+    {
+      "cap_id": "CAP-04",
+      "name": "multi_tenancy",
+      "milestone": "M0",
+      "build_order": 1,
+      "status": "not_started",
+      "done_when_all_true": [
+        "Tenants table created with correct columns",
+        "TenantUserMappings junction table created",
+        "ITenantService implemented (GetById, GetTenantsForUser, Create, Update, SoftDelete)",
+        "Soft delete pattern confirmed: Deleted=true + DateDeletedUtc. Never hard delete.",
+        "Unit tests: GetTenantsForUser returns only tenants where mapping exists",
+        "Architecture test: every domain service table in project has TenantId column (automated check via reflection or migration review)"
+      ]
+    },
+    {
+      "cap_id": "CAP-05",
+      "name": "workspace_scoping",
+      "milestone": "M0",
+      "build_order": 1,
+      "status": "not_started",
+      "done_when_all_true": [
+        "Workspaces table created",
+        "WorkspaceUserMappings table created",
+        "WorkspaceCapabilities seed table created (empty at launch)",
+        "WorkspaceCapabilityMappings junction created",
+        "WorkspaceTypes reference table created with at least 1 seed value",
+        "IWorkspaceService implemented (all 7 methods)",
+        "Unit tests: CanUserAccessWorkspace returns false when mapping does not exist",
+        "Unit tests: GetWorkspacesForUser filters by TenantId AND UserId both"
+      ]
+    },
+    {
+      "cap_id": "CAP-06",
+      "name": "role_based_access_control",
+      "milestone": "M0",
+      "build_order": 1,
+      "status": "not_started",
+      "done_when_all_true": [
+        "UserRoles table seeded with 8 platform roles",
+        "UserRoleMappings table created (NO TenantId column — by design)",
+        "TenantRolePolicies table created (renamed from sms-service's confusing CustomerUserRoleMappings)",
+        "Unit tests: UserRoleMappings has no TenantId column — verify this is intentional in test comment",
+        "UserRoleNames static class with 8 string constants (not IDs)"
+      ]
+    },
+    {
+      "cap_id": "CAP-15",
+      "name": "health_monitoring",
+      "milestone": "M0",
+      "build_order": 1,
+      "status": "not_started",
+      "done_when_all_true": [
+        "GET /health endpoint exists and returns 200",
+        "Response schema: {status, version, timestamp, checks[]}",
+        "DB connectivity check included (SELECT 1, latency measured)",
+        "AppSettings cache check included",
+        "Endpoint requires NO authentication",
+        "HTTP 503 returned when DB check fails",
+        "Sensitive config never exposed in health response"
+      ]
+    },
+    {
+      "cap_id": "CAP-01",
+      "name": "authentication",
+      "milestone": "M0",
+      "build_order": 2,
+      "status": "not_started",
+      "done_when_all_true": [
+        "Users table created with all columns including PasswordHash, PasswordSalt, PasswordResetToken, FailedLoginCount, IsLockedOut",
+        "UserRefreshTokens table created",
+        "IAuthenticationService implemented with Argon2id (NOT SHA256)",
+        "ILoginHandler.LoginAsync implemented with lockout check",
+        "JWT generated with 15-min TTL from AppSetting(AccessTokenTtlMinutes)",
+        "RefreshToken generated with 480-min sliding TTL from AppSetting(RefreshTokenTtlMinutes)",
+        "Password reset GUID token flow implemented",
+        "HTTP 403 returned for locked-out user (not 401)",
+        "HTTP 200 returned for password-reset-request even when email not found (prevent enumeration)",
+        "Unit tests: VerifyPassword returns false for wrong password",
+        "Unit tests: Login increments FailedLoginCount on wrong password",
+        "Unit tests: Login returns 403 when IsLockedOut=true",
+        "Integration test: full login → token → refresh → new token flow",
+        "CONFIRMED: password hashing uses Argon2id, NOT SHA256 (explicit assertion in test)"
+      ]
+    },
+    {
+      "cap_id": "CAP-07",
+      "name": "permission_service",
+      "milestone": "M0",
+      "build_order": 2,
+      "status": "not_started",
+      "done_when_all_true": [
+        "IPermissionService implemented with all 6 methods",
+        "Per-request in-memory cache (NOT distributed cache)",
+        "CanUserAccessTenant: looks up TenantUserMappings",
+        "CanUserAccessWorkspace: looks up WorkspaceUserMappings",
+        "DoesUserHaveRole: looks up by UserRoles.Name (not ID)",
+        "DoesWorkspaceHaveCapability: looks up by WorkspaceCapabilities.Name (not ID)",
+        "CapabilityNames static class: string constants for all capability names",
+        "SuperAdmin bypasses CanUserAccess* but NOT DoesWorkspaceHaveCapability",
+        "Unit tests: unauthorized tenant access returns false",
+        "Unit tests: SuperAdmin bypasses tenant check",
+        "Unit tests: SuperAdmin does NOT bypass capability check"
+      ]
+    },
+    {
+      "cap_id": "CAP-02",
+      "name": "session_management",
+      "milestone": "M0",
+      "build_order": 3,
+      "status": "not_started",
+      "done_when_all_true": [
+        "ICurrentUser interface defined (7 properties) — single definition, never duplicated",
+        "HttpCurrentUser implementation registered as Scoped",
+        "CurrentUserMiddleware registered after JWT bearer, before all controllers",
+        "Middleware: TenantId=0 → HTTP 401 (hard stop)",
+        "Middleware: WorkspaceId=0 → HTTP 401 (or 300 for workspace selection)",
+        "POST /api/auth/select-workspace implemented",
+        "POST /api/auth/select-tenant implemented",
+        "GET /api/auth/refresh implemented (sliding TTL extension)",
+        "JobCurrentUser: implements ICurrentUser for batch context",
+        "Unit tests: CurrentUserMiddleware returns 401 when TenantId=0",
+        "Unit tests: Select-workspace updates User.CurrentWorkspaceId in DB",
+        "Architectural rule confirmed: grep for 'class.*ICurrentUser' returns exactly 2 results (Http + Job)"
+      ]
+    },
+    {
+      "cap_id": "CAP-10",
+      "name": "localization",
+      "milestone": "M0",
+      "build_order": 4,
+      "status": "not_started",
+      "done_when_all_true": [
+        "Languages table seeded (Danish=1, Norwegian=5, English=3 minimum)",
+        "LocaleStringResources table created with UNIQUE index on (LanguageId, ResourceName)",
+        "ILocalizationService implemented (GetString, GetAllForLanguage, InsertOrUpdate, EnsureKeyExistsInAllLanguages)",
+        "GetString returns key name on missing (never null, never exception)",
+        "InsertOrUpdate auto-creates 'Missing Translation' rows for all published languages",
+        "GET /api/localization/{languageId} endpoint returns full dictionary",
+        "Full in-memory cache per language. Invalidated on label update.",
+        "Minimum 200 labels seeded (login flow, navigation, form validation, common errors)",
+        "Unit tests: GetString returns key when resource missing",
+        "Unit tests: InsertOrUpdate creates rows for all 3 seeded languages"
+      ]
+    },
+    {
+      "cap_id": "CAP-13",
+      "name": "transactional_email",
+      "milestone": "M0",
+      "build_order": 4,
+      "status": "not_started",
+      "done_when_all_true": [
+        "IEmailService defined with 4 methods",
+        "SmtpEmailService implemented as primary/fallback",
+        "SendGridEmailService implemented (conditional on AppSetting.SendGridApiKey)",
+        "Subject + body fetched from ILocalizationService — no hardcoded English strings in service code",
+        "SendFatalAlertAsync sends SYNCHRONOUSLY (does not use async queue)",
+        "All other sends: async fire-and-forget with 3-retry, logs failure",
+        "Password reset email template keys seeded in LocaleStringResources",
+        "Invite email template keys seeded in LocaleStringResources",
+        "Integration test: password reset end-to-end (mock SMTP/SendGrid)"
+      ]
+    },
+    {
+      "cap_id": "CAP-17",
+      "name": "file_storage_abstraction",
+      "milestone": "M0",
+      "build_order": 4,
+      "status": "not_started",
+      "done_when_all_true": [
+        "FileTypes allowlist table seeded (csv, xlsx, png, pdf minimum)",
+        "IBlobStorageService implemented (Upload, Download, Delete, GetSasUrl, Exists)",
+        "BlobContainers static class with container name constants",
+        "Upload validation: extension checked against FileTypes BEFORE calling IBlobStorageService",
+        "SAS URL TTL: configurable, default 60 minutes",
+        "Unit tests: upload with disallowed extension returns error before calling blob storage",
+        "Integration test (optional): round-trip upload+download against local Azurite emulator"
+      ]
+    },
+    {
+      "cap_id": "CAP-03",
+      "name": "user_management",
+      "milestone": "M1",
+      "build_order": 5,
+      "status": "not_started",
+      "done_when_all_true": [
+        "IUserService implemented (all 9 methods)",
+        "Create user: generates GUID invite token, sends invite email via IEmailService",
+        "Invite token stored as PasswordResetToken with 48h expiry (AppSetting InviteTokenTtlHours)",
+        "SoftDelete sets Deleted=true + DateDeletedUtc",
+        "Email uniqueness enforced on create and update",
+        "GetUsersForTenantAsync: only returns non-deleted users | SuperAdmin sees all tenants",
+        "Unit tests: SoftDelete sets both Deleted=true AND DateDeletedUtc",
+        "Unit tests: Create returns 409 on duplicate email",
+        "Unit tests: GetUsersForTenantAsync excludes deleted users"
+      ]
+    },
+    {
+      "cap_id": "CAP-12",
+      "name": "audit_trail",
+      "milestone": "M1",
+      "build_order": 5,
+      "status": "not_started",
+      "done_when_all_true": [
+        "ActivityLogs, ActivityLogEntries, ActivityLogTypes tables created",
+        "ActivityLogTypes seeded with 9 platform types",
+        "IActivityLogService implemented (Create, CreateBatch, GetLogs)",
+        "ActivityLogEntries store ResourceKey only — never resolved text (test comment explains why)",
+        "GetLogsAsync resolves ResourceKey via ILocalizationService.GetString at read time",
+        "ResourceKey naming convention followed: 'activityLog.{entity}.{action}'",
+        "ActivityLogEntries immutable: no UPDATE/DELETE in service code",
+        "Unit tests: CreateLogAsync inserts exactly 1 ActivityLog + 1 ActivityLogEntry row",
+        "Unit tests: GetLogsAsync resolves ResourceKey via localization"
+      ]
+    },
+    {
+      "cap_id": "CAP-14",
+      "name": "background_jobs",
+      "milestone": "M1",
+      "build_order": 5,
+      "status": "not_started",
+      "done_when_all_true": [
+        "Jobs, JobTasks, JobTaskStatuses, ClientEvents tables created",
+        "Jobs table seeded with at least 1 platform job (e.g. DataRetentionCleanup)",
+        "JobCurrentUser implemented (ICurrentUser for batch context)",
+        "Minimum 1 IHostedService with correct loop + cancellationToken handling",
+        "Every job execution creates JobTask + JobTaskStatus row",
+        "IHostedService: unhandled exceptions caught + logged, service continues next iteration",
+        "Unit tests: JobCurrentUser returns expected UserId/TenantId from job metadata",
+        "Unit tests: IHostedService catches exception and does not crash worker loop"
+      ]
+    },
+    {
+      "cap_id": "CAP-16",
+      "name": "admin_ui_operations",
+      "milestone": "M1",
+      "build_order": 6,
+      "status": "not_started",
+      "done_when_all_true": [
+        "SuperAdmin: Create/Delete tenant endpoint implemented",
+        "SuperAdmin: Impersonate user endpoint implemented (logs ImpersonatingUserId to ActivityLog)",
+        "TenantAdmin: Invite user to tenant endpoint implemented",
+        "TenantAdmin: Create/delete workspace endpoint implemented",
+        "TenantAdmin: Add/remove workspace capability endpoint implemented",
+        "WorkspaceAdmin: Add/remove user from workspace endpoint implemented",
+        "CloneWorkspaceTemplate operation implemented",
+        "All admin mutations create ActivityLog entries",
+        "TenantAdmin restrictions enforced: cannot manage other tenant's workspaces",
+        "SuperAdmin impersonation test: ActivityLog contains ImpersonatingUserId"
+      ]
+    },
+    {
+      "cap_id": "CAP-25",
+      "name": "data_retention",
+      "milestone": "M1",
+      "build_order": 6,
+      "status": "not_started",
+      "done_when_all_true": [
+        "MonthsToRetainDeliveryData + MonthsToRetainLogs added to Tenants table",
+        "DataRetentionCleanupJob implemented as IHostedService (or Quartz job)",
+        "DRY_RUN mode: logs what WOULD be deleted without deleting",
+        "Cleanup creates ActivityLog entry per tenant per run",
+        "FilteredRecipients excluded from automated cleanup (manual/GDPR only)",
+        "Unit test: cleanup with DRY_RUN=true deletes 0 rows",
+        "Unit test: cleanup deletes rows older than retention period"
+      ]
+    },
+    {
+      "cap_id": "CAP-18",
+      "name": "real_time_push",
+      "milestone": "M1",
+      "build_order": 6,
+      "status": "not_started",
+      "done_when_all_true": [
+        "ClientEvents table short TTL enforced (10-15 min)",
+        "ClientEventBackgroundService polls ClientEvents every 1-2 seconds",
+        "GET /api/events/stream SSE endpoint implemented with authentication",
+        "Client receives JobTask.StatusCode updates via SSE without polling REST",
+        "ClientEvents cleanup job deletes events older than TTL",
+        "Manual test: open browser, trigger a background job, status appears in UI without page refresh"
+      ]
+    },
+    {
+      "cap_id": "CAP-21",
+      "name": "bulk_import",
+      "milestone": "M2",
+      "build_order": 7,
+      "status": "not_started",
+      "done_when_all_true": [
+        "ImportConfigurations and ImportJobs tables created",
+        "POST /api/import/upload returns HTTP 202 Accepted (not 200 — never block on large files)",
+        "File validated against FileTypes allowlist before upload to blob",
+        "Import runs in background (IHostedService or separate job)",
+        "Row errors do NOT fail entire import — captured in ImportJob.ErrorDetails",
+        "ActivityLog entry on completion: 'Import of N contacts completed. E errors.'",
+        "GET /api/import/{importJobId} status endpoint implemented",
+        "SavedImportConfiguration reuse: second import can reference first run's column mapping",
+        "Unit tests: upload with oversized file returns 400 before hitting blob storage"
+      ]
+    },
+    {
+      "cap_id": "CAP-22",
+      "name": "webhook_delivery",
+      "milestone": "M2",
+      "build_order": 7,
+      "status": "not_started",
+      "done_when_all_true": [
+        "WebhookSubscriptions and WebhookDeliveryAttempts tables created",
+        "Webhook registration: secret never stored plaintext (SHA256 hash stored, plaintext returned once)",
+        "Outbound HTTP delivery: HMAC-SHA256 signature in X-Webhook-Signature header",
+        "Exponential retry: 1, 5, 30, 120, 480 minutes. 5 failures → subscription deactivated.",
+        "All delivery attempts logged in WebhookDeliveryAttempts",
+        "WorkspaceCapability 'Webhooks' gate enforced",
+        "Unit test: delivery with non-200 response triggers retry scheduling",
+        "Unit test: HMAC-SHA256 signature can be verified by recipient using shared secret"
+      ]
+    },
+    {
+      "cap_id": "CAP-23",
+      "name": "public_api",
+      "milestone": "M2",
+      "build_order": 7,
+      "status": "not_started",
+      "done_when_all_true": [
+        "WorkspaceApiKeys table created (KeyHash column, NOT plaintext key)",
+        "API key format: 'sk_live_' + 32 random chars",
+        "Key generation: plaintext returned EXACTLY ONCE. Only KeyPrefix + KeyHash stored.",
+        "API authentication: Authorization: Bearer <key> → SHA256(key) lookup in WorkspaceApiKeys",
+        "WorkspaceCapability 'PublicApi' gate enforced",
+        "All /api/v1/ endpoints are versioned from day 1",
+        "Rate limiting middleware configured (default 100 req/min per workspace)",
+        "Unit test: SHA256(generatedKey) == stored KeyHash",
+        "CONFIRMED: no plaintext key in DB after creation (explicit assertion in test)"
+      ]
+    },
+    {
+      "cap_id": "CAP-19",
+      "name": "contact_lists",
+      "milestone": "M3",
+      "build_order": 7,
+      "status": "not_started",
+      "done_when_all_true": [
+        "ContactLists and Contacts tables created",
+        "ContactLists scoped to WorkspaceId — cannot cross workspace boundary",
+        "Phone validation: E.164 format required when phone is set",
+        "Contact list expansion is lazy (at send time, not at save time)",
+        "WorkspaceCapability 'ContactLists' gate enforced",
+        "Unit tests: GetContactsForList returns only contacts in specified workspace"
+      ]
+    },
+    {
+      "cap_id": "CAP-20",
+      "name": "message_templates",
+      "milestone": "M3",
+      "build_order": 7,
+      "status": "not_started",
+      "done_when_all_true": [
+        "MessageTemplates and TemplateAttachments tables created",
+        "Template engine decision documented in ai-governance decision registry",
+        "MergeFieldNames static class: no magic strings in template rendering code",
+        "Templates scoped to WorkspaceId",
+        "Rendering happens at SEND TIME",
+        "Attachment stored via IBlobStorageService (CAP-17), blob path stored in TemplateAttachments",
+        "Unit tests: template rendering substitutes all {{key}} values from merge fields"
+      ]
+    },
+    {
+      "cap_id": "CAP-24",
+      "name": "consent_management",
+      "milestone": "M3",
+      "build_order": 7,
+      "status": "not_started",
+      "done_when_all_true": [
+        "ConsentLists, ConsentEntries, FilteredRecipients tables created",
+        "Filter chain order enforced: 1) national opt-out, 2) consent list, 3) duplicate, 4) scope restriction",
+        "FilterReason is typed string constant (FilterReasonNames class) — never free-text",
+        "FilteredRecipients immutable: no DELETE except GDPR erasure path",
+        "WorkspaceCapability 'ConsentManagement' gate enforced",
+        "Unit tests: recipient filtered for each FilterReason type, correct reason stored"
+      ]
+    },
+    {
+      "cap_id": "CAP-08",
+      "name": "federated_authentication",
+      "milestone": "M4",
+      "build_order": 8,
+      "status": "not_started",
+      "done_when_all_true": [
+        "TenantSamlSettings table created",
+        "ScimTokenHash on Tenants: SHA256 — NOT plaintext (sms-service security issue avoided)",
+        "SAML2 SSO: redirect to IdP, validate assertion signature, extract email claim",
+        "All federated auth paths converge at same JWT issuance function as standard login",
+        "SCIM 2.0 POST/PUT/DELETE /scim/v2/Users endpoint implemented",
+        "SCIM bearer token validated via SHA256(bearer) == Tenants.ScimTokenHash",
+        "Certificate renewal procedure documented (SAML cert expiry risk)",
+        "Integration test: SSO flow end-to-end with test IdP metadata"
+      ]
+    }
+
+  ],
+
+  "done_criteria_summary": {
+    "M0_golden_core": {
+      "capabilities_required": ["CAP-09", "CAP-11", "CAP-04", "CAP-05", "CAP-06", "CAP-15", "CAP-01", "CAP-07", "CAP-02", "CAP-10", "CAP-13"],
+      "acceptance": "Developer can: register, receive invite email, log in, select workspace, make authenticated API call. System logs all events. Health endpoint returns 200.",
+      "estimated_checkboxes": 94
+    },
+    "M1_operational_platform": {
+      "capabilities_required": ["M0 complete", "CAP-03", "CAP-12", "CAP-14", "CAP-16", "CAP-17", "CAP-25", "CAP-18"],
+      "acceptance": "Tenant admin can: create workspace, invite users, assign capabilities. Background jobs run. All actions are audited.",
+      "estimated_checkboxes": 55
+    },
+    "M2_developer_surface": {
+      "capabilities_required": ["M1 complete", "CAP-21", "CAP-22", "CAP-23"],
+      "acceptance": "Developer can: get API key, query API, receive webhook deliveries, upload bulk import files.",
+      "estimated_checkboxes": 24
+    },
+    "M3_engagement_layer": {
+      "capabilities_required": ["M2 complete", "CAP-19", "CAP-20", "CAP-24"],
+      "acceptance": "Operator can: define contact lists, create message templates, enforce consent filters.",
+      "estimated_checkboxes": 16
+    },
+    "M4_advanced_auth": {
+      "capabilities_required": ["M3 complete", "CAP-08"],
+      "acceptance": "Enterprise customers can use SAML2 SSO and SCIM provisioning.",
+      "estimated_checkboxes": 8
+    }
+  }
+}

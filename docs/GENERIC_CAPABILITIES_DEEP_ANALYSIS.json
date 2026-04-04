@@ -1,0 +1,1473 @@
+{
+  "_meta": {
+    "title": "Generic Capabilities — Maximum Deep Analysis",
+    "created": "2026-04-04",
+    "purpose": "Full build guide for the 24 domain-agnostic platform capabilities extracted from sms-service. Each capability has DB schema, interfaces, behaviors, flows, rules, implementation patterns, and what NOT to copy. Build these BEFORE deciding which product features (SMS, broadcast, etc.) to add.",
+    "source_analysis_domains": ["identity_access(0.98)", "system_configuration(0.94)", "localization(0.92)", "job_management(0.93)", "email(0.91)", "profile_management(0.91)", "activity_log(0.92)", "customer_management(0.88)", "logging(0.88)", "customer_administration(0.88)"],
+    "companion_files": [
+      "docs/FOUNDATION_BUILD_PLAN.json — which slices to build in what order",
+      "docs/PORTAL_FOUNDATION_EXTRACTION.json — domain classification + foundation modules",
+      "docs/IDENTITY_ACCESS_CORE_FOUNDATION.md — identity model LOCKED 2026-04-01",
+      "domains/product_scope/070_rules.json — 8 anti-patterns to avoid"
+    ],
+    "reading_guide": "Each capability has build_order (lower = earlier). Capabilities with same build_order can be built in parallel. Never start a capability before its depends_on list is complete.",
+    "capability_count": 24
+  },
+
+  "capabilities": [
+
+    {
+      "cap_id": "CAP-01",
+      "name": "authentication",
+      "module": "IdentityModule",
+      "build_order": 2,
+      "depends_on": ["CAP-09 (app_settings for JWT config)", "CAP-11 (structured_logging for failed login audit)"],
+      "summary": "Email+password login with lockout, JWT access token issuance, and password reset flow.",
+      "db_tables": [
+        {
+          "table": "Users",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Email NVARCHAR(200) NOT NULL UNIQUE",
+            "Name NVARCHAR(200) NOT NULL",
+            "PasswordHash NVARCHAR(500) NOT NULL",
+            "PasswordSalt NVARCHAR(200) NOT NULL",
+            "PasswordResetToken UNIQUEIDENTIFIER NULL",
+            "DatePasswordResetTokenExpiresUtc DATETIME NULL",
+            "FailedLoginCount SMALLINT NOT NULL DEFAULT 0",
+            "IsLockedOut BIT NOT NULL DEFAULT 0",
+            "DateLastFailedLoginUtc DATETIME NULL",
+            "DateLastLoginUtc DATETIME NULL",
+            "DateDeletedUtc DATETIME NULL",
+            "Deleted BIT NOT NULL DEFAULT 0",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "DateLastUpdatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "LanguageId INT NOT NULL DEFAULT 1",
+            "TimeZoneId NVARCHAR(100) NOT NULL DEFAULT 'Romance Standard Time'",
+            "CurrentTenantId INT NOT NULL DEFAULT 0",
+            "CurrentWorkspaceId INT NOT NULL DEFAULT 0"
+          ],
+          "indexes": [
+            "IX_Users_Email UNIQUE NONCLUSTERED (Email) WHERE Deleted=0",
+            "IX_Users_CurrentTenantId NONCLUSTERED (CurrentTenantId)"
+          ],
+          "notes": "Soft delete only — never hard delete users. CurrentTenantId/CurrentWorkspaceId = 0 means not yet selected."
+        },
+        {
+          "table": "UserRefreshTokens",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "UserId INT NOT NULL FK→Users(Id)",
+            "Token NVARCHAR(500) NOT NULL UNIQUE",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "DateExpiresUtc DATETIME NOT NULL"
+          ],
+          "indexes": ["IX_UserRefreshTokens_Token UNIQUE NONCLUSTERED (Token)", "IX_UserRefreshTokens_UserId NONCLUSTERED (UserId)"],
+          "notes": "Multiple refresh tokens per user supported (multi-device). Cleanup expired tokens via background job."
+        }
+      ],
+      "interfaces": {
+        "IAuthenticationService": [
+          "string HashPassword(string password, string salt)",
+          "string GenerateSalt()",
+          "bool VerifyPassword(string password, string salt, string hash)",
+          "string GenerateJwt(User user, int tenantId, int workspaceId)",
+          "ClaimsPrincipal? ValidateJwt(string token)",
+          "string GenerateRefreshToken()"
+        ],
+        "ILoginHandler": [
+          "Task<LoginResult> LoginAsync(string email, string password)"
+        ]
+      },
+      "behaviors": [
+        "Login: verify email exists → verify password hash → check lockout → auto-select workspace if exactly 1 → issue JWT+RefreshToken",
+        "Failed login: increment FailedLoginCount, set DateLastFailedLoginUtc. Time-scaled lockout after threshold (default 5).",
+        "Lockout reset: admin action resets FailedLoginCount=0, IsLockedOut=false",
+        "Password reset: generate GUID token → store on User → send email → validate token → set new hash → clear token",
+        "Soft delete: User.Deleted=true + DateDeletedUtc. Excluded from all queries unless explicitlyincluded.",
+        "Reactivate: clear Deleted flag"
+      ],
+      "flows": [
+        {
+          "name": "Standard login",
+          "steps": [
+            "POST /api/auth/login {email, password}",
+            "Fetch User by email WHERE Deleted=0",
+            "Verify: HashPassword(password, salt) == PasswordHash",
+            "Check lockout: IsLockedOut=true OR scaled lockout condition → HTTP 403",
+            "Reset FailedLoginCount=0, DateLastLoginUtc=now",
+            "Auto-workspace: if CurrentWorkspaceId==0 AND user has exactly 1 workspace → assign",
+            "If multiple workspaces: set CurrentWorkspaceId=0 → client must call /api/auth/select-workspace → HTTP 300",
+            "Generate JWT (UserId, TenantId, WorkspaceId) 15min TTL",
+            "Generate RefreshToken (GUID string), store in UserRefreshTokens, 480min sliding TTL",
+            "Return {accessToken, refreshToken, expiresAt}"
+          ]
+        },
+        {
+          "name": "Password reset",
+          "steps": [
+            "POST /api/auth/password-reset-request {email}",
+            "Find user by email. If not found: return 200 anyway (prevent enumeration)",
+            "Generate GUID token, store User.PasswordResetToken + User.DatePasswordResetTokenExpiresUtc = now+15min",
+            "Send password reset email with link containing token",
+            "POST /api/auth/password-reset-confirm {token, newPassword}",
+            "Validate: token exists, not expired, meets password policy",
+            "HashPassword(newPassword, existing salt) → update PasswordHash",
+            "Clear PasswordResetToken + DatePasswordResetTokenExpiresUtc",
+            "Return 200"
+          ]
+        }
+      ],
+      "rules": [
+        "Argon2id for password hashing — NOT SHA256 (ANTI-10 from sms-service lessons)",
+        "Lockout threshold: FailedLoginCount > 5 AND time-scaled delay. Admin reset required for permanent lockout.",
+        "Password policy minimum: 8 chars, digit + lowercase + uppercase + special char",
+        "PasswordResetToken expires after 15 minutes",
+        "Never return 'user not found' on password reset — always return 200 (prevent email enumeration)",
+        "Refresh tokens are sliding, not fixed — each successful use extends TTL",
+        "User.Email is unique. Case-insensitive match on lookup.",
+        "User is never hard-deleted"
+      ],
+      "not_to_copy": [
+        "SHA256(password+salt) pattern from sms-service — use Argon2id",
+        "Hardcoded TTL constants in controller — move to AppSettings (CAP-09)",
+        "CountryId == LanguageId design quirk in sms-service"
+      ],
+      "green_ai_note": "sms-service uses SHA256 which is not a password KDF. Green-ai uses Argon2id from day 1. No migration needed — no legacy passwords."
+    },
+
+    {
+      "cap_id": "CAP-02",
+      "name": "session_management",
+      "module": "IdentityModule",
+      "build_order": 2,
+      "depends_on": ["CAP-01 (authentication)", "CAP-04 (multi_tenancy)", "CAP-05 (workspace_scoping)"],
+      "summary": "Per-request ICurrentUser resolution via JWT claims + DB User entity. Tenant and workspace context propagated into every request.",
+      "interfaces": {
+        "ICurrentUser": [
+          "int UserId { get; }",
+          "int TenantId { get; }",
+          "int WorkspaceId { get; }",
+          "int LanguageId { get; }",
+          "int? ImpersonateFromUserId { get; }",
+          "bool IsAuthenticated { get; }",
+          "bool IsImpersonating { get; }"
+        ]
+      },
+      "middleware": {
+        "name": "CurrentUserMiddleware",
+        "pipeline_position": "After JWT bearer validation, before all controllers",
+        "steps": [
+          "Read UserId claim from JWT",
+          "Load User from DB (cache by UserId per request)",
+          "Assert User.CurrentTenantId != 0 → else HTTP 401",
+          "Assert User.CurrentWorkspaceId != 0 → else HTTP 401 (or HTTP 300 if workspace selection needed)",
+          "Load Tenant entity by User.CurrentTenantId",
+          "Load Workspace entity by User.CurrentWorkspaceId",
+          "Populate ICurrentUser implementation",
+          "Register ICurrentUser in DI scope",
+          "Call next()"
+        ]
+      },
+      "behaviors": [
+        "TenantId=0 → hard HTTP 401. No fallback, no bypass. Ever.",
+        "WorkspaceId=0 → hard HTTP 401 (or HTTP 300 if client needs to select)",
+        "LanguageId read from User.LanguageId in DB every request — NOT from JWT claims",
+        "ImpersonateFromUserId set when SuperAdmin impersonates — substitutestarget user as current",
+        "Refresh token issuance is the sync point between DB User.Current* and JWT claims"
+      ],
+      "flows": [
+        {
+          "name": "Select workspace",
+          "steps": [
+            "POST /api/auth/select-workspace {workspaceId}",
+            "CanUserAccessWorkspace(currentUser.UserId, workspaceId) → false = HTTP 403",
+            "UPDATE Users SET CurrentWorkspaceId=@workspaceId WHERE Id=@userId",
+            "Issue new JWT with updated WorkspaceId",
+            "Return new {accessToken, refreshToken}"
+          ]
+        },
+        {
+          "name": "Select tenant",
+          "steps": [
+            "POST /api/auth/select-tenant {tenantId}",
+            "CanUserAccessTenant(currentUser.UserId, tenantId) → false = HTTP 403",
+            "UPDATE Users SET CurrentTenantId=@tenantId, CurrentWorkspaceId=0",
+            "Issue new JWT. Client must then select workspace.",
+            "Return HTTP 300 + new token"
+          ]
+        },
+        {
+          "name": "Token refresh",
+          "steps": [
+            "GET /api/auth/refresh?refreshToken=<token>",
+            "SELECT token FROM UserRefreshTokens WHERE Token=@token AND DateExpiresUtc > GETUTCDATE()",
+            "Not found or expired → HTTP 401",
+            "Load User, read User.CurrentTenantId + User.CurrentWorkspaceId",
+            "Extend DateExpiresUtc = now + 480min (sliding)",
+            "Issue new JWT with current User.Current* values",
+            "Return {accessToken, refreshToken}"
+          ]
+        }
+      ],
+      "rules": [
+        "Single ICurrentUser interface. Single middleware implementation. HARD RULE: no second implementation ever.",
+        "WorkspaceId in JWT is informational. DB User.CurrentWorkspaceId is authoritative.",
+        "Tenant switch clears CurrentWorkspaceId — requires workspace re-selection.",
+        "Token refresh reads DB state — never trust stale JWT claims for Current* values.",
+        "JobCurrentUser: batch context implements ICurrentUser with values from job metadata. Same interface."
+      ],
+      "not_to_copy": [
+        "WebWorkContext duplication from sms-service (C_002) — two implementations diverged over years",
+        "profileId=0 bypass: GetAddressRestrictionForProfile(0) returning NoAddressRestriction (C_001)"
+      ]
+    },
+
+    {
+      "cap_id": "CAP-03",
+      "name": "user_management",
+      "module": "IdentityModule",
+      "build_order": 5,
+      "depends_on": ["CAP-01", "CAP-02", "CAP-04", "CAP-13 (transactional_email for invite)"],
+      "summary": "CRUD users, invite flow, status management. User is global — not tenant-scoped. Membership is via TenantUserMappings.",
+      "db_tables": [
+        {
+          "table": "Users",
+          "notes": "Already defined in CAP-01. Reused here."
+        }
+      ],
+      "interfaces": {
+        "IUserService": [
+          "Task<User?> GetByIdAsync(int userId)",
+          "Task<User?> GetByEmailAsync(string email)",
+          "Task<IReadOnlyList<User>> GetUsersForTenantAsync(int tenantId)",
+          "Task<int> CreateAsync(User user)",
+          "Task UpdateAsync(User user)",
+          "Task SoftDeleteAsync(int userId)",
+          "Task ReactivateAsync(int userId)",
+          "Task<string> SendInviteAsync(int userId, int tenantId)",
+          "Task ResetLockoutAsync(int userId)"
+        ]
+      },
+      "behaviors": [
+        "Create: generate password reset token → send invite email with link containing token",
+        "Invite: same as password reset flow — user lands on /set-password?token=<guid>",
+        "SoftDelete: set Deleted=true + DateDeletedUtc. User disappears from all normal queries.",
+        "Reactivate: clear Deleted=false + DateDeletedUtc=null",
+        "Update: name, email, languageId, timeZoneId. Email uniqueness validated.",
+        "Lockout reset: FailedLoginCount=0, IsLockedOut=false"
+      ],
+      "flows": [
+        {
+          "name": "Admin invites new user",
+          "steps": [
+            "Admin: POST /api/users {name, email, tenantId, workspaceIds}",
+            "Create User record (PasswordHash='', Deleted=false)",
+            "Add to TenantUserMappings",
+            "Add to each WorkspaceUserMappings in workspaceIds",
+            "Generate GUID invite token → store as User.PasswordResetToken with 48h expiry",
+            "Send invite email: 'Click here to set your password: /set-password?token=<guid>'",
+            "Return 201"
+          ]
+        }
+      ],
+      "rules": [
+        "User exists once globally. Adding to multiple tenants = multiple TenantUserMappings rows.",
+        "Email is the unique key. Case-insensitive. Cannot reuse a deleted user's email without reactivation.",
+        "Admin cannot see users from other tenants unless SuperAdmin role.",
+        "Invite token expiry: 48 hours (configurable in AppSettings)."
+      ],
+      "not_to_copy": [
+        "User.CurrentProfileId stored on User entity — design quirk forces extra DB writes on every context switch"
+      ]
+    },
+
+    {
+      "cap_id": "CAP-04",
+      "name": "multi_tenancy",
+      "module": "TenancyModule",
+      "build_order": 1,
+      "depends_on": [],
+      "summary": "Every data entity has TenantId as outer partition key. Explicit user-to-tenant membership. All SELECT queries MUST include WHERE TenantId = @currentTenantId.",
+      "db_tables": [
+        {
+          "table": "Tenants",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Name NVARCHAR(200) NOT NULL",
+            "CountryId INT NOT NULL FK→Countries(Id)",
+            "LanguageId INT NOT NULL FK→Languages(Id) DEFAULT 1",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "DateDeletedUtc DATETIME NULL",
+            "Deleted BIT NOT NULL DEFAULT 0"
+          ],
+          "notes": "CountryId and LanguageId are separate in the green-ai model (unlike sms-service where they were the same value)."
+        },
+        {
+          "table": "TenantUserMappings",
+          "columns": [
+            "TenantId INT NOT NULL FK→Tenants(Id)",
+            "UserId INT NOT NULL FK→Users(Id)",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "PRIMARY KEY (TenantId, UserId)"
+          ],
+          "indexes": ["IX_TenantUserMappings_UserId NONCLUSTERED (UserId) — to find all tenants for a user"],
+          "notes": "Explicit membership. Tenant membership does NOT auto-grant workspace access. No roles at this level."
+        }
+      ],
+      "interfaces": {
+        "ITenantService": [
+          "Task<Tenant?> GetByIdAsync(int tenantId)",
+          "Task<IReadOnlyList<Tenant>> GetTenantsForUserAsync(int userId)",
+          "Task<int> CreateAsync(Tenant tenant)",
+          "Task UpdateAsync(Tenant tenant)",
+          "Task SoftDeleteAsync(int tenantId)"
+        ]
+      },
+      "rules": [
+        "CRITICAL: Every feature table must have TenantId INT NOT NULL FK→Tenants(Id). No exceptions.",
+        "Every SELECT in service layer MUST include AND TenantId = @currentTenantId.",
+        "User.CurrentTenantId = 0 → HTTP 401 from CurrentUserMiddleware.",
+        "A user can be member of multiple tenants (M:M via TenantUserMappings).",
+        "Deleting a tenant = soft delete only. Data retention rules apply.",
+        "SuperAdmin can access all tenants. All other roles are bounded by their TenantUserMappings."
+      ],
+      "not_to_copy": [
+        "CustomerUserRoleMappings(CustomerId, UserRoleId) naming confusion — no UserId = not a user assignment table, it's a policy table. Rename clearly."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-05",
+      "name": "workspace_scoping",
+      "module": "TenancyModule",
+      "build_order": 1,
+      "depends_on": ["CAP-04 (multi_tenancy)"],
+      "summary": "Sub-tenant operational context. All operational data (campaigns, recipient lists, templates) is scoped to Workspace, not just Tenant. Per-workspace capability flags control which features are active.",
+      "db_tables": [
+        {
+          "table": "Workspaces",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "TenantId INT NOT NULL FK→Tenants(Id)",
+            "Name NVARCHAR(200) NOT NULL",
+            "ProfileTypeId INT NOT NULL FK→WorkspaceTypes(Id) DEFAULT 1",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "DateDeletedUtc DATETIME NULL",
+            "Deleted BIT NOT NULL DEFAULT 0"
+          ],
+          "notes": "Every operational data table has WorkspaceId FK. This is the primary data partition for all work."
+        },
+        {
+          "table": "WorkspaceUserMappings",
+          "columns": [
+            "WorkspaceId INT NOT NULL FK→Workspaces(Id)",
+            "UserId INT NOT NULL FK→Users(Id)",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "PRIMARY KEY (WorkspaceId, UserId)"
+          ],
+          "indexes": ["IX_WorkspaceUserMappings_UserId NONCLUSTERED (UserId)"],
+          "notes": "Tenant membership does NOT auto-grant workspace access. Must be explicit."
+        },
+        {
+          "table": "WorkspaceCapabilities",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Name NVARCHAR(200) NOT NULL UNIQUE"
+          ],
+          "notes": "Seeded enum table. Names are the capability identifiers. Domain-specific capabilities (CanSendBySms, CanSendByVoice etc.) are added here as the product features are planned."
+        },
+        {
+          "table": "WorkspaceCapabilityMappings",
+          "columns": [
+            "WorkspaceId INT NOT NULL FK→Workspaces(Id)",
+            "CapabilityId INT NOT NULL FK→WorkspaceCapabilities(Id)",
+            "PRIMARY KEY (WorkspaceId, CapabilityId)"
+          ]
+        },
+        {
+          "table": "WorkspaceTypes",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Name NVARCHAR(200) NOT NULL"
+          ],
+          "notes": "Seeded reference. sms-service values: Water, WasteWater, Electricity, Heating, Renovation, Standard. Green-ai: define from product requirements."
+        }
+      ],
+      "interfaces": {
+        "IWorkspaceService": [
+          "Task<Workspace?> GetByIdAsync(int workspaceId)",
+          "Task<IReadOnlyList<Workspace>> GetWorkspacesForUserAsync(int userId, int tenantId)",
+          "Task<bool> CanUserAccessWorkspaceAsync(int userId, int workspaceId)",
+          "Task<int> CreateAsync(Workspace workspace)",
+          "Task SoftDeleteAsync(int workspaceId)",
+          "Task AddCapabilityAsync(int workspaceId, string capabilityName)",
+          "Task RemoveCapabilityAsync(int workspaceId, string capabilityName)"
+        ]
+      },
+      "rules": [
+        "Every operational table MUST have WorkspaceId INT NOT NULL FK→Workspaces(Id).",
+        "Tenant membership does NOT grant workspace access — WorkspaceUserMappings must be explicit.",
+        "WorkspaceId=0 in CurrentUser → HTTP 401.",
+        "Workspace soft-delete: Workspace.Deleted=true. Data is retained for compliance period.",
+        "A workspace can only belong to one tenant (TenantId is NOT NULL on Workspace).",
+        "WorkspaceCapabilities seed = empty at launch. Domain features add their capability names to this table at startup."
+      ],
+      "not_to_copy": [
+        "63 hardcoded ProfileRoleNames values — these are domain-specific. WorkspaceCapabilities starts empty and grows with features.",
+        "ProfileGroupRole (template at creation time only) — if workspace templates are needed, design them as first-class feature, not side-effect of capability assignment"
+      ]
+    },
+
+    {
+      "cap_id": "CAP-06",
+      "name": "role_based_access_control",
+      "module": "AuthorizationModule",
+      "build_order": 2,
+      "depends_on": ["CAP-04", "CAP-05"],
+      "summary": "Two independent RBAC systems: global admin UserRoles (per user, no tenant scope) + per-workspace capability flags. Both are flat junction tables — no inheritance.",
+      "db_tables": [
+        {
+          "table": "UserRoles",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Name NVARCHAR(200) NOT NULL UNIQUE"
+          ],
+          "seed_values": [
+            "SuperAdmin — full system access. TenantId restriction: TenantId in {1,2} (operator tenant only).",
+            "ManageUsers — can invite/remove users within own tenant",
+            "ManageWorkspaces — can create/edit workspaces within own tenant",
+            "TenantSetup — can configure tenant settings",
+            "API — can use public API endpoints",
+            "TwoFactorAuthenticate — 2FA required on login",
+            "AlwaysTestMode — all sends go to test mode",
+            "RequiresApproval — broadcasts require second-user approval before sending"
+          ],
+          "notes": "These are seeded roles. Add more as platform features require them. Names are the authority — not IDs."
+        },
+        {
+          "table": "UserRoleMappings",
+          "columns": [
+            "UserId INT NOT NULL FK→Users(Id)",
+            "RoleId INT NOT NULL FK→UserRoles(Id)",
+            "PRIMARY KEY (UserId, RoleId)"
+          ],
+          "notes": "NO TenantId column. UserRoles are GLOBAL across all tenant memberships. This is intentional — admin roles apply everywhere. (sms-service does the same; phase 2 can add tenant-scoped roles if needed.)"
+        },
+        {
+          "table": "TenantRolePolicies",
+          "columns": [
+            "TenantId INT NOT NULL FK→Tenants(Id)",
+            "RoleId INT NOT NULL FK→UserRoles(Id)",
+            "PRIMARY KEY (TenantId, RoleId)"
+          ],
+          "notes": "POLICY table — no UserId. Defines which UserRoles a tenant has configured/purchased. Used to gate role assignment UI. (Renamed from sms-service's CustomerUserRoleMappings which was confusing because it had no UserId.)"
+        }
+      ],
+      "rules": [
+        "UserRoleMappings has NO TenantId — UserRoles are global across all of a user's tenant memberships.",
+        "SuperAdmin access: TenantId of operator organization only. Can access all tenants.",
+        "WorkspaceCapabilityMappings controls OPERATIONAL features. UserRoleMappings controls ADMIN capabilities.",
+        "The two systems are independent — a user can have ManageUsers role AND a workspace can have CanSendBySms capability. They are orthogonal.",
+        "Role names are the authority, not IDs. Never hardcode role IDs — always look up by name."
+      ],
+      "not_to_copy": [
+        "CustomerUserRoleMappings naming — no UserId, highly confusing name → renamed to TenantRolePolicies",
+        "UserRoleMappings with hardcoded numeric ID checks in business logic"
+      ]
+    },
+
+    {
+      "cap_id": "CAP-07",
+      "name": "permission_service",
+      "module": "AuthorizationModule",
+      "build_order": 3,
+      "depends_on": ["CAP-04", "CAP-05", "CAP-06"],
+      "summary": "Single injectable IPermissionService. All access and capability checks route through this service. Backed by Dapper + in-memory cache per request.",
+      "interfaces": {
+        "IPermissionService": [
+          "Task<bool> CanUserAccessTenantAsync(int userId, int tenantId)",
+          "Task<bool> CanUserAccessWorkspaceAsync(int userId, int workspaceId)",
+          "Task<bool> DoesUserHaveRoleAsync(int userId, string roleName)",
+          "Task<bool> DoesWorkspaceHaveCapabilityAsync(int workspaceId, string capabilityName)",
+          "Task<IReadOnlyList<string>> GetRolesForUserAsync(int userId)",
+          "Task<IReadOnlyList<string>> GetCapabilitiesForWorkspaceAsync(int workspaceId)"
+        ]
+      },
+      "behaviors": [
+        "CanUserAccessTenant: SELECT 1 FROM TenantUserMappings WHERE TenantId=@t AND UserId=@u",
+        "CanUserAccessWorkspace: SELECT 1 FROM WorkspaceUserMappings WHERE WorkspaceId=@w AND UserId=@u",
+        "DoesUserHaveRole: SELECT 1 FROM UserRoleMappings urm JOIN UserRoles ur ON urm.RoleId=ur.Id WHERE urm.UserId=@u AND ur.Name=@role",
+        "DoesWorkspaceHaveCapability: SELECT 1 FROM WorkspaceCapabilityMappings wcm JOIN WorkspaceCapabilities wc ON wcm.CapabilityId=wc.Id WHERE wcm.WorkspaceId=@w AND wc.Name=@cap",
+        "In-memory cache scoped per HTTP request (not global cache — permissions can change between requests)"
+      ],
+      "rules": [
+        "All business logic that checks permissions MUST use IPermissionService. No raw SQL permission checks in feature code.",
+        "Cache: per-request scope only. Do not use distributed cache for permissions — stale permissions are a security issue.",
+        "SuperAdmin bypasses CanUserAccessTenant and CanUserAccessWorkspace (but NOT DoesWorkspaceHaveCapability — capabilities are workspace-level policy, not user privilege).",
+        "Every HTTP controller action that is tenant/workspace-scoped must call at least one CanUserAccess check.",
+        "401 vs 403: unauthenticated = 401. Authenticated but no access = 403.",
+        "Capability names are string constants defined in a static CapabilityNames class — never magic strings in feature code."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-08",
+      "name": "federated_authentication",
+      "module": "IdentityModule",
+      "build_order": 8,
+      "depends_on": ["CAP-01", "CAP-02", "CAP-04"],
+      "summary": "SAML2 SSO per tenant, Azure AD / Entra ID (MSAL), SCIM 2.0 inbound user provisioning. All converge at JWT issuance.",
+      "db_tables": [
+        {
+          "table": "TenantSamlSettings",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "TenantId INT NOT NULL UNIQUE FK→Tenants(Id)",
+            "EntityId NVARCHAR(500) NOT NULL",
+            "MetadataUrl NVARCHAR(500) NOT NULL",
+            "EmailClaim NVARCHAR(200) NOT NULL DEFAULT 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'",
+            "Certificate NVARCHAR(MAX) NULL",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "DateLastUpdatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ],
+          "notes": "One SAML IdP config per tenant. Certificate stored in Azure Key Vault in production (not in DB)."
+        },
+        {
+          "table": "Tenants",
+          "added_columns": [
+            "ScimTokenHash NVARCHAR(500) NULL — SHA256 of SCIM bearer token. In sms-service this was stored plaintext (ScimTokenUUID) — green-ai stores the hash."
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "SAML2 SSO",
+          "steps": [
+            "User navigates to /sso/{tenantSlug}",
+            "System reads TenantSamlSettings for tenant",
+            "Redirect to IdP with SAML2 AuthnRequest",
+            "IdP returns SAML2 Response to /sso/callback",
+            "Validate signature, extract email from configured claim",
+            "Find or create User by email",
+            "Issue JWT — same path as standard login",
+            "Redirect to app"
+          ]
+        },
+        {
+          "name": "SCIM sync",
+          "steps": [
+            "External HR system sends SCIM 2.0 POST/PUT/DELETE to /scim/v2/Users",
+            "Validate bearer token: SHA256(bearer) == Tenants.ScimTokenHash",
+            "Create/update/deactivate User record",
+            "Sync TenantUserMappings and WorkspaceUserMappings"
+          ]
+        }
+      ],
+      "rules": [
+        "SAML certificate renewal is an operational procedure — must be documented and automated.",
+        "SCIM token stored as hash (SHA256) — never plaintext (sms-service stored ScimTokenUUID plaintext — security issue).",
+        "All federated auth paths converge at the same JWT issuance function as standard login.",
+        "DEFERRED from phase 1 — build only when first tenant requests SSO."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-09",
+      "name": "app_settings",
+      "module": "ConfigurationModule",
+      "build_order": 1,
+      "depends_on": [],
+      "summary": "Typed key-value application settings stored in DB. Full-load cache with invalidation on save. All credentials and feature flags accessed via IApplicationSettingService.",
+      "db_tables": [
+        {
+          "table": "ApplicationSettings",
+          "columns": [
+            "Id INT PK — matches SettingKey enum value",
+            "Value NVARCHAR(MAX) NOT NULL DEFAULT ''",
+            "DefaultValue NVARCHAR(MAX) NOT NULL DEFAULT ''",
+            "DateLastUpdatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ],
+          "notes": "One row per SettingKey enum value. CreateDefault() seeds all rows idempotently at startup."
+        }
+      ],
+      "seed_settings": {
+        "note": "The SettingKey enum is defined in the platform layer. Domain features add their own keys. Minimum platform keys at launch:",
+        "platform_keys": [
+          "JwtSecret (string) — JWT signing key",
+          "JwtIssuer (string)",
+          "JwtAudience (string)",
+          "AccessTokenTtlMinutes (int, default 15)",
+          "RefreshTokenTtlMinutes (int, default 480)",
+          "PasswordResetTokenTtlMinutes (int, default 15)",
+          "InviteTokenTtlHours (int, default 48)",
+          "SmtpHost (string)",
+          "SmtpPort (int, default 587)",
+          "SmtpUser (string)",
+          "SmtpPassword (string)",
+          "SmtpFromEmail (string)",
+          "SmtpFromName (string)",
+          "BlobConnectionString (string)",
+          "BlobContainerLogs (string, default 'errorlogs')",
+          "BlobContainerImports (string, default 'imports')",
+          "RequestLogLevel (int, default 0) — 0=off, 1=ErrorsOnly, 2=All",
+          "MaxImportFileSizeMb (int, default 50)",
+          "AllowedFileExtensions (string, default '.csv,.xlsx,.txt')",
+          "IsMaintenanceMode (bool, default false)"
+        ]
+      },
+      "interfaces": {
+        "IApplicationSettingService": [
+          "string Get(SettingKey key, string defaultValue = '')",
+          "bool GetBool(SettingKey key, bool defaultValue = false)",
+          "int GetInt(SettingKey key, int defaultValue = 0)",
+          "IList<string> GetList(SettingKey key)",
+          "Task SaveAsync(SettingKey key, string value)",
+          "Task CreateDefaultsAsync()"
+        ]
+      },
+      "behaviors": [
+        "Full cache: all settings loaded into memory at startup. Cache key: typically 'platform.applicationsettings'",
+        "Save: persists to DB AND invalidates cache (so next Get() reloads all from DB)",
+        "CreateDefaults: idempotent INSERT IF NOT EXISTS for all SettingKey enum members",
+        "Get returns defaultValue if key not found (never throws)"
+      ],
+      "rules": [
+        "All external credentials (SMTP, blob, carrier APIs) MUST flow through IApplicationSettingService.",
+        "Never read credentials from appsettings.json directly in service code.",
+        "SettingKey enum values are the IDs used as ApplicationSettings.Id. Add new keys to the end — never reorder.",
+        "Sensitive values (passwords, API keys) must be stored encrypted in production (KMS or Azure Key Vault envelope encryption).",
+        "IsMaintenanceMode kill-switch can be checked on every request in middleware — returns HTTP 503 to all non-SuperAdmin requests."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-10",
+      "name": "localization",
+      "module": "LocalizationModule",
+      "build_order": 4,
+      "depends_on": ["CAP-02 (ICurrentUser.LanguageId)", "CAP-09 (app_settings for DefaultLanguageId)"],
+      "summary": "Multi-language label storage and resolution. ILocalizationService.GetString(key, languageId) is the single entry point. Unknown keys return the key name — never null.",
+      "db_tables": [
+        {
+          "table": "Languages",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Name NVARCHAR(100) NOT NULL",
+            "LanguageCulture NVARCHAR(20) NOT NULL — e.g. 'da-DK', 'en-GB', 'nb-NO'",
+            "UniqueSeoCode NVARCHAR(2) NOT NULL — e.g. 'da', 'en', 'no'",
+            "Published BIT NOT NULL DEFAULT 1",
+            "DisplayOrder INT NOT NULL DEFAULT 0"
+          ],
+          "seed": "Danish(1,da-DK,da), Norwegian(5,nb-NO,no), English(3,en-GB,en) as minimum. Add Swedish, Finnish, German as needed."
+        },
+        {
+          "table": "LocaleStringResources",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "LanguageId INT NOT NULL FK→Languages(Id)",
+            "ResourceName NVARCHAR(200) NOT NULL — dot-separated key, e.g. 'shared.save', 'errors.loginFailed'",
+            "ResourceValue NVARCHAR(MAX) NOT NULL DEFAULT 'Missing Translation'"
+          ],
+          "indexes": [
+            "UX_LocaleStringResources_LanguageId_ResourceName UNIQUE (LanguageId, ResourceName) INCLUDE(ResourceValue)",
+            "IX_LocaleStringResources_ResourceName NONCLUSTERED (ResourceName)"
+          ],
+          "notes": "When inserting a new key, auto-create rows for ALL published languages. Non-specified languages get 'Missing Translation'."
+        }
+      ],
+      "interfaces": {
+        "ILocalizationService": [
+          "string GetString(string resourceKey, int languageId)",
+          "IDictionary<string, string> GetAllForLanguage(int languageId)",
+          "Task InsertOrUpdateAsync(string resourceKey, int languageId, string value)",
+          "Task EnsureKeyExistsInAllLanguagesAsync(string resourceKey)"
+        ]
+      },
+      "behaviors": [
+        "GetString: query LocaleStringResources WHERE ResourceName=@key AND LanguageId=@languageId. If not found → return @key as fallback (never null, never exception).",
+        "GetAllForLanguage: returns full dictionary for client-side label loading. Endpoint: GET /api/localization/{languageId}.",
+        "InsertOrUpdate: if key doesn't exist → create in all published languages with 'Missing Translation'. Then set the provided language's value.",
+        "Cache: full in-memory dictionary per language. Invalidated when any label is updated."
+      ],
+      "rules": [
+        "Unknown key returns the key name — NEVER null, NEVER empty string, NEVER exception.",
+        "ActivityLog entries store ResourceKey only — resolved at read time via GetString(entry.ResourceKey, user.LanguageId).",
+        "Email templates use GetString for subject and body. Never hardcode English strings in service code.",
+        "LanguageId is read from ICurrentUser.LanguageId per request — NOT from JWT, NOT from browser Accept-Language.",
+        "Minimum seed: 200 labels covering login, navigation, common errors, and form validation."
+      ],
+      "api_endpoints": [
+        "GET /api/localization/{languageId} — returns full label dictionary for client side",
+        "GET /api/localization/languages — returns list of published languages",
+        "POST /api/localization (SuperAdmin) — create/update labels"
+      ]
+    },
+
+    {
+      "cap_id": "CAP-11",
+      "name": "structured_logging",
+      "module": "ObservabilityModule",
+      "build_order": 1,
+      "depends_on": ["CAP-09 (RequestLogLevel setting)", "CAP-01 (UserId for context stamp)"],
+      "summary": "ISystemLogger with UserId+TenantId context stamps. Multiple output targets. Outbound HTTP auto-logged via DelegatingHandler.",
+      "db_tables": [
+        {
+          "table": "Logs",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "LogLevelId INT NOT NULL — maps to LogLevel enum",
+            "ShortMessage NVARCHAR(1500) NOT NULL",
+            "FullMessage NVARCHAR(MAX) NULL",
+            "Module NVARCHAR(200) NULL — source component name",
+            "IpAddress NVARCHAR(200) NULL",
+            "PageUrl NVARCHAR(500) NULL",
+            "UserId INT NULL FK→Users(Id)",
+            "TenantId INT NULL",
+            "WorkspaceId INT NULL",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ],
+          "indexes": ["IX_Logs_DateCreatedUtc NONCLUSTERED (DateCreatedUtc DESC)", "IX_Logs_LogLevelId NONCLUSTERED (LogLevelId)"],
+          "notes": "Logs older than retention period deleted by cleanup batch job."
+        },
+        {
+          "table": "RequestLogs",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Path NVARCHAR(500) NOT NULL",
+            "Method NVARCHAR(10) NOT NULL",
+            "QueryString NVARCHAR(MAX) NULL",
+            "RequestPayload NVARCHAR(MAX) NULL",
+            "ResponsePayload NVARCHAR(MAX) NULL",
+            "StatusCode INT NOT NULL",
+            "DurationMs INT NOT NULL",
+            "RequestedOnUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "IpAddress NVARCHAR(200) NULL",
+            "UserId INT NULL"
+          ],
+          "notes": "Only written when AppSetting RequestLogLevel >= 1. High-volume — add TTL and partitioning."
+        },
+        {
+          "table": "OutgoingRequestLogs",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "TenantId INT NULL",
+            "WorkspaceId INT NULL",
+            "Url NVARCHAR(1000) NOT NULL",
+            "Method NVARCHAR(10) NOT NULL",
+            "RequestBody NVARCHAR(MAX) NULL",
+            "ResponseBody NVARCHAR(MAX) NULL",
+            "StatusCode INT NULL",
+            "DurationMs INT NOT NULL",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ],
+          "notes": "Written by OutgoingHttpClientLoggingHandler DelegatingHandler — auto-injected into ALL HttpClient instances registered in DI."
+        }
+      ],
+      "interfaces": {
+        "ISystemLogger": [
+          "Task LogDebugAsync(string message, string? module = null)",
+          "Task LogInfoAsync(string message, string? module = null)",
+          "Task LogWarningAsync(string message, string? module = null, string? detail = null)",
+          "Task LogErrorAsync(string message, Exception? ex = null, string? module = null)",
+          "Task LogFatalAsync(string message, Exception? ex = null, string? module = null)"
+        ]
+      },
+      "implementations": [
+        {
+          "name": "DatabaseLogger",
+          "writes_to": "Logs table via Dapper",
+          "always_active": true
+        },
+        {
+          "name": "ApplicationInsightsLogger",
+          "writes_to": "Azure Application Insights",
+          "condition": "AppSetting.ApplicationInsightsConnectionString is set",
+          "note": "Wrap TelemetryClient — do not call AppInsights SDK directly in feature code"
+        },
+        {
+          "name": "FatalEmailLogger",
+          "writes_to": "Email via IEmailService",
+          "condition": "LogLevel.Fatal only",
+          "note": "Sends to operator alert email address. Must NOT use the async email queue — send synchronously to survive app crash scenarios."
+        },
+        {
+          "name": "OutgoingHttpClientLoggingHandler",
+          "type": "DelegatingHandler",
+          "registration": "builder.Services.AddHttpClient().AddHttpMessageHandler<OutgoingHttpClientLoggingHandler>() — applies to ALL HttpClient registrations",
+          "note": "Logs URL, method, request/response body, status code, duration. Sensitive data redaction required."
+        }
+      ],
+      "behaviors": [
+        "RequestResponseLoggingMiddleware: captures HTTP request+response body. Only active when AppSetting(RequestLogLevel) > 0.",
+        "Fatal log triggers immediate email notification to ops team.",
+        "OutgoingHttpClientLoggingHandler is transparent — no change to HttpClient usage in feature code."
+      ],
+      "rules": [
+        "Call ISystemLogger in feature code — never call ILogger<T>, AppInsights SDK, or Serilog directly.",
+        "All Logs entries include UserId + TenantId from ICurrentUser (null for anonymous/background requests).",
+        "Request body logging must strip sensitive fields (passwords, tokens, card numbers).",
+        "RequestLogs are high-volume — set AppSetting(RequestLogLevel) to off in production by default.",
+        "OutgoingRequestLogs are high-volume — may need partitioning or shorter retention in production."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-12",
+      "name": "audit_trail",
+      "module": "ObservabilityModule",
+      "build_order": 5,
+      "depends_on": ["CAP-10 (localization for key resolution)", "CAP-02 (ICurrentUser.UserId for stamp)"],
+      "summary": "Compliance audit log using translation keys (not resolved text). Stores key+parameters at write time. Resolved at read time via ILocalizationService.",
+      "db_tables": [
+        {
+          "table": "ActivityLogs",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "ActivityLogTypeId INT NOT NULL FK→ActivityLogTypes(Id)",
+            "ObjectId INT NOT NULL — ID of the entity this log is about",
+            "TenantId INT NOT NULL",
+            "WorkspaceId INT NULL",
+            "UserId INT NULL FK→Users(Id)",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ],
+          "indexes": [
+            "IX_ActivityLogs_ObjectId_TypeId NONCLUSTERED (ObjectId, ActivityLogTypeId)",
+            "IX_ActivityLogs_TenantId_DateCreated NONCLUSTERED (TenantId, DateCreatedUtc DESC)"
+          ]
+        },
+        {
+          "table": "ActivityLogEntries",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "ActivityLogId INT NOT NULL FK→ActivityLogs(Id)",
+            "ResourceKey NVARCHAR(200) NOT NULL — translation key, e.g. 'activityLog.broadcast.created'",
+            "ResourceParameters NVARCHAR(MAX) NULL — JSON array of substitution values",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ],
+          "indexes": [
+            "IX_ActivityLogEntries_ActivityLogId NONCLUSTERED (ActivityLogId)",
+            "IX_ActivityLogEntries_ResourceKey_DateCreated NONCLUSTERED (ResourceKey, DateCreatedUtc DESC) — for compliance audit queries"
+          ]
+        },
+        {
+          "table": "ActivityLogTypes",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Name NVARCHAR(200) NOT NULL UNIQUE"
+          ],
+          "seed_values": ["Broadcast", "UserInvited", "UserDeleted", "WorkspaceCreated", "WorkspaceDeleted", "CapabilityAdded", "CapabilityRemoved", "TenantCreated", "ImportCompleted"],
+          "notes": "Extensible — domain features add their own types at startup."
+        }
+      ],
+      "interfaces": {
+        "IActivityLogService": [
+          "Task CreateLogAsync(string typeName, int objectId, string resourceKey, string[]? parameters = null)",
+          "Task CreateLogBatchAsync(IEnumerable<ActivityLogDto> entries)",
+          "Task<IReadOnlyList<ActivityLogReadModel>> GetLogsAsync(string typeName, int objectId, int languageId, int maxRecords = 50)"
+        ]
+      },
+      "behaviors": [
+        "Write: insert ActivityLog header (if not exists for typeName+objectId) → insert ActivityLogEntry row (ResourceKey + JSON parameters)",
+        "Read: load ActivityLog + entries → resolve ResourceKey via ILocalizationService.GetString(key, userLanguageId) → substitute parameters → return human-readable list",
+        "Batch write: single DB round-trip for bulk import completions"
+      ],
+      "rules": [
+        "ActivityLogEntries store ResourceKey ONLY — never a resolved string. Language is user preference at read time.",
+        "ActivityLogEntries are immutable once written. No update/delete.",
+        "IX_ActivityLogEntries_ResourceKey_DateCreated enables compliance audit: 'who deleted which user in this date range'.",
+        "ResourceKey names follow convention: 'activityLog.{entity}.{action}' — e.g. 'activityLog.user.deleted', 'activityLog.broadcast.approved'."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-13",
+      "name": "transactional_email",
+      "module": "CommunicationModule",
+      "build_order": 4,
+      "depends_on": ["CAP-09 (SMTP/SendGrid credentials)", "CAP-10 (localization for subject/body)", "CAP-11 (logging on failure)"],
+      "summary": "System-initiated emails: password reset, user invite, critical alerts. Separate code path from broadcast/delivery email. Must work even when delivery pipeline is down.",
+      "interfaces": {
+        "IEmailService": [
+          "Task SendAsync(string toEmail, string subject, string htmlBody, string? textBody = null)",
+          "Task SendPasswordResetAsync(string toEmail, string resetToken, int languageId)",
+          "Task SendInviteAsync(string toEmail, string inviteToken, string tenantName, int languageId)",
+          "Task SendFatalAlertAsync(string subject, string body)"
+        ]
+      },
+      "implementations": [
+        {
+          "name": "SendGridEmailService",
+          "condition": "AppSetting.SendGridApiKey is set",
+          "sends": "HTTP to SendGrid API"
+        },
+        {
+          "name": "SmtpEmailService",
+          "condition": "fallback if no SendGrid key",
+          "sends": "SMTP direct"
+        }
+      ],
+      "flows": [
+        {
+          "name": "Password reset email",
+          "template_keys": [
+            "email.passwordReset.subject",
+            "email.passwordReset.body — contains {{resetLink}} merge parameter"
+          ],
+          "steps": [
+            "Generate /set-password?token=<guid>&email=<email> link",
+            "GetString('email.passwordReset.subject', user.LanguageId)",
+            "GetString('email.passwordReset.body', user.LanguageId) → substitute {{resetLink}}",
+            "SendAsync(user.Email, subject, htmlBody)"
+          ]
+        }
+      ],
+      "rules": [
+        "Transactional email sends SYNCHRONOUSLY for fatal alerts — do not queue. Fatal alert must survive app restart.",
+        "All other transactional emails can be async (fire-and-forget with logging on failure).",
+        "Subject and body content come from LocaleStringResources — never hardcoded English strings.",
+        "Separate from broadcast email path: IEmailService vs IDeliveryService. Never share code.",
+        "Retry: 3 attempts with 1s delay. Log failure if all attempts fail. Never swallow silently."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-14",
+      "name": "background_jobs",
+      "module": "InfrastructureModule",
+      "build_order": 5,
+      "depends_on": ["CAP-02 (JobCurrentUser needs ICurrentUser interface)", "CAP-09 (app_settings for schedules)"],
+      "summary": "IHostedService workers for queue processing. Quartz.NET for cron scheduling. Azure Batch for large-scale jobs. JobCurrentUser for batch context.",
+      "db_tables": [
+        {
+          "table": "Jobs",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Name NVARCHAR(200) NOT NULL UNIQUE"
+          ],
+          "notes": "Seeded reference. One row per known job type."
+        },
+        {
+          "table": "JobTasks",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "JobId INT NOT NULL FK→Jobs(Id)",
+            "TenantId INT NULL",
+            "AzureJobId NVARCHAR(200) NULL",
+            "AzureTaskId NVARCHAR(200) NULL",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ]
+        },
+        {
+          "table": "JobTaskStatuses",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "JobTaskId INT NOT NULL FK→JobTasks(Id)",
+            "StatusCode NVARCHAR(100) NOT NULL — e.g. 'Queued', 'Running', 'Completed', 'Failed'",
+            "StatusMessage NVARCHAR(MAX) NULL",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ]
+        },
+        {
+          "table": "ClientEvents",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "EventKey NVARCHAR(200) NOT NULL — e.g. 'jobTask.status.changed'",
+            "Payload NVARCHAR(MAX) NULL — JSON",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ],
+          "notes": "Polled by ClientEventBackgroundService → pushed to browser via SSE. Short TTL (5-10 min)."
+        }
+      ],
+      "patterns": {
+        "JobCurrentUser": {
+          "description": "Implements ICurrentUser for non-HTTP execution contexts (batch jobs, background services). Populated from job metadata, not from JWT.",
+          "implementation": "class JobCurrentUser : ICurrentUser { public int UserId => jobContext.UserId; public int TenantId => jobContext.TenantId; ... }",
+          "registration": "Register in DI with Scoped lifetime within job execution scope.",
+          "critical_rule": "Every feature that uses ICurrentUser must work identically whether called from HTTP or batch context. Design features assuming either."
+        },
+        "IHostedService_pattern": {
+          "loop": "while (!cancellationToken.IsCancellationRequested) { await DoWorkAsync(); await Task.Delay(pollingInterval, cancellationToken); }",
+          "error_handling": "Catch all exceptions per iteration. Log and continue — never let an unhandled exception stop the service.",
+          "graceful_shutdown": "Respect cancellationToken on shutdown. Finish current item, do not start next."
+        }
+      },
+      "rules": [
+        "JobCurrentUser: same ICurrentUser interface, different population path. No special-casing in feature code.",
+        "IHostedService workers: per-server queue isolation. Web server 1 cannot push to web server 2's queue.",
+        "Time-sensitive items (pin codes, single sends) go in IHostedService queue. Bulk jobs go in Azure Batch.",
+        "Every job execution creates a JobTask + JobTaskStatus row for monitoring.",
+        "Background services must log start, completion, and errors via ISystemLogger."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-15",
+      "name": "health_monitoring",
+      "module": "ObservabilityModule",
+      "build_order": 1,
+      "depends_on": ["CAP-09 (read config)", "CAP-11 (log failures)"],
+      "summary": "Health endpoint for orchestrators + Azure Monitor / Application Insights. Non-authenticated.",
+      "api_endpoints": [
+        "GET /health — returns {status, version, db, cache, timestamp}. HTTP 200 = healthy, 503 = degraded/unhealthy",
+        "GET /health/detail (SuperAdmin only) — returns per-dependency status with latency"
+      ],
+      "checks": [
+        "Database connectivity: SELECT 1. Latency > 1000ms = degraded.",
+        "ApplicationSettings cache: cache loaded = healthy. Not loaded = degraded.",
+        "Blob storage connectivity (optional): GET container properties.",
+        "AppVersion: read from assembly version."
+      ],
+      "response_structure": {
+        "status": "healthy | degraded | unhealthy",
+        "version": "1.0.0",
+        "timestamp": "2026-04-04T12:00:00Z",
+        "checks": [
+          {"name": "database", "status": "healthy", "latencyMs": 5},
+          {"name": "cache", "status": "healthy"}
+        ]
+      },
+      "rules": [
+        "GET /health requires NO authentication. Load balancers and orchestrators call it.",
+        "Never return sensitive information (connection strings, API keys) in health response.",
+        "HTTP 200 = healthy or degraded (but still serving). HTTP 503 = unhealthy (remove from load balancer).",
+        "Azure Monitor alert: trigger on 2+ consecutive 503 responses within 5 minutes."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-16",
+      "name": "admin_ui_operations",
+      "module": "AdminModule",
+      "build_order": 6,
+      "depends_on": ["CAP-01 through CAP-07 (all identity + tenancy + auth)", "CAP-13 (transactional_email for invite)"],
+      "summary": "Multi-tier admin: SuperAdmin, TenantAdmin, WorkspaceAdmin. Tenant CRUD, user invite, workspace assignment, capability management, onboarding template clone.",
+      "operations": [
+        {
+          "tier": "SuperAdmin",
+          "operations": ["Create tenant", "Delete tenant", "View all tenants", "Impersonate user", "Reset any user lockout", "Manage locale string resources", "View system logs"],
+          "gate": "DoesUserHaveRole('SuperAdmin') AND ICurrentUser.TenantId in operatorTenantIds"
+        },
+        {
+          "tier": "TenantAdmin",
+          "operations": ["Invite users to tenant", "Remove users from tenant", "Create workspace", "Delete workspace", "Manage workspace capabilities", "View tenant users"],
+          "gate": "DoesUserHaveRole('ManageUsers') OR DoesUserHaveRole('ManageWorkspaces')"
+        },
+        {
+          "tier": "WorkspaceAdmin",
+          "operations": ["Add users to workspace", "Remove users from workspace", "View workspace members"],
+          "gate": "DoesUserHaveRole('ManageWorkspaces') AND CanUserAccessWorkspace()"
+        }
+      ],
+      "onboarding_clone": {
+        "name": "CloneWorkspaceTemplate",
+        "description": "Copy a template workspace (capability set + initial config) to a new customer at onboarding. Equivalent to sms-service's CloneProspectProductsToCustomer.",
+        "pattern": "Admin selects template workspace → system copies WorkspaceCapabilityMappings → optionally copies initial seed data"
+      },
+      "rules": [
+        "Admin operations are blocked in FOUNDATION_BUILD_PLAN.json until SLICE-006 passes — circular dependency on identity_access write path.",
+        "Impersonation: SuperAdmin only. Logs ImpersonatingUserId in ActivityLog. JWT carries ImpersonateFromUserId.",
+        "All admin mutations create ActivityLog entries."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-17",
+      "name": "file_storage_abstraction",
+      "module": "ConfigurationModule",
+      "build_order": 4,
+      "depends_on": ["CAP-09 (blob connection string)"],
+      "summary": "IBlobStorageService over Azure Blob Storage. Typed container name constants. Upload, download, delete, SAS URL generation.",
+      "db_tables": [
+        {
+          "table": "FileTypes",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "Name NVARCHAR(50) NOT NULL UNIQUE — e.g. 'csv', 'xlsx', 'png', 'pdf'",
+            "MimeType NVARCHAR(100) NOT NULL",
+            "MaxFileSizeMb INT NOT NULL DEFAULT 10"
+          ],
+          "notes": "Allowlist of accepted file types. FileTypeIdFromExtension(ext) returns null = reject upload."
+        }
+      ],
+      "interfaces": {
+        "IBlobStorageService": [
+          "Task<string> UploadAsync(string containerName, string blobName, Stream content, string contentType)",
+          "Task<Stream> DownloadAsync(string containerName, string blobName)",
+          "Task DeleteAsync(string containerName, string blobName)",
+          "Task<string> GetSasUrlAsync(string containerName, string blobName, TimeSpan ttl)",
+          "Task<bool> ExistsAsync(string containerName, string blobName)"
+        ]
+      },
+      "container_constants": {
+        "class": "BlobContainers (static)",
+        "constants": [
+          "Logos = 'logos'",
+          "Imports = 'imports'",
+          "ErrorLogs = 'errorlogs'",
+          "Certificates = 'certificates'"
+        ],
+        "rule": "Container names are constants — never magic strings in feature code."
+      },
+      "rules": [
+        "Never call Azure.Storage.Blobs SDK directly in feature code — always use IBlobStorageService.",
+        "Upload validation: check file extension against FileTypes allowlist BEFORE calling IBlobStorageService.UploadAsync.",
+        "SAS URL TTL should be short (15-60 min) for file downloads.",
+        "Error log blobs: write critical failure details to BlobContainers.ErrorLogs when DB write fails."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-18",
+      "name": "real_time_push",
+      "module": "InfrastructureModule",
+      "build_order": 6,
+      "depends_on": ["CAP-14 (background_jobs for ClientEventBackgroundService)", "CAP-02 (ICurrentUser for subscription auth)"],
+      "summary": "Server-Sent Events (SSE) for pushing background job status to browser. ClientEvents table polled by IHostedService. Simpler than WebSocket for one-way push.",
+      "pattern": {
+        "flow": [
+          "Background service updates job status → inserts ClientEvents row",
+          "ClientEventBackgroundService polls ClientEvents table every 1-2 sec",
+          "For each new event: send to subscribed SSE clients matching EventKey filter",
+          "Client receives event → updates UI without polling REST endpoint"
+        ],
+        "library": "Lib.AspNetCore.ServerSentEvents NuGet",
+        "subscription_endpoint": "GET /api/events/stream (authenticated)",
+        "event_format": "data: {eventKey, payload}\\n\\n"
+      },
+      "rules": [
+        "SSE is one-directional: server → client. Use WebSocket only if bidirectional is needed.",
+        "ClientEvents rows have short TTL (10-15 min). Cleaned up by background job.",
+        "Client reconnects automatically on disconnect (SSE spec behavior).",
+        "Authentication: SSE endpoint requires valid JWT. Send token as query param or Authorization header."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-19",
+      "name": "contact_lists",
+      "module": "EngagementModule",
+      "build_order": 7,
+      "depends_on": ["CAP-05 (workspace_scoping)", "CAP-07 (permission_service)"],
+      "summary": "Named, workspace-scoped lists of external contacts. Groups for collective addressing. Expanded to individual contacts at use-time. Optional SCIM sync.",
+      "db_tables": [
+        {
+          "table": "ContactLists",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "WorkspaceId INT NOT NULL FK→Workspaces(Id)",
+            "Name NVARCHAR(200) NOT NULL",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ]
+        },
+        {
+          "table": "Contacts",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "ContactListId INT NOT NULL FK→ContactLists(Id)",
+            "Name NVARCHAR(200) NULL",
+            "Phone NVARCHAR(50) NULL — E.164 format",
+            "Email NVARCHAR(200) NULL",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ]
+        }
+      ],
+      "rules": [
+        "ContactLists are per workspace. One workspace does not see another workspace's lists.",
+        "Phone validation at add-time: E.164 format required if phone is set.",
+        "Contact list expansion (resolve group to individuals) happens AT USE TIME — not when the list is saved.",
+        "Capability gate: WorkspaceCapability 'ContactLists' must be enabled.",
+        "SCIM sync: if TenantSamlSettings.ScimTokenHash is set → accept SCIM User push → sync to Contacts."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-20",
+      "name": "message_templates",
+      "module": "EngagementModule",
+      "build_order": 7,
+      "depends_on": ["CAP-05 (workspace_scoping)", "CAP-10 (localization for UI labels)"],
+      "summary": "Workspace-scoped parameterized message templates with merge fields {{key}}. Per-channel variants (text, HTML). Template engine must be chosen before implementation.",
+      "db_tables": [
+        {
+          "table": "MessageTemplates",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "WorkspaceId INT NOT NULL FK→Workspaces(Id)",
+            "Name NVARCHAR(200) NOT NULL",
+            "Channel NVARCHAR(50) NOT NULL — 'sms', 'email', 'voice'",
+            "Subject NVARCHAR(500) NULL — for email channel",
+            "Body NVARCHAR(MAX) NOT NULL",
+            "BodyHtml NVARCHAR(MAX) NULL — for email channel",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "DateLastUpdatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ]
+        },
+        {
+          "table": "TemplateAttachments",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "MessageTemplateId INT NOT NULL FK→MessageTemplates(Id)",
+            "FileName NVARCHAR(300) NOT NULL",
+            "BlobPath NVARCHAR(500) NOT NULL",
+            "ContentType NVARCHAR(100) NOT NULL"
+          ]
+        }
+      ],
+      "template_engine_decision": {
+        "options": [
+          {"name": "Simple {{key}} substitution", "pros": "Zero dependencies, easy to understand, safe", "cons": "No conditionals, no loops"},
+          {"name": "Scriban", "pros": "Powerful, .NET native, safe sandboxed execution", "cons": "Learning curve, more complex"},
+          {"name": "Handlebars.Net", "pros": "Well-known format, supports helpers", "cons": "Extra dependency"}
+        ],
+        "recommendation": "Simple {{key}} substitution for v1. Scriban if conditional logic in templates is required.",
+        "decision_rule": "Choose ONE engine before writing first template. Document in ai-governance decision registry."
+      },
+      "rules": [
+        "Template bodies are workspace-owned — one workspace does not see another's templates.",
+        "Merge field keys are defined in a MergeFieldNames static class — never magic strings.",
+        "Template rendering happens at SEND TIME — not at creation time.",
+        "Attachments are stored in Azure Blob (CAP-17). Template stores only the blob path reference."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-21",
+      "name": "bulk_import",
+      "module": "DeveloperSurfaceModule",
+      "build_order": 7,
+      "depends_on": ["CAP-17 (file_storage)", "CAP-14 (background_jobs for processing)", "CAP-05 (workspace_scoping)"],
+      "summary": "File upload (CSV/XLSX) → validate → configurable column mappings → background processing. SavedImportConfiguration for reuse.",
+      "db_tables": [
+        {
+          "table": "ImportConfigurations",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "WorkspaceId INT NOT NULL FK→Workspaces(Id)",
+            "Name NVARCHAR(200) NOT NULL",
+            "ImportType NVARCHAR(100) NOT NULL — e.g. 'Contacts', 'PositiveList'",
+            "ColumnMappings NVARCHAR(MAX) NOT NULL — JSON: [{sourceColumn, targetField}]",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ]
+        },
+        {
+          "table": "ImportJobs",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "WorkspaceId INT NOT NULL FK→Workspaces(Id)",
+            "ImportConfigurationId INT NULL FK→ImportConfigurations(Id)",
+            "BlobPath NVARCHAR(500) NOT NULL",
+            "FileName NVARCHAR(300) NOT NULL",
+            "Status NVARCHAR(50) NOT NULL DEFAULT 'Pending'",
+            "TotalRows INT NULL",
+            "ProcessedRows INT NULL",
+            "ErrorRows INT NULL",
+            "ErrorDetails NVARCHAR(MAX) NULL — JSON array of {row, error}",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "DateCompletedUtc DATETIME NULL"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "Bulk import",
+          "steps": [
+            "POST /api/import/upload {file, importType, configurationId?}",
+            "Validate file: extension in FileTypes allowlist, size < MaxImportFileSizeMb",
+            "Upload to BlobContainers.Imports",
+            "Create ImportJob record (Status=Pending)",
+            "Enqueue background job to process",
+            "Return {importJobId} — HTTP 202 Accepted",
+            "Background job: download file from blob, parse rows, validate, insert domain records",
+            "On completion: update ImportJob.Status=Completed, write ActivityLog entry",
+            "Client polls GET /api/import/{importJobId} or receives SSE event on completion"
+          ]
+        }
+      ],
+      "rules": [
+        "Import always runs in background — never block the HTTP request for large files.",
+        "Row errors should NOT fail the entire import — record error rows and continue.",
+        "ActivityLog entry on completion: 'Import of {N} contacts completed. {E} errors.'",
+        "ImportConfigurations allow non-technical users to save their column mapping for reuse."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-22",
+      "name": "webhook_delivery",
+      "module": "DeveloperSurfaceModule",
+      "build_order": 8,
+      "depends_on": ["CAP-05 (workspace_scoping)", "CAP-14 (background_jobs for retry)"],
+      "summary": "Workspace registers outbound webhook URL. System delivers events via HTTP POST with exponential retry and delivery log.",
+      "db_tables": [
+        {
+          "table": "WebhookSubscriptions",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "WorkspaceId INT NOT NULL FK→Workspaces(Id)",
+            "Url NVARCHAR(1000) NOT NULL",
+            "EventTypes NVARCHAR(MAX) NOT NULL — JSON array of event names, e.g. ['broadcast.completed', 'import.completed']",
+            "SecretHash NVARCHAR(500) NOT NULL — HMAC-SHA256 signature key hash",
+            "IsActive BIT NOT NULL DEFAULT 1",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ]
+        },
+        {
+          "table": "WebhookDeliveryAttempts",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "WebhookSubscriptionId INT NOT NULL FK→WebhookSubscriptions(Id)",
+            "EventType NVARCHAR(200) NOT NULL",
+            "Payload NVARCHAR(MAX) NOT NULL",
+            "StatusCode INT NULL",
+            "ResponseBody NVARCHAR(MAX) NULL",
+            "AttemptNumber INT NOT NULL DEFAULT 1",
+            "DateAttemptedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "Success BIT NOT NULL DEFAULT 0"
+          ]
+        }
+      ],
+      "rules": [
+        "Webhook payload must be signed: HMAC-SHA256(payload, secret). Client verifies signature.",
+        "Retry: exponential backoff. Attempts: 1, 5, 30, 120, 480 minutes. After 5 failures: mark subscription inactive.",
+        "Delivery attempt log: keeps all attempts for debugging.",
+        "Secret stored as hash — never expose raw secret after registration.",
+        "Capability gate: WorkspaceCapability 'Webhooks' must be enabled."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-23",
+      "name": "public_api",
+      "module": "DeveloperSurfaceModule",
+      "build_order": 8,
+      "depends_on": ["CAP-05 (workspace_scoping)", "CAP-07 (permission_service)"],
+      "summary": "Workspace-scoped API keys (hash stored, plaintext returned once). Versioned REST API. Capability gate: 'PublicApi' workspace capability.",
+      "db_tables": [
+        {
+          "table": "WorkspaceApiKeys",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "WorkspaceId INT NOT NULL FK→Workspaces(Id)",
+            "KeyHash NVARCHAR(500) NOT NULL — SHA256(key). NEVER store plaintext.",
+            "KeyPrefix NVARCHAR(10) NOT NULL — first 6 chars of key for display (e.g. 'sk_liv_')",
+            "Name NVARCHAR(200) NOT NULL — admin-assigned label",
+            "IsActive BIT NOT NULL DEFAULT 1",
+            "LastUsedUtc DATETIME NULL",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()",
+            "DateRevokedUtc DATETIME NULL"
+          ]
+        }
+      ],
+      "api_versioning": {
+        "strategy": "URL prefix: /api/v1/",
+        "note": "Define from day 1. Adding /v2/ later is cheap; retrofitting versioning to unversioned URLs is expensive."
+      },
+      "rules": [
+        "API key: generate as 'sk_live_' + 32-random-chars. Store SHA256(key). NEVER store plaintext.",
+        "Return plaintext key EXACTLY ONCE at creation. Display KeyPrefix only for identification thereafter.",
+        "API key auth: Authorization: Bearer <key>. Extract WorkspaceId from DB lookup.",
+        "Capability gate: WorkspaceCapability 'PublicApi' required.",
+        "Rate limiting: configure per workspace, start at 100 req/min."
+      ],
+      "not_to_copy": [
+        "sms-service ProfileApiKeys stores key plaintext — security vulnerability (ANTI-04)"
+      ]
+    },
+
+    {
+      "cap_id": "CAP-24",
+      "name": "consent_management",
+      "module": "EngagementModule",
+      "build_order": 7,
+      "depends_on": ["CAP-05 (workspace_scoping)", "CAP-14 (background_jobs for batch filter)"],
+      "summary": "Opt-in list management for outbound messaging. Filter chain: consent check → duplicate removal → restriction check. Filtered records preserved with reason for compliance.",
+      "db_tables": [
+        {
+          "table": "ConsentLists",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "WorkspaceId INT NOT NULL FK→Workspaces(Id)",
+            "Name NVARCHAR(200) NOT NULL",
+            "DateCreatedUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ]
+        },
+        {
+          "table": "ConsentEntries",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "ConsentListId INT NOT NULL FK→ConsentLists(Id)",
+            "Identifier NVARCHAR(200) NOT NULL — phone, email, or custom reference",
+            "IdentifierType NVARCHAR(50) NOT NULL — 'phone', 'email', 'custom'",
+            "DateConsentedUtc DATETIME NOT NULL",
+            "ConsentSource NVARCHAR(200) NULL — how they consented (web form, import, etc.)"
+          ]
+        },
+        {
+          "table": "FilteredRecipients",
+          "columns": [
+            "Id INT IDENTITY(1,1) PK",
+            "BroadcastId INT NOT NULL",
+            "WorkspaceId INT NOT NULL",
+            "Identifier NVARCHAR(200) NOT NULL",
+            "FilterReason NVARCHAR(100) NOT NULL — typed enum: 'NotInConsentList', 'Duplicate', 'OutsideScope', 'NationalOptOut'",
+            "DateFilteredUtc DATETIME NOT NULL DEFAULT GETUTCDATE()"
+          ],
+          "notes": "Compliance artifact. Must not be deleted within GDPR retention period."
+        }
+      ],
+      "rules": [
+        "Filter chain is ordered: 1) National opt-out (KRR etc.), 2) Consent list gate (if enabled), 3) Duplicate, 4) Scope restriction.",
+        "FilterReason is a typed string constant — never free-text. Compliance audit must be able to query by reason.",
+        "FilteredRecipients are immutable once written.",
+        "Capability gate: WorkspaceCapability 'ConsentManagement' enables consent list enforcement."
+      ]
+    },
+
+    {
+      "cap_id": "CAP-25",
+      "name": "data_retention",
+      "module": "InfrastructureModule",
+      "build_order": 6,
+      "depends_on": ["CAP-04 (TenantId for per-tenant retention config)", "CAP-14 (background_jobs for cleanup batch)"],
+      "summary": "Per-tenant configurable data retention periods. Background batch job deletes old records. C# only — no stored procedures. GDPR compliance.",
+      "db_tables": [
+        {
+          "table": "Tenants",
+          "added_columns": [
+            "MonthsToRetainDeliveryData INT NOT NULL DEFAULT 60 — overrides system default per tenant",
+            "MonthsToRetainLogs INT NOT NULL DEFAULT 12"
+          ]
+        }
+      ],
+      "behaviors": [
+        "CleanupJob runs on schedule (daily/weekly). For each tenant: DELETE FROM DeliveryRecords WHERE DateCreatedUtc < DATEADD(MONTH, -Tenant.MonthsToRetainDeliveryData, GETUTCDATE()).",
+        "Log retention: DELETE FROM Logs WHERE DateCreatedUtc < DATEADD(MONTH, -Tenant.MonthsToRetainLogs, GETUTCDATE()).",
+        "Request logs: shorter retention (e.g. 30 days).",
+        "FilteredRecipients: retain for compliance period (cannot delete until GDPR erasure request)."
+      ],
+      "rules": [
+        "C# only — NO stored procedures. Must be debuggable and auditable.",
+        "Cleanup job logs: ActivityLog entry per tenant per run: 'Deleted N delivery records for tenant X'.",
+        "Soft-deleted entities: same retention rules apply to Deleted=true rows.",
+        "GDPR erasure request overrides retention — user erasure must include all tables with UserId.",
+        "Test in staging: run cleanup with DRY_RUN=true flag that logs what WOULD be deleted without deleting."
+      ]
+    }
+
+  ],
+
+  "build_order_summary": {
+    "description": "Which capabilities can be built in parallel (same order) vs which must wait.",
+    "order_1_no_dependencies": ["CAP-09 app_settings", "CAP-11 structured_logging (stub)", "CAP-04 multi_tenancy (schema only)", "CAP-05 workspace_scoping (schema only)", "CAP-06 RBAC (schema only)", "CAP-15 health_monitoring"],
+    "order_2_after_schema": ["CAP-01 authentication", "CAP-07 permission_service"],
+    "order_3_after_login": ["CAP-02 session_management (CurrentUserMiddleware)", "CAP-03 user_management"],
+    "order_4_after_middleware": ["CAP-10 localization", "CAP-13 transactional_email", "CAP-17 file_storage_abstraction"],
+    "order_5_after_foundations": ["CAP-12 audit_trail", "CAP-14 background_jobs", "CAP-23_public_api_keys"],
+    "order_6_features": ["CAP-16 admin_ui_operations", "CAP-18 real_time_push", "CAP-25 data_retention"],
+    "order_7_engagement": ["CAP-19 contact_lists", "CAP-20 message_templates", "CAP-21 bulk_import", "CAP-22 webhook_delivery", "CAP-24 consent_management"],
+    "order_8_advanced_auth": ["CAP-08 federated_authentication (SAML2, SCIM, Azure AD)"],
+    "golden_core_minimum": ["CAP-09", "CAP-11", "CAP-04", "CAP-05", "CAP-06", "CAP-15", "CAP-01", "CAP-07", "CAP-02", "CAP-10", "CAP-13"],
+    "golden_core_note": "These 11 capabilities constitute the minimal viable portal. A developer can log in, see their workspace, and the system is ready for the first domain feature."
+  }
+}

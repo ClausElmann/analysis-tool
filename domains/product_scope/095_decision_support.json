@@ -1,0 +1,53 @@
+{
+  "_meta": {
+    "type": "decision_support",
+    "source": "docs/PORTAL_FOUNDATION_EXTRACTION.json",
+    "method": "Cross-Domain Foundation Extractor (5-step)",
+    "created": "2026-04-04",
+    "summary": "Full analysis available in docs/PORTAL_FOUNDATION_EXTRACTION.json. This file contains the distilled decision-relevant output only."
+  },
+  "domain_classification_counts": {
+    "GENERIC": 12,
+    "HYBRID": 11,
+    "DOMAIN_SPECIFIC": 14,
+    "total_analyzed": 37
+  },
+  "generic_domains": ["identity_access", "system_configuration", "localization", "logging", "activity_log", "customer_management", "email", "job_management", "customer_administration", "monitoring", "client_events", "user_nudging"],
+  "hybrid_domains": ["profile_management", "standard_receivers", "templates", "positive_list", "data_import", "webhook", "integrations", "statistics", "subscription", "web_messages", "gdpr_compliance"],
+  "domain_specific_domains": ["sms_group", "delivery", "address_management", "lookup", "voice", "eboks_integration", "conversation", "phone_numbers", "enrollment", "people", "finance", "benchmark", "pipeline_crm", "pipeline_sales"],
+  "platform_layer_boundary": "Reusability > 0.75 = platform layer. < 0.40 = sms-service product. 0.40-0.75 = bridge (concept reusable, implementation not).",
+  "foundation_modules_count": 9,
+  "foundation_modules_ordered": [
+    "ConfigurationModule (build_order:1)",
+    "ObservabilityModule (build_order:2)",
+    "IdentityModule (build_order:3)",
+    "TenancyModule (build_order:4)",
+    "AuthorizationModule (build_order:5)",
+    "LocalizationModule (build_order:6)",
+    "CommunicationModule (build_order:7)",
+    "InfrastructureModule (build_order:8)",
+    "AdminModule (build_order:9)",
+    "DeveloperSurfaceModule (build_order:10)",
+    "EngagementModule (build_order:10)"
+  ],
+  "minimal_portal_table_count": 14,
+  "minimal_portal_endpoint_count": 10,
+  "top_reusable_domains": [
+    {"domain": "localization", "score": 0.95},
+    {"domain": "identity_access", "score": 0.92},
+    {"domain": "monitoring", "score": 0.90},
+    {"domain": "system_configuration", "score": 0.88},
+    {"domain": "activity_log", "score": 0.88},
+    {"domain": "logging", "score": 0.85},
+    {"domain": "client_events", "score": 0.80},
+    {"domain": "email", "score": 0.80}
+  ],
+  "critical_decisions": [
+    "Tenant + Workspace partition key design must be settled before ANY feature table is created",
+    "Single ICurrentUser middleware — HARD RULE, no exceptions (ANTI-06)",
+    "Argon2id password hashing from day 1 — no SHA256",
+    "API key hash-not-store from day 1 (ANTI-04)",
+    "profile_management concept (workspace+capability flags) is reusable; the 63 ProfileRoleNames are NOT — re-derive from first principles"
+  ],
+  "synthesis_key_insight": "Top 10 reusable domains independently confirm FOUNDATION_BUILD_PLAN.json phase 1 selection. The foundation plan is correctly identifying the platform layer."
+}

@@ -1,0 +1,475 @@
+{
+  "_meta": {
+    "title": "Product Capability Map — sms-service → green-ai conceptual mapping",
+    "created": "2026-04-04",
+    "purpose": "What sms-service does as a product, organized by user value not implementation. Each capability listed is something green-ai must understand conceptually before building. Nothing here is to be copied — it is to be RE-DESIGNED with intent.",
+    "source_analysis": "37 domains scanned. 11622 DevOps items. 30+ wiki pages. 2 PDFs. 100 git commits.",
+    "companion_documents": [
+      "docs/FOUNDATION_BUILD_PLAN.json — what to build first (slices SLICE-001 through SLICE-006)",
+      "docs/IDENTITY_ACCESS_CORE_FOUNDATION.md — identity model LOCKED 2026-04-01"
+    ],
+    "reading_guide": "green_ai_relevance values: DIRECT (same concept, needs green-ai design), ADAPTED (same need, different design decision needed), DEFERRED (not in first 3 phases), NOT_NEEDED (sms-service-specific, no analog in green-ai)"
+  },
+
+  "core_product_loop": {
+    "description": "The fundamental thing sms-service does, expressed in one sentence: A utility company or public authority targets a geographic/organizational scope, resolves who lives or works there, and sends each of them a tailored notification through the channel best suited to reach them.",
+    "key_insight": "sms-service is NOT a generic messaging platform. It is an address-driven, owner-resolved, channel-routed notification system. The address lookup → owner identification → message delivery chain is the product. Everything else is either a prerequisite for this chain or a report on its outcome.",
+    "chain": [
+      "1. Define scope: address list, address group, or subscriber list",
+      "2. Resolve recipients: who owns/lives at those addresses? (lookup, KRR, CPR, CVR)",
+      "3. Filter: opted-out? reserved? duplicate? outside positive list?",
+      "4. Route: which channel for each recipient? (SMS, Email, Voice, E-boks, Web)",
+      "5. Deliver: send via carrier. Retry on failure.",
+      "6. Track: status per recipient, aggregate statistics per broadcast"
+    ]
+  },
+
+  "product_areas": [
+    {
+      "area": "Broadcast / Campaign",
+      "green_ai_relevance": "DIRECT",
+      "analysis_domain_scores": { "sms_group": 0.84, "messaging": 0.47 },
+      "what_it_is": "A Broadcast (called SmsGroup in sms-service) is the unit of work: targeting criteria + message text + delivery settings. Operators create one broadcast to reach many recipients. The same broadcast can be sent to phone, email, voice, and digital post simultaneously.",
+      "key_concepts": [
+        "SmsGroup (broadcast) = targeting scope + message + send-time",
+        "SmsLog = one per recipient per broadcast — individual delivery record",
+        "SmsLogStatus = Queued / Sending / Sent / Failed / Rejected / Filtered",
+        "Multi-channel arm: each channel (SMS/Email/Voice/Eboks) is a parallel delivery path for the same broadcast",
+        "Test mode: sends only to a designated test number (controlled by AlwaysTestMode ProfileRole)",
+        "Address restriction: profile-level filter — operator cannot send outside their permitted address scope",
+        "Merge fields: {{name}}, {{address}} substituted from recipient data at send time"
+      ],
+      "green_ai_design_decisions": [
+        "What is the green-ai equivalent of SmsGroup? (Campaign? Notification? Dispatch?)",
+        "Is multi-channel a first-class concept or a per-message routing decision?",
+        "How are merge fields resolved — template engine or simple key-value substitution?",
+        "TestMode: profile-level flag or per-broadcast flag?"
+      ],
+      "NOT_to_copy": "SmsGroup naming, StoredProcedure-heavy send path, duplicated status tables per channel"
+    },
+    {
+      "area": "Address Management",
+      "green_ai_relevance": "ADAPTED",
+      "analysis_domain_scores": { "address_management": 0.58 },
+      "what_it_is": "sms-service maintains its own copy of Nordic address registers (Danish BBR/OIS, Norwegian Matrikkelen). Addresses are imported nightly from official sources and normalized into a hierarchy: Municipality → Street → Address. This local copy powers both targeting (select all addresses in municipality X) and validation (is this a real, current address?).",
+      "key_concepts": [
+        "Address hierarchy: Country / Region / Municipality / Street / Address (KVHX in DK)",
+        "Import pipeline: external feed → normalize → diff → upsert into Addresses table",
+        "KVHX = Danish address reference standard (KommuneKode + VejKode + HusNummer + etage/side)",
+        "AddressImportKvhxLogs = audit trail of import runs and affected records",
+        "AddressCorrections = post-import corrections from official errata feeds",
+        "Profile-level address restrictions: a profile is ALLOWED a subset of addresses"
+      ],
+      "green_ai_design_decisions": [
+        "Does green-ai maintain its own address copy or query external APIs on demand?",
+        "What countries are in scope for green-ai v1? (affects import pipeline complexity enormously)",
+        "Address restriction model: list of allowed KVHX ranges? geo-polygon? municipality IDs?",
+        "Nightly import is a batch job — does green-ai use Azure Batch, Azure Function, or cron?"
+      ],
+      "NOT_to_copy": "KVHX string format hardcoded throughout, AddressImportKvhxLog SP naming conventions, tight coupling between address import and SmsLog table"
+    },
+    {
+      "area": "Owner / Recipient Lookup",
+      "green_ai_relevance": "ADAPTED",
+      "analysis_domain_scores": { "lookup": 0.54, "recipient_management": 0.52 },
+      "what_it_is": "For each address in a broadcast scope, sms-service resolves who currently lives or works there. This is the most country-specific part of the system. Different countries use different registries. The result is a set of phone numbers and/or email addresses to deliver to.",
+      "key_concepts": [
+        "CPR lookup (Denmark): resident by CPR number → phone from CVR/KRR cross-reference",
+        "CVR lookup (Denmark): company address → contact phone",
+        "NFS lookup (Norway): national property/resident registry",
+        "KRR lookup (Norway): Kontakt- og Reservasjonsregisteret — digital contact preference + opt-out",
+        "KRR filter (NorwayKRRLookup ProfileRole): people who have reserved MUST be skipped",
+        "AttachPhone / AttachEmail / AttachEboks = resolution strategies, run in priority order",
+        "LookupOwnerSubscriptionsCommand: resolve owner AND check their subscription status at once"
+      ],
+      "green_ai_design_decisions": [
+        "Lookup is the most legally sensitive part — GDPR, consent laws differ per country",
+        "External API dependencies: KRR, NFS, CPR have SLAs, rate limits, costs",
+        "Resolution strategy: what order do we try channels? who decides the priority?",
+        "NorwayKRRLookup must be gated behind ProfileRole — not all operators are authorized to do it"
+      ],
+      "NOT_to_copy": "Country-specific lookup code mixed into generic MessageService, hard-coded priority order, no circuit breaker pattern on external API calls"
+    },
+    {
+      "area": "Filtering / Compliance",
+      "green_ai_relevance": "DIRECT",
+      "analysis_domain_scores": { "positive_list": 0.48 },
+      "what_it_is": "Before delivery, each resolved recipient passes through a filter chain. This ensures legal compliance (respect reservations, honor opt-outs), data quality (remove duplicates), and contract constraints (positive list = only send to people who opted in).",
+      "key_concepts": [
+        "KRR filter: reserved in national registry → remove from list (mandatory for NorwayKRRLookup customers)",
+        "Positive list: profile has opted-in list → ONLY send to people on that list",
+        "Duplicate filter: same phone/email in same broadcast → send only once",
+        "Address restriction filter: recipient addresses outside allowed scope → skip",
+        "Email2SMS whitelist: which email senders are allowed to trigger SMS via email gateway",
+        "RejectedSmsLog: record why a recipient was filtered (audit, compliance reporting)"
+      ],
+      "green_ai_design_decisions": [
+        "Filter chain design: pipeline or explicit steps? what is the order?",
+        "Positive list import: CSV from customer or API sync?",
+        "RejectedSmsLog: store filter reason as enum or free-text? affects GDPR erasure complexity",
+        "Email2SMS whitelist: is this a green-ai v1 feature or a later extension?"
+      ],
+      "NOT_to_copy": "Positive list stored as flat address table without index, filter logic scattered across multiple stored procedures"
+    },
+    {
+      "area": "Delivery / Channel Routing",
+      "green_ai_relevance": "DIRECT",
+      "analysis_domain_scores": { "delivery": 0.84, "email": 0.91, "voice": 0.54, "eboks_integration": 0.88 },
+      "what_it_is": "SmsLog entries in status Queued are picked up by background services and routed to the correct carrier. Each channel has its own service, its own carrier API, and its own retry/status-tracking logic.",
+      "channels": {
+        "SMS": {
+          "carrier": "GatewayAPI (Denmark + others)",
+          "background_service": "SmsBackgroundService (IHostedService)",
+          "retry": "exponential backoff, max 3 attempts",
+          "status_callback": "GatewayAPI webhook → update SmsLogStatus",
+          "profile_role": "no special role — base capability",
+          "carrier_format": "E.164 phone number required"
+        },
+        "Email": {
+          "carrier": "SendGrid",
+          "background_service": "SendGridBackgroundService (IHostedService)",
+          "note": "Distinct from SmsLog-email — system emails (password reset etc.) also use SendGrid but bypass the SmsLog table",
+          "profile_role": "no special role — base capability",
+          "status_callback": "SendGrid inbound webhook"
+        },
+        "Voice": {
+          "carrier": "Infobip",
+          "background_service": "VoiceBackgroundService (IHostedService)",
+          "note": "Scenario-based — operator defines a pre-recorded or TTS message flow",
+          "profile_role": "CanSendByVoice",
+          "status_callback": "Infobip webhook"
+        },
+        "E-boks": {
+          "carrier": "e-Boks digital post API (Denmark only)",
+          "note": "Sends to citizen's digital mailbox via CPR/CVR. EboksAmplify variant uses CPR lookup.",
+          "profile_role": "CanSendByEboks",
+          "status_callback": "E-boks status callback"
+        },
+        "LocationAlert": {
+          "note": "Norway only. Push notification via LocationAlert app. Profile with CanSendByLocationAlert. NOT a standard carrier — SSO integration required first (see FOUNDATION_BUILD_PLAN.json do_not_build_yet).",
+          "profile_role": "CanSendByLocationAlert"
+        }
+      },
+      "green_ai_design_decisions": [
+        "Which channels are in scope for green-ai v1? (SMS + Email is the minimum viable product)",
+        "Background service vs Azure Function vs Hangfire for delivery?",
+        "Dead-letter pattern for permanently failed messages?",
+        "Carrier abstraction: single ICarrierService<T> or per-channel services?"
+      ],
+      "NOT_to_copy": "Direct Infobip SDK calls in VoiceBackgroundService (no abstraction layer), Email2SMS gateway architecture, SmsLog and EmailMessage as separate tables when they are the same concept"
+    },
+    {
+      "area": "Message Templates",
+      "green_ai_relevance": "DIRECT",
+      "analysis_domain_scores": { "templates": 0.37 },
+      "what_it_is": "Operators save reusable message templates with merge field placeholders. Templates can be per-channel (SMS template, Email template with HTML, E-boks template). QuickResponse templates trigger automated responses when recipients reply to an SMS.",
+      "key_concepts": [
+        "MessageTemplate: name + body text + merge field definitions, scoped to Profile",
+        "EmailTemplate: subject + HTML body + text fallback + attachments",
+        "EboksTemplate: formal structure required by E-boks API",
+        "QuickResponse: inbound SMS keyword → auto-reply template triggered",
+        "TemplateAttachment: file stored in Azure Blob, referenced by template"
+      ],
+      "green_ai_design_decisions": [
+        "Template engine: Handlebars? Scriban? Simple {{field}} substitution?",
+        "Are attachments part of the template or added per-broadcast?",
+        "QuickResponse / auto-reply: in green-ai v1 or later?"
+      ],
+      "NOT_to_copy": "Template entities stored across 4 tables with no common FK, QuickResponse logic mixed into SmsLog processing"
+    },
+    {
+      "area": "Recipient Lists (Standard Receivers)",
+      "green_ai_relevance": "DIRECT",
+      "analysis_domain_scores": { "standard_receivers": 0.84, "recipient_management": 0.52 },
+      "what_it_is": "Pre-defined, profile-scoped lists of phone numbers. Operators maintain groups of people (employees, on-call teams, stakeholders) who should receive certain broadcasts. Can be synced from HR/AD systems via SCIM.",
+      "key_concepts": [
+        "StandardReceiver: phone number + optional name, scoped to Profile",
+        "StdReceiverGroup: named list of receivers, also Profile-scoped",
+        "ProfileToStandardReceiverMappings: which profiles use which groups",
+        "ExpandStandardReceiverGroupCommand: resolves group → individual phone numbers at send time",
+        "SCIM 2.0 inbound sync: HR system pushes user changes → update StandardReceiver records",
+        "Phone number validation at add-time"
+      ],
+      "green_ai_design_decisions": [
+        "Is SCIM sync green-ai v1 or v2?",
+        "Are recipient lists per-profile or per-customer? (sms-service: per-profile)",
+        "Distribution numbers (AssignStandardReceiverGroupDistributionPhoneNumber) — needed in green-ai?"
+      ],
+      "NOT_to_copy": "SP-heavy expansion logic, parallel StdReceiverGroup and StandardReceiver tables with no clear hierarchy"
+    },
+    {
+      "area": "Two-Way Communication (Conversation)",
+      "green_ai_relevance": "DEFERRED",
+      "analysis_domain_scores": { "conversation": 0.54 },
+      "what_it_is": "When a recipient replies to an SMS, the inbound message is matched to a phone number assigned to a profile. An operator can then see the thread and reply. SSE pushes updates to the UI in real time.",
+      "key_concepts": [
+        "ConversationPhoneNumber: profile owns a dedicated inbound number",
+        "Conversation: thread per phone-number pair",
+        "ConversationMessage: one per inbound or outbound message in a thread",
+        "SSE (Server-Sent Events): ClientEventBackgroundService pushes new messages to browser",
+        "ProfileRole: SmsConversations must be enabled"
+      ],
+      "green_ai_design_decisions": [
+        "Does green-ai v1 need two-way SMS? (high carrier cost — dedicated numbers per customer)",
+        "SSE vs WebSocket vs SignalR for real-time?"
+      ],
+      "NOT_to_copy": "ConversationMessage and SmsLog as separate tables with overlapping status tracking"
+    },
+    {
+      "area": "Citizen Subscriptions",
+      "green_ai_relevance": "DEFERRED",
+      "analysis_domain_scores": { "subscription": 0.58, "enrollment": 0.54 },
+      "what_it_is": "Citizens subscribe to address-based alerts without logging in (anonymous token). Example: 'notify me when there is planned maintenance on Roskildevej 12'. Utility companies send alerts to all subscribers of affected addresses.",
+      "key_concepts": [
+        "AddressSubscription: citizen + address + channel preference",
+        "AnonymousTokenModel: subscription without citizen account",
+        "SupplyNumber: gas/water/electricity meter identifier — subscription on supply number not address",
+        "FtpSubscription: bulk subscription data from utility company via FTP",
+        "CustomerSubscriptionModuleSettings: customer-level config",
+        "EnrollmentCreatedEventHandler: triggers welcome message on first subscribe"
+      ],
+      "green_ai_design_decisions": [
+        "Is citizen subscription a green-ai product or a bolt-on?",
+        "Anonymous token management: complexity vs value tradeoff",
+        "FTP as data intake: modernize to SFTP or Azure Blob upload?"
+      ],
+      "NOT_to_copy": "FTP-based data intake, mixed subscription and enrollment in same domain"
+    },
+    {
+      "area": "Web Embed / Citizen Portal",
+      "green_ai_relevance": "DEFERRED",
+      "analysis_domain_scores": { "web_messages": 0.88 },
+      "what_it_is": "An iframe widget that utility companies embed on their citizen portal. Shows the citizen's recent notifications. Authenticated via anonymous token from the subscription system.",
+      "key_concepts": [
+        "WebMessage: message visible in portal embed, not just SMS/email",
+        "IframeRequest log: tracks embed usage by customer",
+        "AbsenceValidationStatus: check if address is currently 'absent' (e.g. summer house, vacation)",
+        "Anonymous token auth: citizen sees their own messages without creating an account"
+      ],
+      "green_ai_design_decisions": [
+        "Is iframe embed a product requirement for green-ai?",
+        "AbsenceValidation: what external system provides this?"
+      ],
+      "NOT_to_copy": "IframeRequests as a separate logging table, mixing absence validation with web message serving"
+    },
+    {
+      "area": "Public API",
+      "green_ai_relevance": "DIRECT",
+      "analysis_domain_scores": { "integrations": 0.78 },
+      "what_it_is": "Customers with the API ProfileRole can trigger broadcasts programmatically from their own systems. API key authentication. REST endpoints mirror a subset of the portal UI.",
+      "key_concepts": [
+        "ProfileApiKey: bearer token scoped to a Profile (not a User)",
+        "API ProfileRole: must be enabled on profile to use API",
+        "API mirrors: create broadcast, add recipients, send",
+        "Webhook receiver: carrier status callbacks (GatewayAPI, SendGrid, Infobip, E-boks)"
+      ],
+      "green_ai_design_decisions": [
+        "API key vs OAuth2 client credentials for machine-to-machine?",
+        "API versioning strategy from day 1?",
+        "Which portal features have API equivalents in v1?"
+      ],
+      "NOT_to_copy": "API key stored as plaintext in ProfileApiKeys table"
+    },
+    {
+      "area": "Customer Administration",
+      "green_ai_relevance": "DIRECT",
+      "analysis_domain_scores": { "customer_administration": 0.88 },
+      "what_it_is": "Super-admin and customer-admin operations: create customers, manage users, assign profiles, configure billing, manage SAML/SSO per customer. Separate from everyday operator use.",
+      "key_concepts": [
+        "SuperAdmin (UserId in customers 1 or 9): full system access",
+        "CustomerSetup UserRole: can create/edit customers",
+        "ManageUsers UserRole: can invite/remove users",
+        "ManageProfiles UserRole: can create/edit profiles and their capability flags",
+        "CloneProspectProductsToCustomer: copy template profile setup to new customer at onboarding",
+        "ContactPersonCustomer: billing contact separate from system user"
+      ],
+      "green_ai_design_decisions": [
+        "Multi-tier admin: SuperAdmin vs CustomerAdmin vs ProfileAdmin — three levels justified?",
+        "Onboarding flow: how does a new customer get their first profile?",
+        "Is CloneProspect a template gallery or a manual copy operation?"
+      ],
+      "NOT_to_copy": "CustomerUserRoleMappings name confusion (rename to CustomerRolePolicies), ManageUsers/ManageProfiles as global UserRoles (should be scoped to customer in v2)"
+    },
+    {
+      "area": "Reporting and Statistics",
+      "green_ai_relevance": "DEFERRED",
+      "analysis_domain_scores": { "reporting": 0.13, "statistics": 0.35 },
+      "what_it_is": "Post-delivery analytics: how many sent, delivered, failed, per broadcast, per profile, per time period. Operators need to report to their organization on outreach effectiveness.",
+      "key_concepts": [
+        "SmsLogBroadcastStatisticStatus: aggregate per broadcast",
+        "StatisticsRequestLog: log of who ran which report",
+        "SmsLogStatus counts by channel",
+        "BenchmarkStatistic: performance comparison across broadcasts"
+      ],
+      "green_ai_design_decisions": [
+        "Where does reporting data live — operational DB or separate analytics store?",
+        "GDPR: how long are individual delivery logs retained? (MonthToDeleteMessages, default 60 months)",
+        "Export format: Excel, CSV, API?"
+      ],
+      "NOT_to_copy": "SP-based report queries (GetSmsLogMergeModel* family), statistics computed on-the-fly from SmsLogs table without aggregation table"
+    },
+    {
+      "area": "Phone Numbers (Inbound)",
+      "green_ai_relevance": "DEFERRED",
+      "analysis_domain_scores": { "phone_numbers": 0.69 },
+      "what_it_is": "Dedicated SMS numbers leased per customer/profile to enable inbound SMS (conversations, 2FA, quick-response). Expensive — only needed when two-way SMS is in scope.",
+      "key_concepts": [
+        "ConversationPhoneNumber: one per profile, mapped to carrier inbound routing",
+        "SmsConversations ProfileRole: must be enabled",
+        "VoiceNumbers: separate numbers for voice calls"
+      ],
+      "green_ai_design_decisions": [
+        "Required only when Conversation domain is built. Defer to Conversation planning pass."
+      ],
+      "NOT_to_copy": "(deferred)"
+    },
+    {
+      "area": "Activity Log",
+      "green_ai_relevance": "DIRECT",
+      "analysis_domain_scores": { "activity_log": 0.92 },
+      "what_it_is": "Audit trail for operator actions: who created which broadcast, when was it sent, who changed a profile setting. Compliance requirement. Uses translation keys — stored as key+parameters, resolved to human-readable text at display time via ILocalizationService.",
+      "key_concepts": [
+        "ActivityLog: header (type, objectId, dateCreated, userId)",
+        "ActivityLogEntry: one line item per event, stores ResourceKey + parameters (not resolved text)",
+        "ActivityLogType enum: Broadcast, SubscriptionsImport, PositiveListsImport, StandardReceiversImport",
+        "Resolution at read time: ILocalizationService.GetString(entry.ResourceKey, user.LanguageId)"
+      ],
+      "green_ai_design_decisions": [
+        "Same translation-key pattern is correct for green-ai — store key, resolve at read time",
+        "ActivityLogType enum will grow — design as extensible from day 1"
+      ]
+    },
+    {
+      "area": "E-conomic / Finance",
+      "green_ai_relevance": "NOT_NEEDED",
+      "analysis_domain_scores": { "finance": 0.41 },
+      "what_it_is": "Integration with e-conomic (Danish accounting SaaS) for invoicing. Sync usage data → generate draft invoices. sms-service-specific billing operation.",
+      "green_ai_design_decisions": [
+        "green-ai has its own billing architecture. Do not port this."
+      ]
+    },
+    {
+      "area": "Pipeline / CRM",
+      "green_ai_relevance": "NOT_NEEDED",
+      "analysis_domain_scores": { "pipeline_crm": 0.41, "pipeline_sales": 0.41 },
+      "what_it_is": "Internal sales pipeline and CRM used by the sms-service sales team. Not a customer-facing product.",
+      "green_ai_design_decisions": [
+        "green-ai is a product, not a sales tool. Do not port."
+      ]
+    },
+    {
+      "area": "Benchmark",
+      "green_ai_relevance": "NOT_NEEDED",
+      "analysis_domain_scores": { "benchmark": 0.47 },
+      "what_it_is": "Internal performance comparison tool — compare delivery speed/rate across customer segments. Not a customer-facing feature.",
+      "green_ai_design_decisions": [
+        "If needed, design as a reporting extension, not a separate domain."
+      ]
+    }
+  ],
+
+  "domain_score_to_green_ai_phase": {
+    "description": "Rough sequencing: foundation first, then core product loop, then extensions.",
+    "phase_1_foundation_already_planned": [
+      "identity_access (0.97)",
+      "system_configuration (0.94)",
+      "localization (0.92)",
+      "activity_log (0.92)",
+      "email (0.91)",
+      "profile_management (0.91)",
+      "job_management (0.90)",
+      "customer_management (0.88)",
+      "logging (0.88)"
+    ],
+    "phase_2_core_product_loop": [
+      "sms_group / broadcast (0.84) — define campaign, add recipients, set message",
+      "delivery (0.84) — route to carrier, track status",
+      "standard_receivers (0.84) — recipient lists",
+      "customer_administration (0.88) — admin UI for managing customers/profiles",
+      "templates (0.37) — reusable message templates [LOW SCORE = needs more discovery]",
+      "positive_list (0.48) — opt-in filtering [LOW SCORE = needs more discovery]"
+    ],
+    "phase_3_lookup_and_address": [
+      "address_management (0.58) — address import pipeline [country-specific — design carefully]",
+      "lookup (0.54) — owner resolution [legally sensitive — plan per-country]",
+      "data_import (0.54) — bulk CSV/Azure Blob import pipeline",
+      "subscription (0.58) — citizen subscriptions [separate planning pass]"
+    ],
+    "phase_4_extensions": [
+      "voice (0.54) — Infobip voice calls",
+      "eboks_integration (0.88) — Danish digital post",
+      "conversation (0.54) — two-way SMS",
+      "phone_numbers (0.69) — inbound numbers [depends on conversation]",
+      "web_messages (0.88) — citizen portal embed",
+      "enrollment (0.54) — subscription enrollment flow"
+    ],
+    "phase_5_analytics": [
+      "statistics (0.35) — delivery statistics",
+      "reporting (0.13) — management reports [very underscanned — needs discovery pass before planning]",
+      "monitoring (0.20) — system health [very underscanned]"
+    ],
+    "not_porting": [
+      "finance (0.41) — e-conomic invoicing",
+      "pipeline_crm (0.41) — internal sales CRM",
+      "pipeline_sales (0.41) — internal sales pipeline",
+      "benchmark (0.47) — internal performance tool"
+    ]
+  },
+
+  "low_score_domains_needing_discovery": {
+    "description": "Before green-ai can plan phase 2+, these domains need a dedicated discovery pass in the analysis tool to bring scores above 0.80.",
+    "domains": [
+      { "domain": "templates", "score": 0.37, "why": "Template engine design is a major architectural decision. Current scan too shallow." },
+      { "domain": "positive_list", "score": 0.48, "why": "Legal complexity (GDPR, opt-in laws) varies by country. Needs explicit design." },
+      { "domain": "lookup", "score": 0.54, "why": "Country-specific external API contracts. One discovery pass per country needed." },
+      { "domain": "address_management", "score": 0.58, "why": "Import pipeline architecture heavily affects DB schema. Must be designed before phase 3." },
+      { "domain": "subscription", "score": 0.58, "why": "Anonymous token model has auth implications. Need full coverage before planning." },
+      { "domain": "statistics", "score": 0.35, "why": "Barely scanned. Run dedicated analysis pass before phase 5." },
+      { "domain": "reporting", "score": 0.13, "why": "Almost no data. Do not plan until score > 0.80." },
+      { "domain": "monitoring", "score": 0.20, "why": "Likely Azure Monitor + Application Insights. Check what exists before planning." }
+    ]
+  },
+
+  "concepts_sms_service_gets_wrong_that_green_ai_must_fix": [
+    {
+      "concept": "SmsGroup name for broadcast",
+      "problem": "SmsGroup implies SMS-only. But it carries Email, Voice, E-boks deliveries too. Misleading from day 1.",
+      "green_ai": "Name it: Broadcast, Campaign, or Notification. Make multi-channel first-class."
+    },
+    {
+      "concept": "SmsLog for all delivery types",
+      "problem": "SmsLog stores SMS deliveries. But also Email deliveries (type flag), Voice deliveries, etc. One table with a channel discriminator column. Causes confusion + index inefficiency.",
+      "green_ai": "DeliveryRecord (or MessageDelivery) with channel as a first-class typed concept."
+    },
+    {
+      "concept": "Stored procedure delivery logic",
+      "problem": "Core send path (GetSmsLogMergeModel* family) is in stored procedures. Impossible to unit test, hard to version, hard to trace.",
+      "green_ai": "C# only for business logic. SPs only for bulk data operations if absolutely needed."
+    },
+    {
+      "concept": "API key stored plaintext",
+      "problem": "ProfileApiKeys stores raw API key value. If DB is breached, all keys exposed.",
+      "green_ai": "Store API key as hash(key). Return plaintext only once (at creation)."
+    },
+    {
+      "concept": "Address restriction as FK range list",
+      "problem": "Profile address restrictions stored as list of allowed KVHX values. Doesn't scale and is Denmark-specific.",
+      "green_ai": "Design for country-agnostic address scoping from day 1. Consider: geo-polygon, municipality IDs, custom scopes."
+    },
+    {
+      "concept": "WebWorkContext duplication (C_002)",
+      "problem": "Two parallel ICurrentUser implementations diverged over years. No single truth.",
+      "green_ai": "ICurrentUser + CurrentUserMiddleware is the only implementation. Rule: no second CurrentUser. Ever."
+    },
+    {
+      "concept": "No carrier abstraction",
+      "problem": "GatewayAPI, Infobip SDK calls are direct in background services. Cannot swap carriers or test without live credentials.",
+      "green_ai": "ICarrierClient<TChannel> abstraction. Each carrier is an injectable adapter. Fake adapters for tests."
+    },
+    {
+      "concept": "ActivityLog ResourceKey not indexed",
+      "problem": "Searching activity log by resource key (for compliance audit) requires full table scan.",
+      "green_ai": "Index on (ResourceKey, DateCreated) from day 1."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "domain": "product_scope",
+  "type": "reference_artifact",
+  "completeness_score": 1.0,
+  "consistency_score": 1.0,
+  "saturation_score": 1.0,
+  "new_information_score": 0.0,
+  "evidence_balance_score": 1.0,
+  "gaps_count": 0,
+  "iteration": 1,
+  "status": "locked",
+  "saved_utc": "2026-04-04T00:00:00+00:00",
+  "locked_date": "2026-04-04",
+  "note": "This is a REFERENCE artifact — not a build target. It describes what sms-service does as a product, organized by user value and conceptual area. The engine MUST NOT attempt to enrich or score this domain against source code. It is an intentionally authored document.",
+  "source_document": "docs/PRODUCT_CAPABILITY_MAP.json",
+  "companion": "docs/FOUNDATION_BUILD_PLAN.json",
+  "reading_rule": "Read this domain before planning any implementation phase. It defines what green-ai must understand conceptually — product areas, design decisions, and what NOT to copy from sms-service.",
+  "product_areas_count": 15,
+  "core_loop_steps": 6,
+  "design_anti_patterns_count": 8,
+  "phases_defined": 5
+}

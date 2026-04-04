@@ -1,0 +1,74 @@
+[
+  {
+    "rule_id": "ANTI-01",
+    "type": "naming",
+    "severity": "MANDATORY",
+    "title": "Do NOT call the broadcast entity SmsGroup",
+    "problem": "SmsGroup implies SMS-only. The broadcast entity carries Email, Voice, E-boks deliveries too. Misleading from day 1.",
+    "green_ai_rule": "Name it: Broadcast (or Campaign / Dispatch). Multi-channel is first-class — the name must reflect it.",
+    "sms_service_evidence": "ServiceAlert.Core/Domain/SmsGroups/"
+  },
+  {
+    "rule_id": "ANTI-02",
+    "type": "data_model",
+    "severity": "MANDATORY",
+    "title": "Do NOT store all channel deliveries in one SmsLog table",
+    "problem": "SmsLog stores SMS AND Email AND Voice deliveries using a channel discriminator. Causes confusion, index inefficiency, GDPR query complexity.",
+    "green_ai_rule": "DeliveryRecord (or MessageDelivery) with Channel as a typed first-class concept. Each channel may have its own carrier-specific extension object.",
+    "sms_service_evidence": "ServiceAlert.Core/Domain/SmsGroups/Entities/SmsLog.cs"
+  },
+  {
+    "rule_id": "ANTI-03",
+    "type": "architecture",
+    "severity": "MANDATORY",
+    "title": "Do NOT put business logic in stored procedures",
+    "problem": "Core send path (GetSmsLogMergeModel* family) is in SPs: impossible to unit test, hard to version, hard to trace.",
+    "green_ai_rule": "C# only for all business logic. SPs only for bulk data operations where batch insert performance justifies it, with explicit carve-out documentation.",
+    "sms_service_evidence": "ServiceAlert.DB/Stored Procedures/GetSmsLogMergeModel*.sql (12+ SPs)"
+  },
+  {
+    "rule_id": "ANTI-04",
+    "type": "security",
+    "severity": "CRITICAL",
+    "title": "Do NOT store API keys plaintext",
+    "problem": "ProfileApiKeys stores raw API key value. DB breach = all keys exposed.",
+    "green_ai_rule": "Store: SHA256(key) only. Return plaintext exactly once at creation. Cannot be retrieved again — only regenerated.",
+    "sms_service_evidence": "ServiceAlert.Core/Domain/Profiles/ProfileApiKey.cs"
+  },
+  {
+    "rule_id": "ANTI-05",
+    "type": "data_model",
+    "severity": "HIGH",
+    "title": "Do NOT design address restrictions as a KVHX list",
+    "problem": "Profile address restrictions as list of allowed KVHX values doesn't scale and is Denmark-only.",
+    "green_ai_rule": "Design country-agnostic address scoping from day 1. Candidates: geo-polygon, municipality IDs, custom named scope. Decision deferred to address_management planning pass.",
+    "sms_service_evidence": "Address restriction model uses KVHX FK ranges"
+  },
+  {
+    "rule_id": "ANTI-06",
+    "type": "architecture",
+    "severity": "CRITICAL",
+    "title": "Do NOT allow a second ICurrentUser implementation",
+    "problem": "Two parallel WebWorkContext implementations diverged over years (Api=DB-primary, Contracts=JWT-primary). No single truth.",
+    "green_ai_rule": "ICurrentUser + CurrentUserMiddleware = the only path. Hard rule: if a second implementation appears in a PR, it is rejected.",
+    "sms_service_evidence": "C_002 in IDENTITY_ACCESS_CORE_FOUNDATION.md"
+  },
+  {
+    "rule_id": "ANTI-07",
+    "type": "architecture",
+    "severity": "HIGH",
+    "title": "Do NOT call carrier APIs directly in background services",
+    "problem": "Direct GatewayAPI, Infobip SDK calls in background services. Cannot swap carriers or test without live credentials.",
+    "green_ai_rule": "ICarrierClient<TChannel> abstraction. Each carrier is an injectable adapter. FakeCarrierClient for tests. Carrier-specific code is isolated behind the adapter boundary.",
+    "sms_service_evidence": "ServiceAlert.Services/Background/SmsBackgroundService.cs"
+  },
+  {
+    "rule_id": "ANTI-08",
+    "type": "data_model",
+    "severity": "MEDIUM",
+    "title": "Index ActivityLog by ResourceKey from day 1",
+    "problem": "Searching activity log by ResourceKey for compliance audit requires full table scan if unindexed.",
+    "green_ai_rule": "CREATE INDEX IX_ActivityLogEntries_ResourceKey_DateCreated ON ActivityLogEntries(ResourceKey, DateCreated DESC) — included in initial migration.",
+    "sms_service_evidence": "ActivityLogEntries table — no index on ResourceKey"
+  }
+]

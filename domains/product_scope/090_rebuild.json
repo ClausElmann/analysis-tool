@@ -1,0 +1,88 @@
+{
+  "_meta": {
+    "type": "phase_plan",
+    "note": "This is the green-ai build phase plan derived from the product capability map. It replaces the machine-generated domain_priority.json ranking for BUILD ORDER decisions. The engine should read this to understand sequence before any phase 2+ planning.",
+    "source": "docs/PRODUCT_CAPABILITY_MAP.json + docs/FOUNDATION_BUILD_PLAN.json"
+  },
+  "phase_1_foundation": {
+    "description": "Must exist before any user-facing feature can start. SLICE-001 through SLICE-006.",
+    "gate": "All phase 1 domains must be stable and SLICE-006 integration tests must pass before phase 2 begins.",
+    "domains": [
+      { "rank": 1, "name": "identity_access", "score": 0.98, "status": "locked", "slices": ["SLICE-002", "SLICE-003"] },
+      { "rank": 2, "name": "system_configuration", "score": 0.94, "status": "locked", "slices": ["SLICE-001"] },
+      { "rank": 3, "name": "customer_management", "score": 0.88, "status": "stable_candidate", "slices": ["SLICE-003"] },
+      { "rank": 4, "name": "profile_management", "score": 0.91, "status": "stable_candidate", "slices": ["SLICE-003"] },
+      { "rank": 5, "name": "localization", "score": 0.92, "status": "stable_candidate", "slices": ["SLICE-004"] },
+      { "rank": 6, "name": "logging", "score": 0.88, "status": "stable_candidate", "slices": ["SLICE-005"] },
+      { "rank": 7, "name": "activity_log", "score": 0.92, "status": "stable_candidate", "slices": ["after SLICE-004"] },
+      { "rank": 8, "name": "email", "score": 0.91, "status": "stable_candidate", "slices": ["phase 2 delivery"] },
+      { "rank": 9, "name": "job_management", "score": 0.93, "status": "stable_candidate", "slices": ["phase 2 delivery"] }
+    ]
+  },
+  "phase_2_core_product_loop": {
+    "description": "Core notification functionality: create, send, route, track. Blocked until SLICE-006 passes.",
+    "domains_requiring_discovery_before_planning": ["templates (0.37)", "positive_list (0.48)"],
+    "domains": [
+      { "rank": 10, "name": "sms_group", "score": 0.84, "green_ai_name": "Broadcast", "note": "Rename from SmsGroup — see ANTI-01" },
+      { "rank": 11, "name": "delivery", "score": 0.84, "note": "Requires ICarrierClient abstraction — see ANTI-07" },
+      { "rank": 12, "name": "standard_receivers", "score": 0.84, "green_ai_name": "RecipientList" },
+      { "rank": 13, "name": "customer_administration", "score": 0.88, "note": "Circular dependency on identity_access write path — must come after SLICE-006" },
+      { "rank": 14, "name": "templates", "score": 0.37, "note": "NEEDS DISCOVERY PASS before planning" },
+      { "rank": 15, "name": "positive_list", "score": 0.48, "note": "NEEDS DISCOVERY PASS before planning" },
+      { "rank": 16, "name": "web_messages", "score": 0.88 }
+    ]
+  },
+  "phase_3_lookup_and_address": {
+    "description": "Address import pipeline and owner resolution. Most country-specific complexity.",
+    "country_note": "Design one discovery pass per country before combining into a single implementation plan.",
+    "domains": [
+      { "rank": 17, "name": "address_management", "score": 0.58, "note": "NEEDS DISCOVERY PASS — import pipeline affects DB schema fundamentally" },
+      { "rank": 18, "name": "lookup", "score": 0.54, "note": "NEEDS DISCOVERY PASS PER COUNTRY — legally sensitive" },
+      { "rank": 19, "name": "data_import", "score": 0.54, "note": "Bulk CSV/Azure Blob import pipeline" },
+      { "rank": 20, "name": "subscription", "score": 0.58, "note": "NEEDS DISCOVERY PASS — anonymous token auth has security implications" },
+      { "rank": 21, "name": "enrollment", "score": 0.54 }
+    ]
+  },
+  "phase_4_extensions": {
+    "description": "Channel extensions and citizen-facing features. Plan individually.",
+    "domains": [
+      { "rank": 22, "name": "voice", "score": 0.54, "carrier": "Infobip", "profile_role": "CanSendByVoice" },
+      { "rank": 23, "name": "eboks_integration", "score": 0.88, "carrier": "e-Boks API", "profile_role": "CanSendByEboks", "country": "Denmark only" },
+      { "rank": 24, "name": "conversation", "score": 0.54, "note": "Two-way SMS — requires dedicated inbound numbers (carrier cost)" },
+      { "rank": 25, "name": "phone_numbers", "score": 0.69, "note": "Required only when Conversation domain is built" },
+      { "rank": 26, "name": "webhook", "score": 0.37 },
+      { "rank": 27, "name": "integrations", "score": 0.78, "note": "Public API + carrier callbacks" }
+    ]
+  },
+  "phase_5_analytics": {
+    "description": "Reporting and statistics. All need discovery passes — current scores too low.",
+    "domains": [
+      { "rank": 28, "name": "statistics", "score": 0.35, "note": "NEEDS DISCOVERY PASS — do not plan until > 0.80" },
+      { "rank": 29, "name": "reporting", "score": 0.13, "note": "NEEDS DISCOVERY PASS — barely scanned" },
+      { "rank": 30, "name": "monitoring", "score": 0.20, "note": "NEEDS DISCOVERY PASS — likely Azure Monitor + AppInsights" },
+      { "rank": 31, "name": "benchmark", "score": 0.47, "note": "Internal tool — plan as analytics extension if needed" }
+    ]
+  },
+  "not_porting": {
+    "description": "These sms-service domains have no analog in green-ai. Do not plan.",
+    "domains": [
+      { "name": "finance", "reason": "e-conomic invoicing — sms-service billing, not a green-ai product" },
+      { "name": "pipeline_crm", "reason": "Internal sales CRM" },
+      { "name": "pipeline_sales", "reason": "Internal sales pipeline" }
+    ]
+  },
+  "domains_needing_discovery_before_phase_2": [
+    { "domain": "templates", "score": 0.37, "why": "Template engine design is a major architectural decision" },
+    { "domain": "positive_list", "score": 0.48, "why": "Legal complexity (GDPR, opt-in laws) varies by country" }
+  ],
+  "domains_needing_discovery_before_phase_3": [
+    { "domain": "address_management", "score": 0.58, "why": "Import pipeline affects schema fundamentally" },
+    { "domain": "lookup", "score": 0.54, "why": "Country-specific external APIs — one pass per country" },
+    { "domain": "subscription", "score": 0.58, "why": "Anonymous token auth model has security implications" }
+  ],
+  "domains_needing_discovery_before_phase_5": [
+    { "domain": "statistics", "score": 0.35, "why": "Barely scanned" },
+    { "domain": "reporting", "score": 0.13, "why": "Almost no data" },
+    { "domain": "monitoring", "score": 0.20, "why": "Likely Azure Monitor + AppInsights but unconfirmed" }
+  ]
+}

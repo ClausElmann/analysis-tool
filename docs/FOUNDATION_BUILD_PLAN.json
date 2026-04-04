@@ -1,0 +1,463 @@
+{
+  "_meta": {
+    "title": "Foundation Build Plan — green-ai",
+    "created": "2026-04-04",
+    "sources": [
+      "domains/identity_access/000_meta.json (score 0.98)",
+      "docs/IDENTITY_ACCESS_CORE_FOUNDATION.md (LOCKED 2026-04-01, confidence 0.93)",
+      "domains/profile_management/000_meta.json (score 0.91)",
+      "domains/system_configuration/000_meta.json (score 0.94)",
+      "domains/localization/000_meta.json (score 0.92)",
+      "domains/logging/000_meta.json (score 0.88)",
+      "domains/activity_log/000_meta.json (score 0.92)",
+      "domains/job_management/000_meta.json (score 0.93)",
+      "domains/customer_management/000_meta.json (score 0.88)",
+      "raw/data.csv (11622 DevOps work items)",
+      "SMS-service.wiki (30+ md files)",
+      "raw/Brugervejledning-administration.pdf",
+      "raw/Brugervejledning-til-ServiceAlert.pdf",
+      "git log sms-service (100 commits)"
+    ],
+    "anchor_document": "docs/IDENTITY_ACCESS_CORE_FOUNDATION.md",
+    "gate_rule": "Feature domains (messaging, Email, Delivery, Lookup) MUST NOT start until SLICE-006 passes all integration tests",
+    "status": "APPROVED FOR IMPLEMENTATION"
+  },
+
+  "security_contradictions_to_fix_on_day_1": [
+    { "id": "C_001", "severity": "CRITICAL", "description": "profileId=0 bypass: GetAddressRestrictionForProfile(0) returns NoAddressRestriction", "fix": "Hard HTTP 401 in CurrentUserMiddleware — no fallback, no bypass" },
+    { "id": "C_005", "severity": "HIGH", "description": "Users.CurrentProfileId and Users.CurrentCustomerId have no FK constraint, DEFAULT 0", "fix": "Enforce non-zero in CurrentUserMiddleware + at SelectCustomerHandler/SelectProfileHandler" },
+    { "id": "C_007", "severity": "HIGH", "description": "FK_ProfileUserMappings_* and FK_UserInRoles_* defined as NOCHECK — referential integrity not enforced", "fix": "Enable constraints in rebuild schema from day 1" },
+    { "id": "C_008", "severity": "HIGH", "description": "CreateRefreshtoken() bug: inverted condition returns expired token", "fix": "Fix condition in RefreshTokenHandler" },
+    { "id": "C_009", "severity": "SECURITY", "description": "AuthenticatorSecret (TOTP seed) stored plaintext in DB", "fix": "Encrypt with IDataProtectionProvider (phase 2 when 2FA is built)" },
+    { "id": "C_010", "severity": "SECURITY", "description": "SHA256 password hashing — weak against brute force", "fix": "Detect SHA256 on login → rehash to Argon2id on successful authentication (phase 2)" }
+  ],
+
+  "jwt_contract": {
+    "claims": ["UserId", "CustomerId", "ProfileId", "ImpersonateFromUserId"],
+    "access_token_ttl_minutes": 15,
+    "refresh_token_ttl_minutes": 480,
+    "refresh_token_format": "3x GUID concatenated, dashes removed",
+    "language_id_source": "User.LanguageId from DB at middleware time — NOT in JWT",
+    "roles_in_jwt": false,
+    "test_mode_in_jwt": false,
+    "note": "Thin JWT. No roles, no capabilities, no test-mode flag baked in. AD_001 decision."
+  },
+
+  "icurrent_user_interface": {
+    "properties": {
+      "UserId": "int",
+      "CustomerId": "int",
+      "ProfileId": "int",
+      "LanguageId": "int",
+      "ImpersonateFromUserId": "int?",
+      "IsAuthenticated": "bool",
+      "IsImpersonating": "bool"
+    },
+    "note": "Single interface. HTTP path populated by CurrentUserMiddleware. Batch/job path populated by JobCurrentUser (implements same interface, non-HTTP context). AD_005 decision."
+  },
+
+  "must_build_now": [
+    {
+      "domain": "system_configuration",
+      "priority": 1,
+      "why_now": "All gateway credentials, feature flags, and kill-switches read via IApplicationSettingService. No delivery service can initialize without it. DisableAllBroadcasts(184) and DisableAllSystemMessages(206) are system-wide kill-switches that must be readable before any message path is wired.",
+      "depends_on": [],
+      "capabilities": [
+        "IDbSession + ConnectionFactory (Dapper, SQL Server)",
+        "IApplicationSettingService.Get(AppSetting, defaultValue) — full-load cache, key Sms.applicationsettings",
+        "IApplicationSettingService.Save(AppSetting, value) — cache invalidation on save",
+        "IApplicationSettingService.CreateDefault() — idempotent, run at startup",
+        "AppSetting enum — full 50+ key list (EXTRACT FROM sms-service C# enum before starting)",
+        "IFileTypeService.FileTypeIdFromExtension(ext) — upload allowlist gate, returns null = reject",
+        "AzureBlobStorageConfig — container names as typed constants (not magic strings)",
+        "GET /health — returns version, DB connectivity, config cache status"
+      ],
+      "not_in_this_slice": [
+        "Admin UI for editing settings (phase 2)",
+        "FileType admin (phase 2)"
+      ],
+      "done_when": "Health endpoint responds 200 and reads one AppSetting value from DB"
+    },
+    {
+      "domain": "identity_access",
+      "priority": 2,
+      "why_now": "Every HTTP request passes through CurrentUserMiddleware. JWT + DB-backed context. C_001 profileId=0 security bypass must be fixed from day 1. JWT + RefreshToken lifecycle is the session contract for the entire system.",
+      "depends_on": ["system_configuration (IDbSession)"],
+      "capabilities": [
+        "ICurrentUser interface: {UserId, CustomerId, ProfileId, LanguageId, ImpersonateFromUserId, IsAuthenticated, IsImpersonating}",
+        "CurrentUserMiddleware: JWT validate → DB load User → load Customer + Profile → ICurrentUser → DI. Hard HTTP 401 on profileId=0 or customerId=0",
+        "LoginHandler: email+password → SHA256 validate → lockout check (IsLockedOut OR FailedLoginCount>5 → 403) → profile auto-assign (exactly 1 → assign, 0 or >1 → HTTP 300) → JWT issuance",
+        "RefreshTokenHandler: validate DB token → read User.CurrentCustomerId + User.CurrentProfileId → reissue JWT → update sliding TTL",
+        "LogoutHandler: DELETE UserRefreshTokens for user. JWT valid for up to 15min after (known debt, not fixed in phase 1)",
+        "SelectCustomerHandler: CanUserAccessCustomer() → UPDATE Users.CurrentCustomerId → reissue JWT",
+        "SelectProfileHandler: CanUserAccessProfile() → UPDATE Users.CurrentProfileId → reissue JWT",
+        "IPermissionService: DoesUserHaveRole(userId, role), DoesProfileHaveRole(profileId, role), CanUserAccessCustomer(userId, customerId), CanUserAccessProfile(profileId, userId) — Dapper + in-memory cache",
+        "PasswordResetHandler: send reset email → set new password. Min 8 chars, must contain: digit + lowercase + uppercase + special ($*-+?_&=!%/{}()#)",
+        "POST /api/auth/login",
+        "GET /api/auth/refresh",
+        "POST /api/auth/logout",
+        "POST /api/auth/select-customer",
+        "POST /api/auth/select-profile",
+        "POST /api/auth/password-reset-request",
+        "POST /api/auth/password-reset-confirm",
+        "GET /api/auth/me (returns resolved ICurrentUser fields)"
+      ],
+      "not_in_this_slice": [
+        "2FA (TOTP/SMS/email pin) — phase 2",
+        "SAML2 SSO — phase 2",
+        "Azure AD / Entra ID (MSAL) — phase 2",
+        "SCIM provisioning — phase 2",
+        "Impersonation — phase 2",
+        "LocationAlert SSO (ticket-based) — phase 3",
+        "Argon2id migration (C_010) — phase 2, detect-on-login pattern added after LoginHandler is stable"
+      ],
+      "done_when": "Login returns 200 with accessToken. profileId=0 → hard 401. Expired token + valid refresh → new token. Logout deletes refresh token. SELECT profile propagates into next JWT."
+    },
+    {
+      "domain": "customer_management",
+      "priority": 3,
+      "why_now": "Every data query requires WHERE CustomerId = @currentUser.CustomerId. Customer is the outer partition key — the data model is invalid without it. Must exist before any profile, message, or address entity is created.",
+      "depends_on": ["identity_access"],
+      "capabilities": [
+        "Customer entity (Id, Name, CountryId, LanguageId, ScimTokenUUID)",
+        "ICustomerService.GetById(customerId)",
+        "ICustomerService.GetCustomersForUser(userId)",
+        "ICustomerService.Create(customer)",
+        "ICustomerService.Update(customer)",
+        "CustomerUserMapping management: AddUserToCustomer, RemoveUserFromCustomer",
+        "CanUserAccessCustomer(userId, customerId) — gates all customer-scoped data access"
+      ],
+      "not_in_this_slice": [
+        "CustomerSamlSettings (phase 2)",
+        "CustomerSubscriptionSettings (phase 2)",
+        "CustomerFtpSettings (phase 3)",
+        "MonthToDeleteMessages / cleanup_messages batch (phase 3)",
+        "CustomerGdprResponsibles (phase 3)"
+      ],
+      "done_when": "User can be member of multiple customers. CanUserAccessCustomer returns false for non-member. CurrentUserMiddleware resolves Customer from User.CurrentCustomerId."
+    },
+    {
+      "domain": "profile_management",
+      "priority": 4,
+      "why_now": "Profile = decisive runtime scope. DoesProfileHaveRole() is called in every feature service. Without it, no capability gate can function. Must be live before any feature domain slice starts.",
+      "depends_on": ["identity_access", "customer_management"],
+      "capabilities": [
+        "Profile entity (Id, CustomerId, ProfileTypeId, Name, Deleted, DateDeletedUtc)",
+        "IProfileService.GetById(profileId)",
+        "IProfileService.GetProfilesForUser(userId, customerId)",
+        "IProfileService.CanUserAccessProfile(profileId, userId)",
+        "IProfileService.Insert(profile)",
+        "IProfileService.Update(profile)",
+        "IProfileService.SoftDelete(profileId) — sets Deleted=true + DateDeletedUtc",
+        "ProfileUserMapping management: AddUserAccess, RemoveUserAccess",
+        "ProfileRoleMapping management: AddRoles(profileId, roleIds), RemoveRoles(profileId, roleIds)",
+        "DoesProfileHaveRole(profileId, ProfileRoleNames.*) — the global feature gate",
+        "ProfileRoleGroup as creation-time template only (changing group does NOT update existing profiles)",
+        "ProfileType enum seeded: Water, WasteWater, Electricity, Heating, Renovation, Standard"
+      ],
+      "not_in_this_slice": [
+        "ProfileStorageFiles / Azure Blob upload (phase 2)",
+        "ProfileApiKeys (phase 2)",
+        "CleanupDeactivatedProfiles SP + 120-day deletion (phase 3)",
+        "ProfileRolePrices / billing integration (phase 3)",
+        "FtpSettings (phase 3)"
+      ],
+      "done_when": "DoesProfileHaveRole returns correct true/false. ProfileUserMapping correctly isolates profile access. Customer membership does NOT auto-grant profile access."
+    },
+    {
+      "domain": "localization",
+      "priority": 5,
+      "why_now": "UI labels are broken without translations. ActivityLogEntries store translation keys — not resolved strings — so ILocalizationService must resolve them at display time. User.LanguageId from ICurrentUser drives the active locale.",
+      "depends_on": ["identity_access (User.LanguageId)"],
+      "capabilities": [
+        "ILocalizationService.GetString(key, languageId) — returns label or key-as-fallback if missing",
+        "ILocalizationService.GetAllForLanguage(languageId) — returns full dictionary for client-side use",
+        "LocaleStringResources table (Id, ResourceKey, Value, LanguageId)",
+        "Languages table seeded (at minimum: DK, NO, FI, SE, EN)",
+        "GET /api/localization/{languageId} — returns full label dictionary"
+      ],
+      "not_in_this_slice": [
+        "Translation admin UI (phase 2)",
+        "Import/export of translation files (phase 3)"
+      ],
+      "ssot_extraction_needed": "Export minimum label set (~200 keys: login, navigation, common errors) from sms-service LocaleStringResources as seed data",
+      "done_when": "API returns correct label for key in DK + NO. Unknown key returns key name as fallback (never null)."
+    },
+    {
+      "domain": "logging",
+      "priority": 6,
+      "why_now": "ISystemLogger must be injectable from the first line of application code. All audit stamps (UserId, CustomerId) on log entries require ICurrentUser — so logging is wired in immediately after identity_access is live.",
+      "depends_on": ["identity_access (steps 1-2)", "system_configuration (AppSetting.RequestLogLevel)"],
+      "capabilities": [
+        "ISystemLogger: Log(LogLevel, message, userId?, customerId?)",
+        "LogLevel enum: Debug, Information, Warning, Error, Fatal",
+        "DefaultLogger: writes to Logs table via Dapper",
+        "ApplicationInsightsLogger: forwards to Azure Monitor (Application Insights connection string via AppSetting)",
+        "FinalEmailLogger: sends email on Fatal level (system email, not SendGrid path)",
+        "OutgoingHttpClientLoggingHandler: DelegatingHandler — auto-inject into all HttpClient instances via DI",
+        "RequestResponseLoggingMiddleware: HTTP request/response logging, gated by AppSetting.RequestLogLevel(160) — values: off / Error / All",
+        "BlobErrorLogger: writes critical infra failures to Azure Blob 'errorlogs' container (3 trigger types: Dapper DB connection fail, Dapper license invalid, SendGrid email error)"
+      ],
+      "not_in_this_slice": [
+        "Log viewer / search UI (phase 2)",
+        "NorwegianOutgoingRequestLogs specialized table (phase 3)",
+        "ImpersonationLogs (added when impersonation is implemented in phase 2)"
+      ],
+      "done_when": "Every authenticated request produces a log row with UserId+CustomerId. Fatal log produces email. Outbound HTTP calls are logged automatically."
+    }
+  ],
+
+  "should_build_later": [
+    {
+      "domain": "activity_log",
+      "why_later": "Audit trail is important but not blocking any user-facing feature. Drop in once the first feature domain (messaging) starts writing events.",
+      "capabilities": [
+        "IActivityLogService.CreateLog(type, objectId)",
+        "IActivityLogService.AddEntry(logId, translationKey, parameters)",
+        "ActivityLogType enum: Broadcast, SubscriptionsImport, PositiveListsImport, StandardReceiversImport",
+        "Translation key storage pattern (key stored — resolved at read time via ILocalizationService)"
+      ]
+    },
+    {
+      "domain": "identity_access — phase 2 (advanced auth)",
+      "why_later": "Core login works in phase 1. These are customer-specific auth methods — most portal users will not need them in the first sprint.",
+      "capabilities": [
+        "2FA TOTP: AuthenticatorSecret encrypted via IDataProtectionProvider (fixes C_009)",
+        "2FA SMS pin: ISmsSender + pin generation + UserPinCode storage",
+        "2FA Email pin: IEmailService + pin generation",
+        "Argon2id migration: detect SHA256 hash pattern on login → rehash to Argon2id on success (fixes C_010)",
+        "Impersonation: SuperAdmin only, CustomerId in {1, 9}. ImpersonateFromUserId in JWT.",
+        "SAML2 SSO: CustomerSamlSettings (EntityId, MetadataUrl, EmailClaim), SustainSys.Saml2 library, /sso/{customerId} route",
+        "Azure AD / Entra ID: MSAL token exchange, admin consent flow",
+        "SCIM provisioning: Customer.ScimTokenUUID bearer token auth, inbound user sync"
+      ]
+    },
+    {
+      "domain": "job_management — phase 2",
+      "why_later": "Background services and batch execution needed for delivery and large imports, but not for portal shell or first feature slices using synchronous paths.",
+      "capabilities": [
+        "IHostedService: SmsBackgroundService (time-sensitive SMS → GatewayAPI, per-server queue)",
+        "IHostedService: VoiceBackgroundService (→ Infobip, per-server queue)",
+        "IHostedService: EmailBackgroundService (SmsLog → EmailMessage conversion + queue)",
+        "IHostedService: SendGridBackgroundService (EmailMessage → SendGrid API). Split from EmailBackgroundService so system emails (password reset, notifications) can be sent without SmsLogId.",
+        "IHostedService: ClientEventBackgroundService (polls ClientEvents table → SSE push via Lib.AspNetCore.ServerSentEvents)",
+        "Azure Batch: IJobService, Jobs/JobTasks/JobTaskStatuses tables, ServiceAlertBatchAction enum (54+ values), QuartzNET cron scheduler",
+        "JobCurrentUser: implements ICurrentUser with ProfileId/CustomerId from job metadata (non-HTTP context, AD_005)",
+        "SSE: ClientEvents(Id, Key, DateCreatedUtc, Payload) table + IClientEventService + Lib.AspNetCore.ServerSentEvents NuGet"
+      ],
+      "design_rationale": "Background services exist because Azure Batch startup latency was too slow for pin codes and time-sensitive single sends. Do NOT route pin code SMS through Azure Batch."
+    },
+    {
+      "domain": "customer_management — phase 2",
+      "why_later": "Extended customer config only needed when those feature domains are built.",
+      "capabilities": [
+        "CustomerSamlSettings (when SAML2 SSO is built)",
+        "CustomerSubscriptionSettings (when subscription billing is built)",
+        "Admin UI: create/edit customer, manage user-to-customer access",
+        "UserRoleGroup management (policy-level role grouping for customers)"
+      ]
+    },
+    {
+      "domain": "profile_management — phase 2",
+      "why_later": "Extended profile features needed when file storage and API keys are built.",
+      "capabilities": [
+        "ProfileStorageFiles + Azure Blob upload to 'profilestorage' container (when file upload feature is built)",
+        "ProfileApiKeys management (when public API is built)",
+        "ProfileLogos (when branded notifications are built)"
+      ]
+    }
+  ],
+
+  "do_not_build_yet": [
+    { "domain": "messaging", "reason": "Blocked by identity_access steps 1-8 + profile_management + job_management all stable" },
+    { "domain": "Email", "reason": "Blocked by system_configuration (SendGrid key) + job_management (SendGridBackgroundService)" },
+    { "domain": "address_management", "reason": "Lookup pipeline complex (NO/DK/FI/SE) — requires separate discovery + planning pass" },
+    { "domain": "Delivery", "reason": "Requires messaging + Email + Voice + job_management all stable first" },
+    { "domain": "Lookup", "reason": "Country-specific complexity — separate planning pass required" },
+    { "domain": "recipient_management", "reason": "Downstream of profile_management + customer_management stabilization" },
+    { "domain": "standard_receivers", "reason": "Downstream of recipient_management" },
+    { "domain": "positive_list", "reason": "Address-dependent, lookup-dependent" },
+    { "domain": "Subscription", "reason": "Domain discovery score too low — verify before planning" },
+    { "domain": "eboks_integration", "reason": "External vendor dependency — plan separately" },
+    { "domain": "Voice", "reason": "Infobip integration — plan separately after messaging is stable" },
+    { "domain": "web_messages", "reason": "Feature domain, not foundation" },
+    { "domain": "Conversation", "reason": "Feature domain, requires phone_numbers + messaging" },
+    { "domain": "Webhook", "reason": "Downstream of messaging + delivery" },
+    { "domain": "reporting", "reason": "Downstream of messaging" },
+    { "domain": "Statistics", "reason": "Downstream of messaging" },
+    { "domain": "Enrollment", "reason": "Feature domain, not foundation" },
+    { "domain": "data_import", "reason": "Feature domain, requires job_management" },
+    { "domain": "Benchmark", "reason": "Feature domain, not foundation" },
+    { "domain": "Finance", "reason": "Not a portal capability — external system integration (e-conomic)" },
+    { "domain": "pipeline_crm", "reason": "Not a portal capability" },
+    { "domain": "pipeline_sales", "reason": "Not a portal capability" },
+    { "domain": "customer_administration", "reason": "Circular write dependency on identity_access — must come after SLICE-006" },
+    { "domain": "LocationAlert SSO", "reason": "Norway-specific. Build after SAML2 SSO is stable. CanSendByLocationAlert ProfileRole is additive — add the enum value early, implement the flow in phase 3." },
+    { "domain": "CitizenDialogue", "reason": "Active sprint in sms-service (#12077-12114) — let that stabilize before porting the domain model to green-ai" }
+  ],
+
+  "golden_sample_scope": {
+    "description": "Minimum viable portal proving all 6 phase-1 foundation domains work together. A developer can log in, see their profile, read a label, and get a config value. Every other feature domain is proven against this running baseline.",
+    "capabilities": [
+      "User can log in with email+password and receive accessToken + refreshToken",
+      "Expired access token is silently renewed via refresh token (480min sliding TTL)",
+      "User is auto-assigned to their only profile (or shown profile selector if multiple)",
+      "All UI labels served in user's language via ILocalizationService (fallback = key name)",
+      "All gateway credentials readable from IApplicationSettingService (cached, invalidated on Save)",
+      "DoesProfileHaveRole() returns correct true/false for every capability flag",
+      "Every request produces a log row with UserId + CustomerId stamp",
+      "profileId=0 or customerId=0 returns hard HTTP 401 (C_001 + C_005 fixed)"
+    ]
+  },
+
+  "slices": [
+    {
+      "id": "SLICE-001",
+      "goal": "Running API shell with DB session, config load, and health endpoint",
+      "domains_used": ["system_configuration"],
+      "artifacts": [
+        "IDbSession + ConnectionFactory (Dapper, SQL Server)",
+        "IApplicationSettingService (Get/Save/CreateDefault)",
+        "AppSetting enum (extracted from sms-service — see ssot_extractions)",
+        "GET /health — version + DB connectivity + config cache status"
+      ],
+      "ssot_required": [
+        "AppSetting enum full list extracted from sms-service C# enum file",
+        "Azure Blob container names as typed constants"
+      ],
+      "depends_on": [],
+      "done_when": "Health endpoint responds 200 and reads one AppSetting value from DB"
+    },
+    {
+      "id": "SLICE-002",
+      "goal": "User can log in and receive a valid JWT + refresh token",
+      "domains_used": ["identity_access", "system_configuration"],
+      "artifacts": [
+        "Users table + seed (1 SuperAdmin user)",
+        "UserRefreshTokens table",
+        "ICurrentUser interface",
+        "LoginHandler: email+password → SHA256 → lockout → JWT",
+        "RefreshTokenHandler: validate DB token → reissue JWT",
+        "LogoutHandler: DELETE refresh tokens",
+        "CurrentUserMiddleware: JWT → ICurrentUser → DI (hard 401 on profileId=0)",
+        "POST /api/auth/login",
+        "GET /api/auth/refresh?refreshToken=",
+        "POST /api/auth/logout"
+      ],
+      "ssot_required": [
+        "docs/IDENTITY_ACCESS_CORE_FOUNDATION.md Section 3 (17-step access flow)",
+        "JWT shape: {UserId, CustomerId, ProfileId, ImpersonateFromUserId}",
+        "AccessToken TTL: 15min. RefreshToken TTL: 480min sliding."
+      ],
+      "depends_on": ["SLICE-001"],
+      "done_when": "Login returns 200 with accessToken. profileId=0 → hard 401. Expired token + valid refresh → new token. Logout deletes refresh token."
+    },
+    {
+      "id": "SLICE-003",
+      "goal": "Customer and Profile context resolves correctly on every request",
+      "domains_used": ["identity_access", "customer_management", "profile_management"],
+      "artifacts": [
+        "Customers table + CustomerUserMappings",
+        "Profiles table + ProfileUserMappings + ProfileRoleMappings + ProfileRoles",
+        "IPermissionService: CanUserAccessCustomer, CanUserAccessProfile, DoesUserHaveRole, DoesProfileHaveRole (Dapper + in-memory cache)",
+        "SelectCustomerHandler + SelectProfileHandler (UPDATE DB + reissue JWT)",
+        "Profile auto-assign on login (exactly 1 profile → auto-select, otherwise HTTP 300)",
+        "GET /api/auth/me",
+        "POST /api/auth/select-customer",
+        "POST /api/auth/select-profile"
+      ],
+      "ssot_required": [
+        "docs/IDENTITY_ACCESS_CORE_FOUNDATION.md Section 2 (True Boundaries)",
+        "ProfileRole enum full list — extract 63 values from sms-service",
+        "UserRole enum — extract 40 values from sms-service"
+      ],
+      "depends_on": ["SLICE-002"],
+      "done_when": "DoesProfileHaveRole returns correct value. ProfileId=0 returns HTTP 401. Customer membership does NOT auto-grant profile access. Profile switch propagates into next JWT."
+    },
+    {
+      "id": "SLICE-004",
+      "goal": "Labels serve correctly in user's language",
+      "domains_used": ["localization", "identity_access"],
+      "artifacts": [
+        "LocaleStringResources table + Languages table + seed data",
+        "ILocalizationService: GetString(key, languageId), GetAllForLanguage(languageId)",
+        "GET /api/localization/{languageId}"
+      ],
+      "ssot_required": [
+        "Language IDs from sms-service (DK, NO, FI, SE, EN at minimum)",
+        "Seed: ~200 minimum label keys (login, navigation, common errors) — export from sms-service LocaleStringResources"
+      ],
+      "depends_on": ["SLICE-002"],
+      "done_when": "API returns correct label for key in DK + NO. Unknown key returns key name as fallback (never null, never exception)."
+    },
+    {
+      "id": "SLICE-005",
+      "goal": "All requests have structured log entries with user context",
+      "domains_used": ["logging", "identity_access", "system_configuration"],
+      "artifacts": [
+        "Logs table",
+        "ISystemLogger: Log(level, message, userId?, customerId?)",
+        "DefaultLogger (Dapper → Logs table)",
+        "ApplicationInsightsLogger (Azure Monitor)",
+        "FinalEmailLogger (email on Fatal)",
+        "RequestResponseLoggingMiddleware (gated by AppSetting.RequestLogLevel 160)",
+        "OutgoingHttpClientLoggingHandler (auto-injected into all HttpClient via DI)"
+      ],
+      "ssot_required": [
+        "AppSetting.RequestLogLevel(160) — gate values: off / Error / All",
+        "Azure Blob 'errorlogs' container name constant"
+      ],
+      "depends_on": ["SLICE-001", "SLICE-002"],
+      "done_when": "Every authenticated request produces a log row with UserId+CustomerId. OutgoingHttpClientLoggingHandler auto-intercepts all HttpClient calls. Fatal log triggers email."
+    },
+    {
+      "id": "SLICE-006",
+      "goal": "Golden sample — all 6 foundation domains working end-to-end",
+      "domains_used": ["identity_access", "system_configuration", "customer_management", "profile_management", "localization", "logging"],
+      "artifacts": [
+        "Integration test suite: login → select profile → read label → check capability → verify log entry",
+        "Admin seed script: 1 customer, 1 profile, 1 user, minimum roles, minimum labels",
+        "Foundation health check endpoint: reports per-domain readiness status"
+      ],
+      "ssot_required": [
+        "docs/IDENTITY_ACCESS_CORE_FOUNDATION.md Section 7 (Recommended Build Order — gate after step 8)"
+      ],
+      "depends_on": ["SLICE-001", "SLICE-002", "SLICE-003", "SLICE-004", "SLICE-005"],
+      "done_when": "Developer can: log in → auto-receive profile → call API gated by DoesProfileHaveRole → see Danish label → verify log entry. Security contradictions C_001 + C_005 provably fixed in integration tests. Feature domains may begin after this slice passes.",
+      "gate": "HARD GATE — no feature domain work starts until this slice passes all integration tests"
+    }
+  ],
+
+  "ssot_extractions_required_before_slice_002": [
+    {
+      "item": "AppSetting enum — full 50+ key list with numeric IDs",
+      "source_file_pattern": "sms-service/**/*AppSetting*.cs",
+      "save_to": "domains/system_configuration/010_entities.json (full enum section)"
+    },
+    {
+      "item": "ProfileRoleNames enum — all 63+ values with IDs",
+      "source_file_pattern": "sms-service/**/*ProfileRole*.cs",
+      "save_to": "domains/profile_management/010_entities.json"
+    },
+    {
+      "item": "UserRole enum — all 40 values",
+      "source_file_pattern": "sms-service/**/*UserRole*.cs",
+      "save_to": "domains/identity_access/010_entities.json"
+    },
+    {
+      "item": "Language IDs and codes",
+      "source_file_pattern": "sms-service/**/*Language*.cs or DB seed",
+      "save_to": "domains/localization/010_entities.json"
+    },
+    {
+      "item": "LocaleStringResources minimum seed set (~200 keys)",
+      "source_file_pattern": "sms-service DB export or resource files",
+      "save_to": "domains/localization/ (as seed reference file)"
+    },
+    {
+      "item": "ProfileType enum values and IDs",
+      "source_file_pattern": "sms-service/**/*ProfileType*.cs",
+      "save_to": "domains/profile_management/010_entities.json"
+    }
+  ]
+}

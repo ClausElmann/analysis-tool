@@ -1,0 +1,177 @@
+{
+  "_meta": {
+    "title": "Milestone 0 — Portal Ready",
+    "purpose": "First deployable version of the green-ai platform. Everything needed for a developer to log in, navigate to a workspace, and make an authenticated API call. No domain features (no SMS, no broadcast, no recipients). Pure platform.",
+    "companion_files": [
+      "docs/GENERIC_CAPABILITIES_DEEP_ANALYSIS.json — full spec for each capability",
+      "domains/product_scope/085_build_checklist.json — per-capability done criteria"
+    ],
+    "green_ai_phase": "Phase 1 (Platform Foundation)",
+    "deployment_target": "Azure App Service + Azure SQL + Azure Blob Storage"
+  },
+
+  "definition_of_done": "A developer can: (1) be invited by email, (2) set their password, (3) log in with email+password, (4) select their workspace if multiple, (5) make an authenticated GET API call, (6) log out. ALL of this works without errors, warnings, or security issues.",
+
+  "db_tables_to_create": [
+    {
+      "order": 1,
+      "tables": ["Tenants", "TenantUserMappings"],
+      "for_cap": "CAP-04 multi_tenancy"
+    },
+    {
+      "order": 2,
+      "tables": ["Workspaces", "WorkspaceUserMappings", "WorkspaceCapabilities", "WorkspaceCapabilityMappings", "WorkspaceTypes"],
+      "for_cap": "CAP-05 workspace_scoping"
+    },
+    {
+      "order": 3,
+      "tables": ["UserRoles", "UserRoleMappings", "TenantRolePolicies"],
+      "for_cap": "CAP-06 RBAC"
+    },
+    {
+      "order": 4,
+      "tables": ["ApplicationSettings"],
+      "for_cap": "CAP-09 app_settings"
+    },
+    {
+      "order": 5,
+      "tables": ["Users", "UserRefreshTokens"],
+      "for_cap": "CAP-01 authentication"
+    },
+    {
+      "order": 6,
+      "tables": ["Logs", "RequestLogs", "OutgoingRequestLogs"],
+      "for_cap": "CAP-11 structured_logging"
+    },
+    {
+      "order": 7,
+      "tables": ["Languages", "LocaleStringResources"],
+      "for_cap": "CAP-10 localization"
+    }
+  ],
+
+  "total_db_tables": 17,
+
+  "services_to_implement": [
+    {"service": "IApplicationSettingService", "cap": "CAP-09"},
+    {"service": "ISystemLogger + DatabaseLogger + OutgoingHttpClientLoggingHandler", "cap": "CAP-11"},
+    {"service": "ITenantService", "cap": "CAP-04"},
+    {"service": "IWorkspaceService", "cap": "CAP-05"},
+    {"service": "IPermissionService", "cap": "CAP-07"},
+    {"service": "IAuthenticationService (Argon2id)", "cap": "CAP-01"},
+    {"service": "ILoginHandler", "cap": "CAP-01"},
+    {"service": "ICurrentUser interface + HttpCurrentUser", "cap": "CAP-02"},
+    {"service": "CurrentUserMiddleware", "cap": "CAP-02"},
+    {"service": "ILocalizationService", "cap": "CAP-10"},
+    {"service": "IEmailService (SMTP + SendGrid)", "cap": "CAP-13"}
+  ],
+
+  "total_services": 11,
+
+  "api_endpoints": [
+    {"method": "POST", "path": "/api/auth/login", "cap": "CAP-01"},
+    {"method": "GET", "path": "/api/auth/refresh", "cap": "CAP-02"},
+    {"method": "POST", "path": "/api/auth/select-workspace", "cap": "CAP-02"},
+    {"method": "POST", "path": "/api/auth/select-tenant", "cap": "CAP-02"},
+    {"method": "POST", "path": "/api/auth/password-reset-request", "cap": "CAP-01"},
+    {"method": "POST", "path": "/api/auth/password-reset-confirm", "cap": "CAP-01"},
+    {"method": "GET", "path": "/api/localization/{languageId}", "cap": "CAP-10"},
+    {"method": "GET", "path": "/api/localization/languages", "cap": "CAP-10"},
+    {"method": "GET", "path": "/health", "cap": "CAP-15"}
+  ],
+
+  "total_endpoints": 9,
+
+  "seed_data_required": [
+    "Languages: Danish(1), Norwegian(5), English(3)",
+    "UserRoles: 8 platform roles",
+    "WorkspaceTypes: at least 1 type",
+    "ApplicationSettings: 20 platform keys with defaults",
+    "LocaleStringResources: minimum 200 labels (login, nav, errors, form validation)",
+    "1 operator Tenant",
+    "1 default Workspace in operator Tenant",
+    "1 SuperAdmin User linked to operator Tenant"
+  ],
+
+  "non_functional_requirements": [
+    "0 compiler warnings — enforced before merge",
+    "Password hashing: Argon2id — NOT SHA256",
+    "All credentials via IApplicationSettingService — never hardcoded or from appsettings.json in service code",
+    "ICurrentUser: exactly 1 implementation in HTTP context. Architectural test enforces this.",
+    "All feature services use ISystemLogger — never ILogger<T> or Serilog directly",
+    "TenantId=0 in JWT → HTTP 401 from CurrentUserMiddleware — no bypass",
+    "WorkspaceId=0 in JWT → HTTP 401 — no bypass",
+    "GET /health returns 200 with no auth — load balancer ready"
+  ],
+
+  "security_review_checklist": [
+    "No plaintext passwords in DB — only Argon2id hash + salt",
+    "No plaintext API keys anywhere — hash only",
+    "No sensitive fields in /health response",
+    "Password reset token: 15-min expiry, GUID, invalidated after use",
+    "Rate limiting on /api/auth/login (prevent brute force)",
+    "HTTPS enforced (HTTP redirect to HTTPS)",
+    "UserRefreshTokens cleaned up on logout and on token reuse attack detection",
+    "X-Frame-Options, X-Content-Type-Options, Content-Security-Policy headers set",
+    "Request body logging redacts password and token fields"
+  ],
+
+  "acceptance_test_scenarios": [
+    {
+      "id": "AT-M0-01",
+      "name": "Happy path login",
+      "steps": [
+        "SuperAdmin invites new user via POST /api/users",
+        "User receives invite email with token",
+        "User sets password via /set-password?token=<guid>",
+        "User logs in with email+password → receives accessToken + refreshToken",
+        "User calls GET /api/localization/languages with accessToken → 200 OK",
+        "User calls GET /api/auth/refresh → receives new accessToken"
+      ],
+      "expected": "All steps return correct HTTP status codes. 0 errors in Logs table."
+    },
+    {
+      "id": "AT-M0-02",
+      "name": "Lockout protection",
+      "steps": [
+        "POST /api/auth/login with wrong password 6 times",
+        "7th attempt with correct password"
+      ],
+      "expected": "7th attempt returns HTTP 403 (locked out). IsLockedOut=true in DB."
+    },
+    {
+      "id": "AT-M0-03",
+      "name": "Workspace selection required",
+      "steps": [
+        "Create user with 2 workspace memberships",
+        "User logs in → receives HTTP 300",
+        "User calls POST /api/auth/select-workspace with workspaceId",
+        "User receives new token with WorkspaceId set",
+        "User calls authenticated endpoint → 200 OK"
+      ],
+      "expected": "HTTP 300 on login triggers workspace selection. After selection, 200 on all authenticated endpoints."
+    },
+    {
+      "id": "AT-M0-04",
+      "name": "Health endpoint",
+      "steps": [
+        "GET /health (no auth header)",
+        "Take DB offline",
+        "GET /health again"
+      ],
+      "expected": "200 when DB online. 503 when DB offline. No credentials exposed in either response."
+    },
+    {
+      "id": "AT-M0-05",
+      "name": "Unauthorized tenant access blocked",
+      "steps": [
+        "Create 2 tenants: TenantA, TenantB",
+        "Create user in TenantA only",
+        "User selects TenantA → success",
+        "Manually forge JWT with TenantB id",
+        "Call API with forged JWT"
+      ],
+      "expected": "CurrentUserMiddleware verifies DB User.CurrentTenantId. JWT claim cannot be forged if user.CurrentTenantId is authoritative. Return 401."
+    }
+  ]
+}

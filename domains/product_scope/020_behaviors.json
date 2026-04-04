@@ -1,0 +1,66 @@
+[
+  {
+    "behavior_id": "LOOP-01",
+    "name": "DefineScope",
+    "description": "Operator selects the target universe: an address list, geographic area, or subscriber list. This defines who MIGHT receive the broadcast.",
+    "inputs": ["Address list / geographic filter / subscriber group / mix"],
+    "outputs": ["Candidate address set"],
+    "profile_role_required": null,
+    "phase": "Broadcast creation"
+  },
+  {
+    "behavior_id": "LOOP-02",
+    "name": "ResolveRecipients",
+    "description": "For each address in scope, determine who lives or works there. Calls country-specific lookup services (CPR, CVR, NFS, KRR) to resolve phone numbers and email addresses.",
+    "inputs": ["Candidate address set"],
+    "outputs": ["Resolved recipient list (phone + email per address)"],
+    "profile_role_required": "NorwayKRRLookup (conditional)",
+    "external_apis": ["CPR (DK)", "CVR (DK)", "NFS (NO)", "KRR (NO)"],
+    "phase": "Pre-broadcast lookup"
+  },
+  {
+    "behavior_id": "LOOP-03",
+    "name": "FilterRecipients",
+    "description": "Apply ordered filter chain to each resolved recipient. Removes KRR-reserved, duplicates, address-restricted, and positive-list violations.",
+    "inputs": ["Resolved recipient list"],
+    "outputs": ["Filtered delivery list", "RejectedRecipient list with reasons"],
+    "filter_steps": ["KRR reservation check", "Positive list gate", "Duplicate removal", "Address restriction check"],
+    "phase": "Pre-delivery compliance"
+  },
+  {
+    "behavior_id": "LOOP-04",
+    "name": "RouteByChannel",
+    "description": "For each filtered recipient, determine which channel(s) to use. ProfileRoles gate which channels are available. Falls back to next available channel if preferred unavailable.",
+    "inputs": ["Filtered delivery list", "ProfileRoles", "Operator channel preferences"],
+    "outputs": ["DeliveryRecord per recipient per channel"],
+    "channel_gates": {
+      "SMS": "base capability",
+      "Email": "base capability",
+      "Voice": "CanSendByVoice ProfileRole",
+      "Eboks": "CanSendByEboks ProfileRole",
+      "LocationAlert": "CanSendByLocationAlert ProfileRole"
+    },
+    "phase": "Routing"
+  },
+  {
+    "behavior_id": "LOOP-05",
+    "name": "Deliver",
+    "description": "Background service picks up Queued DeliveryRecords and sends via the appropriate carrier API. Retries on transient failure. Status updated on carrier callback.",
+    "inputs": ["DeliveryRecord (status=Queued)"],
+    "outputs": ["DeliveryRecord (status=Sent/Failed/Rejected)"],
+    "carriers": ["GatewayAPI (SMS)", "SendGrid (Email)", "Infobip (Voice)", "e-Boks API (Eboks)"],
+    "retry_pattern": "Exponential backoff, max 3 attempts, then status=PermanentlyFailed",
+    "dead_letter": "PermanentlyFailed records must be preserved for audit",
+    "phase": "Delivery execution"
+  },
+  {
+    "behavior_id": "LOOP-06",
+    "name": "TrackAndReport",
+    "description": "Aggregate delivery outcomes per broadcast: sent, delivered, failed, filtered counts. Compliance retention period controlled by Customer.MonthToDeleteMessages (default 60 months).",
+    "inputs": ["DeliveryRecord statuses"],
+    "outputs": ["BroadcastStatistic", "ActivityLog entry"],
+    "retention_rule": "Individual delivery records deleted after MonthToDeleteMessages months",
+    "profile_role_required": null,
+    "phase": "Post-delivery analytics"
+  }
+]

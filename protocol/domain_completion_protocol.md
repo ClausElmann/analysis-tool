@@ -2,6 +2,20 @@
 
 Formål: køre autonom domæneanalyse, ét domæne ad gangen, med stop/start, selvkontrol og anti-loop.
 
+## 0. Reference Artifacts (LÆSES ALTID FØRST)
+
+Visse domæner er `reference_artifact` — de er intentionelt forfattede og må ALDRIG enriches mod kildekode.
+
+**Kendte reference artifacts:**
+- `product_scope` — Produktets konceptuelle scope. 15 produktområder, 6-trins kerneloop, 8 anti-patterns, 5-fase byggeplan. **Læs dette domæne inden enhver implementeringsfase planlægges.**
+
+Regler for reference artifacts:
+- `status = locked` — motoren ændrer ikke dette domæne
+- Scores er altid 1.0 — ingen scoring skal beregnes
+- Motoren hopper over dette domæne i analyse-loopet
+- Authoritative phase ordering: `domains/product_scope/090_rebuild.json`
+- Anti-patterns der SKAL overholdes: `domains/product_scope/070_rules.json`
+
 ## 1. Driftstilstand
 
 Systemet må kun være i én af disse tilstande pr. domæne:
@@ -12,15 +26,16 @@ Systemet må kun være i én af disse tilstande pr. domæne:
 - `stable_candidate`
 - `complete`
 - `abandoned`
+- `locked` ← KUN for reference artifacts. Motoren rører aldrig et `locked` domæne.
 
 Globalt må kun ét domæne have `in_progress` ad gangen.
 
 ## 2. Filer der styrer protokollen
 
-- `domains/domain_state.json` — sand kilde for status
+- `domains/domain_state.json` — sand kilde for status. Indeholder `_global.reference_artifacts` liste.
 - `data/domain_memory.json` — AI-afledt hukommelse og evidens
-- `data/domains/discovered_domains.json` — fundne domæner
-- `data/domains/domain_priority.json` — byg/prioritetsrækkefølge
+- `data/domains/discovered_domains.json` — fundne domæner (inkl. reference artifacts)
+- `data/domains/domain_priority.json` — byg/prioritetsrækkefølge. **REALIGNED 2026-04-04 til green-ai fase-plan.**
 - `domains/<domain>/000_meta.json` ... `095_decision_support.json` — domæneoutput
 - `data/run_log.jsonl` — append-only kørselshistorik
 
@@ -29,9 +44,20 @@ Globalt må kun ét domæne have `in_progress` ad gangen.
 Ved start skal motoren:
 
 1. læse `domain_state.json`
-2. vælge første domæne i prioriteringslisten som ikke er `complete` eller `abandoned`
-3. hvis et domæne allerede er `in_progress`, genoptages det
-4. hvis ingen findes, stop med status `ALL_COMPLETE`
+2. **læse `domains/product_scope/000_meta.json`** — reference artifact er altid det første der konsulteres
+3. vælge første domæne i prioriteringslisten som ikke er `complete`, `abandoned`, eller `locked`
+4. hvis et domæne allerede er `in_progress`, genoptages det
+5. hvis ingen findes, stop med status `ALL_COMPLETE`
+
+**Lav-score domæner der kræver dedicated discovery pass inden fase 2/3 planlægning:**
+- `templates` (0.37) — template engine design er en arkitektonisk hoveddecision
+- `positive_list` (0.48) — juridisk kompleksitet varierer per land
+- `address_management` (0.58) — importpipeline påvirker databaseskema fundamentalt
+- `lookup` (0.54) — landespecifikke eksterne APIs — én discovery pass per land
+- `subscription` (0.58) — anonym token-model har sikkerhedsmæssige konsekvenser
+- `statistics` (0.35) — næsten ikke scannet
+- `reporting` (0.13) — næsten ingen data
+- `monitoring` (0.20) — ubekræftet
 
 ## 4. Arbejdsloop pr. domæne
 
@@ -39,14 +65,15 @@ For valgt domæne køres følgende loop:
 
 1. læs nuværende domænemodel
 2. læs domænehukommelse
-3. beregn gaps
-4. vælg næste assets baseret på gaps
-5. analyser assets
-6. merge ny viden ind i domænemodellen
-7. kør cross-analysis
-8. opdater scores
-9. persistér alt atomisk
-10. afgør om domænet skal fortsætte, blokeres, markeres som kandidat eller færdigt
+3. **tjek `domains/product_scope/070_rules.json`** — er der anti-patterns relevante for dette domæne?
+4. beregn gaps
+5. vælg næste assets baseret på gaps
+6. analyser assets
+7. merge ny viden ind i domænemodellen
+8. kør cross-analysis
+9. opdater scores
+10. persistér alt atomisk
+11. afgør om domænet skal fortsætte, blokeres, markeres som kandidat eller færdigt
 
 ## 5. Scores
 
@@ -57,6 +84,8 @@ Hvert domæne skal have disse scores i `000_meta.json` og `domain_state.json`:
 - `saturation_score` (0-1)
 - `new_information_score` (0-1)
 - `evidence_balance_score` (0-1)
+
+Reference artifacts har altid alle scores = 1.0.
 
 ## 6. Færdig-regel
 
@@ -77,6 +106,7 @@ Indtil da er domænet ikke færdigt.
 Hvis et domæne ser færdigt ud i én iteration, sættes det til `stable_candidate`, ikke `complete`.
 
 Først efter 3 på hinanden følgende stabile iterationer må det blive `complete`.
+
 
 ## 8. Blocked-regel
 
