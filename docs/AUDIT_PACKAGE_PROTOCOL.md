@@ -167,3 +167,272 @@ The validator checks all 6 rules automatically and exits 0 (pass) or 1 (violatio
 - [ ] `PACKAGE_MANIFEST.json` present at ZIP root
 - [ ] ZIP filename follows `audit-package-YYYYMMDD-HHMMSS.zip` convention
 - [ ] ZIP is in `D:\Udvikling\audit-packages\`
+
+---
+
+# UI Audit Extensions (Additive)
+
+> Purpose: Enable full UI/UX, accessibility, and enterprise-grade design audit by including runtime evidence and UI context.
+> These rules EXTEND the base protocol — no existing exclusions are removed except where noted.
+
+---
+
+## 1. Screenshots (REQUIRED)
+
+**Always include:**
+```
+green-ai/tests/GreenAi.E2E/TestResults/Visual/current/
+```
+
+**Include if exists:**
+```
+green-ai/tests/GreenAi.E2E/TestResults/Visual/baseline/
+```
+
+> **Exception to global image exclusion:** `*.png`, `*.jpg`, `*.jpeg`, `*.gif`, `*.webp`, `*.bmp` are allowed **only** inside these Visual folders. Images remain excluded everywhere else.
+
+---
+
+## 2. Test Results (REQUIRED)
+
+**Include:**
+```
+green-ai/tests/GreenAi.E2E/TestResults/
+```
+
+> **Exception to global `TestResults/` folder exclusion:** the green-ai E2E results folder is explicitly included.
+> Non-image files (`.trx`, `.xml`, etc.) are included at all levels; images are only allowed under `Visual/` subfolders.
+
+---
+
+## 3. UI SSOT Documentation (REQUIRED)
+
+**Include (already present by default — validated at package time):**
+```
+green-ai/docs/SSOT/ui/
+```
+
+Minimum expected files:
+- `color-system.md`
+- `component-system.md`
+
+---
+
+## 4. CSS and Theme Files (REQUIRED)
+
+**Include (already present by default — validated at package time):**
+```
+green-ai/src/GreenAi.Api/wwwroot/css/
+```
+
+Required files: `design-tokens.css`, `portal-skin.css`, `greenai-enterprise.css`, `greenai-skin.css`.
+
+---
+
+## 5. Layout Components (REQUIRED)
+
+**Include (already present by default):**
+```
+green-ai/src/GreenAi.Api/Components/Layout/
+```
+
+Including: `MainLayout.razor`, `WizardLayout.razor`, `OverlayNav.razor`, `TopBar.razor`.
+
+---
+
+## 6. Representative UI Pages (REQUIRED)
+
+**Include (already present by default):**
+```
+green-ai/src/GreenAi.Api/Components/Pages/Broadcasting/
+green-ai/src/GreenAi.Api/Components/Pages/CustomerAdmin/
+green-ai/src/GreenAi.Api/Components/Pages/AdminLight/
+green-ai/src/GreenAi.Api/Components/Pages/Auth/
+```
+
+---
+
+## Image Inclusion Rule (Updated)
+
+| Location | Images allowed? |
+|---|---|
+| `TestResults/Visual/current/` | ✅ YES |
+| `TestResults/Visual/baseline/` | ✅ YES |
+| Anywhere else | ❌ NO |
+
+---
+
+## PACKAGE_MANIFEST.json — Additional Fields
+
+```json
+"uiAudit": {
+  "screenshotsIncluded": true/false,
+  "screenshotCount": number,
+  "cssFilesIncluded": true/false,
+  "uiDocsIncluded": true/false
+}
+```
+
+---
+
+## PACKAGE_INDEX.md — Additional Content
+
+Include in generated index:
+
+- Count of screenshots included
+- Confirmation: screenshots present / CSS files present / UI SSOT docs present
+
+---
+
+## Extended Validation Checklist
+
+- [ ] E2E TestResults folder present (`green-ai/tests/GreenAi.E2E/TestResults/`)
+- [ ] Screenshots present under `Visual/current/`
+- [ ] CSS files present (`src/GreenAi.Api/wwwroot/css/`)
+- [ ] UI SSOT docs present (`docs/SSOT/ui/`)
+- [ ] No images outside `TestResults/Visual/` folders
+
+---
+
+# Full System Audit Extensions (Additive)
+
+> Purpose: Enable complete enterprise audit of UI/UX quality, design system consistency, SSOT/RED THREAD alignment, frontend + backend architecture, and governance enforcement.
+> This section EXTENDS the protocol — no existing rules are changed.
+> §1–§3 below overlap with "UI Audit Extensions" (which remains the primary authority for those topics). §4–§9 are net-new.
+
+---
+
+## 1. Visual Evidence (REQUIRED)
+
+> Covered by "UI Audit Extensions §1". Structure (`desktop/`, `tablet/`, `mobile/`) is preserved as-is from the test run output.
+
+---
+
+## 2. Test Results (REQUIRED)
+
+> Covered by "UI Audit Extensions §2". Governance test `.trx` output is the primary evidence of enforcement.
+
+---
+
+## 3. UI System CSS (REQUIRED)
+
+> Covered by "UI Audit Extensions §4". Included automatically as part of `green-ai/src/`.
+
+---
+
+## 4. SSOT / RED THREAD (CRITICAL)
+
+**Included automatically (both project roots are copied by main tree):**
+```
+green-ai/docs/SSOT/
+analysis-tool/ai-governance/
+analysis-tool/docs/
+```
+
+Purpose:
+- Validate architecture alignment across projects
+- Validate RED THREAD consistency (decision → doc → code)
+- Validate decision traceability
+
+Validated at package time: SSOT file count reported in `systemAudit.ssot.filesCount`.
+
+---
+
+## 5. Governance Tooling (CRITICAL)
+
+**Included automatically (analysis-tool project root):**
+```
+analysis-tool/core/
+analysis-tool/analyzers/
+analysis-tool/protocols/
+```
+
+Key files (included if present at root):
+- `ai_prompt_builder.py`
+- `domain_quality_gate.py`
+
+Purpose:
+- Audit the AI analysis system itself
+- Validate pipeline quality and enforcement logic
+
+Validated at package time: `systemAudit.governance`.
+
+---
+
+## 6. Frontend + Backend Source (REQUIRED)
+
+**Included automatically (green-ai project root):**
+```
+green-ai/src/GreenAi.Api/Components/    — Blazor pages + components
+green-ai/src/GreenAi.Api/Features/      — MediatR handlers + endpoints
+green-ai/src/GreenAi.Api/wwwroot/css/   — CSS design system
+green-ai/tests/GreenAi.Tests/           — Unit + integration tests
+green-ai/tests/GreenAi.E2E/             — E2E + governance tests (source)
+```
+
+Presence of `Components/` confirms frontend. Presence of `Features/` confirms backend.
+Validated at package time: `systemAudit.frontend` / `systemAudit.backend` / `systemAudit.tests`.
+
+---
+
+## 7. Representative UI Flows (REQUIRED)
+
+**Included automatically** as part of `green-ai/src/`. Required page paths:
+
+| Flow | Component path |
+|---|---|
+| `/broadcasting` | `Components/Pages/Broadcasting/BroadcastingHubPage.razor` |
+| `/send/wizard` | `Components/Pages/Broadcasting/SendWizardPage.razor` |
+| `/status` + detail | `Components/Pages/Broadcasting/StatusPage.razor` |
+| `/drafts` | `Components/Pages/Broadcasting/DraftsPage.razor` |
+| `/select-customer` | `Components/Pages/Auth/SelectCustomerPage.razor` |
+| `/select-profile` | `Components/Pages/Auth/SelectProfilePage.razor` |
+| `/customer-admin` | `Components/Pages/CustomerAdmin/Index.razor` |
+| `/admin/*` | `Components/Pages/AdminLight/` |
+
+---
+
+## `PACKAGE_MANIFEST.json` — System Audit Fields
+
+Added alongside existing `uiAudit` block:
+
+```json
+"systemAudit": {
+  "ui": {
+    "screenshotsIncluded": true/false,
+    "screenshotCount": number
+  },
+  "ssot": {
+    "present": true/false,
+    "filesCount": number
+  },
+  "frontend": true/false,
+  "backend": true/false,
+  "governance": true/false,
+  "tests": true/false
+}
+```
+
+---
+
+## `PACKAGE_INDEX.md` — System Audit Section
+
+Added after "UI Audit Assets" table:
+
+- System audit asset table (SSOT, governance tooling, frontend, backend, tests)
+- SSOT file count
+- Key flows detected (presence-based)
+
+---
+
+## Extended Full System Validation Checklist
+
+- [ ] Visual screenshots included (`TestResults/Visual/current/`)
+- [ ] UI CSS system present (`src/GreenAi.Api/wwwroot/css/`)
+- [ ] Full SSOT folder present (`green-ai/docs/SSOT/` + `analysis-tool/ai-governance/`)
+- [ ] Governance tooling present (`analysis-tool/core/`)
+- [ ] Frontend source present (`src/GreenAi.Api/Components/`)
+- [ ] Backend source present (`src/GreenAi.Api/Features/`)
+- [ ] Test results included (`tests/GreenAi.E2E/TestResults/`)
+- [ ] No binary/build artifacts included
+- [ ] No images outside `TestResults/Visual/` folders

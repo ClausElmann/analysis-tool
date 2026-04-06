@@ -80,6 +80,18 @@ $ForbiddenFolderPatterns = @(
 $RequiredFiles    = @('PACKAGE_INDEX.md', 'PACKAGE_MANIFEST.json')
 $RequiredRoots    = @('analysis-tool/', 'green-ai/')
 
+# UI audit: Visual folders where images are explicitly allowed
+$UiAuditVisualPrefix    = 'green-ai/tests/GreenAi.E2E/TestResults/Visual/'
+$UiAuditResultsPrefix   = 'green-ai/tests/GreenAi.E2E/TestResults/'
+$VisualImageExts        = @('.png','.jpg','.jpeg','.gif','.webp','.bmp')
+
+# System audit asset paths
+$SysAuditSsotPrefix     = 'green-ai/docs/SSOT/'
+$SysAuditGovPrefix      = 'analysis-tool/core/'
+$SysAuditFrontendPrefix = 'green-ai/src/GreenAi.Api/Components/'
+$SysAuditBackendPrefix  = 'green-ai/src/GreenAi.Api/Features/'
+$SysAuditTestsPrefix    = 'green-ai/tests/GreenAi.Tests/'
+
 # ─────────────────────────────────────────────────────────────
 # LOAD ZIP
 # ─────────────────────────────────────────────────────────────
@@ -132,8 +144,12 @@ foreach ($req in $RequiredFiles) {
 # ─────────────────────────────────────────────────────────────
 $checks++
 $badExtFiles = @($entries | Where-Object {
-    $ext = [System.IO.Path]::GetExtension($_.Name).ToLower()
-    $ForbiddenExtensions -contains $ext
+    $ext      = [System.IO.Path]::GetExtension($_.Name).ToLower()
+    if (-not ($ForbiddenExtensions -contains $ext)) { return $false }
+    # Images are allowed inside Visual audit folders only
+    $entryPath = $_.FullName.Replace('\', '/')
+    if (($VisualImageExts -contains $ext) -and ($entryPath -like "$UiAuditVisualPrefix*")) { return $false }
+    return $true
 })
 if ($badExtFiles.Count -gt 0) {
     foreach ($f in $badExtFiles) {
@@ -149,8 +165,11 @@ if ($badExtFiles.Count -gt 0) {
 $checks++
 $folderViolations = @()
 foreach ($entry in $entries) {
+    $entryPath = $entry.FullName.Replace('\', '/')
+    # Entries under the explicitly allowed E2E TestResults path are exempt
+    if ($entryPath -like "$UiAuditResultsPrefix*") { continue }
     foreach ($pattern in $ForbiddenFolderPatterns) {
-        if ($entry.FullName -match $pattern) {
+        if ($entryPath -match $pattern) {
             $folderViolations += $entry.FullName
             break
         }
@@ -165,6 +184,132 @@ if ($folderViolations.Count -gt 0) {
 }
 
 # ─────────────────────────────────────────────────────────────
+# CHECK 5: E2E TestResults folder present
+# ─────────────────────────────────────────────────────────────
+$checks++
+$testResultsEntries = @($entries | Where-Object {
+    $_.FullName.Replace('\', '/') -like "$UiAuditResultsPrefix*"
+})
+if ($testResultsEntries.Count -eq 0) {
+    Add-Violation "UI-001" "TestResults folder missing: green-ai/tests/GreenAi.E2E/TestResults/ — run governance tests first"
+} else {
+    Write-Host "  [ok] TestResults present: $($testResultsEntries.Count) entr(ies)"
+}
+
+# ─────────────────────────────────────────────────────────────
+# CHECK 6: Screenshots present under Visual/current/
+# ─────────────────────────────────────────────────────────────
+$checks++
+$visualCurrentPrefix = "$UiAuditVisualPrefix" + "current/"
+$screenshotEntries = @($entries | Where-Object {
+    $ext  = [System.IO.Path]::GetExtension($_.Name).ToLower()
+    $path = $_.FullName.Replace('\', '/')
+    ($VisualImageExts -contains $ext) -and ($path -like "$UiAuditVisualPrefix*")
+})
+if ($screenshotEntries.Count -eq 0) {
+    Add-Violation "UI-002" "No screenshots under Visual/current/ — run visual E2E tests before packaging"
+} else {
+    Write-Host "  [ok] Screenshots: $($screenshotEntries.Count) file(s) in Visual/"
+}
+
+# ─────────────────────────────────────────────────────────────
+# CHECK 7: CSS files present
+# ─────────────────────────────────────────────────────────────
+$checks++
+$cssEntries = @($entries | Where-Object {
+    $_.FullName.Replace('\', '/') -like "green-ai/src/GreenAi.Api/wwwroot/css/*" -and
+    $_.Name -match '\.css$'
+})
+if ($cssEntries.Count -eq 0) {
+    Add-Violation "UI-003" "CSS files missing: green-ai/src/GreenAi.Api/wwwroot/css/ — required for design token audit"
+} else {
+    Write-Host "  [ok] CSS files: $($cssEntries.Count) file(s)"
+}
+
+# ─────────────────────────────────────────────────────────────
+# CHECK 8: UI SSOT docs present
+# ─────────────────────────────────────────────────────────────
+$checks++
+$uiDocEntries = @($entries | Where-Object {
+    $_.FullName.Replace('\', '/') -like "green-ai/docs/SSOT/ui/*"
+})
+if ($uiDocEntries.Count -eq 0) {
+    Add-Violation "UI-004" "UI SSOT docs missing: green-ai/docs/SSOT/ui/ — required for design system audit"
+} else {
+    Write-Host "  [ok] UI SSOT docs: $($uiDocEntries.Count) file(s)"
+}
+
+# ─────────────────────────────────────────────────────────────
+# CHECK 9: No images outside Visual folders
+# ─────────────────────────────────────────────────────────────
+$checks++
+$allImageExts = @('.png','.jpg','.jpeg','.gif','.webp','.bmp','.ico','.svg')
+$imagesOutsideVisual = @($entries | Where-Object {
+    $ext  = [System.IO.Path]::GetExtension($_.Name).ToLower()
+    $path = $_.FullName.Replace('\', '/')
+    ($allImageExts -contains $ext) -and -not ($path -like "$UiAuditVisualPrefix*")
+})
+if ($imagesOutsideVisual.Count -gt 0) {
+    foreach ($f in $imagesOutsideVisual) {
+        Add-Violation "UI-005" "Image outside allowed Visual/ folder: $($f.FullName)"
+    }
+} else {
+    Write-Host "  [ok] No images outside Visual/ folders"
+}
+
+# ─────────────────────────────────────────────────────────────
+# CHECK 10: Full SSOT present (green-ai/docs/SSOT/)
+# ─────────────────────────────────────────────────────────────
+$checks++
+$ssotEntries = @($entries | Where-Object {
+    $_.FullName.Replace('\', '/') -like "$SysAuditSsotPrefix*"
+})
+if ($ssotEntries.Count -eq 0) {
+    Add-Violation "SYS-001" "Full SSOT missing: green-ai/docs/SSOT/ — required for architecture alignment audit"
+} else {
+    Write-Host "  [ok] Full SSOT: $($ssotEntries.Count) file(s)"
+}
+
+# ─────────────────────────────────────────────────────────────
+# CHECK 11: Governance tooling present (analysis-tool/core/)
+# ─────────────────────────────────────────────────────────────
+$checks++
+$govEntries = @($entries | Where-Object {
+    $_.FullName.Replace('\', '/') -like "$SysAuditGovPrefix*"
+})
+if ($govEntries.Count -eq 0) {
+    Add-Violation "SYS-002" "Governance tooling missing: analysis-tool/core/ — required for pipeline quality audit"
+} else {
+    Write-Host "  [ok] Governance tooling: $($govEntries.Count) file(s)"
+}
+
+# ─────────────────────────────────────────────────────────────
+# CHECK 12: Frontend source present (green-ai/src/GreenAi.Api/Components/)
+# ─────────────────────────────────────────────────────────────
+$checks++
+$frontendEntries = @($entries | Where-Object {
+    $_.FullName.Replace('\', '/') -like "$SysAuditFrontendPrefix*"
+})
+if ($frontendEntries.Count -eq 0) {
+    Add-Violation "SYS-003" "Frontend source missing: green-ai/src/GreenAi.Api/Components/ — required for UI audit"
+} else {
+    Write-Host "  [ok] Frontend source: $($frontendEntries.Count) file(s)"
+}
+
+# ─────────────────────────────────────────────────────────────
+# CHECK 13: Backend source present (green-ai/src/GreenAi.Api/Features/)
+# ─────────────────────────────────────────────────────────────
+$checks++
+$backendEntries = @($entries | Where-Object {
+    $_.FullName.Replace('\', '/') -like "$SysAuditBackendPrefix*"
+})
+if ($backendEntries.Count -eq 0) {
+    Add-Violation "SYS-004" "Backend source missing: green-ai/src/GreenAi.Api/Features/ — required for architecture audit"
+} else {
+    Write-Host "  [ok] Backend source: $($backendEntries.Count) file(s)"
+}
+
+# ─────────────────────────────────────────────────────────────
 # REPORT
 # ─────────────────────────────────────────────────────────────
 Write-Host ""
@@ -176,6 +321,15 @@ if ($violations.Count -eq 0) {
     Write-Host "  [x] PACKAGE_INDEX.md and PACKAGE_MANIFEST.json present"
     Write-Host "  [x] No binary/generated file extensions"
     Write-Host "  [x] No bin/obj/.git/etc. folders"
+    Write-Host "  [x] E2E TestResults folder included"
+    Write-Host "  [x] Screenshots present (Visual/current/)"
+    Write-Host "  [x] CSS files included"
+    Write-Host "  [x] UI SSOT docs included"
+    Write-Host "  [x] No images outside Visual/ folders"
+    Write-Host "  [x] Full SSOT present"
+    Write-Host "  [x] Governance tooling present"
+    Write-Host "  [x] Frontend source present"
+    Write-Host "  [x] Backend source present"
     exit 0
 } else {
     Write-Host "$($violations.Count) violation(s) found:" -ForegroundColor Red
