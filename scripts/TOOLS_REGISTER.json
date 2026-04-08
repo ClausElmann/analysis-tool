@@ -28,6 +28,42 @@
       "warning": "SECURITY: Do NOT store real tokens in this file. Use environment variables or a secrets manager instead. File contained a plaintext PAT — revoke and replace with placeholder.",
       "triggers": ["sæt copilot env", "enrichment environment", "set ai provider"],
       "last_verified": "2026-03-31"
+    },
+    {
+      "id": "validate-audit-package",
+      "name": "Validate-Audit-Package.ps1",
+      "path": "analysis-tool/scripts/Validate-Audit-Package.ps1",
+      "full_path": "C:\\Udvikling\\analysis-tool\\scripts\\Validate-Audit-Package.ps1",
+      "type": "powershell",
+      "purpose": "Validates an audit package ZIP against AUDIT_PACKAGE_PROTOCOL.md rules. Checks project roots, required generated files (PACKAGE_INDEX.md, PACKAGE_MANIFEST.json), forbidden extensions, and forbidden folders.",
+      "usage": "& 'C:\\Udvikling\\analysis-tool\\scripts\\Validate-Audit-Package.ps1'",
+      "usage_with_path": "& 'C:\\Udvikling\\analysis-tool\\scripts\\Validate-Audit-Package.ps1' -ZipPath 'D:\\Udvikling\\audit-packages\\audit-package-20260403-132037.zip'",
+      "triggers": ["valider audit zip", "validate audit", "tjek audit pakke", "check audit package"],
+      "last_verified": "2026-04-08"
+    },
+    {
+      "id": "capture-journey",
+      "name": "capture-journey.ps1",
+      "path": "green-ai/scripts/demo/capture-journey.ps1",
+      "full_path": "C:\\Udvikling\\green-ai\\scripts\\demo\\capture-journey.ps1",
+      "type": "powershell",
+      "purpose": "Runs the DEMO CAPTURE pipeline for a specific journey proposal. Sets DEMO_JOURNEY_FILE env var and executes dotnet test --filter Category=DemoCapture. Output: TestResults/Demo/{journeyId}/manifest.json + screenshots.",
+      "usage": "& 'C:\\Udvikling\\green-ai\\scripts\\demo\\capture-journey.ps1' -JourneyFile 'data/journey-proposals/broadcasting-hub.json'",
+      "triggers": ["demo capture", "capture journey", "optag journey", "kør capture"],
+      "related": ["propose-journeys"],
+      "last_verified": "2026-04-08"
+    },
+    {
+      "id": "propose-journeys",
+      "name": "propose-journeys.ps1",
+      "path": "green-ai/scripts/demo/propose-journeys.ps1",
+      "full_path": "C:\\Udvikling\\green-ai\\scripts\\demo\\propose-journeys.ps1",
+      "type": "powershell",
+      "purpose": "Reads UI_MODEL_*.json from analysis-tool/docs and generates journey proposal JSON files in green-ai/data/journey-proposals/. One .json per UI scenario. Input for the DEMO CAPTURE pipeline.",
+      "usage": "& 'C:\\Udvikling\\green-ai\\scripts\\demo\\propose-journeys.ps1'",
+      "triggers": ["foreslå journeys", "generer journey forslag", "propose journeys", "lav journey forslag"],
+      "related": ["capture-journey"],
+      "last_verified": "2026-04-08"
     }
   ]
 }

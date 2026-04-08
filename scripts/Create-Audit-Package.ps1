@@ -586,10 +586,17 @@ When analyzing this package:
 Set-Content -Path (Join-Path $StagingRoot "PACKAGE_INDEX.md") -Value $index -Encoding UTF8
 
 # ---------------------------------------------------------------------------
-# CREATE ZIP
+# CREATE ZIP — use .NET ZipFile directly; Compress-Archive wildcard expansion
+# silently creates a 0-byte archive when the staging folder is large
 # ---------------------------------------------------------------------------
 Write-Host "Creating ZIP: $ZipPath"
-Compress-Archive -Path "$StagingRoot\*" -DestinationPath $ZipPath -CompressionLevel Optimal
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory(
+    $StagingRoot,
+    $ZipPath,
+    [System.IO.Compression.CompressionLevel]::Optimal,
+    $false   # includeBaseDirectory = false → staging folder itself not nested
+)
 
 # ---------------------------------------------------------------------------
 # CLEANUP STAGING
