@@ -57,7 +57,9 @@
     "id": "RULE_008",
     "name": "2FADeliveryMethod",
     "type": "FACT",
-    "rule": "If User.ResetPhone is set: SMS 2FA available. If User.AuthenticatorSecret is set: TOTP available. Email 2FA always available as fallback (uses User.Email). HTTP 428 response triggers 2FA, 300 triggers method selection."
+    "source": "ServiceAlert.Api/Controllers/UserController.cs:115,145 + ServiceAlert.Core/Domain/Users/User.cs (ResetPhone, AuthenticatorSecret fields)",
+    "rule": "If User.ResetPhone is set: SMS 2FA available. If User.AuthenticatorSecret is set: TOTP available. Email 2FA always available as fallback (uses User.Email). HTTP 428 response triggers 2FA, 300 triggers method selection.",
+    "confidence": "verified"
   },
   {
     "id": "RULE_009",
@@ -70,19 +72,24 @@
     "id": "RULE_010",
     "name": "NudgingBlock",
     "type": "FACT",
-    "rule": "A nudge is shown if UserNudgingBlocksDto.broadcastBlocks[NudgeType] = false. User can block permanently (neverAgain=true) or postpone (Survey: 1 hour, stored in localStorage). AuthenticatorApp nudge is specific to identity_access domain."
+    "source": "ServiceAlert.Web/Controllers/UserNudging/UserNudgingController.cs:47,53 + UserNudgingBlocksDto.cs",
+    "rule": "A nudge is shown if UserNudgingBlocksDto.broadcastBlocks[NudgeType] = false. User can block permanently (neverAgain=true) or postpone (Survey: 1 hour, stored in localStorage). AuthenticatorApp nudge is specific to identity_access domain.",
+    "confidence": "verified"
   },
   {
     "id": "RULE_011",
     "name": "SCIMAuthToken",
     "type": "FACT",
-    "source": "Customer.ScimTokenUUID",
-    "rule": "SCIM 2.0 endpoints authenticated via per-customer bearer token (Customer.ScimTokenUUID). One token per customer. Token validated via IAuthenticationService.ValidateScimCustomerToken()."
+    "source": "ServiceAlert.Core/Domain/Customers/Customer.cs:75 + ServiceAlert.Services/Authentication/AuthenticationService.cs:463,598",
+    "rule": "SCIM 2.0 endpoints authenticated via per-customer bearer token (Customer.ScimTokenUUID). One token per customer. Token validated via IAuthenticationService.ValidateScimCustomerToken().",
+    "confidence": "verified"
   },
   {
     "id": "RULE_012",
     "name": "PasswordResetTokenExpiry",
     "type": "FACT",
-    "rule": "PasswordResetToken (Guid) stored on User with DatePasswordResetTokenExpiresUtc. Token validated on /new-password submission. Expired or missing token → rejected."
+    "source": "ServiceAlert.Core/Domain/Users/User.cs:23,31",
+    "rule": "PasswordResetToken (Guid) stored on User with DatePasswordResetTokenExpiresUtc. Token validated on /new-password submission. Expired or missing token → rejected.",
+    "confidence": "verified"
   }
 ]

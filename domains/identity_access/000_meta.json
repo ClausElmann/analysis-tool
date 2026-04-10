@@ -1,6 +1,8 @@
 {
-  "completeness_score": 0.98,
   "domain": "identity_access",
+  "completeness_score": 0.98,
+  "iteration": 32,
+  "status": "complete",
   "gaps_count": 1,
   "gaps_open": [
     "GAP_004"
@@ -11,20 +13,93 @@
     "GAP_003",
     "GAP_005"
   ],
-  "iteration": 32,
   "new_information_score": 0.97,
-  "saved_utc": "2026-03-30T23:00:00+02:00",
-  "status": "complete",
-  "enrichment_note": "Copilot pass (iter 32): Closed GAP_001 (logout IS implemented — UserController.Logout()), GAP_005 (all NudgeTypes mapped: MessageSendToOwner/Eboks/Voice/Survey/AuthenticatorApp). Rebuilt 010_entities (full User+RefreshToken entity with all fields), 020_behaviors (was empty — now 10 behaviors from source), 030_flows (was 1 entry — now 7 complete flows), 070_rules (was garbage — now 12 business rules from source). Source verified: UserController.cs, UserService.cs, User.cs, UserRefreshToken.cs, bi-login.component.ts, IAuthenticationService.cs, nudgeType.ts, user-nudging.service.ts.",
-  "source_files_verified": [
-    "ServiceAlert.Api/Controllers/UserController.cs",
-    "ServiceAlert.Services/Users/UserService.cs",
-    "ServiceAlert.Core/Domain/Users/User.cs",
-    "ServiceAlert.Core/Domain/Users/UserRefreshToken.cs",
-    "ServiceAlert.Services/Authentication/IAuthenticationService.cs",
-    "ServiceAlert.Web/ClientApp/src/features/bi-login/bi-login.component.ts",
-    "ServiceAlert.Web/ClientApp/app-globals/openapi-models/model/nudgeType.ts",
-    "ServiceAlert.Web/ClientApp/src/core/services/user-nudging.service.ts"
+  "saved_utc": "2026-04-10T14:30:00+00:00",
+  "sources": [
+    {
+      "type": "code",
+      "path": "ServiceAlert.Api/Controllers/UserController.cs",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Services/Users/UserService.cs",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Core/Domain/Users/User.cs",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Core/Domain/Users/UserRefreshToken.cs",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Services/Authentication/IAuthenticationService.cs",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Services/Authentication/AuthenticationService.cs",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Web/ClientApp/src/features/bi-login/bi-login.component.ts",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Web/ClientApp/app-globals/openapi-models/model/nudgeType.ts",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Web/ClientApp/src/core/services/user-nudging.service.ts",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Web/Controllers/UserNudging/UserNudgingController.cs",
+      "verified": true
+    },
+    {
+      "type": "code",
+      "path": "ServiceAlert.Core/Domain/Customers/Customer.cs",
+      "verified": true
+    },
+    {
+      "type": "doc",
+      "path": "wiki:Lokasjonsvarsling-SSO-fra-ServiceAlert.md",
+      "verified": true
+    },
+    {
+      "type": "doc",
+      "path": "wiki:Authentication/SSO.md",
+      "verified": true
+    },
+    {
+      "type": "doc",
+      "path": "wiki:Authentication/Azure-AD-Setup.md",
+      "verified": true
+    },
+    {
+      "type": "doc",
+      "path": "wiki:Authentication/Authentication.md",
+      "verified": true
+    }
   ],
-  "scan_sources_added": "2026-04-04"
+  "evidence_coverage": {
+    "entities": 1.0,
+    "behaviors": 1.0,
+    "flows": 1.0,
+    "rules": 1.0
+  },
+  "missing_evidence": false,
+  "enrichment_note": "Copilot pass (iter 32): Closed GAP_001 (logout IS implemented — UserController.Logout()), GAP_005 (all NudgeTypes mapped: MessageSendToOwner/Eboks/Voice/Survey/AuthenticatorApp). Rebuilt 010_entities (full User+RefreshToken entity with all fields), 020_behaviors (was empty — now 10 behaviors from source), 030_flows (was 1 entry — now 7 complete flows), 070_rules (was garbage — now 12 business rules from source). GOVERNANCE FIX (iter 33): Added missing sources to RULE_008, RULE_010, RULE_011, RULE_012. All rules now 100% source-verified.",
+  "scan_sources_added": "2026-04-04",
+  "governance_fix_date": "2026-04-10"
 }

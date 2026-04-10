@@ -1,71 +1,251 @@
 [
   {
-    "description": "Creates EmailMessage row with Status=Importing, then Queued. If sendFast=true: pushes directly to ISingleSendGridProcessingChannel for immediate dispatch. Otherwise: background service polling loop picks it up. Attachments stored as EmailAttachment rows (binary in DB). sendTo and bccEmails support semicolon-separated multiple addresses.",
     "name": "SaveAndQueueEmail",
-    "signature": "IEmailService.Save(fromEmail, fromName, sendTo, sendToName, replyTo, subject, body, testMode, categoryEnum, bccEmails, priorityOrder, externalRefId, smsLogId, attachments, isCcOrBcc, sendFast)",
-    "trigger": "Any system-initiated email: password reset, user creation, broadcast receipt, approval notification, webhook alarm, weekly report, support inquiry, subscription import receipt.",
-    "data": [
-      "EmailMessages",
-      "EmailAttachments"
+    "derived_from": "IEmailService.Save",
+    "concept": "Queue transactional email for asynchronous delivery via gateway",
+    "observed_implementation": {
+      "method": "IEmailService.Save",
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 69,
+      "signature": "Save(fromEmail, fromName, sendTo, sendToName, replyTo, subject, body, testMode, categoryEnum, bccEmails, priorityOrder, externalRefId, smsLogId, attachments, isCcOrBcc, sendFast)",
+      "workflow": "1. Create EmailMessage (Status=Importing). 2. Set Status=Queued. 3. If sendFast=true: push to ISingleSendGridProcessingChannel. 4. Else: background polling picks up. 5. Store EmailAttachment rows (binary in DB). 6. Support semicolon-separated sendTo and bccEmails."
+    },
+    "normalized_interpretation": {
+      "Command": "QueueEmailCommand(recipient, subject, body, priority, category)",
+      "Parameters": "17 params → 4 core: Recipient, Subject, Body, Options(priority, attachments, testMode)",
+      "Channels": "Dual dispatch (sendFast vs background polling) → single async queue",
+      "Attachments": "Separate save call → owned collection in command"
+    },
+    "trigger": "Any system-initiated email: password reset, user creation, broadcast receipt, approval notification, webhook alarm, weekly report, support inquiry, subscription import receipt",
+    "source": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 69,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "17 method parameters (complex signature)",
+        "observed": "Save(fromEmail, fromName, sendTo, sendToName, replyTo, subject, body, testMode, categoryEnum, bccEmails, priorityOrder, externalRefId, smsLogId, attachments, isCcOrBcc, sendFast)",
+        "proposal": "SaveEmailCommand with 4 properties: From, Recipients[], Content, Options",
+        "confidence": "high"
+      },
+      {
+        "problem": "Dual dispatch path (sendFast vs background polling)",
+        "observed": "sendFast=true → ISingleSendGridProcessingChannel, else background service polls",
+        "proposal": "Single async queue with priority (urgent messages processed first)",
+        "confidence": "medium"
+      }
     ]
   },
   {
-    "description": "Bulk variant of Save(). Creates one EmailMessage per recipient in the collection. Used for broadcast receipt emails where multiple recipients receive the same message.",
     "name": "SendEmailMessages(bulk)",
-    "signature": "SendEmailMessages(IEnumerable<EmailRecipientDto>, fromEmail, fromName, replyTo, subject, body, testMode, categoryEnum, ...)",
-    "trigger": "EmailSendBroadcastReceiptAsync() for multi-recipient broadcast receipts.",
-    "data": [
-      "EmailMessages"
+    "derived_from": "IEmailService.SendEmailMessages",
+    "concept": "Queue bulk email delivery to multiple recipients (broadcast receipt use case)",
+    "observed_implementation": {
+      "method": "IEmailService.SendEmailMessages",
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 102,
+      "signature": "SendEmailMessages(IEnumerable<EmailRecipientDto>, fromEmail, fromName, replyTo, subject, body, testMode, categoryEnum, ...)",
+      "workflow": "Loops EmailRecipientDto collection, calls Save() once per recipient. Used for broadcast receipt emails (multiple recipients, same message)."
+    },
+    "normalized_interpretation": {
+      "Command": "QueueBulkEmailCommand(recipients[], subject, body, options)",
+      "Batch": "N Save() calls → single batch insert with recipient collection"
+    },
+    "trigger": "EmailSendBroadcastReceiptAsync() for multi-recipient broadcast receipts",
+    "source": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 102,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "Loops Save() N times (inefficient)",
+        "observed": "foreach recipient: Save()",
+        "proposal": "Batch insert with Recipients[] collection (single DB round-trip)",
+        "confidence": "high"
+      }
     ]
   },
   {
-    "description": "1. Fetches named EmailTemplate by (languageId, templateName). 2. Fetches MasterTemplate for same languageId. 3. Injects named template HTML into MasterTemplate via activity_log completeMAIN_CONTENTactivity_log complete replacement. 4. MergeEmailFields() substitutes {{key}} placeholders with provided data values. Returns merged EmailTemplate ready for Save().",
     "name": "GetTemplateAndMerge",
-    "signature": "IEmailTemplateService.GetTemplateByNameEnum(languageId, templateName, masterTemplateEnum)",
-    "trigger": "Any service building an email before calling IEmailService.Save().",
-    "data": [
-      "EmailTemplates"
+    "derived_from": "IEmailTemplateService.GetTemplateByNameEnum",
+    "concept": "Retrieve localized email template, wrap in master layout, merge placeholder fields",
+    "observed_implementation": {
+      "method": "IEmailTemplateService.GetTemplateByNameEnum",
+      "file": "ServiceAlert.Services/Mails/EmailTemplateService.cs",
+      "line": 58,
+      "signature": "GetTemplateByNameEnum(languageId, templateName, masterTemplateEnum)",
+      "workflow": "1. Fetch named EmailTemplate by (languageId, templateName). 2. Fetch MasterTemplate for same languageId. 3. Replace $$MAIN_CONTENT$$ in MasterTemplate with named template HTML. 4. MergeEmailFields() substitutes {{key}} placeholders with values. 5. Return merged EmailTemplate."
+    },
+    "normalized_interpretation": {
+      "Templating": "String replace ($$MAIN_CONTENT$$, {{key}}) → Razor/Liquid engine",
+      "Localization": "LanguageId FK lookup → CultureInfo + resource files",
+      "Layout": "Manual wrapping → Razor _Layout.cshtml pattern"
+    },
+    "trigger": "Any service building email before calling IEmailService.Save()",
+    "source": {
+      "file": "ServiceAlert.Services/Mails/EmailTemplateService.cs",
+      "line": 58,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "Custom template syntax ($$MAIN_CONTENT$$, {{field}})",
+        "observed": "Regex-based MergeEmailFields() with custom placeholders",
+        "proposal": "Industry-standard Liquid templating ({{user.name}}, {% if %}) or Razor",
+        "confidence": "medium"
+      },
+      {
+        "problem": "Master template wrapping enforced at runtime",
+        "observed": "GetTemplateByNameEnum() manually injects named template into MasterTemplate HTML",
+        "proposal": "Razor Layout inheritance (_Layout.cshtml, @RenderBody())",
+        "confidence": "high"
+      }
     ]
   },
   {
-    "description": "Background service (SendGridWorkloadProcessor / SingleSendGridProcessingChannel) polls EmailMessages WHERE Status=Queued ORDER BY PriorityOrder. For each message: reads body+attachments, calls SendGrid API via HttpClient. On success: sets Status=SentToGateway, stores XmessageId. On failure: sets Status=SentToGatewayFailed or queues retry (QueuedFirstRetry/QueuedSecondRetry).",
     "name": "SendGridDelivery",
-    "trigger": "Background service polling (continuous). SendFast path: channel push.",
-    "data": [
-      "EmailMessages",
-      "EmailAttachments",
-      "ApplicationSettings(SendGridAPIKey=130, SendGridHost=229)"
+    "derived_from": "SendGridWorkloadProcessor.ProcessAsync",
+    "concept": "Background worker polls queued emails and dispatches to SendGrid API with lifecycle tracking",
+    "observed_implementation": {
+      "method": "SendGridWorkloadProcessor.ProcessAsync",
+      "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
+      "line": 23,
+      "workflow": "Background service (SendGridWorkloadProcessor / SingleSendGridProcessingChannel) polls: SELECT * FROM EmailMessages WHERE Status=Queued ORDER BY PriorityOrder. For each message: 1. Read body+attachments. 2. POST to SendGrid API via HttpClient. 3. On success: Status=SentToGateway, store XmessageId. 4. On failure: Status=SentToGatewayFailed or queue retry (QueuedFirstRetry/QueuedSecondRetry)."
+    },
+    "normalized_interpretation": {
+      "Worker": "Polling background service → Event-driven queue consumer (RabbitMQ, Azure Service Bus)",
+      "Status": "20+ enum values → 5 core states (Pending/Sent/Delivered/Failed/Opened)",
+      "Retry": "Manual retry states (QueuedFirstRetry, QueuedSecondRetry) → exponential backoff policy"
+    },
+    "trigger": "Background service polling (continuous). SendFast path: channel push",
+    "source": {
+      "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
+      "line": 23,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "Polling-based worker (inefficient)",
+        "observed": "Background service queries DB every N seconds: SELECT * WHERE Status=Queued",
+        "proposal": "Event-driven queue (Azure Service Bus, RabbitMQ) with pub/sub",
+        "confidence": "high"
+      },
+      {
+        "problem": "Manual retry state management",
+        "observed": "QueuedFirstRetry, SendingToGatewayFirstRetry, QueuedSecondRetry, SendingToGatewaySecondRetry",
+        "proposal": "Retry policy config (max attempts, backoff) with metadata column (not status enum)",
+        "confidence": "high"
+      }
     ]
   },
   {
-    "description": "InboundParseEventHandler receives POST from SendGrid. Two uses: (1) Delivery status webhooks: maps SendGrid event type to EmailStatus enum, calls UpdateEmailMessageStatusesAsync() to update EmailMessage.Status. Rules: Delivered→Opened and Delivered→Delivered are ignored (no downgrade). (2) Inbound email parse (Email2SMS): checks Email2SmsWhitelistEntries — if sender is whitelisted for profile, parses email body → triggers SMS send.",
     "name": "SendGridWebhookProcessing",
-    "trigger": "POST /api/inbound from SendGrid webhook.",
-    "data": [
-      "EmailMessages",
-      "ProcessedInboundEmails (dedup)",
-      "Email2SmsWhitelistEntries"
+    "derived_from": "InboundParseEventHandler.Handle",
+    "concept": "Receive SendGrid delivery status webhooks and inbound email-to-SMS gateway messages",
+    "observed_implementation": {
+      "method": "InboundParseEventHandler.Handle",
+      "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
+      "line": 28,
+      "workflow": "InboundParseEventHandler receives POST /api/inbound from SendGrid. Two use cases: (1) Delivery status webhooks: map SendGrid event type to EmailStatus enum, call UpdateEmailMessageStatusesAsync(). Rules: Delivered→Opened and Delivered→Delivered ignored (no downgrade). (2) Inbound email parse (Email2SMS): check Email2SmsWhitelistEntries — if sender whitelisted for profile, parse email body → trigger SMS send."
+    },
+    "normalized_interpretation": {
+      "Webhook": "Generic HTTP POST handler → typed webhook event processor (SendGridWebhookEvent)",
+      "StatusMapping": "String comparison to enum → event type pattern matching",
+      "Email2SMS": "Inline whitelist check → separate Email2SmsGatewayService"
+    },
+    "trigger": "POST /api/inbound from SendGrid webhook",
+    "source": {
+      "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
+      "line": 28,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "Two unrelated concerns in one handler (status update + Email2SMS)",
+        "observed": "InboundParseEventHandler handles both delivery status webhooks AND Email2SMS gateway",
+        "proposal": "Separate handlers: SendGridStatusWebhookHandler + Email2SmsGatewayHandler",
+        "confidence": "high"
+      },
+      {
+        "problem": "DefaultNoChangeStatuses prevents status downgrade",
+        "observed": "Hardcoded rule: Delivered→Opened ignored, Delivered→Delivered ignored",
+        "proposal": "Status transition validation in DeliveryStatus value object (FSM pattern)",
+        "confidence": "medium"
+      }
     ]
   },
   {
-    "description": "Generates broadcast receipt email. Uses EmailContentGeneratorFactory to select correct generator based on group type (ByAddress, ByStandardReceivers). Merges statistics, recipient counts, channel breakdown. Sends to first email in list as main receiver + optional additional recipients.",
     "name": "BroadcastReceiptEmail",
-    "signature": "EmailSendBroadcastReceiptAsync(SmsGroup, sendToEmailsAndNames, Profile, phoneAndEmailsOnly, testMode)",
-    "trigger": "Broadcast (SmsGroup) completes execution.",
-    "data": [
-      "EmailMessages",
-      "EmailTemplates",
-      "SmsGroups",
-      "SmsGroupStatistics"
+    "derived_from": "IEmailService.EmailSendBroadcastReceiptAsync",
+    "concept": "Generate and send broadcast completion receipt email with statistics",
+    "observed_implementation": {
+      "method": "IEmailService.EmailSendBroadcastReceiptAsync",
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 255,
+      "signature": "EmailSendBroadcastReceiptAsync(SmsGroup, sendToEmailsAndNames, Profile, phoneAndEmailsOnly, testMode)",
+      "workflow": "1. EmailContentGeneratorFactory selects generator based on SmsGroup type (ByAddress, ByStandardReceivers). 2. Generate content with statistics, recipient counts, channel breakdown. 3. Send to first email as main receiver + optional additional recipients."
+    },
+    "normalized_interpretation": {
+      "Command": "SendBroadcastReceiptCommand(broadcastId, recipients[])",
+      "ContentGeneration": "Factory pattern (ByAddress/ByStandardReceivers) → strategy pattern with polymorphic BroadcastType",
+      "Statistics": "Manual aggregation → CQRS read model (BroadcastStatistics query)"
+    },
+    "trigger": "Broadcast (SmsGroup) execution completes",
+    "source": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 255,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "EmailContentGeneratorFactory switches on SmsGroup type",
+        "observed": "Factory selects generator based on group type (ByAddress, ByStandardReceivers, etc.)",
+        "proposal": "Strategy pattern: BroadcastType enum → IBroadcastContentGenerator implementation",
+        "confidence": "medium"
+      },
+      {
+        "problem": "Statistics aggregated on-demand at send time",
+        "observed": "SmsGroupStatistics queried when generating receipt email",
+        "proposal": "CQRS read model: BroadcastStatistics updated on event completion (cached)",
+        "confidence": "low"
+      }
     ]
   },
   {
-    "description": "Reads embedded HTML resource files (bundled in assembly), compares to DB templates, upserts changed templates. Ensures DB template content stays in sync with deployed code. Run on startup or on deploy.",
     "name": "UpdatedTemplatesFromResources",
-    "signature": "IEmailTemplateService.UpdateTemplatesFromEmbeddedResources()",
-    "trigger": "App startup or admin manual trigger.",
-    "data": [
-      "EmailTemplates"
+    "derived_from": "IEmailTemplateService.UpdateTemplatesFromEmbeddedResources",
+    "concept": "Sync email templates from embedded resources to database on deployment",
+    "observed_implementation": {
+      "method": "IEmailTemplateService.UpdateTemplatesFromEmbeddedResources",
+      "file": "ServiceAlert.Services/Mails/EmailTemplateService.cs",
+      "line": 125,
+      "workflow": "1. Read embedded HTML resource files (bundled in assembly). 2. Compare to DB templates. 3. Upsert changed templates. 4. Ensures DB template content stays in sync with deployed code."
+    },
+    "normalized_interpretation": {
+      "Sync": "Manual upsert → migration script or startup seed data",
+      "Source": "Embedded resources (.resx) → file-based templates (wwwroot/templates/)"
+    },
+    "trigger": "App startup or admin manual trigger",
+    "source": {
+      "file": "ServiceAlert.Services/Mails/EmailTemplateService.cs",
+      "line": 125,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "Templates stored in DB but source is embedded resources (dual source of truth)",
+        "observed": "Embedded resources bundled in assembly, synced to DB on startup",
+        "proposal": "Single source: file-based templates (wwwroot/templates/) with fallback to DB for user overrides",
+        "confidence": "medium"
+      },
+      {
+        "problem": "Manual sync on startup (can fail silently)",
+        "observed": "UpdateTemplatesFromEmbeddedResources() called on app start",
+        "proposal": "DbUp migration script syncs templates (enforced)",
+        "confidence": "low"
+      }
     ]
   }
 ]

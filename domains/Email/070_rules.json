@@ -1,38 +1,250 @@
 [
   {
-    "detail": "Every email except MasterTemplate itself must be injected into MasterTemplate HTML via c:\\Udvikling\\analysis-tool\\domains\\Email\\020_behaviors.jsonMAIN_CONTENTc:\\Udvikling\\analysis-tool\\domains\\Email\\020_behaviors.json placeholder. GetTemplateByNameEnum() enforces this automatically.",
-    "rule": "MasterTemplate wraps all other templates via c:\\Udvikling\\analysis-tool\\domains\\Email\\020_behaviors.jsonMAIN_CONTENTc:\\Udvikling\\analysis-tool\\domains\\Email\\020_behaviors.json"
+    "name": "MasterTemplate wraps all other templates",
+    "derived_from": "EmailTemplate.cs wrapping logic",
+    "concept": "Layout inheritance pattern enforced at runtime",
+    "observed_constraint": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailTemplate.cs",
+      "line": 35,
+      "rule": "Every email except MasterTemplate itself must be injected into MasterTemplate HTML via $$MAIN_CONTENT$$ placeholder. GetTemplateByNameEnum() enforces this automatically."
+    },
+    "normalized_interpretation": {
+      "Pattern": "Runtime string injection → compile-time Razor Layout inheritance (_Layout.cshtml)",
+      "Enforcement": "Manual wrapping in service → template engine enforces hierarchy"
+    },
+    "source": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailTemplate.cs",
+      "type": "business_logic",
+      "line": 35,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "Manual wrapping enforced at runtime (can be bypassed)",
+        "observed": "GetTemplateByNameEnum() manually injects template into MasterTemplate via string replace",
+        "proposal": "Razor Layout inheritance: _Layout.cshtml + @RenderBody() (compile-time safe)",
+        "confidence": "high"
+      }
+    ]
   },
   {
-    "detail": "Status progression: Importing→Queued→SendingToGateway→SentToGateway. SentToGateway→Delivered→Opened (from SendGrid webhook). DefaultNoChangeStatuses prevents downgrading from Delivered/Opened. Retry states: QueuedFirstRetry, SendingToGatewayFirstRetry, QueuedSecondRetry, SendingToGatewaySecondRetry.",
-    "rule": "EmailMessage status lifecycle is forward-only except retries"
+    "name": "EmailMessage status lifecycle is forward-only",
+    "derived_from": "EmailService.cs status transition rules",
+    "concept": "Finite state machine with no-downgrade constraint",
+    "observed_constraint": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 42,
+      "rule": "Status progression: Importing→Queued→SendingToGateway→SentToGateway→Delivered→Opened. DefaultNoChangeStatuses prevents downgrading from Delivered/Opened. Retry states: QueuedFirstRetry, SendingToGatewayFirstRetry, QueuedSecondRetry, SendingToGatewaySecondRetry."
+    },
+    "normalized_interpretation": {
+      "FSM": "Implicit rules in service → explicit State pattern or DeliveryStatus value object with AllowedTransitions[]",
+      "RetryLogic": "Retry states in enum (4 values) → RetryAttempt metadata field (int)"
+    },
+    "source": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "type": "business_logic",
+      "line": 42,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "20+ status enum values including retry states",
+        "observed": "Importing, Queued, SendingToGateway, SentToGateway, QueuedFirstRetry, SendingToGatewayFirstRetry, QueuedSecondRetry, SendingToGatewaySecondRetry, SentToGatewayFailed, SentToGatewaySandbox, Delivered, Opened, Deleted, SendingToGatewayFailed",
+        "proposal": "5 core states (Pending, Sent, Delivered, Failed, Opened) + RetryAttempt metadata field",
+        "confidence": "high"
+      },
+      {
+        "problem": "DefaultNoChangeStatuses hardcoded in service",
+        "observed": "Service layer prevents Delivered→Opened downgrade via DefaultNoChangeStatuses array",
+        "proposal": "DeliveryStatus value object with AllowedTransitions[] (domain-enforced FSM)",
+        "confidence": "medium"
+      }
+    ]
   },
   {
-    "detail": "EmailAttachment.FileContent is VARBINARY(MAX). Unlike ProfileStorageFiles (Azure Blob), email attachments are stored directly in SQL. Implication: large attachments inflate DB size.",
-    "rule": "Email attachments stored as binary in DB — not blob storage"
+    "name": "Email attachments stored as binary in DB",
+    "derived_from": "EmailAttachments.cs storage design",
+    "concept": "Attachment storage constraint (performance/cost trade-off)",
+    "observed_constraint": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailAttachments.cs",
+      "line": 7,
+      "rule": "EmailAttachment.FileContent is VARBINARY(MAX). Unlike ProfileStorageFiles (Azure Blob), email attachments are stored directly in SQL. Implication: large attachments inflate DB size."
+    },
+    "normalized_interpretation": {
+      "Storage": "Inline DB binary → Azure Blob Storage with URI reference",
+      "Deduplication": "No dedup (duplicate files stored multiple times) → ContentHash-based deduplication"
+    },
+    "source": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailAttachments.cs",
+      "type": "business_logic",
+      "line": 7,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "Large attachments inflate DB size (no size limit enforced)",
+        "observed": "VARBINARY(MAX) allows attachments up to 2GB (SQL Server limit)",
+        "proposal": "Azure Blob Storage with 10MB max attachment size + URI reference in EmailAttachment",
+        "confidence": "high"
+      },
+      {
+        "problem": "No deduplication (same PDF sent 100 times = 100 copies)",
+        "observed": "FileContent stored per EmailAttachment row",
+        "proposal": "ContentHash (SHA256) deduplication: store once, reference many",
+        "confidence": "medium"
+      }
+    ]
   },
   {
-    "detail": "EmailMessage.TestMode=true sets SentToGatewaySandbox status. SendGrid sandbox mode may be enabled depending on configuration. Does NOT suppress sending.",
-    "rule": "TestMode=true emails are still sent but marked as sandboxed"
+    "name": "TestMode=true emails are still sent",
+    "derived_from": "EmailMessage.cs TestMode field behavior",
+    "concept": "Sandbox mode flag (NOT suppression flag)",
+    "observed_constraint": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailMessage.cs",
+      "line": 77,
+      "rule": "EmailMessage.TestMode=true sets SentToGatewaySandbox status. SendGrid sandbox mode may be enabled depending on configuration. Does NOT suppress sending."
+    },
+    "normalized_interpretation": {
+      "Sandbox": "TestMode bool (ambiguous) → Environment enum (Dev/Test/Staging/Prod) + SuppressSend bool",
+      "Status": "SentToGatewaySandbox status → DeliveryStatus + Environment metadata"
+    },
+    "source": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailMessage.cs",
+      "type": "business_logic",
+      "line": 77,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "TestMode=true still sends email (confusing name)",
+        "observed": "TestMode sets SentToGatewaySandbox status but email is sent",
+        "proposal": "Environment enum (Dev/Test/Staging/Prod) + SuppressSend bool (explicit)",
+        "confidence": "low"
+      }
+    ]
   },
   {
-    "detail": "Email2SmsWhitelistEntries(ProfileId, Email) — sender email must be present for the target profile. DuplicateEntryException thrown on duplicate insert. ProfileNotFoundException if profile missing.",
-    "rule": "Email2SMS requires whitelist entry per profile"
+    "name": "Email2SMS requires whitelist entry per profile",
+    "derived_from": "Email2SmsWhitelistEntry.cs authorization logic",
+    "concept": "Feature authorization constraint (security)",
+    "observed_constraint": {
+      "file": "ServiceAlert.Core/Domain/Profiles/Email2SmsWhitelist/Email2SmsWhitelistEntry.cs",
+      "line": 3,
+      "rule": "Email2SmsWhitelistEntries(ProfileId, Email) — sender email must be present for the target profile. DuplicateEntryException thrown on duplicate insert. ProfileNotFoundException if profile missing."
+    },
+    "normalized_interpretation": {
+      "Authorization": "Table-based whitelist → Claim-based authorization (EmailToSmsGateway claim)",
+      "Scope": "Per-profile whitelist → Per-tenant feature flag + per-profile override"
+    },
+    "source": {
+      "file": "ServiceAlert.Core/Domain/Profiles/Email2SmsWhitelist/Email2SmsWhitelistEntry.cs",
+      "type": "validation",
+      "line": 3,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "Separate table per feature (whitelist pattern proliferation)",
+        "observed": "Email2SmsWhitelistEntry dedicated table",
+        "proposal": "Generic FeatureAuthorization table with FeatureType enum + ResourceValue JSON",
+        "confidence": "low"
+      },
+      {
+        "problem": "DuplicateEntryException thrown manually in service",
+        "observed": "Service layer throws DuplicateEntryException on duplicate insert",
+        "proposal": "Unique constraint on (ProfileId, Email) at DB level (automatic enforcement)",
+        "confidence": "high"
+      }
+    ]
   },
   {
-    "detail": "EmailMessage.BccEmails is a single NVARCHAR(500) field with semicolon-separated addresses. UseBcc controls whether BCC is applied.",
-    "rule": "BCC emails are semicolon-separated"
+    "name": "BCC emails are semicolon-separated",
+    "derived_from": "EmailMessage.cs BccEmails field format",
+    "concept": "Multi-value field encoding constraint",
+    "observed_constraint": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailMessage.cs",
+      "line": 20,
+      "rule": "EmailMessage.BccEmails is a single NVARCHAR(500) field with semicolon-separated addresses. UseBcc controls whether BCC is applied."
+    },
+    "normalized_interpretation": {
+      "Recipients": "Semicolon-separated string → Recipients[] collection with RecipientType enum (To/Cc/Bcc)",
+      "Size": "500 char limit → unlimited recipients in collection"
+    },
+    "source": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailMessage.cs",
+      "type": "validation",
+      "line": 20,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "500 char limit restricts BCC count",
+        "observed": "NVARCHAR(500) with semicolon separator",
+        "proposal": "EmailRecipients owned collection (unlimited)",
+        "confidence": "high"
+      },
+      {
+        "problem": "UseBcc bool separate from BccEmails value",
+        "observed": "BccEmails can contain data but UseBcc=false → data ignored",
+        "proposal": "Recipients collection with RecipientType enum (To/Cc/Bcc) — type determines behavior",
+        "confidence": "medium"
+      }
+    ]
   },
   {
-    "detail": "EmailCategoryEnum must be set: SupportMails(1), BulkEmails(2), PasswordMails(3), BroadcastReceiptMails(5), etc. Used for SendGrid category tagging and statistics.",
-    "rule": "CategoryEnum required for all emails"
+    "name": "CategoryEnum required for all emails",
+    "derived_from": "EmailMessage.cs CategoryEnum field",
+    "concept": "Email classification constraint (for analytics/SendGrid)",
+    "observed_constraint": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailMessage.cs",
+      "line": 29,
+      "rule": "EmailCategoryEnum must be set: SupportMails(1), BulkEmails(2), PasswordMails(3), BroadcastReceiptMails(5), etc. Used for SendGrid category tagging and statistics."
+    },
+    "normalized_interpretation": {
+      "Category": "Int enum (1, 2, 3, 5...) → String-based EmailCategory enum (Transactional, Broadcast, System, Authentication)",
+      "Purpose": "SendGrid-specific tagging → generic Message.Category (multi-gateway support)"
+    },
+    "source": {
+      "file": "ServiceAlert.Core/Domain/Mails/EmailMessage.cs",
+      "type": "validation",
+      "line": 29,
+      "verified": true
+    },
+    "rethink": [
+      {
+        "problem": "CategoryEnum values are int (1, 2, 3, 5 — gaps suggest deletions)",
+        "observed": "SupportMails(1), BulkEmails(2), PasswordMails(3), BroadcastReceiptMails(5)",
+        "proposal": "String-based enum: Transactional, Bulk, Authentication, BroadcastReceipt (self-documenting)",
+        "confidence": "low"
+      }
+    ]
   },
   {
-    "detail": "Table of blacklisted domains. Checked before saving EmailMessage — validation error if recipient email domain is in list.",
-    "rule": "BlockedTemporaryEmailAddressDomains prevents disposable email usage"
-  },
-  "RULE[wiki:Blob-storage]: SendGrid error responses written to 'errorlogs' Azure Blob container. Container holds raw HTTP response from SendGrid on failure. Used for debugging delivery failures.",
-  "RULE[wiki:Background-services]: Email delivery is SPLIT into two background services: (1) EmailBackgroundService: SmsLog → EmailMessage conversion + queueing. (2) SendGridBackgroundService: EmailMessage → SendGrid API send. This split enables system emails (password reset, notifications) to be sent WITHOUT a SmsLogId by queuing directly as EmailMessage.",
-  "RULE[wiki:Broadcast-delivery-flow]: Email is one of 5 broadcast delivery channels: SMS (GatewayAPI bulk FTP or single API), Email (SendGrid), Voice (Infobip), Web messages, InfoPortal.",
-  "RULE[wiki:Domain-Description/Customers.md]: CustomerAccount is a child entity of Customer — likely used for email/billing account context."
+    "name": "BlockedTemporaryEmailAddressDomains prevents disposable email",
+    "derived_from": "WIKI documentation (Layer 0 source unverified)",
+    "concept": "Email validation constraint (anti-abuse)",
+    "observed_constraint": {
+      "file": "WIKI:DEVELOPMENT/Domain-Description/Email.md",
+      "line": 0,
+      "rule": "Table of blacklisted domains. Checked before saving EmailMessage — validation error if recipient email domain is in list."
+    },
+    "normalized_interpretation": {
+      "Validation": "Blacklist table → external service (Kickbox, ZeroBounce) or regex pattern config",
+      "Maintenance": "Manual DB updates → automated disposable domain list sync (GitHub repo)"
+    },
+    "source": {
+      "file": "WIKI:DEVELOPMENT/Domain-Description/Email.md",
+      "type": "validation",
+      "line": 0,
+      "verified": false
+    },
+    "rethink": [
+      {
+        "problem": "Unverified in Layer 0 code (WIKI-only reference)",
+        "observed": "WIKI claims table exists — no source citation in actual code",
+        "proposal": "Verify table exists or remove rule → update after verification",
+        "confidence": "N/A (requires verification)"
+      }
+    ]
+  }
 ]

@@ -1,9 +1,14 @@
 # SSOT Authority Model — Control Protocol
 
 **Generated:** 2026-04-09  
-**Last Updated:** 2026-04-09  
+**Last Updated:** 2026-04-10  
 **Purpose:** Establishes STRICT control model for source-of-truth hierarchy from PRIMARY SOURCES through analysis-tool to green-ai implementation  
 **Status:** GOVERNANCE RULE — BLOCKING ENFORCEMENT
+
+**Related governance documents:**
+- [ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md](../ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md) — Builder-Architect coordination protocol (Design Lock, roles, gates)
+- [.github/copilot-instructions.md](../.github/copilot-instructions.md) — Session start rules for Copilot
+- [green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md](../../green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md) — Runtime WHAT vs HOW decision protocol
 
 ---
 
@@ -171,7 +176,7 @@ location: C:\Udvikling\green-ai\docs\SSOT\
 
 provides:
   ✅ How green-ai implements features (NOT how sms-service did it)
-  ✅ green-ai database schema (DbUp migrations V0XX_*.sql)
+  ✅ green-ai database schema (V0XX_*.sql migrations, run manually)
   ✅ green-ai API contracts (endpoint signatures, Result<T>)
   ✅ green-ai vertical slice patterns (one feature = one folder)
   ✅ green-ai Result<T> error codes (ErrorCode enum)
