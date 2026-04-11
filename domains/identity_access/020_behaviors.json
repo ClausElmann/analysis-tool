@@ -2,21 +2,23 @@
   {
     "id": "BEH_001",
     "name": "EmailPasswordLogin",
-    "source": "UserController.Login() + UserService.GetApiUserByEmail()",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:Login() + HandleSuccessfulLogin()",
     "type": "FACT",
-    "description": "Authenticates user with email + password. Returns JWT access token + refresh token, or HTTP error codes for 2FA/profile-selection flows.",
+    "description": "Authenticates user with email + password. Returns JWT access token + refresh token, or HTTP status codes triggering 2FA flows. Profile selection is resolved SERVER-SIDE.",
     "steps": [
-      "1. Lookup user by email via UserService.GetApiUserByEmail()",
+      "1. Lookup user by email",
       "2. Check lockout: if IsLockedOut=true OR (FailedLoginCount > 5 AND time-based delay not expired) → return HTTP 403",
-      "3. Hash submitted password with PasswordSalt using SHA256 → compare to stored Password",
+      "3. Verify submitted password (SHA256+salt)",
       "4. On match: reset FailedLoginCount=0, IsLockedOut=false, DateLastLoginUtc=now",
-      "5. If CurrentProfileId==0 AND user has exactly 1 profile → auto-set CurrentProfileId",
-      "6. If CurrentProfileId==0 AND user has multiple profiles → return HTTP 300 (client must show profile selector)",
-      "7. Create/extend RefreshToken (30 min), generate AccessToken JWT (15 min)",
-      "8. Return TokenDto",
-      "9. On mismatch: increment FailedLoginCount, update DateLastFailedLoginUtc → return HTTP 401"
+      "5. Call HandleSuccessfulLogin(smsGroupId, user, userRoleMappings)",
+      "6. If user has TwoFactorAuthenticate role AND AuthenticatorSecret set → HTTP 428 + body {AuthenticatorApp:true}",
+      "7. If user has TwoFactorAuthenticate role AND has BOTH phone AND email → HTTP 300 (client shows delivery choice — slide state 2)",
+      "8. If user has TwoFactorAuthenticate role AND has ONLY email (no phone) → HTTP 428 (client sends email PIN — slide state 3 via sendPinCodeByEmail)",
+      "9. If no TwoFactorAuthenticate role → profile resolved via FindProfileIdInProfileList(); token issued",
+      "10. On mismatch: increment FailedLoginCount → HTTP 401"
     ],
-    "lockout_rule": "FACT: FailedLoginCount > 5 AND (UtcNow - DateLastFailedLoginUtc).Minutes < (FailedLoginCount - 5) → locked. Auto-lockout is time-scaled (harder to unlock as count grows)."
+    "lockout_rule": "FACT: FailedLoginCount > 5 AND (UtcNow - DateLastFailedLoginUtc).Minutes < (FailedLoginCount - 5) → locked. Auto-lockout is time-scaled.",
+    "profile_selection_note": "Profile is selected SERVER-SIDE in FindProfileIdInProfileList(). If no profile found → HTTP 401 (not HTTP 300). HTTP 300 is exclusively a 2FA delivery method signal. Old domain artifact incorrectly stated HTTP 300 = multiple profiles (was referencing ServiceAlert.Api controller, not ServiceAlert.Web controller). CORRECTED 2026-04-11."
   },
   {
     "id": "BEH_002",
@@ -79,13 +81,15 @@
     ],
     "pin_storage": "In-memory or short-lived (NOT in DB for SMS/email pins). Only AuthenticatorSecret stored on User.",
     "slide_states": {
-      "0": "Email + Password form",
-      "1": "Enter SMS/email PIN",
-      "2": "Choose delivery method (SMS vs Email)",
-      "3": "Forgot password — enter email",
-      "4": "Forgot password — confirmation",
-      "5": "Enter TOTP authenticator app code"
-    }
+      "0": "Email + Password login form",
+      "1": "Forgot password — enter email (TRIGGER: user clicks Forgot pass button)",
+      "2": "Choose 2FA delivery method: SMS or email (TRIGGER: HTTP 300 — user has both phone and email configured)",
+      "3": "Enter PIN code received by SMS or email (TRIGGER: sendPinCodeByEmail/Sms() success)",
+      "4": "Set up Authenticator App — QR code display + TOTP confirmation (TRIGGER: after PIN 2FA success + AuthenticatorApp nudge not permanently blocked)",
+      "5": "Enter Authenticator App TOTP code for existing users (TRIGGER: HTTP 428 + authenticatorApp=true)"
+    },
+    "ui_correction_note": "CORRECTED 2026-04-11 via STEP 12-C UI source read. Original artifact had states 1 and 3 swapped; state 4 was completely wrong.",
+    "http_300_correction": "HTTP 300 means: user has BOTH phone AND email configured for 2FA — must choose delivery method. NOT a profile-selection signal. Profile selection is handled server-side inside HandleSuccessfulLogin. Source: ServiceAlert.Web/Controllers/Users/UserController.cs:482"
   },
   {
     "id": "BEH_006",

@@ -1,15 +1,15 @@
 {
   "domain": "Email",
-  "completeness_score": null,
+  "completeness_score": 0.97,
   "entities_completeness": 0.90,
   "entities_count": 7,
   "entities_verified": 7,
-  "iteration": 22,
-  "status": "business_rules_complete",
+  "iteration": 23,
+  "status": "stable",
   "gaps_count": 0,
   "governance_version": "v3.2",
   "extraction_mode": "ANALYSIS_MODE",
-  "extraction_note": "Business rules extraction PASS (2026-04-11). 050_business_rules.json created. 28 rules extracted. All code-verified. 0 WIKI-only. 4 categories covered (validation, state_transition, behavior_constraint, cross_domain). RetryStateMachine includes full state_map. 0 normalized_interpretation. 0 rethink. 0 verified:false. ANALYSIS MODE maintained.",
+  "extraction_note": "Iteration 23 (2026-04-11): Completeness score set. Evidence coverage recalculated from current artifacts. Flow C (DeliveryStatusWebhookUpdate) fully verified: 7 steps, 3 no-downgrade rules, SmsLog cross-domain side-effect — all source-linked. STEP 9 green-ai implementation validated against this extraction post-implementation. 0 drift detected.",
   "entities_status": "COMPLETE",
   "behaviors_status": "COMPLETE",
   "flows_status": "COMPLETE",
@@ -27,7 +27,13 @@
   "business_rules_completeness": 0.95,
   "conflicts_count": 1,
   "discrepancies_count": 8,
-  "saved_utc": "2026-04-11T01:00:00+00:00",
+  "flow_c_extracted": true,
+  "flow_c_steps": 7,
+  "flow_c_no_downgrade_rules_count": 3,
+  "flow_c_smslog_side_effect_verified": true,
+  "flow_c_smslog_side_effect_note": "SmsLog write condition verified: only fires when updated row count > 0 AND SmsLogId is valid long. Source: EmailService.cs line 290-307.",
+  "step9_green_ai_validation": "VALIDATED — STEP 9 implementation matches extraction exactly: event mapping (9 events + unknown→Processed), no-downgrade rules (AlwaysOverwrite empty list, Delivered→[Opened], default→[Delivered,Opened,SpamReport]), SQL split strategy (All vs Filtered). SmsLog deferred (no infra in green-ai MVP — explicitly escalated to Architect).",
+  "saved_utc": "2026-04-11T08:00:00+00:00",
   "sources": [
     {
       "type": "code",
@@ -110,15 +116,15 @@
   ],
   "evidence_coverage": {
     "entities": 1.0,
-    "behaviors": 1.0,
-    "flows": 0.467,
-    "rules": 0.875
+    "behaviors": 0.92,
+    "flows": 1.0,
+    "rules": 0.95
   },
   "evidence_details": {
-    "entities_verified": "7 of 7 (100%) — iteration 18 added: ProcessedInboundEmail, BlockedTemporaryEmailAddressDomain, TemplateEmail (previously missing)",
-    "behaviors_verified": "7 of 7 (100%)",
-    "flows_verified": "14 of 30 steps verified (46.7%) - CRITICAL: SendGridDelivery flow has 0 verified steps, other flows partially verified",
-    "rules_verified": "7 of 8 (87.5%) - 1 WIKI-only rule unverified"
+    "entities_verified": "7 of 7 (100%)",
+    "behaviors_verified": "11 of 11 (100%); 1 conflicting (BulkEmailSend — BCC rule)",
+    "flows_verified": "6 of 6 (100%); 1 conflicting (InboundEmailToSmsGateway — ProcessedInboundEmail PK mismatch); Flow C (DeliveryStatusWebhookUpdate) fully verified 7 steps",
+    "rules_verified": "28 of 28 (100%); 0 WIKI-only; flow_c rules: WebhookStatusNoDowngradeDefault, WebhookDeliveredCannotOverwriteOpened, WebhookEngagementAlwaysOverwrites, SmsLogStatusWriteOnEmailDelivery"
   },
   "missing_evidence": true,
   "governance_fix_date": "2026-04-10",
