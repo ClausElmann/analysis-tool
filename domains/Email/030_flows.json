@@ -1,11 +1,13 @@
 [
   {
-    "name": "TransactionalEmailDelivery",
-    "derived_from": "EmailService.Save flow",
-    "concept": "Queue and deliver transactional email (password reset, user creation, notifications)",
+    "name": "TransactionalEmailSend",
+    "concept": "Single-recipient email queued via Save(): wraps SendEmailMessages() with one-element recipient list, persists EmailMessage to DB, optionally bypasses background worker via in-memory ISingleSendGridProcessingChannel when sendFast=true",
+    "trigger": "Any system-initiated single email: password reset, user creation, approval notifications",
+    "behaviors_used": ["Save", "SendEmailMessages"],
+    "mapping_status": "VERIFIED",
     "observed_steps": [
       {
-        "step": "1. Service calls IEmailService.Save with email parameters",
+        "step": "1. Caller invokes IEmailService.Save() with email parameters and optional sendFast flag",
         "source": {
           "file": "ServiceAlert.Services/Mails/EmailService.cs",
           "method": "Save",
@@ -14,378 +16,402 @@
         }
       },
       {
-        "step": "2. Save() delegates to SendEmailMessages() with single recipient",
+        "step": "2. Save() delegates to SendEmailMessages() with single-element recipients list (wraps caller into multi-recipient path)",
         "source": {
           "file": "ServiceAlert.Services/Mails/EmailService.cs",
           "method": "Save",
-          "line": 86,
+          "line": 73,
           "verified": true
         }
       },
       {
-        "step": "3. Create EmailMessage record with Status=Importing",
+        "step": "3. SendEmailMessages() builds EmailMessage: Status=Importing if hasAttachments else Queued; BccEmails applied only to first recipient (first=true flag)",
         "source": {
           "file": "ServiceAlert.Services/Mails/EmailService.cs",
           "method": "SendEmailMessages",
-          "line": 102,
+          "line": 404,
           "verified": true
         }
       },
       {
-        "step": "4. SaveEmailMessage() persists to database",
-        "source": {
-          "file": "ServiceAlert.Services/Mails/EmailService.cs",
-          "method": "SaveEmailMessage",
-          "line": 109,
-          "verified": true
-        }
-      },
-      {
-        "step": "5. Update Status to Queued",
+        "step": "4. _emailRepository.BulkInsertEmailMessages() persists all EmailMessage records to DB",
         "source": {
           "file": "ServiceAlert.Services/Mails/EmailService.cs",
           "method": "SendEmailMessages",
-          "line": 120,
-          "verified": false,
-          "note": "Inferred from status lifecycle - exact line not verified"
-        }
-      },
-      {
-        "step": "6a. If sendFast=true: Push to ISingleSendGridProcessingChannel",
-        "source": {
-          "file": "ServiceAlert.Services/Mails/EmailService.cs",
-          "method": "Save",
-          "line": 88,
-          "verified": false,
-          "note": "sendFast parameter passed but channel push not visible in excerpt"
-        }
-      },
-      {
-        "step": "6b. Else: EmailBackgroundService polling loop picks up queued message",
-        "source": {
-          "file": "ServiceAlert.Services/Messages/BackgrundServices/Email/SmsLog/EmailBackgroundService.cs",
-          "method": "DoWorkAsync",
-          "line": 67,
+          "line": 454,
           "verified": true
         }
-      }
-    ],
-    "normalized_interpretation": {
-      "Pattern": "Request/Queue/Process pattern (async dispatch)",
-      "Simplification": "QueueEmailCommand → Event bus → EmailDeliveryWorker"
-    },
-    "trigger": "Any system-initiated email: password reset, user creation, approval notification, etc.",
-    "rethink": [
+      },
       {
-        "problem": "Dual dispatch path (sendFast vs polling) complicates flow",
-        "observed": "sendFast=true pushes to channel, else background service polls",
-        "proposal": "Single async queue with priority (urgent emails processed first)",
-        "confidence": "medium"
+        "step": "5. If hasAttachments: _emailRepository.InsertEmailAttachments() + UpdateEmailMessages() transitions Status to Queued after attachment write",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "SendEmailMessages",
+          "line": 462,
+          "verified": true
+        }
+      },
+      {
+        "step": "6. If sendFast=true: ISingleSendGridProcessingChannel.QueueMessages() pushes message IDs to in-memory channel, bypassing background worker polling",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "SendEmailMessages",
+          "line": 473,
+          "verified": true
+        }
       }
     ]
   },
   {
-    "name": "BackgroundEmailProcessing",
-    "derived_from": "EmailBackgroundService.DoWorkAsync flow",
-    "concept": "Background worker polls channel and dispatches batches to gateway processor",
+    "name": "BulkEmailSend",
+    "concept": "Multi-recipient email send: SendEmailMessages() called directly with IEnumerable<EmailRecipientDto>; BccEmails only applied to first recipient in list; all messages inserted in single BulkInsert call",
+    "trigger": "Bulk broadcast email operations with multiple recipients",
+    "behaviors_used": ["SendEmailMessages"],
+    "mapping_status": "VERIFIED",
     "observed_steps": [
       {
-        "step": "1. Background service waits for messages in channel",
+        "step": "1. Caller invokes SendEmailMessages() directly with multiple-element IEnumerable<EmailRecipientDto>",
         "source": {
-          "file": "ServiceAlert.Services/Messages/BackgrundServices/Email/SmsLog/EmailBackgroundService.cs",
-          "method": "DoWorkAsync",
-          "line": 70,
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "SendEmailMessages",
+          "line": 391,
           "verified": true
         }
       },
       {
-        "step": "2. Check DisableAllBroadcasts setting",
+        "step": "2. foreach loop with first=true tracking: BccEmails = first ? bccEmails : null — BCC only applied to first recipient; first = false after first iteration",
         "source": {
-          "file": "ServiceAlert.Services/Messages/BackgrundServices/Email/SmsLog/EmailBackgroundService.cs",
-          "method": "DoWorkAsync",
-          "line": 72,
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "SendEmailMessages",
+          "line": 404,
           "verified": true
         }
       },
       {
-        "step": "3. Dequeue batch of SmsLogIds (max 500 per batch)",
+        "step": "3. Each recipient gets individual EmailMessage: Status=Importing (if hasAttachments) or Queued (no attachments); subject truncated to 200 chars",
         "source": {
-          "file": "ServiceAlert.Services/Messages/BackgrundServices/Email/SmsLog/EmailBackgroundService.cs",
-          "method": "DoWorkAsync",
-          "line": 84,
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "SendEmailMessages",
+          "line": 412,
           "verified": true
         }
       },
       {
-        "step": "4. For each SmsLogId: GetMessageId() from channel",
+        "step": "4. All EmailMessages persisted in one call: _emailRepository.BulkInsertEmailMessages(emailMessages)",
         "source": {
-          "file": "ServiceAlert.Services/Messages/BackgrundServices/Email/SmsLog/EmailBackgroundService.cs",
-          "method": "DoWorkAsync",
-          "line": 90,
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "SendEmailMessages",
+          "line": 454,
+          "verified": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "TemplateEmailSend",
+    "concept": "Template-based email construction: retrieves EmailTemplate by languageId and enum name, injects content into master template via $$MAIN_CONTENT$$, generates rendered HTML via IEmailContentGenerator, sends via SendEmailMessages",
+    "trigger": "Broadcast receipt email sent after SmsGroup dispatch completes",
+    "behaviors_used": ["EmailSendBroadcastReceiptAsync", "GetTemplateByNameEnum", "SendEmailMessages"],
+    "mapping_status": "VERIFIED",
+    "observed_steps": [
+      {
+        "step": "1. EmailSendBroadcastReceiptAsync() receives SmsGroup, Profile, sendToEmailsAndNames; resolves customer timezone and languageId",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "EmailSendBroadcastReceiptAsync",
+          "line": 127,
           "verified": true
         }
       },
       {
-        "step": "5. Pass batch to EmailMessageWorkloadProcessor.ProcessWorkAsync()",
+        "step": "2. GetTemplateByNameEnum(languageId, EmailTemplateName.BroadcastReceipt) loads both content template and MasterTemplate from repository or embedded resource files",
         "source": {
-          "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
+          "file": "ServiceAlert.Services/Mails/EmailTemplateService.cs",
+          "method": "GetTemplateByNameEnum",
+          "line": 32,
+          "verified": true
+        }
+      },
+      {
+        "step": "3. GetTemplateByNameEnum() injects content template into master template: masterTemplate.Html.Replace(\"$$MAIN_CONTENT$$\", emailTemplate.Html); then replaces $$COMPANYNAME$$, $$PRODUCTNAME$$, $$BASEURL$$, $$SUPPORTMAIL$$ placeholders",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailTemplateService.cs",
+          "method": "GetTemplateByNameEnum",
+          "line": 58,
+          "verified": true
+        }
+      },
+      {
+        "step": "4. IEmailContentGeneratorFactory.GetBroadcastEmailContentGenerator() selects generator based on SmsGroup.SendMethod (ByLevel, ByStdReceivers, ByMunicipality, etc.)",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "EmailSendBroadcastReceiptAsync",
+          "line": 154,
+          "verified": true
+        }
+      },
+      {
+        "step": "5. emailContentGenerator.GenerateHtmlForEmailAsync() produces rendered HTML body",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "EmailSendBroadcastReceiptAsync",
+          "line": 225,
+          "verified": true
+        }
+      },
+      {
+        "step": "6. If emailBody not null: SendEmailMessages() called with rendered body, template FromEmail/FromName/ReplyTo/BccEmails, category=BroadcastReceiptMails",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "EmailSendBroadcastReceiptAsync",
+          "line": 229,
+          "verified": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "SendGridGatewayDispatch",
+    "concept": "Background gateway processor picks up queued EmailMessages and dispatches to SendGrid API; validates body/subject/email format; applies retry state machine on failure (up to 3 retries); stores X-Message-Id on success; updates EmailMessage status after every attempt",
+    "trigger": "Background workload processor picks up queued EmailMessage batch",
+    "behaviors_used": ["SendGridGatewayProcessing"],
+    "mapping_status": "VERIFIED",
+    "observed_steps": [
+      {
+        "step": "1. ProcessWorkAsync() receives IReadOnlyCollection<IWorkload<EmailMessage>>; downloads blob attachments for SmsGroup files to local temp path",
+        "source": {
+          "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
           "method": "ProcessWorkAsync",
-          "line": 44,
+          "line": 42,
           "verified": true
         }
       },
       {
-        "step": "6. For each email: ProcessEmailMessage() validates and sends",
+        "step": "2. foreach workItem: calls ProcessEmailMessage(emailToSend, blobAttachmentsList); result assigned to workItem.NextStatus",
         "source": {
-          "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
-          "method": "ProcessEmailMessage",
-          "line": 71,
-          "verified": true
-        }
-      },
-      {
-        "step": "7. Validate email address (non-empty, valid format)",
-        "source": {
-          "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
-          "method": "ProcessEmailMessage",
-          "line": 74,
-          "verified": true
-        }
-      },
-      {
-        "step": "8. Update SmsLogs status to Sent",
-        "source": {
-          "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
+          "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
           "method": "ProcessWorkAsync",
+          "line": 77,
+          "verified": true
+        }
+      },
+      {
+        "step": "3. ProcessEmailMessage(): if body or subject empty → Status=ValidationError, no send",
+        "source": {
+          "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+          "method": "ProcessEmailMessage",
+          "line": 91,
+          "verified": true
+        }
+      },
+      {
+        "step": "4. Tools.ValidateEmails(mail.ToEmail): if invalid email format → Status=InvalidEmail, no send",
+        "source": {
+          "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+          "method": "ProcessEmailMessage",
+          "line": 138,
+          "verified": true
+        }
+      },
+      {
+        "step": "5. _emailSender.SendEmailAsync() posts to SendGrid HTTP API with all email fields and attachments",
+        "source": {
+          "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+          "method": "ProcessEmailMessage",
+          "line": 141,
+          "verified": true
+        }
+      },
+      {
+        "step": "6. On success (HTTP < 400): Status=SentToGateway (or SentToGatewaySandbox if testMode=true); XmessageId stored from \"X-Message-Id\" response header",
+        "source": {
+          "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+          "method": "ProcessEmailMessage",
+          "line": 147,
+          "verified": true
+        }
+      },
+      {
+        "step": "7. On failure (HTTP >= 400): GetNextStatus() state machine transitions: SendingToGateway→QueuedFirstRetry→QueuedSecondRetry→QueuedThirdRetry→SentToGatewayFailed; PriorityOrder incremented; error response uploaded to blob storage",
+        "source": {
+          "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+          "method": "ProcessEmailMessage",
+          "line": 152,
+          "verified": true
+        }
+      },
+      {
+        "step": "8. _emailRepository.UpdateEmailMessage() persists final Status and DateChangedUtc after every attempt",
+        "source": {
+          "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+          "method": "ProcessEmailMessage",
+          "line": 168,
+          "verified": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "InboundEmailToSmsGateway",
+    "concept": "Inbound email received via SendGrid webhook: parsed, whitelist-checked, deduplicated per Message-ID+recipient+profile, phone number extracted from recipient address, forwarded as SMS via IBroadcastSender",
+    "trigger": "POST /Sendgrid/InboundParse from SendGrid inbound parse webhook",
+    "behaviors_used": ["InboundEmailToSmsGateway"],
+    "mapping_status": "CONFLICTING",
+    "conflict_note": "Step 6 (TryRegisterProcessedEmail) depends on ProcessedInboundEmail entity which has mapping_status=CONFLICTING: entity inherits BaseEntity with int Id, but DB schema has no Id column — composite PK on SHA2_256 computed columns. Steps 1-5 and 7-9 are fully verified. Conflict is isolated to the deduplication persistence mechanism.",
+    "observed_steps": [
+      {
+        "step": "1. SendgridController.InboundParse() receives POST; parses multipart inbound email via WebhookParser.ParseInboundEmailWebhookAsync()",
+        "source": {
+          "file": "ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs",
+          "method": "InboundParse",
+          "line": 64,
+          "verified": true
+        }
+      },
+      {
+        "step": "2. Text extraction: if no text → strip HTML to plain text via HtmlToPlainText(); truncate at ZWSP marker (\\u200C) if present",
+        "source": {
+          "file": "ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs",
+          "method": "InboundParse",
+          "line": 81,
+          "verified": true
+        }
+      },
+      {
+        "step": "3. Extract Message-ID header; null check on envelope.To and From; publish InboundParseEvent via IMediator.Publish()",
+        "source": {
+          "file": "ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs",
+          "method": "InboundParse",
+          "line": 104,
+          "verified": true
+        }
+      },
+      {
+        "step": "4. InboundParseEventHandler.Handle() receives event; IEmail2SmsWhitelistService.GetMatchingEntry(notification.From) — if sender not whitelisted: log debug and return Task.CompletedTask (silent drop)",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/SendGrid/EventHandlers/InboundParseEventHandlers/InboundParseEventHandler.cs",
+          "method": "Handle",
+          "line": 42,
+          "verified": true
+        }
+      },
+      {
+        "step": "5. IProfileService.GetProfileById(whitelist.ProfileId) — if profile not found: log fatal and return Task.CompletedTask",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/SendGrid/EventHandlers/InboundParseEventHandlers/InboundParseEventHandler.cs",
+          "method": "Handle",
+          "line": 49,
+          "verified": true
+        }
+      },
+      {
+        "step": "6. foreach recipient in notification.To: TryRegisterProcessedEmail(messageId, to, profileId) — if already registered: skip (deduplication guard against multi-call webhooks) [CONFLICTING: ProcessedInboundEmail DB schema mismatch]",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/SendGrid/EventHandlers/InboundParseEventHandlers/InboundParseEventHandler.cs",
+          "method": "Handle",
           "line": 61,
           "verified": true
         }
-      }
-    ],
-    "normalized_interpretation": {
-      "Pattern": "Polling-based batch processor",
-      "Simplification": "Event-driven queue consumer (RabbitMQ, Azure Service Bus)"
-    },
-    "trigger": "Continuous background service polling (runs while app is running)",
-    "rethink": [
-      {
-        "problem": "Polling-based worker queries DB every N seconds (inefficient)",
-        "observed": "DoWorkAsync() polls channel in while loop",
-        "proposal": "Event-driven message queue (Azure Service Bus) with pub/sub",
-        "confidence": "high"
-      }
-    ]
-  },
-  {
-    "name": "SendGridDelivery",
-    "derived_from": "SendGridWorkloadProcessor flow",
-    "concept": "Gateway worker sends queued emails via SendGrid API with retry logic",
-    "observed_steps": [
-      {
-        "step": "1. Query EmailMessages WHERE Status=Queued ORDER BY PriorityOrder",
-        "source": {
-          "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
-          "method": "ProcessAsync",
-          "line": 23,
-          "verified": false,
-          "note": "Referenced in behavior analysis but exact query line not confirmed"
-        }
       },
       {
-        "step": "2. For each EmailMessage: Read body and attachments from DB",
+        "step": "7. recipientRegex.Match(to): extracts phone number from recipient address format (+<digits>@<domain>) — if no match: log error and continue to next recipient",
         "source": {
-          "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
-          "method": "ProcessAsync",
-          "line": 23,
-          "verified": false,
-          "note": "Inferred from behavior - exact line not verified"
-        }
-      },
-      {
-        "step": "3. Call SendGrid API via HttpClient (POST to SendGrid)",
-        "source": {
-          "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
-          "method": "ProcessAsync",
-          "line": 23,
-          "verified": false,
-          "note": "Inferred from behavior - exact line not verified"
-        }
-      },
-      {
-        "step": "4a. On success: Update Status=SentToGateway, store XmessageId from SendGrid response",
-        "source": {
-          "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
-          "method": "ProcessAsync",
-          "line": 23,
-          "verified": false,
-          "note": "Inferred from behavior - exact line not verified"
-        }
-      },
-      {
-        "step": "4b. On failure: Update Status=SentToGatewayFailed or queue retry (QueuedFirstRetry/QueuedSecondRetry)",
-        "source": {
-          "file": "ServiceAlert.Services/Gateways/EmailGateways/EmailsWorkloadProcessor.cs",
-          "method": "ProcessAsync",
-          "line": 23,
-          "verified": false,
-          "note": "Inferred from behavior - exact line not verified"
-        }
-      }
-    ],
-    "normalized_interpretation": {
-      "Pattern": "Direct API call with manual retry state management",
-      "Simplification": "Retry policy config (Polly) with exponential backoff"
-    },
-    "trigger": "Background service polling (continuous)",
-    "evidence_quality": "partial",
-    "note": "CRITICAL: Flow inferred from behavior analysis (020_behaviors.json) but exact implementation lines not verified in source code. SendGridWorkloadProcessor file not fully read. Marking as partial evidence.",
-    "rethink": [
-      {
-        "problem": "Manual retry state management (4 retry enum values)",
-        "observed": "QueuedFirstRetry, SendingToGatewayFirstRetry, QueuedSecondRetry, SendingToGatewaySecondRetry",
-        "proposal": "Polly retry policy config: max attempts, exponential backoff",
-        "confidence": "high"
-      }
-    ]
-  },
-  {
-    "name": "SendGridWebhookProcessing",
-    "derived_from": "InboundParseEventHandler.Handle flow",
-    "concept": "Receive SendGrid delivery status webhooks and update EmailMessage status",
-    "observed_steps": [
-      {
-        "step": "1. InboundParseEventHandler receives POST /api/inbound from SendGrid",
-        "source": {
-          "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
+          "file": "ServiceAlert.Services/Mails/SendGrid/EventHandlers/InboundParseEventHandlers/InboundParseEventHandler.cs",
           "method": "Handle",
-          "line": 28,
+          "line": 68,
           "verified": true
         }
       },
       {
-        "step": "2. Parse SendGrid event type from webhook payload",
+        "step": "8. messageText = (notification.Subject + newline + notification.Text).Trim(); SetupMessage() constructs SendMessageSingleConfig with phone, message, profile; config.CodeOrigin = \"InboundParseEventHandler\"",
         "source": {
-          "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
+          "file": "ServiceAlert.Services/Mails/SendGrid/EventHandlers/InboundParseEventHandlers/InboundParseEventHandler.cs",
           "method": "Handle",
-          "line": 28,
-          "verified": false,
-          "note": "Method exists but exact parsing logic line not verified"
+          "line": 78,
+          "verified": true
         }
       },
       {
-        "step": "3. Map SendGrid event type to EmailStatus enum (Delivered, Opened, etc.)",
+        "step": "9. _broadcastSender.SendMessageSingleGroup(config) — fire-and-forget via ContinueWith; SMS send errors logged but not re-thrown to caller",
         "source": {
-          "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
+          "file": "ServiceAlert.Services/Mails/SendGrid/EventHandlers/InboundParseEventHandlers/InboundParseEventHandler.cs",
           "method": "Handle",
-          "line": 28,
-          "verified": false,
-          "note": "Behavior described but exact mapping line not verified"
+          "line": 88,
+          "verified": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "DeliveryStatusWebhookUpdate",
+    "concept": "SendGrid delivery status webhook updates EmailMessage status in DB with no-downgrade rules per status type; successful updates where SmsLogId is present trigger cross-domain write to SmsLogStatuses (Email domain write to SmsLog domain)",
+    "trigger": "POST /Sendgrid/SetEmailStatus from SendGrid event webhook (Delivered, Opened, SpamReport, Clicked, etc.)",
+    "behaviors_used": ["UpdateEmailMessageStatuses"],
+    "mapping_status": "VERIFIED",
+    "cross_domain_side_effect": "Email domain writes to SmsLog domain: _messageRepository.CreateSmsLogStatuses() called when updated EmailMessage has SmsLogId set",
+    "observed_steps": [
+      {
+        "step": "1. SendgridController.SetEmailStatus() receives POST; JsonSerializer.DeserializeAsync<IEnumerable<SendGridRootEvent>>() parses JSON body",
+        "source": {
+          "file": "ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs",
+          "method": "SetEmailStatus",
+          "line": 40,
+          "verified": true
         }
       },
       {
-        "step": "4. Call UpdateEmailMessageStatusesAsync() with new status",
+        "step": "2. Each SendGridRootEvent mapped to UpdateEmailMessageStatusCommand: Id=x.EmailId, SmsLogId=x.SmsLogId, SgMessageId, Status=x.ConvertEventToEmailStatus()",
         "source": {
-          "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
-          "method": "Handle",
-          "line": 28,
-          "verified": false,
-          "note": "Method call inferred from behavior"
+          "file": "ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs",
+          "method": "SetEmailStatus",
+          "line": 47,
+          "verified": true
         }
       },
       {
-        "step": "5. Enforce no-downgrade rule: Delivered→Opened ignored, Delivered→Delivered ignored (DefaultNoChangeStatuses)",
+        "step": "3. UpdateEmailMessageStatusesAsync() groups UpdateEmailMessageStatusCommands by Status",
         "source": {
           "file": "ServiceAlert.Services/Mails/EmailService.cs",
           "method": "UpdateEmailMessageStatusesAsync",
-          "line": 42,
-          "verified": false,
-          "note": "Rule documented in 070_rules.json"
-        }
-      }
-    ],
-    "normalized_interpretation": {
-      "Pattern": "Webhook HTTP POST handler with status mapping",
-      "Simplification": "Typed webhook event processor (SendGridWebhookEvent) with FSM validation"
-    },
-    "trigger": "POST /api/inbound from SendGrid webhook (delivery status updates)",
-    "evidence_quality": "partial",
-    "note": "Flow steps inferred from behavior analysis. InboundParseEventHandler file not fully read - only line 28 cited.",
-    "rethink": [
-      {
-        "problem": "DefaultNoChangeStatuses hardcoded in service (no-downgrade rule)",
-        "observed": "Service layer checks DefaultNoChangeStatuses array to prevent Delivered→Opened downgrade",
-        "proposal": "DeliveryStatus value object with AllowedTransitions[] (domain-enforced FSM)",
-        "confidence": "medium"
-      }
-    ]
-  },
-  {
-    "name": "Email2SmsGateway",
-    "derived_from": "InboundParseEventHandler Email2SMS logic",
-    "concept": "Parse inbound email and trigger SMS send if sender is whitelisted",
-    "observed_steps": [
-      {
-        "step": "1. InboundParseEventHandler receives inbound email POST from SendGrid",
-        "source": {
-          "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
-          "method": "Handle",
-          "line": 28,
+          "line": 252,
           "verified": true
         }
       },
       {
-        "step": "2. Query Email2SmsWhitelistEntries WHERE Email = sender AND ProfileId = target profile",
+        "step": "4. No-downgrade rules applied per status: Opened/SpamReport/Clicked = AlwaysChangeStatuses (override anything); Delivered = cannot overwrite Opened; default = cannot overwrite Delivered/Opened/SpamReport",
         "source": {
-          "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
-          "method": "Handle",
-          "line": 28,
-          "verified": false,
-          "note": "Behavior described but exact query line not verified"
-        }
-      },
-      {
-        "step": "3. If sender is whitelisted: Parse email body to extract message",
-        "source": {
-          "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
-          "method": "Handle",
-          "line": 28,
-          "verified": false,
-          "note": "Behavior inferred"
-        }
-      },
-      {
-        "step": "4. Trigger SMS send via SmsService",
-        "source": {
-          "file": "ServiceAlert.Services/Mails/InboundParseEventHandler.cs",
-          "method": "Handle",
-          "line": 28,
-          "verified": false,
-          "note": "Behavior inferred"
-        }
-      },
-      {
-        "step": "5. If sender not whitelisted: Reject (no SMS sent)",
-        "source": {
-          "file": "ServiceAlert.Core/Domain/Profiles/Email2SmsWhitelist/Email2SmsWhitelistEntry.cs",
-          "type": "validation",
-          "line": 3,
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "UpdateEmailMessageStatusesAsync",
+          "line": 270,
           "verified": true
         }
-      }
-    ],
-    "normalized_interpretation": {
-      "Pattern": "Webhook-triggered gateway with whitelist authorization",
-      "Simplification": "Separate Email2SmsGatewayHandler with claim-based authorization"
-    },
-    "trigger": "Inbound email POST from SendGrid (Email2SMS use case)",
-    "evidence_quality": "partial",
-    "note": "Flow inferred from behavior documentation. InboundParseEventHandler handles BOTH status webhooks AND Email2SMS - mixed concerns.",
-    "rethink": [
+      },
       {
-        "problem": "Two unrelated concerns in one handler (status updates + Email2SMS)",
-        "observed": "InboundParseEventHandler processes both delivery status webhooks AND Email2SMS gateway messages",
-        "proposal": "Separate handlers: SendGridStatusWebhookHandler + Email2SmsGatewayHandler",
-        "confidence": "high"
+        "step": "5. _emailRepository.UpdateEmailMessageStatuses(ids, status, overwritingStatuses) — returns IDs that were actually updated (skips records protected by no-downgrade rules)",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "UpdateEmailMessageStatusesAsync",
+          "line": 283,
+          "verified": true
+        }
+      },
+      {
+        "step": "6. For each updated ID: parse SmsLogId from command; if valid long: build CreateSmsLogStatusCommand with SmsLogId, StatusCode, Imported=false",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "UpdateEmailMessageStatusesAsync",
+          "line": 290,
+          "verified": true
+        }
+      },
+      {
+        "step": "7. If any smsLogUpdateStatuses: _messageRepository.CreateSmsLogStatuses() writes cross-domain status records to SmsLog domain",
+        "source": {
+          "file": "ServiceAlert.Services/Mails/EmailService.cs",
+          "method": "UpdateEmailMessageStatusesAsync",
+          "line": 307,
+          "verified": true
+        }
       }
     ]
   }

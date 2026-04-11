@@ -28,45 +28,22 @@
       "DateCreatedUtc (DateTime, DB-managed DEFAULT getutcdate() — NOT in C# entity, DB-only column)",
       "ResponseBody (string, VARCHAR(10) in DB — NOT in C# entity, DB-only column)"
     ],
-    "normalized_interpretation": {
-      "DeliveryStatus": "Derived from Status enum (20+ states including retries) → simplified: Pending/Sent/Delivered/Failed/Opened",
-      "Priority": "PriorityOrder int → enum: Urgent/High/Normal/Low",
-      "Category": "CategoryEnum int → typed: Transactional/Broadcast/System/Authentication",
-      "Attachments": "Owned collection (not separate table)",
-      "GatewayMetadata": "XmessageId + ResponseHeaders → single GatewayResponse value object"
-    },
+    "discrepancies": [
+      "SmsLogId: long? in C# vs INT NULL in DB",
+      "ExternalRefId: long? in C# vs INT NULL in DB",
+      "DateCreatedUtc: DB-only column (DEFAULT getutcdate()), not present in C# entity",
+      "ResponseBody: DB-only column (VARCHAR(10)), not present in C# entity"
+    ],
     "source": {
       "file": "ServiceAlert.Core/Domain/Mails/EmailMessage.cs",
       "line_start": 8,
       "line_end": 80,
       "verified": true
     },
-    "rethink": [
-      {
-        "problem": "20+ Status enum values (including retry states)",
-        "observed": "Importing, Queued, SendingToGateway, SentToGateway, QueuedFirstRetry, SendingToGatewayFirstRetry, QueuedSecondRetry, SendingToGatewaySecondRetry, SentToGatewayFailed, SentToGatewaySandbox, Delivered, Opened, Deleted, SendingToGatewayFailed",
-        "proposal": "5 core states: Pending, Sent, Delivered, Failed, Opened (retry logic in metadata, not status)",
-        "confidence": "high"
-      },
-      {
-        "problem": "BccEmails as semicolon-separated string",
-        "observed": "BccEmails NVARCHAR(500) + UseBcc bool",
-        "proposal": "Recipients collection with RecipientType enum (To/Cc/Bcc)",
-        "confidence": "high"
-      },
-      {
-        "problem": "SmsLogId FK creates circular dependency",
-        "observed": "EmailMessage → SmsLog (for broadcast tracking)",
-        "proposal": "DeliveryLog owns both email + SMS records (no cross-FK)",
-        "confidence": "medium"
-      },
-      {
-        "problem": "Attachments in DB inflates size",
-        "observed": "EmailAttachment.FileContent VARBINARY(MAX)",
-        "proposal": "Blob storage with URI reference",
-        "confidence": "high"
-      }
-    ]
+    "db_source": {
+      "file": "ServiceAlert.DB/Tables/EmailMessages.sql",
+      "verified": true
+    }
   },
   {
     "name": "EmailAttachment",
@@ -79,30 +56,19 @@
       "MessageId (int, FK → EmailMessage)",
       "DateCreatedUtc (DateTime, DB-managed DEFAULT getutcdate() — NOT in C# entity, DB-only column)"
     ],
-    "normalized_interpretation": {
-      "Storage": "Inline binary in DB → Blob storage with URI",
-      "Relationship": "Separate table with FK → Owned collection in EmailMessage"
-    },
+    "discrepancies": [
+      "DateCreatedUtc: DB-only column (DEFAULT getutcdate()), not present in C# entity"
+    ],
     "source": {
       "file": "ServiceAlert.Core/Domain/Mails/EmailAttachments.cs",
       "line_start": 3,
       "line_end": 28,
       "verified": true
     },
-    "rethink": [
-      {
-        "problem": "Large files inflate DB size",
-        "observed": "FileContent VARBINARY(MAX) stored inline",
-        "proposal": "Azure Blob Storage with URI + ContentHash for deduplication",
-        "confidence": "high"
-      },
-      {
-        "problem": "Separate table requires eager loading",
-        "observed": "EmailAttachments table with FK",
-        "proposal": "Owned entity collection (EF Core) or JSON column",
-        "confidence": "medium"
-      }
-    ]
+    "db_source": {
+      "file": "ServiceAlert.DB/Tables/EmailAttachments.sql",
+      "verified": true
+    }
   },
   {
     "name": "EmailTemplate",
@@ -121,37 +87,19 @@
       "UseHtmlFromDb (bool?)",
       "DateCreatedUtc (DateTime, DB-managed DEFAULT getutcdate() — NOT in C# entity, DB-only column)"
     ],
-    "normalized_interpretation": {
-      "TemplateEngine": "String replacement ($$MAIN_CONTENT$$, {{field}}) → Razor/Liquid templating",
-      "MasterTemplate": "Separate wrapping logic → Layout inheritance pattern",
-      "Localization": "LanguageId FK → CultureInfo enum + resource files"
-    },
+    "discrepancies": [
+      "DateCreatedUtc: DB-only column (DEFAULT getutcdate()), not present in C# entity"
+    ],
     "source": {
       "file": "ServiceAlert.Core/Domain/Mails/EmailTemplate.cs",
       "line_start": 5,
       "line_end": 49,
       "verified": true
     },
-    "rethink": [
-      {
-        "problem": "Manual $$MAIN_CONTENT$$ wrapping enforced at runtime",
-        "observed": "GetTemplateByNameEnum() injects template into MasterTemplate HTML via string replace",
-        "proposal": "Razor Layout inheritance (_Layout.cshtml pattern)",
-        "confidence": "high"
-      },
-      {
-        "problem": "Merge fields use custom syntax ($$, {{}})",
-        "observed": "MergeEmailFields() regex replaces {{USER-NAME}}, $$DATETIME$$, $$TEXT$$",
-        "proposal": "Liquid templating (industry standard: {{user.name}}, {{now | date}})",
-        "confidence": "medium"
-      },
-      {
-        "problem": "UseHtmlFromDb nullable bool controls template override",
-        "observed": "Unclear when DB template overrides embedded resource",
-        "proposal": "TemplateSource enum: EmbeddedResource/Database/Custom",
-        "confidence": "low"
-      }
-    ]
+    "db_source": {
+      "file": "ServiceAlert.DB/Tables/EmailTemplates.sql",
+      "verified": true
+    }
   },
   {
     "name": "Email2SmsWhitelistEntry",
@@ -162,35 +110,23 @@
       "ProfileId (int, FK → Profile)",
       "Email (string — whitelisted sender email)"
     ],
-    "normalized_interpretation": {
-      "Authorization": "Whitelist table → Policy-based authorization (Claim: EmailToSmsGateway)",
-      "Scope": "Per-profile → Per-tenant with profile-level feature flags"
-    },
     "source": {
       "file": "ServiceAlert.Core/Domain/Profiles/Email2SmsWhitelist/Email2SmsWhitelistEntry.cs",
       "line_start": 3,
       "line_end": 20,
       "verified": true
     },
-    "rethink": [
-      {
-        "problem": "Separate whitelist table per feature",
-        "observed": "Email2SmsWhitelistEntry table with ProfileId + Email columns",
-        "proposal": "Generic AuthorizationPolicy table with FeatureType enum + ResourceValue JSON",
-        "confidence": "low"
-      },
-      {
-        "problem": "DuplicateEntryException thrown on duplicate insert",
-        "observed": "Manual exception in service layer",
-        "proposal": "Unique constraint on (ProfileId, Email) enforced at DB level",
-        "confidence": "high"
-      }
-    ]
+    "db_source": {
+      "file": "ServiceAlert.DB/Tables/Email2SmsWhitelistEntries.sql",
+      "verified": true
+    }
   },
   {
     "name": "ProcessedInboundEmail",
     "derived_from": "ProcessedInboundEmail",
     "concept": "Deduplication record for inbound emails processed via SendGrid webhook — prevents duplicate SMS sends on repeated webhook delivery",
+    "mapping_status": "CONFLICTING",
+    "conflict_description": "C# entity inherits BaseEntity (int Id) but DB table has NO Id column — DB uses composite PK (MessageIdHash ASC, RecipientHash ASC) on SHA2_256 computed columns. No standard ORM mapping is possible without structural workaround. No resolution applied — requires Architect decision.",
     "observed_fields": [
       "MessageId (string — email Message-Id header value, NVARCHAR(500))",
       "Recipient (string — recipient address in phone@email2sms.nu format, NVARCHAR(255))",

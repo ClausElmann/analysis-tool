@@ -201,6 +201,11 @@ Architect: Reads YOUR findings → NOW designs green-ai Email DB based on facts
 **Purpose:** Session-scoped buffer for reporting to Architect  
 **Update:** After EVERY task completion
 
+> 🔴 **CRITICAL: `temp.md` is the ONLY communication channel to the Architect.**  
+> Everything that requires a decision or must be reported MUST be written here.  
+> General documentation belongs in SSOT files — NEVER in temp.md.  
+> The user sends temp.md excerpts directly to ChatGPT (Architect). If it's not in temp.md, the Architect cannot see it.
+
 ### WHEN to Update temp.md (AUTOMATIC)
 
 ✅ After completing any extraction task  
@@ -866,20 +871,21 @@ Copilot will:
 
 **A domain is ONLY usable for green-ai design when ALL criteria are met:**
 
-| Artifact | Minimum Required | If Not Met |
-|----------|-----------------|------------|
-| Entities | ≥ 90% evidence | BLOCKED |
-| Behaviors | ≥ 90% evidence | BLOCKED |
-| Flows | ≥ 90% evidence | BLOCKED |
-| Business Rules | ≥ 90% evidence | BLOCKED |
+| Artifact | Design Readiness Threshold | If Not Met |
+|----------|---------------------------|------------|
+| Entities | ≥ 0.90 | BLOCKED |
+| Behaviors | ≥ 0.90 | BLOCKED |
+| Flows | ≥ 0.90 | BLOCKED |
+| Business Rules | ≥ 0.90 | BLOCKED |
 | Flow Validation | 100% (all: file+method+line+verified=true) | BLOCKED |
+
+**There is NO average score. ALL artifact types must independently pass.**
+Any single artifact type below threshold blocks the entire domain — regardless of how high other scores are.
 
 **If ANY criterion not met:**
 - Domain = INCOMPLETE
 - Design is BLOCKED
 - Copilot STOPS and reports to Architect
-
-**"Average completeness" is NOT sufficient.** Each artifact type must independently reach 0.90.
 
 **Old threshold 0.85 is DEPRECATED.**
 
@@ -989,17 +995,18 @@ Copilot will:
 **Conditions:**
 - Architect explicitly enables for a specifically bounded task
 - Scope is clearly defined (not open-ended architecture decisions)
-- Copilot may ONLY propose extraction approach or ordering — NOT architecture
+- Copilot may ONLY propose extraction approach — NOT ordering, NOT priorities, NOT architecture
 
 **Even in Proposal Mode, Copilot CANNOT:**
 - ❌ Propose architecture changes or redesigns
 - ❌ Recommend technology choices for green-ai
 - ❌ Suggest next domain after task completion
+- ❌ Suggest extraction order or priority sequence
 
-1. **Architect enables:** "ENABLE PROPOSAL MODE: Which Email entities to prioritize for extraction"
-2. **Copilot proposes extraction scope only:** Suggests which entities to analyze first
+1. **Architect enables:** "ENABLE PROPOSAL MODE: Which Email entities are missing from extraction"
+2. **Copilot reports gaps only:** Lists what is missing — does NOT suggest what to extract first
 3. **Architect reviews:** ACCEPT / REJECT / REDIRECT
-4. **Copilot executes approved extraction scope**
+4. **Copilot executes Architect-approved extraction scope**
 5. **AUTO-REVERTS to default mode** after task completes
 
 ---
@@ -1172,6 +1179,6 @@ If a domain cannot reach the Design Readiness Threshold despite best efforts:
 
 ---
 
-**Last Updated:** 2026-04-10 (v3.1 — Removed "Recommendation" leakage from escalation template; escalation is now purely factual with Impact + Options, no Copilot interpretation)  
+**Last Updated:** 2026-04-10 (v3.2 — Fixed threshold language: "90% evidence" replaced by per-artifact 0.90 thresholds; removed ordering/priority from Proposal Mode; no average score — all artifact types pass independently)  
 **Governance Level:** BINDING  
 **Enforcement:** Both agents must follow protocol for successful Layer 0 → Layer 2 workflow
