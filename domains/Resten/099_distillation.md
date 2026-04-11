@@ -181,3 +181,240 @@ Service til merge-field håndtering i skabeloner:
 | `app-module/navigation-bar/bi-app-navigation-bar.component.*` | Desktop sidemenu |
 | `app-module/navigation-bar/conversation-messages-listener.service.ts` | SSE unread-badge lytter |
 | `app-module/navigation-bar/profile-has-no-access-dialog-content.component.ts` | Dialog: profil ingen adgang |
+
+
+---
+
+## 5. core/services — Infrastruktur-services (ingen specifik domænebinding)
+
+### BiLocalAndSessionStorageService
+**Fil:** `core/services/bi-local-and-session-storage.service.ts`
+
+Abstraktion over browser `localStorage` og `sessionStorage`. Alle get/set operationer JSON-serialiseret.
+- `setItem / getItem` (localStorage)
+- `setSessionItem / getSessionItem` (sessionStorage)  
+- `removeItem`, `removeSessionItem`, `clearLocal`
+
+### FileManagementService
+**Fil:** `core/services/file-management.service.ts`  
+**Extends:** `BiStore<FileManagementServiceState>`
+
+Profil-filopbevaring (uploadede filer til brug i broadcast-beskeder).
+- `getAllFiles(profileId)` — cached pr. profil
+- `downloadFile(fileId)` — ArrayBuffer download
+- `deleteStorageFile(fileId)` — slet + opdater cache
+- `uploadFile(formData, profileId)` — upload fil
+
+### SupportService
+**Fil:** `core/services/support.service.ts`
+
+| Metode | Beskrivelse |
+|---|---|
+| `sendSupportCase(model)` | Send supportsag (FormData: navn, email, tekst, version) |
+| `getWebinars()` | Henter liste over webinarer (`WebinarDto[]`) |
+| `getWebinarLink(id)` | Henter unik webinar-link-URL |
+| `downloadWebinarLogsReport()` | Download webinar-deltagelsesrapport |
+
+### UserNudgingService
+**Fil:** `core/services/user-nudging.service.ts`  
+**Extends:** `BiStore<UserNudgingState>`
+
+Kontrollerer om brugeren skal "nudges" (f.eks. til en NPS-undersøgelse).
+- `getUserNudgingBlocks(smsGroupId?)` — check om blokering gælder
+- `saveUserNudgingResponse(type, neverAgain, response, smsGroupId?)` — gem brugers svar
+- `saveCustomerSurveyNudgingResponse(response)` — gem survey-svar (opdaterer lokal state + postpone-timestamp)
+- `isSurveyNudgingEnabled()` — Observable af survey-status
+
+### MapAdministrationService
+**Fil:** `core/services/map-administration.service.ts`
+
+Admin af kort-lag (til super-admin kort-opsætning):
+- `getMapLayers()` — alle kort-lag
+- `getMapLayer(id)` — enkelt lag
+- `updateMapLayer(cmd)` — opdater lag
+- `getMapLayerMappings(mapLayerId)` — mappings (kunde/profil til lag)
+- `createMapLayerMapping(cmd)` / `updateMapLayerMapping(cmd)` — CRUD mappings
+- `deleteMapLayerMapping(mapLayerId, customerId, profileId?)` — slet mapping
+
+---
+
+## UI-lag: features/support
+
+**Filer:** `features/support/` (6 filer)
+**Domain:** Resten (support / customer-service)
+
+### SupportComponent (support.component.ts/.html)
+Support-side med:
+- Supportformular <support-case-form> med reCAPTCHA (
+g-recaptcha-2) og indsend via SupportService
+- Webinar-liste <webinars-list> med kommende webinarer
+- Hosted for offentlig adgang (ingen login krav til formular, men auto-udfylder bruger-info hvis logget ind)
+- Sprog bestemmes af hostnavn → korrekt land-URL
+
+### SupportCaseFormComponent (support-case-form/)
+Formular: navn, email, emne, besked. Kalder SupportService.createSupportCase().
+
+### WebinarsListComponent (webinars-list/)
+Viser liste af kommende webinarer hentet via SupportService.getWebinars().
+---
+
+## UI-lag: features-shared (diverse)
+
+### SmsConversationsAdminComponent (features-shared/sms-conversations-admin/)
+Admin-interface for SMS-samtale-numre. Kan tilgås fra Customer-admin og Super-admin. Viser ConversationPhoneNumberWithProfileIdsDto[]. Sub-komponenter: AssignConversationNumberComponent (tildel nummer til profiler), EditNameAndProfileMappingsComponent (redigér navn og profil-mapping). Detekterer context (super vs customer) via router URL.
+
+### SmsStatisticsTableComponent (features-shared/sms-statistics-table/) — 3 filer
+Genbrugelig tabel der viser SMS-statistik (antal sendt, leveret, fejl) pr. periode. Bruges i Benchmark og andre statistik-visninger.
+
+### BiDataImportComponent (features-shared/bi-data-import/) — se data_import domain
+
+### BiFooterComponent (features-shared/bi-footer/) — 2 filer
+Sidefod med copyright, version, links.
+
+### CustomerContactPersonFormComponent (features-shared/customer-contact-person-form/) — 2 filer
+Genbrugelig formular til kontaktperson (navn, stilling, email, telefon). Bruges i customer-admin og pipeline.
+
+### CustomerCreateEditComponent (features-shared/customer-create-edit/) — 3 filer
+Genbrugelig formular til opret/redigér kunde-stamdata (navn, adresse, CVR etc.). Bruges fra super-admin og customer-admin.
+
+### CustomerGdprAcceptComponent (features-shared/customer-gdpr-accept/) — 4 filer
+GDPR data-behandleraftale accept-formular. Viser aftaletekst (PDF), kontaktperson-felt, accept-checkbox. Bruger BiPdfService til PDF-visning.
+
+### FilesourceEditorComponent (features-shared/filesource-editor/) — 2 filer
+Editor til filkilde-konfiguration (FTP/SFTP/HTTP-filimport opsætning). Bruges i data-import admin.
+
+### StatstidendeMainComponent (features-shared/statstidende/) — 7 filer
+Statstidende-integration. Container med faner. StatstidendeService — HTTP service til statstidende-modtagere. StatstidendeReceiversComponent — tabel af statstidende-modtagere med CRUD.
+
+### SendTestMessageBaseComponent (features-shared/send-test-message/) — 5 filer
+Base-klasse + concrete implementations for Send Test SMS (SendSmsOrVoiceTestMessageComponent) og Send Test Email (SendEmailTestMessageComponent). Bruges i wizard write-message trin.
+---
+
+## UI-lag: shared/
+
+**Filer:** `shared/` (253 filer) — fælles UI-bibliotek
+**Domain:** Resten (primært) / messaging / address_management
+
+### shared/classes/
+- **ApiRoutes** — centrale API endpoint-konstanter for alle HTTP-kald
+- **RouteNames** — centrale route-sti-konstanter for Angular Router
+- **BiCustomValidators** — custom Angular FormValidators (min/maks SMS-længde, telefonnummer, datoer, adgangskode-match)
+- **EmailValidator** — email-validerings-helper
+- **StdReceiversDataManager** — hjælpeklasse til standard-modtager-datastyring
+- **StylingAndLayoutUrlParams** — URL-parameter konstanter til layout/styling
+- **sse-subscription.factory** — factory til SSE (Server-Sent Events) abonnementer
+- **BICustomAnimations** — ekstra Angular-animationer
+
+### shared/interfaces-and-enums/
+- **UserRoleEnum** — alle brugerroller i systemet
+- **ServerSentEventType** — SSE event-typer (ConversationMessageReceived, BroadcastStatusUpdated etc.)
+- **BiTreeNode** — genbrugelig tree-node interface til hierarkiske datastrukturer
+- **BiWizardStep** — interface for wizard-trin
+- **SubscriptionTypes** — abonnements-type enum
+- **SocialMediaStatus** — social medie-status enum
+- **QuickResponseSetupDto** — QuickResponse opsætnings-model
+
+### shared/pipes/ — 11 filer
+- **BiSlicePipe** — array slice til templates
+- **BiSortPipe** — generisk sortering
+- **BiMsgCountPipe** — SMS-karakter-optælling
+- **BiAreStringsEqualPipe** — sammenligning af strings i templates
+- **CountryIdToTranslateKeyPipe** — country ID → i18n nøgle
+- **HighlightTextPipe** — HTML-highlight af søgetekst
+- **LanguageIdFormatPipe** — sprog-ID formattering
+- **NumberToArrayPipe** — konverter tal til array (til *ngFor loops)
+- **SupplytypeFilterPipe** — filtrering af supply-typer
+- **UsedForToImportPurposePipe** — konvertering til import-formål
+- **BiPipesModule** — samler alle pipes i et modul
+
+### shared/directives/ — 5 filer
+- **BiRequireRolesDirective** — structural directive til rolle-baseret UI-skjul (*biRequireRoles)
+- **BiDisableControlDirective** — disable reactive form controls
+- **DebouncedClickerDirective** — click-debouncing directive
+- **StickySecondaryElementDirective** — sticky positionering
+- **BiPTemplateDirective** — PrimeNG template adapter
+
+### shared/variables-and-functions/ — 5 filer
+- **helper-functions.ts** — generelle hjælpefunktioner (string-checks, isNullOrEmpty, scrollTo, uniqueID etc.)
+- **general-variables.ts** — konstanter (smsMaxLength=160, smsUnicodeMaxLength, smsSendAsMinLength etc.)
+- **LocalStorageItemNames.ts** — localStorage nøgle-konstanter
+- **WindowSessionStorageNames.ts** — sessionStorage nøgle-konstanter
+- **primeNg-utilities.ts** — PrimeNG-specifikke hjælpefunktioner
+
+### shared/components/ — 209 filer (STORE KATEGORIER)
+
+**Dialog-content (30 filer):**
+- ctivity-log-dialog-content — aktivitets-log dialog
+- i-create-new-pass-error-dialog-content — fejlbesked ved password-oprettelse
+- i-dialog-spinner — loading-spinner dialog
+- i-merge-field-dialog-content — udfyld merge fields dialog
+- i-mergefield-conflict-dialog-content — merge field konflikthåndtering
+- i-profile-selection-dialog-content — profilvalg dialog
+- create-broadcast-dialog — beknr. og afsend broadcast dialog
+- dialog-with-text-input — simpel text-input dialog
+- conomic-report-dialog-content — e-conomic rapport dialog
+- dit-smsGroupSchedule-dialog — redigér SMS-planlagte udsendelser
+- manage-product-dialog — produkt/pakke administrations-dialog
+- map-coords-dialog — kort koordinat-dialog
+- 	ext-template-overwrite-or-append-dialog — vælg overskrivning/tilføjelse af template
+
+**Tabeller (29 filer):**
+- i-p-table — generisk PrimeNG-wrapper tabel med sortering/filtrering
+- i-p-table-with-checkboxes — tabel med multi-vælg checkboxes
+- i-item-indicator-table — tabel med farve-indikatorer
+
+**Send Methods (11 filer):**
+- SendMethodsListComponent — viser tilladte send-metoder som klikkbare knapper (by-address, by-level, by-map, by-municipality, by-excel)
+- BiMessageResendDialogContentComponent — dialog til resend af besked
+- BiMessageResendSimpleDialogContentComponent — simpel resend dialog
+
+**Input Components (22 filer — bi-custom-inputs/):**
+- BiDateAndTimeInputModule, BiDateInput, BiTimeInput
+- BiPasswordInputComponent — password input med vis/skjul
+- BiTextAreaModule
+- Øvrige custom inputs
+
+**eBoks Preview (13 filer):**
+- EboksDesktopPreviewComponent — eBoks besked forhåndsvisning (desktop)
+- EboksMobilePreviewComponent — mobil forhåndsvisning
+- Tilhørende stilkomponenter
+
+**Email Preview (8 filer):**
+- BiEmailPreviewComponent + tilhørende sub-komponenter
+
+**Quick Response Setup (10 filer):**
+- BiQuickResponseSetupEnablerComponent — aktivér/konfigurér QuickResponse på besked
+
+**File Upload (10 filer):**
+- BiFileUploaderComponent — generisk fil-upload med validering
+- Sub-komponenter til status og fejlvisning
+
+**Std Receiver Tree (8 filer):**
+- StdReceiverTreeNodeComponent + sub-nodes — hierarkisk modtager-træ
+
+**De øvrige komponenter (enkelt-filer):**
+- BiAddressSearchInputComponent — adressesøgnings-input
+- BiDesktopFrameComponent — desktop-frame wrapper
+- BiEditableTextComponent — inline edit
+- BenchmarkCreateEditComponent — benchmark CRUD
+- AdvancedVoiceSettingsComponent — avancerede voice-indstillinger
+- BiListBoxComponent — genbrugelig listeboks
+- BiMenuComponent — menu-komponent
+- BiPhoneFrameComponent — telefon-frame wrapper
+- BiProspectTasksViewComponent — pipeline prospect opgave-visning
+- BiSelectionListComponent — multi-select liste
+- BiSettingsLinkComponent — link til indstillinger
+- BiSmsEmailCountingBoxComponent — SMS/email tegn-tæller-boks
+- BiTabsComponent — generisk fane-komponent
+- BiTextSaveCancelComponent — inline edit med gem/annuller
+- BoxWithCheckboxesComponent — checkbox-gruppe
+- CountryCustomerProfileSelectionComponent — land/kunde/profil-selector
+- IframeUrlParamDescriptionsComponent — IFrame URL parameter beskrivelse
+- IndividualMsgSettingsDisplayBoxComponent — vis individuelle besked-indstillinger
+- LatestMsgBoxComponent — boks med seneste beskeder (broadcasting)
+- ListsComponent — diverse liste-visninger
+- BiIndicatorIconComponent — farve-indikator ikon
+- BiFullCalendarComponent — kalender-visning
+- BiImageUploaderComponent — billede-upload
+- BiShowMessagePreviewComponent — standard besked-forhåndsvisning
+- BiQuickResponseSetupEnablerComponent — quickresponse setup

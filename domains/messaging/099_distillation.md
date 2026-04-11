@@ -225,3 +225,229 @@ Components:
 | GAP_002 | ByMap flow not fully traced — map-tools and polygon-selection behavior not read |
 | GAP_003 | ByLevel ("ByLevel" send method) selection component not examined |
 | GAP_004 | Scheduled broadcast recurrence (repeat scheduling) — SchedulingSetup component not read; recurrence capability unknown |
+
+
+---
+
+## UI-lag: MessageService (core/services)
+
+**Fil:** `core/services/message.service.ts`  
+**Domain:** messaging / sms_group
+
+Central service for besked-afsendelse og wizard-data. Ingen lokal caching.
+
+| Metode | Beskrivelse |
+|---|---|
+| `getAllowedSendMethods()` | Tilladte send-metoder for aktuel profil (`SendMethodModel`) |
+| `getMessageWizardModel(profileId)` | Wizard-model ved start (`MessageWizardModel`) |
+| `getWizardWriteMessageModel(smsGroupId, sendMethod)` | Write-message trin data (merge fields, rolle-afhængig) |
+| `getSmsGroup(smsGroupId)` | Hent SmsGroup DTO |
+| `createSmsGroup(command)` | Opret nyt SmsGroup |
+| `updateSmsGroup(...)` | Opdater SmsGroup |
+| `sendBroadcast(smsGroupId)` | Afsend broadcast |
+| `getRecipientsAndMetadata(smsGroupId)` | Modtagerantal + metadata |
+| `getAddressChanges(smsGroupId)` | Adresseændringer siden sidst broadcast |
+| `sendTestSms(model)` | Send test-SMS |
+| `sendTestEmail(model)` | Send test-email |
+| `sendTestVoice(dto)` | Send test-voice |
+| `getSmsGroupsByMunicipalities(cmd)` | SmsGroups oprettet med kommunefiltre |
+| `getShortMessage(smsGroupId)` | Hent kort-besked (SMS-tekst) til forhåndsvisning |
+| `getEboksPreview(smsGroupId)` | eBoks dokumentforhåndsvisning |
+| `getEmailPreview(smsGroupId)` | Email-forhåndsvisning |
+
+---
+
+## UI-lag: features/broadcasting
+
+**Filer:** eatures/broadcasting/ (13 filer), eatures/broadcasting-limited/ (2 filer)
+**Domain:** messaging / sms_group
+
+### BroadcastingComponent (broadcasting.component.ts/.html)
+**Primære sendeflade** — entry point for alle brugere med messaging-adgang.
+
+| Funktion | Beskrivelse |
+|---|---|
+| Fanebjælke (send-methods-list) | <send-methods-list> — viser tilladte kanaler/metoder; klik ruter til wizard |
+| Scenarios-panel | <scenarios> — vises kun hvis bruger har CanManageScenarios-rolle; list af stencil-baserede scenarier |
+| Single-SMS tab | <single-sms> — direkte afsendelse af enkelt SMS med template-valg, sendernavn, reply-nummer, delay |
+| Single-Email tab | <single-email> — direkte afsendelse af enkelt email med template-valg, autosignatur, delay |
+| Sent messages boks | <latest-msg-box titleKey="broadcasting.SentMessages"> — de seneste afsendte beskeder |
+| Planned messages boks | <latest-msg-box titleKey="broadcasting.PlannedMessages"> — planlagte/forsinkede beskeder med delete-mulighed |
+| Unapproved messages boks | <unapproved-msg-box> — vises kun for godkendere (isCurrenUserSmsGroupApprover$); godkend/afvis faneindhold |
+| Unfinished messages boks | <latest-msg-box> — ufærdige beskeder fra wizard |
+| Survey nudge | CustomerSurveyNudgeDialogComponent — pop-up dialog på login til brugertilfredshedsundersøgelse (Office Forms) |
+
+**Roller brugt:** ManageMessages, ManageReports, CanManageScenarios, CanSendSingleSmsAndEmail, SuperAdmin, LimitedUser
+
+### ScenariosComponent (scenarios/scenarios.component.ts/.html)
+**Scenarieliste** — viser tiljadte SMS Group Stencils som scenarier.
+
+| Funktion | Beskrivelse |
+|---|---|
+| Liste visning | <bi-list-box> med sms-gruppe-stencils; bruger kan klikke for at starte wizard |
+| Opret besked fra stencil | Kalder MessageService.createSmsGroup() baseret på stencil → ruter til wizard |
+| Merge fields dialog | <bi-merge-field-dialog-content> — udfyld skabelonfelter før afsendelse |
+| Broadcast-dialog | <create-broadcast-dialog> — bekræft og send direkte broadcast |
+| Roller | CanManageScenarios — kan administrere; alle med stencils kan sende |
+
+### SingleSmsComponent (single-sms-email/single-sms.component.ts/.html)
+**Enkelt SMS formular** til direkte afsendelse.
+
+| Felt | Beskrivelse |
+|---|---|
+| Telefonnummer | <bi-phone-input> med validators |
+| Besked-tekst | Multi-line med GSM/Unicode-detektion, tegnoptælling (smsMaxLength/smsUnicodeMaxLength) |
+| Afsendernavn | Input begrænset til smsSendAsMinLength–smsSendAsMaxLength tegn |
+| Template valg | Dropdown med MessageTemplateModelExt[]; auto-udfylder tekst |
+| Merge fields | Dialog via BiMergefieldDialogContentComponent |
+| Reply-nummer | Dropdown ConversationPhoneNumberModel[] |
+| Delay (dato/tid) | Optional forsinkelse |
+| Forhåndsvisning | <bi-message-preview> |
+
+### SingleEmailComponent (single-sms-email/single-email.component.ts/.html)
+**Enkelt Email formular** til direkte afsendelse.
+
+| Felt | Beskrivelse |
+|---|---|
+| Email-adresse | Input med Validators.email |
+| Emne | Subject-felt |
+| Besked | Rich textarea med autosignatur |
+| Template valg | Dropdown med email-templates (TemplateEmailDto) |
+| Merge fields | Dialog-integration |
+| Delay | Optional forsinkelse |
+
+### UnapprovedMsgBoxComponent (unapproved-msg-box/)
+**Unapproved beskeder boks** til godkendere.
+
+| Funktion | Beskrivelse |
+|---|---|
+| Liste | <bi-list-box> med SmsGroupApprovalRequestDto[] |
+| Filtrering | Søg-input med debounce |
+| Udvid/sammenfold | Paginering med limitForMessageList = 3 |
+| Godkend | Output event onApproveRequest → parent kalder API |
+| Afvis | Output event onRejectRequest → parent kalder API |
+| Activity log | Dialog ActivityLogDialogContentComponent |
+
+### CustomerSurveyNudgeDialogComponent (customer-survey-nudge-dialog/)
+Survey nudge-dialog: viser Office Forms-link afhængigt af brugerens sprog (DK/NO/etc). Gemmer svar via UserNudgingService.
+
+### BroadcastingLimitedComponent (broadcasting-limited/)
+**Stencil-bruger interface** for LimitedUser-rolle — viser kun stencils og planlagte beskeder.
+
+| Funktion | Beskrivelse |
+|---|---|
+| Stencil-liste | <bi-list-box> med SmsGroupSimpleDto[]; klik → confirm → wizard |
+| Planlagte beskeder | <latest-msg-box> med delete |
+
+
+---
+
+## UI-lag: features/broadcasting
+
+**Filer:** `features/broadcasting/` (13 filer), `features/broadcasting-limited/` (2 filer)
+**Domain:** messaging / sms_group
+
+### BroadcastingComponent
+Primære sendeflade. Tabs: Single SMS / Single Email (krav: CanSendSingleSmsAndEmail). Viser Scenarios-panel (krav: CanManageScenarios eller stencils). Bokse: SentMessages, PlannedMessages (med delete), UnapprovedMessages (godkendere), UnfinishedMessages. Survey nudge-dialog ved login.
+
+### ScenariosComponent
+Viser SMS Group Stencils som klikbare scenarier. Klik starter wizard eller afsender direkte via CreateBroadcastDialogComponent. Understøtter merge fields dialog.
+
+### SingleSmsComponent
+Enkelt SMS-formular: telefonnummer (bi-phone-input), tekst med GSM/Unicode-detektion og tegnoptælling, afsendernavn (min/max validators), template-valg, merge fields, reply-nummer, forsinkelse (dato/tid), forhåndsvisning.
+
+### SingleEmailComponent
+Enkelt email-formular: email-adresse, emne, besked med autosignatur, template-valg, merge fields, forsinkelse.
+
+### UnapprovedMsgBoxComponent
+Godkender-boks: liste af SmsGroupApprovalRequestDto, søgefilter med debounce, paginering (3 pr. side), Godkend/Afvis output events, activity log-dialog.
+
+### CustomerSurveyNudgeDialogComponent
+Survey nudge-dialog ved login. Office Forms-link afhænger af bruger-sprog. Gemmer svar via UserNudgingService.
+
+### BroadcastingLimitedComponent
+LimitedUser-interface: stencil-liste + planlagte beskeder. Ingen wizard-adgang direkte.
+---
+
+## UI-lag: features/message-wizard-limited
+
+### MessageWizardLimitedComponent (features/message-wizard-limited/)
+Simplificeret wizard for LimitedUser uden fuld wizard-adgang. Bruger vælger template, udfylder evt. merge fields, angiver delay-dato/tid og sender broadcast. Afsendelse sker via MessageService. Dialog MessageSentDialogComponent bekræfter afsendelse. Guard message-wizard-limited.guard.ts sikrer kun LimitedUser kan tilgå ruten.
+---
+
+## UI-lag: features/message-wizard (FULL WIZARD)
+
+**Filer:** `features/message-wizard/` (173 filer)
+**Domain:** messaging (primært) / address_management / sms_group / standard_receivers / recipient_management
+
+### Wizard Flow (WizardStep enum)
+Trinbaseret flow: **AddressSelection → StdReceivers → WriteMessage → Confirm → Complete**. Eller for scheduled: ekstra trin SchedulingSetup.
+
+### Base Component Classes
+- **MessageWizardBaseComponent** — abstrakt base for alle wizard-varianter. Styrer: currentStep$ (BehaviorSubject), pageLoading, canSelectStdReceivers, hideAddressesStep, skipWriteMessageStep. Init: WizardSharedService.initWizardModelAndSmsGroupId().
+- **WriteMessageBaseComponent** — base for write-message trin.
+- **ConfirmBaseComponent** — base for confirm-trin.
+- **StdReceiversBaseComponent** — base for std-receivers trin.
+- **WriteMessageWizardStepBaseComponent** — base for wizard-steps med message-skriving.
+
+### MessageWizardComponent (root)
+Konkret wizard. Implementerer getNextStep/getPreviousStep — routing mellem trin afhænger af bruger-rettigheder. Provider: ByAddressService.
+
+### Shared Services
+- **WizardSharedService** — central state og HTTP-kald for wizard. initWizardModelAndSmsGroupId() henter MessageWizardModel (sender-konfig, tilladte metoder, modtager-info). Holder hele MessageModel (SmsGroup) under editing.
+- **WizardSharedEventsService** — RxJS Subjects for events på tværs af wizard-trin: stepChanged, startWizardLoading, stopWizardLoading, draftSaved.
+
+### Adresse-valg trin (childComponents/)
+Wizard trin 1: AddressSelection. Brugeren vælger "send-metode" (by-address, by-level, by-map, by-municipality, by-excel, std-receivers):
+
+**ByAddressComponent** (childComponents/by-address)
+- Adresse-søgning via <bi-address-search-input> (postnummer/gadenavne)
+- Resultat: BiTreeNode-hierarki (zip → gade → husnumre) i "searched" og "selected" visninger
+- ByAddressService — lokal event-bus (Subjects) for søgede/valgte adresser
+- BiAddressTreeNodeManager — håndterer tree-node opbygning og selektion
+- Understøtter interval-søgning (fra-til husnumre, lige/ulige)
+
+**ByLevelComponent** (childComponents/by-level)
+- Hierarkisk niveau-filter: kolonner af LevelValueItem-lister (niveau 1 → 2 → 3)
+- ByLevelService + ByLevelSharedService — HTTP og lokal state
+- ByLevelSelectionAndSearchComponent — interaktivt søge/vælg per niveau-kolonne
+- LevelItemsFilterPipe — lokal filtrering af niveau-items
+
+**ByExcelComponent** (childComponents/by-excel)
+- Excel/CSV import via <bi-data-import> (DataImportPurpose.Broadcast)
+- BroadcastImportSettingsComponent — send-format og telefonnummer-kolonne indstillinger
+- BroadcastDataImportResult — resultat-model
+
+**ByMapComponent** (childComponents/by-map) — 13 filer
+- Kortbaseret modtager-valg (Leaflet/OpenLayers polygon-tegning)
+- Brugeren tegner polygon på kort → backend finder adresser inden for
+
+**ByMunicipalityComponent** (childComponents/by-municipality) — 15 filer
+- Kommune/amt-baseret valg
+- Multi-level hierarki (land → region → kommune)
+
+**ConfirmComponent** (childComponents/confirm) — 6 filer
+- Opsummering af alle modtagere og besked-indhold inden afsendelse
+- Viser statistik: antal modtagere pr. kanal
+- "Send nu" / "Gem kladde" / "Planlæg"
+
+**BroadcastCompleteComponent** (childComponents/broadcast-complete)
+- Bekræftelses-side efter afsendelse. Viser besked-navn og delay-dato hvis planlagt.
+- "Tilbage til broadcasting"-knap.
+
+**StdReceiversComponent** (childComponents/std-receivers) — 3 filer
+**StdReceiversExtendedComponent** (childComponents/std-receivers-extended) — 6 filer
+- Trin 2: valg af standard-modtagere (grupper, filtre)
+- Extended: udvidet med ekstra filtre
+
+**WriteMessageComponent** (childComponents/write-message) — 2 filer
+- Thin wrapper → delegerer til shared/write-message komponenter
+
+### Scheduled Wizard (message-wizard-scheduled) — 21 filer
+- Alternativ wizard for planlagte og gentagne udsendelser
+- SchedulingSetup-trin med dato/tid valg og gentagelses-konfiguration
+
+### Nudging Dialogs
+- **EboksNudgingComponent** (eboks-nudging) — opfordrer bruger til at aktivere eBoks-kanal
+- **OwnersNudgingComponent** (owners-nudging) — opfordrer til at sende til ejere
+- **VoiceNudgingComponent** (voice-nudging) — opfordrer til at aktivere voice-kanal

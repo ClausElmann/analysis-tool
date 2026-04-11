@@ -72,3 +72,88 @@ SuperAdmin opens customer settings → clicks Edit on the address field → addr
 
 1. **Layer 1 is largely empty** — behaviors and rules arrays contain no substantive content. This domain requires deeper Layer 0 source reading for a complete picture.
 2. **Missing: FTP settings, API keys, contact persons, GDPR, user management** — these are visible in the superAdmin customer detail tabs but are separate concerns not fully captured here. See `customer_management` distillation for superAdmin-level view.
+
+
+---
+
+## UI-lag: ContactPersonsService (core/services)
+
+**Fil:** `core/services/contact-persons.service.ts`  
+**Domain:** customer_administration
+
+Cache: `BehaviorSubject` med last `customerId` — refresher kun ved kunde-skift.
+
+| Metode | Beskrivelse |
+|---|---|
+| `getAllContactPersonsByCustomerId(customerId, refresh?)` | Alle kontaktpersoner for kunde (cached) |
+| `getContactPersonTypes()` | Typer af kontaktpersoner (cached) |
+| `addContactPerson(dto)` | Tilføj kontaktperson |
+| `deleteContactPerson(id)` | Slet kontaktperson |
+| `updateContactPerson(dto)` | Opdater kontaktperson |
+
+
+---
+
+## UI-lag: features/administration/customer-admin (77 filer)
+
+**Domæne:** customer_management + customer_administration + profile_management + identity_access  
+**Modul:** `customer-admin.module.ts`
+
+### CustomerAdminComponent (Containerside)
+Header med kundenavn + BiTabs: Brugere / Profiler / Indstillinger.  
+Delt service: `CustomerAdminSharedService` (deler kundereferencer med undertabs).
+
+---
+
+### customer-users/ (Brugerstyring)
+
+| Komponent | Rolle |
+|---|---|
+| `CustomerUsersComponent` | Liste over alle brugere for aktuel kunde. Profilfilter-dropdown. Tabel med navn/email/tlf/sidst logget ind/roller. Navigate til opret/rediger |
+| `CreateUserComponent` | Formular til opret ny bruger (email, navn, telefon, roller, profiltilgang). Validering via reaktiv form |
+| `EditUserComponent` | Rediger eksisterende bruger. Container-komponent med tabs: Brugerinfo / Profiler / Roller |
+| `UserProfilesComponent` | Tab: Liste over brugerens profiltilgange. Tildel/fjern profila |
+| `UserRolesComponent` | Tab: Liste over brugerens systemroller (global). Tildel/fjern roller |
+| `UserAdminSharedService` | Delt state i edit-flow (current bruger til redigering) |
+
+---
+
+### customer-profiles/ (Profiladministration)
+
+| Komponent | Rolle |
+|---|---|
+| `CustomerProfilesComponent` | Liste over alle kundens profiler med opret-knap |
+| `CreateProfileComponent` | Opret ny profil (navn, type/supplyType, land). `CreateProfileFormValue` model |
+| `EditProfileComponent` | Container for profil-redigering med tabs (afhænger af roller/features). `ProfileEditAdminSharedService` deler profil-state |
+
+**EditProfile tabs (tab-children/):**
+
+| Tab-komponent | Indhold |
+|---|---|
+| `ProfileInfoComponent` | Basinfo: navn, type, land, senderadresse. `ProfileInfoTabFormValue` |
+| `ProfileRolesComponent` | Tildel/fjern profilroller (RoleGroups/Packages) |
+| `ProfileUsersComponent` | Brugere med adgang til profilen |
+| `ProfileAccountComponent` | Fakturakonto (ProfileAccount) til fakturering |
+| `ProfileApiKeysComponent` | API-nøgler til profilens API-adgang |
+| `ProfileEmailToSmsComponent` | Email-til-SMS opsætning (`email2sms.service.ts` lokalt) |
+| `FtpSetupProfileComponent` + `FtpSettingsFormComponent` | FTP-indstillinger for profilen (hostname, port, user, path) |
+| `ProfileDistributionNumberAdminComponent` | Distributionsnumre (telefonnumre til reply distribution). `AssignDistributionNumberComponent` + `EditNameAndGroupComponent` |
+| `ProfileMapSettingsComponent` | Kortindstillinger (zoom, center, mapLayer) |
+| `ProfileSocialMediaComponent` | Social media konti tilknyttet profilen |
+| `ProfileReadyReportsComponent` | READY integration rapporter. Sub-rapporter: Messages, Meters, Readings, Warnings, RawData. `KamstrupService` lokal |
+
+---
+
+### customer-settings/
+**CustomerSettingsComponent** — Rediger kundeoplysninger via `CustomerCreateEditComponent` (shared).  
+Viser: navn, land, voicenumre, brugerroller. Kun super-admin kan redigere alt.
+
+### customer-gdpr-admin/
+**CustomerGdprAdminComponent** — GDPR-accept flow for kunden. Extends `GdprAcceptParentBase` (shared).  
+Viser GDPR acceptstatus og knap til accept.
+
+### customer-social-media/
+**CustomerSocialMediaComponent** — Liste og opret/slet Facebook + Twitter/X konti.
+- Facebook: `FB.login()` → OAuth flow → `getSocialMediaAccounts()`
+- Twitter/X: OAuth URL → popup → callback via `ConfirmTwitterComponent`
+- `ConfirmTwitterComponent`: Håndterer Twitter OAuth callback-parametre (`ITwitterCallbackParams`)

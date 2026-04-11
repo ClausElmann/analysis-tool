@@ -174,3 +174,10 @@ History/change log for a single Salesforce opportunity (audit trail of stage cha
 | Customer domain | Outbound | `UpdateProspectWithCustomerIdAndAddContactPersonsToCustomer` links to customer record |
 | Finance/Subscription domain | Outbound | `CopyProspectProductsToCustomer` seeds customer product config |
 | Reporting domain | Read path | `GetContractWord` generates Word contract for sales onboarding |
+
+---
+
+## UI-lag: features/message-wizard-limited
+
+### MessageWizardLimitedComponent (features/message-wizard-limited/)
+Simplificeret wizard for LimitedUser uden fuld wizard-adgang. Bruger vælger template, udfylder evt. merge fields, angiver delay-dato/tid og sender broadcast. Afsendelse sker via MessageService. Dialog MessageSentDialogComponent bekræfter afsendelse. Guard message-wizard-limited.guard.ts sikrer kun LimitedUser kan tilgå ruten.

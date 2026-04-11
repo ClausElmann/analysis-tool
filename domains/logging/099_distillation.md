@@ -80,3 +80,17 @@ Scheduled batch jobs `cleanup_systemlogs` and `cleanup_requestlogs` run periodic
 
 1. **No admin UI for log viewing** — logs are queryable only via database tools or Azure Application Insights. There may be a superAdmin log viewer component not yet mapped (Log domain entity list includes `LogController`).
 2. **Retention thresholds not captured** — the specific retention duration for each log type is not documented in Layer 1.
+
+
+---
+
+## UI-lag: OutgoingRequestLogsService (core/services)
+
+**Fil:** `core/services/outgoing-request-logs.service.ts`  
+**Domain:** logging
+
+| Metode | Beskrivelse |
+|---|---|
+| `getNorwegianRequestLogsStatistics()` | Statistik over udgående requests til norske API'er (`NorwegianRequestLogStatisticsReadModel`) |
+
+*Minimal service — kun én metode. Benyttes til norsk stats-rapport i super-admin.*

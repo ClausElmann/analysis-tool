@@ -190,3 +190,92 @@ Template
 | GAP_003 | `TemplateBenchmarkDto` purpose not confirmed — appears to be InfoPortal/Benchmark feature |
 | GAP_004 | Merge field type options (beyond Date) not fully read |
 | GAP_005 | Facebook and Twitter template publishing paths not examined |
+
+
+---
+
+## UI-lag: TemplateService + SystemTextMergeFieldsService (core/services)
+
+### TemplateService
+**Fil:** `core/services/template.service.ts`  
+
+| Metode | Beskrivelse |
+|---|---|
+| `getMessageTemplates(profileId?, onlyForSms?, onlyForWeb?, forEdit?)` | Skabeloner for profilen med filtrering |
+| `getMessageTemplateById(id, countryId)` | Specifik skabelon |
+| `getTemplateSelectItems(customerId)` | `{id: name}` dict til dropdown-valg |
+| `getMessageTemplatesForSmsAndEmail(profileId)` | Skabeloner til brug i SMS+email |
+| `createMessageTemplate(cmd)` | Opret skabelon — returnerer ny id |
+| `updateMessageTemplate(model)` | Opdater skabelon |
+| `deleteMessageTemplate(templateId)` | Slet skabelon |
+| `getMergeFields(profileId, templateId?)` | Merge fields for profil/skabelon |
+| `uploadTemplateFile(templateId, file)` | Upload vedhæftet fil til skabelon |
+| `getProfileMappings(templateId)` | Profiler der har adgang til en skabelon |
+| `updateProfileMappings(cmd)` | Opdater profilmappings |
+
+### SystemTextMergeFieldsService
+**Fil:** `core/services/system-text-merge-fields.service.ts`  
+
+Fetcher og cacher alle systemer-definerede merge fields ved start. Eksponerer typede Observables:
+
+- `systemStaticMergeFieldNamesSms$` — statiske SMS merge fields (`IMergeFieldNamesSmsStatic`)
+- `systemStaticMergeFieldNamesWeb$` — statiske web merge fields
+- `weatherWarningMergeFieldNames$` — vejr-advarsels merge fields
+- `trimbleMergeFieldNames$` — Trimble integration merge fields
+- `readyMergeFieldNames$` — READY integration merge fields
+- `dynamicMergeFieldNames$` — dynamiske merge fields (dato-parametre)
+
+
+---
+
+## UI-lag: features/administration/message-templates (31 filer)
+
+**Domæne:** templates  
+**Modul:** `message-templates.module.ts`
+
+### MessageTemplatesMainComponent
+Container med faner (dynamisk afhængig af indstillinger):
+- **Skabeloner** (altid) → `TemplateCreateEditDeleteComponent`
+- **Merge fields** (altid) → `TemplateMergefieldsComponent`
+- **Profiladgang** (altid) → `TemplateProfileAccessComponent`
+- **Vejradvarsler** (kun hvis profil har WeatherWarning) → `WeatherWarningTypeToTemplateSetupComponent`
+- **READY/Kamstrup** (kun hvis profil har KamstrupReady) → TypeToTemplateSetup
+- **Trimble** (kun hvis profil har TrimbleIntegration) → TypeToTemplateSetup
+
+Delt service: `MessageTemplatesSharedService` (cacher templates + merge fields for hele modulet).
+
+### template-create-edit-delete/
+
+**TemplateCreateEditDeleteComponent** — Hovedelementet til CRUD på besked-skabeloner.
+- Støtter alle kanaltyper: SMS, Web, eBoks, E-mail, Internal, Facebook, Twitter/X, Voice, Benchmark
+- Inline visning af kanalindstillinger via `TemplatePart`-komponenter per kanal
+- Indeholder landevælger (`CountryCustomerProfileSelection`) til profilspecifikke skabeloner
+- `TemplateAttachmentsHandlerComponent` — vedhæft filer til skabelon
+- `TemplatePart` — sub-komponent der viser én kanals tekstindhold + merge field indsæt-knapper
+- `TemplatePartTypeConfig` — konfiguration per kanaltype (vis/skjul, label)
+
+### template-merge-fields/
+
+**TemplateMergefieldsComponent** — Liste + CRUD over dynamiske merge fields (brugerdefinerede + systemdefinerede).
+- Split: bruger-definerede / system-definerede
+- **CreateEditMergeFieldDialogComponent** — dialog til opret/rediger merge field (navn, type, eksempel)
+- Vis konflikt-dialog ved merge field slet (`BiMergefieldConflictDialogContentComponent`)
+
+### template-profile-access/
+**TemplateProfileAccessComponent** — Viser og administrerer hvilke profiler der har adgang til en specific skabelon.
+
+### shared/
+
+**TypeToTemplateSetupComponent** — Generisk "type → skabelon" mapping-komponent (bruges for WeatherWarning, READY, Trimble).
+- `AlarmSettingsComponent` — Alarm-indstillinger per type (`IAlarmSettings`)
+
+**WarningTemplateManagementComponent** — Overordnet visning af alle advarselsskabelon-mappings.
+- `WarningTemplateManagementRouteData` — route data interface til at konfigurere komponenten
+- `WarningTypesAndTypeToTemplateMappings` — kombineret data-model type
+
+**WarningTemplateService** (local) — API-adgang til advarselsskabeloner (shared/warning-template.service.ts).
+
+### weather-warning-type-to-template-setup/
+**WeatherWarningTypeToTemplateSetupComponent** — Landing for vejradvarsels-skabelon-tilknytning.
+**WeatherWarningTemplateSelectComponent** — dropdown til valg af skabelon per vejradvarsel type.
+**WeatherWarningService** (local) — API til vejradvarsel-typer og mappings.

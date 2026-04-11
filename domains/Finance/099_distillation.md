@@ -98,3 +98,24 @@ CRUD for billing products (used in invoice line generation).
 3. `CustomerAccountEntry.importedSmsCount` tracks SMS imported from old system (migration legacy)
 4. FramWeb exports are separate from main customer invoices (FramWeb has distinct billing arrangement)
 5. Accrual entries are keyed to booked invoice numbers — must match e-conomic records exactly
+
+
+---
+
+## UI-lag: InvoicingService (core/services)
+
+**Fil:** `core/services/invoicing.service.ts`  
+**Domain:** Finance
+
+| Metode | Beskrivelse |
+|---|---|
+| `getTransferResultsByDateRange(start, end)` | e-conomic-overførselsresultater i datointerval |
+| `getTransferResultsByEconomicId(id)` | Resultater for et specifikt e-conomic ID |
+| `compareTransferedEconomicReports(reports[])` | Batch-sammenligning af e-conomic-rapporter (pagineret med 1s delay) |
+| `getInvoiceDrafts(customerId?, accrualStart, end)` | Fakturaudkast pr. kunde/periode |
+| `transferInvoicesToEconomic(draftIds[])` | Overfør fakturaudkast til e-conomic |
+| `getBookedInvoices(customerId, from, to)` | Bogførte fakturaer i periode |
+| `getProfileAccounts(customerId)` | Profilkonti (til fakturering) |
+| `updateProfileAccount(cmd)` | Opdater profilkonto |
+| `getProducts()` | Tilgængelige produkter til fakturering |
+| `getCustomerProgress(customerId)` | Kunde-fremskridt / brug til faktureringsformål |

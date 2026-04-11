@@ -178,3 +178,65 @@ Both follow the same pattern: single button → loading state → file download 
 5. `lastStatisticsCalculationDate` is fetched from API and displayed to indicate statistical data freshness (data is pre-calculated, not real-time)
 6. `economic-report-dialog`'s `selected` field is pure frontend tracking (not persisted)
 7. Internal reports (webinar, nudging) have no filter parameters — they always export full datasets
+
+---
+
+## UI-lag: features/status
+
+**Filer:** `features/status/` (39 filer)
+**Domain:** reporting / Delivery / Monitoring
+
+### Services (feature-scope)
+- **SmsGroupStatusService** — HTTP service. Metoder: getStatusReportItems(smsGroupId), downloadSmsGroupOverviewAsCustomer(), downloadSmsGroupOverviewAsSuperAdmin(), getSmsGroupAddresses(smsGroupId), getStatistics(smsGroupId), getProfileMapData(smsGroupId), getQuickResponseStatistics(smsGroupId).
+- **StatusSharedService** — BiStore delt state på tværs af alle status-tabs. Holder: statusReportItems, smsStatuses, countryId, customer, profile, romDate/toDate, selectedMessage. Metoder: initOrRefreshSelectedMessage(smsGroupId), clearSelectedMessageData(), setState().
+- **StatusPageHelpers** — utility klasse med statiske hjælpemetoder til farve/ikon-mapping for status-værdier.
+
+### StatusComponent (status.component.ts/.html)
+**Primær listeside** — viser MessageReportReadModel[] (afsendte beskeder) i tabel.
+- Filter: land, kunde, profil (<bi-country-customer-profile-selection>), dato-range, download Excel-knap
+- SuperAdmin: ser alle kunders beskeder
+- Kunde-bruger: ser egne profilers beskeder
+- Klik på række → navigate til status-details/{smsGroupId}
+- Download Excel: DownloadExcelFileDialogComponent (dialog til at vælge format)
+
+### StatusDetailsComponent (status-details/status-details.component.ts/.html)
+**Detail-container** for én besked. Lader StatusSharedService.initOrRefreshSelectedMessage(). 4 faner:
+1. **Overview** — sammenfatning af udsendelse, statistik, handlinger
+2. **Status Report** — deliverystatus per modtager
+3. **Message Content** — SMS-tekst, email-indhold, eBoks-dokument
+4. **Addresses** — modtager-adresser (liste + kortvisning)
+
+### OverviewComponent (detail-tabs/overview/)
+Rig oversigt-tab. Indeholder:
+- <status-message-info> — beskedens navn, dato, testmode-badge, eBoks-flag
+- <status-message-actions> — handlingsknapper: Resend, delete, edit, opret fra kopi
+- <status-message-count-statistic> — antal sendt/leveret/fejl pr. kanal
+- <status-addresses-count-statistic> — antal adresser/modtagere
+- <quick-response-statistics-view> — kvik-svar statistik (hvis QuickResponse aktivt)
+- <individual-msg-settings-display-box> — vis individuelle besked-indstillinger
+- Forhåndsvisning: <bi-message-preview>, <bi-email-preview>, <eboks-desktop-preview>
+- Activity log-dialog via ActivityLogDialogContentComponent
+
+### StatusReportComponent (detail-tabs/status-report/)
+Leverings-statusrapport per modtager: tabel med navn, telefon, status (farvekodet), tidsstempler.
+
+### StatusMessageContentComponent (detail-tabs/status-message-content/)
+Viser den faktiske besked-tekst/HTML/eBoks-dokument der blev sendt.
+
+### StatusAddressesComponent (detail-tabs/status-addresses/)
+Modtager-adresser med to visninger:
+- <status-addresses-list-view> — tabel med adresser
+- <status-addresses-map-view> — kortvisning via Google/Leaflet maps
+
+### QuickResponseStatisticsViewComponent (quick-response-statistics-view/)
+Statistik for kvik-svar kampagner: viser svar-procenter, svartyper, evt. re-broadcast.
+- <quick-response-rebroadcast-dialog> — dialog til at sende ny udsendelse til ikke-svar-modtagere
+
+### StatusMessageInfoComponent
+Viser beskedens metadata (navn, sent-dato, testmode, eboks-flag, send-metode).
+
+### StatusMessageActionsComponent
+Handlingsknapper på besked: resend (via BiMessageResendSimpleDialogContentComponent), slet, rediger.
+
+### StatusMetadata / StatusAddressesCountStatistic / StatusMessageCountStatistics
+Hjælpe-komponenter til at vise metadata og statistik-kasser.

@@ -155,3 +155,24 @@ Used in message wizard `ByLevel` send method to filter recipients by positive li
 | GAP_003 | Import correction UI not found — corrections may be backend-only |
 | GAP_004 | Email2SMS whitelist UI not read |
 | GAP_005 | `MunicipalityReadModel` relationship to positive list not confirmed |
+
+
+---
+
+## UI-lag: PosListService (core/services)
+
+**Fil:** `core/services/pos-list.service.ts`  
+**Domain:** positive_list
+
+| Metode | Beskrivelse |
+|---|---|
+| `getProfilesPosListMunicipalities(countryId, profileId)` | Profilens positive-liste-kommuner |
+| `getProfilesPosListMunicipalitiesNegativeList(...)` | Kommuner profilen IKKE har (negativ liste) |
+| `updatePosList(countryId, profileId, codes[])` | Opdater profil positive liste med kommunekoder |
+| `getPosListImportFiles(profileId)` | Filer importeret til pos-liste |
+| `getPosListFtpUploads(profileId)` | FTP-uploadede pos-liste-filer |
+| `getPosListImportCorrections(fileId)` | Korrektionsdata for import |
+| `applyImportCorrections(...)` | Anvend korrektioner på import |
+| `getAdditionalImportAddresses(profileId)` | Manuelle tillægsadresser for profil |
+| `addAdditionalImportAddress(...)` | Tilføj tillægsadresse |
+| `deleteAdditionalImportAddress(id)` | Slet tillægsadresse |

@@ -87,3 +87,22 @@ Controller: `BalarmWebApp.Controllers.SuperAdmin.Monitoring.MonitoringController
 5. **Graph data is static on load**: `GetGraphData` is called once on initial load — there is no polling or SSE refresh for graph data. The graph reflects the server state at the time of navigation.
 
 6. **Graph zero-fill**: The graph component inserts zero values between sparse data points to prevent visual gaps in the bar chart timeline.
+
+
+---
+
+## UI-lag: OperationalMessagesService (core/services)
+
+**Fil:** `core/services/operational-messages.service.ts`  
+**Domain:** Monitoring
+
+Både 'driftsmeddelelser' (systemstatusbesked til alle brugere) og 'news'-beskeder (type 'news' er en operationel besked).
+
+| Metode | Beskrivelse |
+|---|---|
+| `getOperationalMessages(from?, to?, segment?)` | Hent alle opdriftsmeddelelser (super admin) |
+| `createOperationalMessage(model)` | Opret ny driftsmeddelelse |
+| `updateOperationalMessage(model)` | Opdater gælder driftsmeddelelse |
+| `deleteOperationalMessage(id)` | Slet driftsmeddelelse |
+| `getActiveOperationalMessages()` | Hent aktive driftsmeddelelser (alle brugere kan kalde) |
+| `dismissOperationalMessage(id)` | Afvis/luk en aktiv driftsmeddelelse for denne session |

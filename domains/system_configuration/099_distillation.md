@@ -96,3 +96,198 @@ SuperAdmin opens the Functions panel → the `DisableAllBroadcasts` setting is l
 
 1. **AppSetting enum is incomplete in Layer 1** — only ~22 notable keys are captured; the actual enum has 50+ keys. Non-captured keys include all gateway-specific settings, country-specific feature flags, and notification throttling parameters.
 2. **No UI for file type management** — `FileTypes` table exists and is used for upload validation, but there is no visible admin UI to add or remove allowed file types. This may be database-only, or the UI may be in a location not yet mapped.
+
+
+---
+
+## UI-lag: features/administration/super-administration (269 filer)
+
+**Domæne(r):** system_configuration + Finance + customer_management + Enrollment + Monitoring + positive_list + integrations  
+**Kun tilgængeligt for: Super Admin brugere**  
+**Modul:** `super-administration.module.ts`
+
+### Overordnet struktur (17 under-sections)
+
+---
+
+### bi-log/ (3 filer)
+**BiLogComponent** — Viser system-logfiler (events, fejl) til super-admin debugging.
+
+---
+
+### communication/ (21 filer)
+- **CommunicationComponent** — Container. Tabs: Driftsmeddelelser / Email-nyhedsbrev / Webinarer
+- **OperationalMessagesComponent** — CRUD driftsmeddelelser (`OperationalMessagesService`)
+- **EmailNewsletterComponent** — Compose og send nyhedsbrev til kunder via email
+- **CreateNewsletterComponent** — Opret ny newsletter (emne, indhold, modtagere)
+- **ViewNewsletterComponent** — Forhåndsvisning af newsletter
+
+---
+
+### customers/ (57 filer)
+Den største sektion. Fuld kundeoversigt + detaljehåndtering.
+
+- **SuperCustomersMainComponent** — Liste over alle kunder (alle lande, filter, søg, opret ny)
+- **SuperCustomersDetailComponent** — Detaljer for én kunde med tabs:
+   - `SuperCustomerSettingsComponent` — Rediger kundeindstillinger
+   - `SuperCustomerInvoiceDataComponent` / `SuperCustomerInvoicesComponent` — Fakturaoplysninger
+   - `SuperCustomerApiKeysComponent` + `CreateApiKeyDialogComponent` — API-nøgler
+   - `SuperCustomerFtpSettingsComponent` — FTP-indstillinger
+   - `SuperCustomerGdprAcceptComponent` — GDPR-accept status
+   - `SuperCustomerContactPersonsComponent` + `SuperCustomerContactPersonsTableComponent` + `ContactPersonsCreateEditComponent` — Kontaktpersoner
+   - `SuperCustomerAdminLogsComponent` — Admin-log for kunden
+   - `CustomerNotesComponent` + `CustomerNotesTableComponent` — Interne noter
+   - `CustomerDataOverviewComponent` — Dataoversigtfor kunden (priser, forbrugstæller mv.)
+   - `SuperProfilesComponent` + `SuperProfilesSelectionComponent` — Profiler for kunden
+   - `PackagesSetupComponent` — Pakke-/rettigheds-opsætning for kunden
+   - `ProfileRoleCountryMappingComponent` + `UserRoleCountryMappingComponent` — Land-specifikke rolle-mappings
+   - `CustomerKrrRequestsComponent` + `KrrKofuviStatisticsComponent` — KRR (norsk kontaktregister) forespørgsler og statistik
+   - `MunicipalitySetupComponent` — Kommuneopsætning for kunden
+   - `DataImportConfigurationsTableComponent` + `DataImportConfigurationColumnMappingsComponent` — Import-konfigurationer admin
+- **CreateCustomerComponent** — Opret ny kunde
+- **CustomersMapComponent** — Geokort med alle kunder (Leaflet)
+- **SuperAdminFunctionsComponent** — Diverse super-admin funktioner (cache-reset, test-mode etc.)
+- **CreateEditDataProcessorAgreementComponent** + **DataProcessorAgreementsComponent** — GDPR databehandleraftaler
+
+---
+
+### enrollment/ (11 filer)
+- **EnrollmentMainComponent** — Container. Tabs: Statistik / Rapporter / Senders
+- **EnrollmentStatisticsComponent** — Enrollment statistik (grafisk + tabel)
+- **EnrollmentReportsComponent** — Download enrollment rapporter
+- **SendersMainComponent** / **CreateEditSenderComponent** — CRUD over senderenheder (afsendere) til enrollment
+
+---
+
+### humanresource/ (19 filer)
+Intern HR-modul (kun tilgængeligt for interne medarbejdere).
+- **HumanresourceMainComponent** — Tabs: Medarbejdere / Kørsel / Fravær / Ferier / Lønoversigt
+- **EmployeesComponent** — Medarbejderliste
+- **DrivingsComponent** — Kørselsgodtgørelser
+- **AbsencesComponent** — Fraværsregistrering
+- **HolidaysComponent** — Ferieoversigt
+- **SalaryOverviewComponent** + **SalaryPeriodInfoDialogComponent** — Lønoversigt og lønperioder
+
+---
+
+### inbound-call-redirect/ (1 fil)
+**InboundCallRedirectComponent** — Opsætning af indgående opkald-viderestilling.
+
+---
+
+### internal-reports/ (18 filer)
+- **InternalReportsMainComponent** — Tabs: Nudging rapport / Webinar rapport
+- **NudgingReportComponent** — Rapport over bruger nudging-svar
+- **WebinarReportComponent** — Rapport over webinar-deltagelse
+
+---
+
+### invoicing/ (31 filer)
+Fakturering og økonomi (`InvoicingService`).
+- **InvoicingMainComponent** — Container med tabs
+- **InvoicingLoadInvoicesComponent** — Hent fakturaer fra e-conomic
+- **InvoicingAccrualComponent** + **InvoicingAccrualSummaryComponent** + **InvoicingEditAccrualComponent** — Periodisering
+- **InvoicingBudgetFollowUpComponent** + **InvoicingBudgetFollowUpMappingComponent** — Budgetopfølgning
+- **InvoiceExportComponent** + **InvoiceFramwebExportComponent** — Export til e-conomic / Framweb
+- **InvoicingProductCatalogComponent** + **InvoicingProductCatalogDialogComponent** — Produktkatalog
+- **InvoicingUploadComponent** — Upload fakturadata
+- **SuperCustomerInvoicesComponent** — Kunderegnskab overblik
+
+---
+
+### map-layers/ (9 filer)
+- **MapLayersMainComponent** — Liste over alle kort-lag
+- **MapLayersDetailComponent** — Detaljer og tilpasning af et kort-lag
+- **MapLayersAccessComponent** + **MapLayersAddAccessComponent** — Profiladgang til kort-lag (`MapAdministrationService`)
+
+---
+
+### monitoring/ (20 filer)
+- **MonitoringDashboardComponent** — Live dashboard: job-status, køer, server-helse
+- **MonitoringJobsComponent** + **ActiveJobComponent** + **TaskDetailsDialogContentComponent** — Job-oversigt og detaljer
+- **MonitoringGraphComponent** — Tidsseriegraf over systemperformance
+- **MonitoringMapComponent** — Geodistribution af aktivitet
+
+---
+
+### phonenumber-import/ (10 filer)
+- **PhonenumberProviderMainComponent** — Tabs: Provider-liste / Import-liste
+- **PhonenumberProviderListComponent** + **VirtualPhoneNumbersComponent** — Telefonnummer-udbydere og virtuelle numre
+- **PhonenumberImportListComponent** — Import-historik og status
+
+---
+
+### pos-lists/ (23 filer)
+Positive List super-admin (`PosListService`).
+- **PosListsComponent** — Liste over profiler med positive lister
+- **PoslistDataImportComponent** + **PoslistDataImportSettingsComponent** — Import af positive lister
+- **UploadedPosListsComponent** + **PosList_FtpUploadsComponent** — Upload og FTP-filer
+- **AdditionalImportAddressesComponent** — Manuelle tillægsadresser
+- **ImportCorrectionsComponent** + **ImportFofCorrectionsComponent** — Import-korrektioner (standard + FoF-format)
+- **LookupSwedishSkipListComponent** — Svensk udeladelses-liste opslag
+- **NegativeListComponent** — Negativ liste (adresser der udelades)
+- **PositiveLookupComponent** — Opslag i positiv liste
+- **ProfilePositiveListFtpSettingsTableComponent** + **StdReceiverGroupFtpSettingsTableComponent** — FTP-indstillinger for profiler og grupper
+- **DifiCodeStatisticsComponent** — DIFI-kode statistik (norsk)
+
+---
+
+### salesforce/ (17 filer)
+CRM-integration med Salesforce.
+- **SalesforceMainComponent** — Tabs: Development / Forecast / Modified / Pipeline / Opportunities + SalesInfo
+- **SalesforceDevelopmentComponent** — Udviklingsvisning af Salesforce-data
+- **SalesforceForecastEvaluationComponent** — Forecast evaluering
+- **SalesforceModifiedComponent** — Nyligt ændrede records
+- **SalesforcePipelineComponent** — Pipeline grafik
+- **SalesforceOpportunitiesComponent** + **SalesforceOpportunitiesTableComponent** — Kundeopportuniteter
+- **SalesInfoComponent** + **SalesInfosDialogContentComponent** — Sales-info panel
+
+---
+
+### super-admin-settings/ (13 filer)
+- **SuperAdminSettingsComponent** — Global system-indstillinger
+- **FailedAdLoginsComponent** — Log over fejlede AD-logins
+- **ProfileRoleCountryMappingComponent** — Lande-specifikke profilrolle-mappings (global)
+
+---
+
+### translation-management/ (3 filer)
+**TranslationManagementComponent** — Super-admin oversættelses-administration (oversæt UI tekster per sprog).
+
+---
+
+### users/ (10 filer)
+- **SuperUsersMainComponent** — Container: Tabs: Brugere / Roller
+- **SuperUsersComponent** — Liste over ALLE brugere i systemet (på tværs af kunder)
+- **SuperUsersIndexComponent** — Indeks/søgeside for brugere
+- **UserRoleCountryMappingComponent** — Country-based user-rolle mappings
+
+
+---
+
+## UI-lag: features/administration/super-administration (269 filer)
+
+**Domæne(r):** system_configuration + Finance + customer_management + Enrollment + Monitoring + positive_list + integrations  
+**Kun tilgængeligt for: Super Admin brugere**  
+
+### Overordnet struktur (17 under-sections)
+
+- **bi-log/** — System log visning
+- **communication/** (21) — Driftsmeddelelser, Email-nyhedsbreve, webinarer
+- **customers/** (57) — Fuld kundeoversigt + detaljer: settings, fakturaer, API-nøgler, FTP, GDPR, kontaktpersoner, noter, dataoversigt, profiler, pakker, KRR, kommuner, dataImport-konfigurationer, kundeaftalear, kortvisning
+- **enrollment/** (11) — Enrollment statistik, rapporter, senders CRUD
+- **humanresource/** (19) — Intern HR: medarbejdere, kørsel, fravær, ferier, lønoversigt
+- **inbound-call-redirect/** (1) — Viderestilling af indgående opkald
+- **internal-reports/** (18) — Nudging-rapport, webinar-rapport
+- **invoicing/** (31) — Fakturering: e-conomic, periodisering, budgetopfølgning, produktkatalog, export
+- **map-layers/** (9) — Kortlag admin og profiladgang
+- **monitoring/** (20) — Live dashboard, job-oversigt, performance graf, geo-kort
+- **phonenumber-import/** (10) — Telefon-nummer udbydere + import
+- **pos-lists/** (23) — Positiv liste admin: import, FTP-upload, korrektioner, lookup, negativ liste
+- **salesforce/** (17) — Salesforce CRM: pipeline, forecast, opportunities, sales-info
+- **shared/** (1) — Delt komponent
+- **super-admin-settings/** (13) — Globale systemindstillinger, fejlede AD-logins, landekortlægning
+- **translation-management/** (3) — UI-oversættelses-administration
+- **users/** (10) — Alle brugere i systemet, super-user-roller
+
+Detaljeret komponent-liste: Se kodereferencerne ovenfor.

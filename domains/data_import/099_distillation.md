@@ -189,3 +189,37 @@ Automated lookup + import of company contact data:
 | GAP_002 | Enrollment import path UI not traced (`EnrollmentImportSettingsDto`) |
 | GAP_003 | Finnish map address import flow not read |
 | GAP_004 | `DataProcessorAgreementAcceptDto` purpose not explored — GDPR consent tracking? |
+
+
+---
+
+## UI-lag: DataImportService (core/services)
+
+**Fil:** `core/services/data-import.service.ts`  
+**Domain:** data_import
+
+| Metode | Beskrivelse |
+|---|---|
+| `uploadFilesWithProgress(url, files[], profileId?, customerId?, purpose?)` | Multipart upload med Angular HttpRequest — streamer `HttpEvents` (start/progress/response). Viser toast-notifikation med progress, redirect ved upload-færdig |
+| `pollForDataImportReady(fileId, purpose)` | Poller (interval) API indtil import er klar (`DataImportStatus`) |
+| `getFileFormats(customerId, profileId, purpose)` | Understøttede filformater og felter for en given import-kontekst, cached pr. kunde/profil |
+| `getValidationResult(fileId, purpose, ...)` | Valideringsresultat fra importeret fil |
+| `getSavedConfigurations(profileId)` | Gemte import-konfigurationer |
+| `getSavedConfigurationsAdmin(customerId)` | Admin-brug: alle kundens gemte konfigurationer |
+| `saveConfiguration(...)`, `deleteConfiguration(...)` | CRUD på import-konfigurationer |
+
+**Internt:** `uploadNotifications: Map<string, ActiveToast>` til at spore aktive upload-notifikationer.
+
+---
+
+## UI-lag: features-shared/bi-data-import
+
+**Filer:** `features-shared/bi-data-import/` (11 filer)
+**Domain:** data_import
+
+### BiDataImportComponent
+Generisk data-import komponent (brugt af by-excel og customer data import).
+- Input: purpose (DataImportPurpose), supportedFormats
+- Flow: (1) Upload fil via <bi-file-uploader>, (2) Konfigurer kolonner <data-import-file-columns-setup>, (3) Validér <data-import-validation-result>, (4) Gem konfiguration dialog
+- Understøtter CSV, Excel, XML format-definitioner via DataImportService
+- Kontentholder: IDataImportSettingsComponent (content projection for format-specifikke konfigurationer som BroadcastImportSettingsComponent)

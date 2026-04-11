@@ -1,8 +1,8 @@
 # Domain Distillation — web_messages
 
 **Status:** APPROVED_BASELINE  
-**Completeness score (Layer 1):** 0.88  
-**Evidence:** Layer 1 stable (behaviors/flows garbage — discarded) + UI source (web-messages component, web-message-part-admin, web-message-part wizard component)
+**Completeness score (Layer 1):** 0.97  
+**Evidence:** Layer 1 stable + UI source: web-messages, web-message-part-admin, web-message-part wizard, iFrame driftstatus (standard + map), driftstatus setup (customer + profile), CommonService, WebTypeIdToTypeNamePipe
 
 ---
 
@@ -100,3 +100,163 @@ Message wizard step for composing a web or internal message alongside the SMS.
 5. In wizard form: merge fields hidden if `forStdReceivers()` (standard receivers context)
 6. Facebook/Twitter use `useClearText` option in textarea — resets to empty on clear
 7. Date range query required in admin list before messages load (no default "show all")
+
+
+---
+
+## UI-lag: WebMessageService (core/services)
+
+**Fil:** `core/services/webmessage.service.ts`  
+**Extends:** `BiWebMessageBaseService`  
+**Domain:** web_messages
+
+| Metode | Beskrivelse |
+|---|---|
+| `createWebMessages(messages[])` | Opret webbesked(er) — returnerer `WebMessageCreateResultModel` |
+| `getWebMessage(id)` | Hent enkelt webbesked |
+| `updateWebMessage(model)` | Opdater webbesked |
+| `setWebMessageClosedStatus(id, toEnd)` | Åbn/luk en webbesked |
+| `deleteWebMessage(id)` | Slet webbesked |
+
+## UI-lag: SocialMediaService (core/services)
+
+**Fil:** `core/services/social-media.service.ts`  
+**Domain:** web_messages (sociale medier er kanal i web-beskeder)
+
+Cache: `cachedSocialMediaTokenStatus` (BehaviorSubject) pr. profil+kunde.
+
+| Metode | Beskrivelse |
+|---|---|
+| `getSocialMediaAccounts(profileId?)` | Alle social media konti — evt. filtreret pr. profil |
+| `removeSocialMediaAccount(id)` | Fjern social media konto |
+| `addSocialMediaAccount(account)` | Tilføj social media konto |
+| `getSocialMediaTokenStatus(profileId, customerId)` | Check om token er gyldigt (cached) |
+| `getTwitterAuthUrl()` | Hent Twitter OAuth URL |
+| `confirmTwitterCallback(params)` | Bekræft Twitter OAuth callback |
+
+---
+
+## 8. iFrame Driftstatus — Oversigt
+
+`web_messages` rummer et dedikeret **iFrame Driftstatus-undersystem** til at eksponere operationelle beskeder via embeddable iFrames på kundernes egne websites. Findes i to udgaver:
+
+| Variant | Route-base | Beskrivelse |
+|---|---|---|
+| Standard | `SharedRouteNames.iFrameRoutes.driftstatus` | Liste-visning af aktive driftsbeskeder |
+| Kort | `SharedRouteNames.iFrameRoutes.driftstatusMap` | Kortbaseret visning med geografiske markeringer |
+
+Begge varianter har to views pr. variant:
+
+| View | Komponent | Formål |
+|---|---|---|
+| Admin | `IframeDriftstatusAdminComponent` / `IframeDriftstatusMapAdminComponent` | Viser genereret iFrame HTML-kode og live preview for kunde/profil |
+| Setup | `IframeDriftstatusSetupComponent` / `IframeDriftstatusMapSetupComponent` | Konfigurerer Driftsmodul-indstillinger pr. kunde og profil |
+
+---
+
+## 9. iFrame Driftstatus — Admin-view (`iframe-driftstatus-admin.base.ts`)
+
+**Base-klasse:** `IFrameDriftstatusAdminBase`
+
+**Funktioner:**
+- SuperAdmin kan skifte kunde via `bi-country-customer-profile-selection`
+- Genererer iFrame URL (DomSanitizer SafeResourceUrl) til live preview
+- Genererer fuld iFrame HTML-kode til kunde (standard `<iframe>` tag)
+- Pr.-profil HTML-kode: `profileIdsToIFrameHtml[profile.id]` (accordion per profil)
+- Styling/layout-parametre: `featureParams`, `stylingParams`, `layoutParams` — vises via `bi-iframe-url-param-descriptions`
+- Dynamisk/fast højde (radio-knapper): `showDynamicHeight` toggle
+
+**Standard-variant ekstra:**
+- Lytter på `window.addEventListener("message")` for `HeightChanged`-events → dynamisk iFrame-højde
+- Ekstern iFrame script: `${origin}/StaticFiles/iFrameScript.js`
+
+**Kort-variant HTML-output:**
+```
+<iframe src="{base}?customerId={publicId}" frameborder="0" width="100%" height="900px"></iframe>
+// pr. profil:
+<iframe src="{base}?customerId={publicId}&profileIds={ids}" frameborder="0" width="100%" height="900px"></iframe>
+```
+
+---
+
+## 10. iFrame Driftstatus Standard — Customer-indstillinger
+
+**DTO:** `CustomerDriftsStatusModuleSettingsDto`  
+**Komponent:** `IframeDriftstatusSetupComponent`
+
+| Felt (CustomerFormValue) | Beskrivelse |
+|---|---|
+| `defaultTextNoMessages` | Tekst der vises når ingen aktive driftsbeskeder |
+| `groupMessagesByProfile` | Boolean: gruppér beskeder pr. profil |
+| `titleForWebModule` | Titel vist i web-modulet |
+| `webModulePageTitle` | Browser-sidetitel for iFrame-siden |
+| `canSeeFromArchive` | Tillad visning af arkiverede beskeder |
+| `numOfDaysBackArchive` | Antal dage tilbage i arkiv |
+
+**Profil-configuration (`WebMessageModuleProfile` / `WebMessageModuleProfileExt`):**
+- `isSelected` (ext.) — om profilen er valgt til modulet
+- Profil-rækkefølge kan ændres via drag-and-drop (`TableRowReorderEvent`)
+- Delvist udvalgte profiler: `isPartiallySelected`, `isChecked` (computed signals)
+- Sub-profiler understøttes: `hasSubProfiles`
+
+**Profile-settings dialog (`ProfileIframeDriftstatusSettings`):**
+
+| Felt | Beskrivelse |
+|---|---|
+| `profiles` | Tilgængelige profiler at vælge |
+| `title` | Titel for profilen i Driftstatus-modulet |
+| `profilesForPublish` | Liste af profil-IDs hvis beskeder publiceres under samme profil |
+
+---
+
+## 11. iFrame Driftstatus Kort — Customer-indstillinger
+
+**DTO:** `WebMessageMapModuleCustomerSettingsModel`  
+**Setup-komponent:** `IframeDriftstatusMapSetupComponent`  
+**Profil-model:** `WebMessageMapModuleProfileModel`
+
+| Felt (CustomerFormValue) | Beskrivelse |
+|---|---|
+| `mapLayerId` | Kortlag-ID |
+| `zoomLevel` | Standard zoom-niveau |
+| `centerCoords` | Centreringskoordinater (LatLng) |
+| `hasSearchInput` | Vis søgefelt i kort-modulet |
+| `showLegend` | Vis legende |
+| `showPolygons` | Vis polygoner |
+| `useAreaCircles` | Brug areal-cirkler i stedet for polygoner |
+| `addressAndInfoDisplayType` | `HOVER` (1) eller `CLICK` (2) — hvornår adresse/besked vises |
+| `showArchiveDays` | Antal dage arkiv vist |
+
+**Kortlag:**  `BiLayer = { mapLayerId, layerName }` — tilgængelige kortlag
+
+**Icons:** `CommonService.getWebMessageMapModuleIcons(customerId?)` returnerer `IconModel[]` — ikoner til kortmarkører
+
+---
+
+## 12. WebTypeIdToTypeNamePipe
+
+**Pipe:** `webTypeName` — konverterer numerisk typeId til visningsnavn
+
+| typeId | Output |
+|---|---|
+| 1 | `shared.Web` |
+| 2 | `sms2InternalDisplayName` (custom) eller `shared.InternalMessage` |
+| 3 | `"Facebook"` (hardcoded) |
+| 4 | `shared.XTitle` (X/Twitter) |
+| default | `shared.Web` |
+
+---
+
+## 13. Rules (opdateret)
+
+1. Title field kun for `Sms2Webs` og `Sms2Internals` — ikke Facebook/Twitter
+2. `sendAsap` kun for Sms2Webs, Sms2Internals, Facebook, Twitter
+3. `timeFrom` påkrævet for alle typer undtagen Facebook og Twitter
+4. I admin-form: merge fields altid skjult
+5. I wizard-form: merge fields skjult hvis `forStdReceivers()`
+6. Facebook/Twitter bruger `useClearText`
+7. Dato-range krævet i admin-liste før beskeder loades
+8. iFrame Driftstatus standard: dynamisk/fast højde valgbar — dynamisk kræver `iFrameScript.js` på kundens side
+9. iFrame Driftstatus kort: adresse+besked-visning styres af `addressAndInfoDisplayType` (HOVER=1 / CLICK=2)
+10. Profil-rækkefølge i standard Driftstatus-modul kan sorteres via drag-and-drop
+11. `ProfilesForPublish` i profil-indstillinger: bestemmer hvilke profilers beskeder vises samlet under ét profil-view

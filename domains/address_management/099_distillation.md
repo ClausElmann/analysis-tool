@@ -206,3 +206,26 @@
 | GAP_001 | `KoFuViSingleResultDto` — Danish KVHX lookup result structure not fully read |
 | GAP_002 | Critical address handling in delivery flow not traced |
 | GAP_003 | `AddressSubscriptionDto` relationship to subscription management not confirmed |
+
+
+---
+
+## UI-lag: AddressService (core/services)
+
+**Fil:** `core/services/address.service.ts`  
+**Extends:** `BiAddressServiceBase`  
+**Domain:** address_management
+
+| Metode | Beskrivelse |
+|---|---|
+| `getZips(searchInfo?)` | Returnerer alle postnumre+bynavn brugeren har adgang til (med valgfri filtrering) |
+| `getAddressesByZipAndStreet(zip, street, searchInfo?)` | Adresser på en given gade, postnr (op til dør/etage, IKKE tlf/navn) |
+| `getAllMunicipalitiesInCountry(countryId)` | Alle kommuner i et land (super admin) |
+| `getForMap(smsGroupId)` | Adresser til kortet på broadcast-bekræftelsessiden |
+| `getForMapByLevels(smsGroupId)` | Adresser til kortet baseret på niveauvalg |
+| `getLocationCount(smsGroupId)` | Antal lokationer (adresser) i en SMS-gruppe |
+| `hasEboks(customerId, profileId?)` | Om kunden/profilen kan bruge e-Boks for CVR-modtagere |
+| `getCompanyRegistrationByRegistrationId(cvrId, countryId)` | CVR/firmaopslag via id |
+| `getRegionsWithMunicipalities()` | Regioner med kommuner (til f.eks. kortvalg) |
+
+**searchInfo filter:** `{searchText?, fromNumber?, toNumber?, evenNumbers?}`

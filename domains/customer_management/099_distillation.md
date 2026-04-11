@@ -82,3 +82,28 @@ Voice number assigned or sender changed → `InfobipCustomerVoiceSettingsChanged
 1. **Layer 1 is largely empty** — behaviors and rules have no substantive content. Both `customer_management` and `customer_administration` point to the same entity list, suggesting the domain split was not fully executed during analysis.
 2. **Admin tab contents unclear** — the Admin tab in the superAdmin customer detail view is present in the route config but its specific operations were not fully mapped in Layer 1.
 3. **Customer log** — `CustomerLogReadModel` exists in entities but the log read path was not captured in behaviors.
+
+
+---
+
+## UI-lag: CustomerService (core/services)
+
+**Fil:** `core/services/customer.service.ts`  
+**Extends:** `BiStore<CustomerState>`  
+**Domain:** customer_management
+
+Cache: `currentCustomer`, `countryToCustomersMap` (2 timers cache), `customerUsers`  
+
+Triggeres ved login og `customerChanged$` — sikrer current customer altid indlæst.
+
+| Metode | Beskrivelse |
+|---|---|
+| `getCustomer(id?, publicId?)` | Hent kunde (current hvis ingen id) |
+| `getAllCustomers(countryId)` | Alle kunder i et land, med cache |
+| `getCustomerUsers(customerId)` | Brugere tilknyttet kunde |
+| `createCustomer(...)`, `updateCustomer(...)` | Opret/opdater kunderecord |
+| `getWebMessageSettings(...)` | Webbesked modul-indstillinger |
+| `getDriftsStatusSettings(...)` | Driftsstatus modul-indstillinger |
+| `getSubscriptionSettings(...)` | Subscription modul-indstillinger |
+| `getVoiceNumbers(customerId)` | Voicenumre for en kunde |
+| `getScimToken(customerId)` | SCIM API token-info |

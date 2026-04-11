@@ -130,3 +130,68 @@ Embedded component in profile management for configuring conversation numbers.
 4. `showPhoneNumberName` is set when the "All numbers" option is selected — allows users to see which number each conversation belongs to
 5. Reply text control resets immediately after successful send
 6. Conversation list filter is client-side once data is loaded; server query needed for date range + text search
+
+
+---
+
+## UI-lag: ConversationsService (core/services)
+
+**Fil:** `core/services/conversations.service.ts`  
+**Extends:** `BiStore<ConversationsStateData>`  
+**Domain:** Conversation
+
+Cache: `customerIdToPhoneNumbersMap` + `conversationPhoneNumberAndProfileModels`  
+
+| Metode | Beskrivelse |
+|---|---|
+| `getUnassignedPhoneNumbers(customerId, countryId)` | Telefonnumre til conversation-konfiguration — cached pr. kunde |
+| `getConversationPhoneNumberAndProfiles(customerId)` | Phone numbers + profilmapping, cached til samme kunde |
+| `getConversations(phoneNumberId)` | Henter alle conversations for et nummer |
+| `getConversationMessages(conversationId, count)` | Henter beskeder i en conversation |
+| `createConversation(command)` | Opretter ny conversation |
+| `sendMessage(...)` | Sender besked i conversation |
+| `updatePartnerName(...)`, `updatePhoneNumber(...)` | Opdaterer conversation-metadata |
+
+---
+
+## UI-lag: features/sms-conversations
+
+**Filer:** `features/sms-conversations/` (15 filer)
+**Domain:** Conversation
+
+### SmsConversationsComponent (sms-conversations.component.ts/.html)
+Hoved-container for SMS-samtaler. Krav: profil-rolle ProfileRoleNames.Conversations.
+
+**Venstre panel (filterliste):**
+- Sender-nummer dropdown (alle eller specifik ConversationPhoneNumberModel)
+- Vis kun ulæste checkbox
+- Dato-range filter (fra/til)
+- Tekst-søgning med debounce
+- Opret ny samtale-knap → CreateConversationDialogContentComponent (dialog)
+- Listings: <bi-conversation-item> pr. ConversationDto med unread-badge
+
+**Højre panel (besked-view):**
+- <bi-conversation-messages-view> med ConversationMessageDto[]
+- SSE-integration: lytter på ServerSentEventType.ConversationMessageReceived → realtime opdatering
+- Afsender kan svare direkte i panelet
+
+### ConversationMessagesViewComponent (conversation-messages-view/)
+Scrollable beskedtråd. Viser <bi-conversation-item> per besked. Auto-scroll ved ny besked eller sending. Output: onSendNewReply (tekst-svar), onUpdatePartnerName.
+
+### ConversationItemComponent (conversation-item/)
+Enkelt besked-boble. Viser modtaget vs. sendt, tekst, timestamp (conversation-date-time-stamp.pipe.ts), afsendernavn.
+
+### WriteConversationReplyComponent (i messages-view)
+Textarea + send-knap. Output: ny besked-tekst til parent.
+
+### ConversationMessageComponent
+Viser enkelt besked-boble med styling baseret på isPartnerReply.
+
+### CreateConversationDialogContentComponent (create-conversation-dialog-content/)
+Dialog til oprettelse af ny samtale: modtager-telefonnummer, afsender-nummer valg, første besked. Kalder ConversationsService.createConversation().
+
+### ConversationDateTimeStampPipe (conversation-date-time-stamp.pipe.ts)
+Custom pipe: viser "i dag HH:mm", "i går HH:mm" eller "dd/MM/yyyy HH:mm" afhængigt af dato.
+
+### ConversationMessageSentEventDto (ConversationMessageSentEventDto.ts)
+DTO for SSE-event ved ny besked.

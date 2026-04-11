@@ -134,3 +134,44 @@ Stores the selected `MessageModel` state and computed signals:
 5. `isLargeBroadcast` flag can trigger different handling in downstream services (chunked delivery)
 6. eBoks `isRecalculated` is checked to determine whether eBoks send is fully complete
 7. Quick response is only available if `sendMethod ≠ BySmsLogs` (direct SmsLog-based sends don't support QR)
+
+
+---
+
+## UI-lag: SmsGroup-services (core/services)
+
+### SmsGroupApproverService`n**Fil:** `core/services/smsgroup-approver.service.ts`  
+
+Cache: `BehaviorSubject<SmsGroupApproverDto[]>`  
+
+| Metode | Beskrivelse |
+|---|---|
+| `getAllApprovers(profileId)` | Alle godkendere for en profil — cached |
+| `canUserApproveProfile(userId, profileId)` | Om specifik bruger er godkender |
+| `approveBroadcast(approvalRequestId, userId)` | Godkend broadcast |
+| `rejectBroadcast(smsGroupId)` | Afvis broadcast |
+
+### SmsGroupScheduleService
+**Fil:** `core/services/smsgroup-schedule.service.ts`  
+
+| Metode | Beskrivelse |
+|---|---|
+| `listSmsGroups(profileId)` | Alle SmsGroups for schedule-oversigt |
+| `getSmsGroupSchedulesByProfileId(profileId, from, to)` | Planlagte broadcasts i tidsinterval |
+| `createScheduledBroadcast(schedule)` | Opret planlagt broadcast |
+| `editScheduledBroadcast(schedule)` | Rediger planlagt broadcast |
+| `deleteSmsGroupSchedule(id)` | Slet planlagt broadcast |
+| `postponeScheduledBroadcastEvent(exception)` | Udskyd enkelt forekomst |
+| `cancelScheduledBroadcastEvent(exception)` | Annuller enkelt forekomst |
+
+### SmsGroupStencilService
+**Fil:** `core/services/smsgroup-stencil.service.ts`  
+
+Stencils = genanvendelige SMS-gruppe skabeloner.
+
+| Metode | Beskrivelse |
+|---|---|
+| `getStencils()` | Alle stencils for aktuel profil |
+| `markSmsGroupAsStencil(smsGroupId)` | Markér SmsGroup som stencil |
+| `deleteStencil(smsGroupId)` | Slet stencil |
+| `resetStencilCache()` | Slet server-side stencil-cache |

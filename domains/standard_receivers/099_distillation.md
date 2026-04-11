@@ -173,3 +173,126 @@
 | GAP_001 | `SplitStandardReceiverCommand` purpose unclear — not visible in UI read |
 | GAP_002 | SCIM provisioning flow not traced — specific AD sync endpoints/handshake not examined |
 | GAP_003 | FTP settings UI not read — how FTP-based automated updates work not confirmed |
+
+
+---
+
+## UI-lag: StdReceiversService (core/services)
+
+**Fil:** `core/services/std-receivers.service.ts`  
+**Domain:** standard_receivers
+
+| Metode | Beskrivelse |
+|---|---|
+| `getStandardReceiversPaged(query)` | Pagineret liste over std-modtagere (lazy load i tabeller) |
+| `getStandardReceiverForEdit(stdReceiverId)` | Fuld std-modtager-model til redigering |
+| `getStdReceivers(groupId?, forAllProfiles?)` | Alle std-modtagere for profilen (evt. filtreret pr. gruppe) |
+| `getStdReceiversAdminData(customerId)` | Admin-data over alle std-modtagere for kunde |
+| `createStdReceiver(cmd)` / `updateStdReceiver(dto)` | Opret/opdater std-modtager |
+| `deleteStdReceiver(id)` | Slet std-modtager |
+| `getGroups(customerId?)` | Alle std-modtager-grupper |
+| `getGroupById(groupId)` | Specifik gruppe |
+| `createGroup(cmd)` / `deleteGroup(groupId)` | Opret/slet gruppe |
+| `getGroupMembers(groupId)` | Medlemmer i en gruppe |
+| `updateGroupProfil eMappings(cmd)` | Opdater profil-tilknytninger til gruppe |
+| `getGroupDistributionPhoneNumbers(groupId)` | Distributionsnumre for gruppe |
+| `assignGroupDistributionPhone(cmd)` | Tilknyt distributionsnummer |
+| `getGroupKeywords(groupId)` | Keywords til SMS-tilmelding |
+| `getHierarchicalGroups(customerId)` | Hierarkisk gruppe-struktur |
+| `getActivationStatus(groupId)` | Aktiveringstatus for gruppe |
+
+
+---
+
+## UI-lag: features/administration/std-receivers (79 filer)
+
+**Domæne:** standard_receivers  
+**Modul:** `std-receivers-admin.module.ts`
+
+### MainStdReceiversComponent
+Container med tabs:
+1. **Std-modtagere** → `CreateEditDeleteReceiversComponent`
+2. **Grupper** → `ReceiverGroupsComponent`
+3. **Profilmapping** → `ProfilesAndGroupsComponent`
+4. **Upload** → `ReceiversUploadComponent`
+5. **Abonnement** → `SubscriptionModuleSetupComponent`
+6. **AD Provisioning** → `AdProvisioningComponent` (betinget på rolle)
+
+Delt service: `StdReceiverAdminSharedService`
+
+---
+
+### create-edit-delete/ (Std-modtager CRUD)
+
+| Komponent | Rolle |
+|---|---|
+| `CreateEditDeleteReceiversComponent` | Liste over std-modtagere med lazy-load (pagineret). Opret/slet dialog. Naviger til redigering |
+| `EditReceiverComponent` + `EditReceiverCommonComponent` | Rediger std-modtager med tabs: Info / Gruppemedlemskab / Profiladgang |
+| `StdReceiverInfoFormComponent` | Formular til std-modtager-data (navn, adresse, tlf, email, supply-type mv.) |
+| `BiStdReceiverExtraPhonoNumbersComponent` | Ekstra telefonnumre (sekundære kontaktnumre). Dialog per nummer |
+| `StdReceiverGroupingSetupComponent` | Opsætning af gruppetilhørsforhold (tabel + træ-visning) |
+| `StdReceiverGroupMembershipTableViewComponent` | Tabelvisning af gruppemedlemskaber |
+| `StdReceiverGroupMembershipTreeViewComponent` | Trævisning af gruppemedlemskaber |
+| `StdReceiverProfileAccessSetupComponent` | Profiladgang for en std-modtager |
+| `StdReceiverProfileInfoMappingsTableComponent` | Tabel over profil-info-mappings |
+| `StdReceiverInfoFormDialogComponent` | Dialog-wrapper til StdReceiverInfoForm |
+| `StdReceiverPhoneNumberDialogComponent` | Dialog til redigering af ekstra telefonnummer |
+| `StdReceiverFormTypes` | TypeScript interfaces til form-values |
+
+---
+
+### receiver-groups/ (Grupper)
+
+| Komponent | Rolle |
+|---|---|
+| `ReceiverGroupsComponent` | Venstre-panel: træstruktur + højre: gruppe-detaljer. Trestruktur via `StdReceiverGroupsTreeViewComponent` |
+| `StdReceiverGroupsTreeViewComponent` | Hierarkisk trævisning af grupper |
+| `StdReceiverGroupSelectedViewComponent` | Gruppe-detaljevisning i panel |
+| `CreateStdReceiverGroupDialogComponent` | Dialog til opret gruppe |
+| `DeleteStdReceiverGroupDialogComponent` | Bekræftelsesdialog til slet gruppe |
+| `EditStdReceiverGroupMainComponent` + `EditReceiverGroupCommonComponent` | Redigering af en gruppe (Info + Medlemmer + Profiladgang) |
+| `EditReceiverGroupMembersComponent` | Liste over gruppemedlemmer — tilføj/fjern |
+| `AddMembersDialogComponent` | Dialog til tilføj modtagere til gruppe |
+| `ReceiversForGroupSelectionComponent` | Søg/vælg modtagere til gruppe |
+| `StdReceiverGroupProfileAccessComponent` | Profiladgang for gruppe |
+| `GroupKeywordSetupComponent` | (i rod) Keyword-opsætning til SMS-tilmelding til en gruppe |
+| Route resolvers + route-filer: `route-resolvers.ts`, `receiver-groups.routes.ts` | Henter gruppe-data ved navigation |
+
+---
+
+### profiles-and-groups/ (Profil-til-gruppeadgang)
+| Komponent | Rolle |
+|---|---|
+| `ProfilesAndGroupsComponent` | Viser profilers adgang til grupper (matrix-visning) |
+| `ProfileToStdReceiverAccessSetupComponent` | Opsæt hvilke grupper en profil har adgang til |
+| `StandardReceiverProfileMappingDtoExt`, `StdReceiverProfileMappingInfo` | Ext-modeller til UI |
+
+---
+
+### receivers-upload/
+| Komponent | Rolle |
+|---|---|
+| `ReceiversUploadComponent` | Upload std-modtagere via CSV/Excel. Se importstatus |
+| `ReceiversImportSettingsComponent` | Konfigurer import (kolonnemapping mv.). `StandardReceiverImportSettingsDto` |
+
+---
+
+### subscription-module-setup/
+| Komponent | Rolle |
+|---|---|
+| `SubscriptionModuleSetupComponent` | Aktivering/deaktivering af tilmeldings-modul per gruppe |
+| `SubscriptionModuleSettingsComponent` | Indstillinger per gruppe (SMS-nøgleord, bekræftelsestekst) |
+| `StandardReceiverGroupActivationModel` | Model til aktivering |
+
+---
+
+### ad-provisioning/
+**AdProvisioningComponent** — Azure AD provisioning-konfiguration for std-modtagere (SCIM/AD-sync opsætning).
+
+---
+
+### shared/
+| Komponent | Rolle |
+|---|---|
+| `GroupProfileAccessSetupComponent` | Genanvendelig profiladgang-opsætning til grupper |
+| `ReceiverGroupInfoFormComponent` | Formular til gruppe-basinfo (navn, visningsnavn, password). `ReceiverGroupInfoFormTypes` |

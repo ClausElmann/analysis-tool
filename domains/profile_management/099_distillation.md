@@ -142,3 +142,41 @@ No formal gap records (080_gaps.json absent). Observed potential gaps:
 
 1. **No UI for profile usage overview** — `CustomerProfileUsageOverviewDto` exists in the data model but no corresponding UI component was found for standard customer admins (only superAdmin views likely cover this).
 2. **FTP configuration scope unclear** — FTP settings appear in the superAdmin-only tab; whether non-superAdmin profiles can ever have FTP configured is not captured in Layer 1.
+
+
+---
+
+## UI-lag: ProfileService (core/services)
+
+**Fil:** `core/services/profile.service.ts`  
+**Extends:** `BiStore<ProfileStore>`  
+**Domain:** profile_management
+
+State: `profilesAndRoles`, `customerProfiles`, `userProfiles`, `customersAndProfiles`, `profileTypes`  
+
+| Metode | Beskrivelse |
+|---|---|
+| `getCurrentProfile()` | Aktuel profil (BehaviorSubject) |
+| `setCurrentProfile(profileId)` | Skift aktuel profil — persisteres i session storage |
+| `getProfilesAndRoles(customerId)` | Alle profiler med roller for en kunde |
+| `getCustomerProfiles(customerId)` | Alle profiler for en kunde |
+| `getUserProfiles()` | Alle profiler den aktuelle bruger har adgang til |
+| `getProfileRoles(profileId)` | Roller for en specifik profil |
+| `createProfile(cmd)` / `updateProfile(dto)` | Opret/opdater profil |
+| `deleteProfile(profileId)` | Slet profil |
+| `getMapSettings(profileId)` | Kortindstillinger for en profil |
+| `getProfileTypes()` | Alle profiltyper (DK/NO/FI/SE supply-typer) |
+| `getUserProfileRights(profileId)` | Brugerens adgangsniveau til en profil |
+| `getWarningProfileSettings(profileId)` | Alarm-specifikke profilindstillinger |
+
+## UI-lag: PackagesService (core/services)
+
+**Fil:** `core/services/packages.service.ts`  
+**Extends:** `BiStore<PackagesState>`  
+
+Cache: `countryToUserRoleGroups`, `countryToProfileRoleGroups`  
+
+| Metode | Beskrivelse |
+|---|---|
+| `getAllProfileRoleGroups(countryId)` | Alle profil-rollegrupper (packages) i et land — cached |
+| `getAllUserRoleGroups(countryId)` | Alle bruger-rollegrupper i et land — cached |

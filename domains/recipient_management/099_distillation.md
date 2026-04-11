@@ -128,3 +128,65 @@
 | GAP_002 | `LookupAddressRecipientsQuery` implementation not examined — exact lookup behavior unknown |
 | GAP_003 | Warning recipient lifecycle not traced — how WarningNoRecipientDto is used in reporting not confirmed |
 | GAP_004 | Newsletter segment options not read — segment source and available values unknown |
+
+
+---
+
+## UI-lag: features/administration/searching (33 filer)
+
+**Domæner:** address_management + recipient_management + reporting  
+**Modul:** `bi-searching.module.ts`
+
+### BiSearchingComponent (Containerside)
+Tabs: Tlf/Email søgning / Adresse søgning / Rapport søgning.
+
+---
+
+### address-search/ (BiAddressSearchComponent)
+Adressebaseret opslag. Søgetype vælges med radioknap (BiAddressSearchType):
+
+| Søgetype | Resultat |
+|---|---|
+| CONTACTS_ON_ADDRESS (1) | Kontakter (telefon/email) på adressen → `TableSearchContactsOnAddressComponent` |
+| MSG_TO_ADDRESS (2) | Beskeder sendt til adressen → `TableSearchForMessagesSendComponent` (shared) |
+| OWNER_1 (3) | Ejer af adressen → `TableSearchOwnerOfAddressComponent` |
+| OWNER_2 (4) | Ejendomme ejet af beboere → `TableSearchAddressOwnershipPropertiesComponent` |
+| OWNER_3 (5) | Norsk ejers adresse |
+| ROBINSON (6) | Robinson-register opslag → `TableSearchAddressRobinsonComponent` |
+
+Formfields: postnummer, gadenavn, husnummer. AutoComplete på gade via `AddressService`.
+
+---
+
+### phone-email-search/ (BiPhoneEmailSearchComponent)
+Telefon/email-baseret opslag med to søgekategorier:
+
+- **TableSearchForSubscriptionsAndTeleDataComponent** — Abonnements-/teledata opslag (operator, registrering, abonnementer)
+- **TableSearchForRightToBeForgottenComponent** — "Ret til at blive glemt" opslag + eksekvering (GDPR sletning)
+- **RightToBeForgottenDialogContentComponent** — Bekræftelsesdialog for sletning
+
+---
+
+### report-search/ (BiReportSearchComponent)
+Rapport og statistik:
+
+- **MessageTrafficComponent** — Besked-trafik-statistik over tid og land. Graf (Chart.js) + tabel. Bruger `MessageUsageService`
+
+---
+
+### services/
+- **BiSearchService** (extends `BiSearchBaseService`) — Søgning i sendte beskeder, adresser, ejer-data, robinson, statistikrapporter, faktura-rapporter
+- **MessageUsageService** — Brug-statistik: dag4dag, usage reports, total per land
+- **BiDateTimeService** — Hjælpefunktioner til dato/tidspunkt (format, UTC konvertering)
+- **GetSentMessagesQuery** — Query-object klasse til søgning i sendte beskeder
+
+---
+
+### shared/
+- **TableSearchForMessagesSendComponent** — Genanvendelig tabel-komponent: viser sendte beskeder per adresse/telefon/email
+- **AddressSearchTableBaseComponent** — Abstrakt base-klasse for adresse-søgeresultat-tabeller
+
+---
+
+### models/reports/
+- **CustomerInvoiceReport** — Interface til faktura-rapport-data

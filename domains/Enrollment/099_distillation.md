@@ -157,3 +157,23 @@
 | GAP_002 | Enrollment import path (`EnrollmentImportSettingsDto`) UI not found |
 | GAP_003 | `EnrollmentTokenModel` lifetime/purpose not confirmed |
 | GAP_004 | Relationship between enrollment and `Subscription` domain not clearly traced |
+
+
+---
+
+## UI-lag: EnrollmentAdminService (core/services)
+
+**Fil:** `core/services/enrollment-admin.service.ts`  
+**Domain:** Enrollment
+
+Cache: `countryToSendersMap` (BehaviorSubject<{[countryId]: SenderAdminDto[]}>)
+
+| Metode | Beskrivelse |
+|---|---|
+| `getSenders(countryId)` | Alle indmeldte sendeenheder (afsendere) i et land — cached |
+| `getSenderTips(from, to)` | Sender-tip-statistik i tidsinterval |
+| `getStatistics(from, to)` | Enrollment statistik pr. dato |
+| `getCountryStatistics(from, to)` | Statistik pr. land |
+| `getAddressStatistics(from, to, country)` | Adressestatistik |
+| `deleteSender(cmd)` | Slet en sender-tilmelding |
+| `getSenderAdminData(senderId)` | Fuldt admin-data for en sender |

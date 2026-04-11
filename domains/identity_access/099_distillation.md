@@ -134,3 +134,102 @@ Controls how users and services prove who they are and what they are allowed to 
 - All content is derived exclusively from Layer 1 (`domains/identity_access/`) with secondary UI validation
 - The login UI is a 6-state slide machine (states 0–5). Profile selection uses a separate dialog mechanism, not a slide state.
 - Technical debt items (SHA256, TTL hardcoding, token refresh concurrency) are tracked in `095_decision_support.json` and STEP 12-B compliance reports — not repeated here
+
+
+---
+
+## UI-lag: UserService (core/services)
+
+**Fil:** `core/services/user.service.ts`  
+**Extends:** `BiStore<UserServiceState>`  
+**Domain:** identity_access
+
+State: `currentUser`, `userRoles`, `currentLanguageId`  
+
+| Metode | Beskrivelse |
+|---|---|
+| `login(email, password, mustSelectProfile, smsGroupId?)` | Login — returnerer `UserModel` efter vellykket auth |
+| `loginWithADToken(token)` | Azure AD login |
+| `getCurrentUser()` | Henter/returnerer current user (cached) |
+| `getUserRoles()` | Alle tilgængelige brugerroller, cached |
+| `updateUser(model)` | Opdater brugerprofil |
+| `changePassword(...)` | Skift adgangskode |
+| `verifyPassword(...)` | Verificer adgangskode |
+| `getUserById(id)` | Hent specifik bruger |
+| `getAllUsersForCustomer(customerId)` | Alle brugere for kunde |
+| `createUser(...)` | Opret ny bruger |
+| `deleteUser(userId)` | Slet bruger |
+| `setLanguage(languageId)` | Sæt bruger-sprog |
+
+
+---
+
+## UI-lag: features/bi-login (Login-flow)
+
+### BiLoginComponent
+**Fil:** `features/bi-login/bi-login.component.ts`  
+**Rute:** /login (modal og standalone)
+
+Login-skærmen. Håndterer:
+- **Email+password login** via `UserService.login()`
+- **Azure AD login** via MSAL (`MsalService` / `MsalBroadcastService`) — viser `AdLoginInfoBoxComponent` box
+- **Cookie login** — redirect til `transparent-login`
+- **2-faktor-godkendelse** (SMS/email + Authenticator App QR) — `slideContainerValue` styrer animation
+- **Nulstil kodeord** — viser reset-password form inline (slide-animation)
+- **Nudging check** efter login (`UserNudgingService`) — toaster nuges
+- **CanDeactivate guard** — afviser navigation under login-flow
+- **Session expired** besked via toast ved navigation-state
+
+State: `isLoading()` signal, `showResetPassContent`, `twoFactorMethodUsed`  
+Navigation: ved succesfuldt login → `routeAfterLogin` eller default route
+
+### TransparentLoginComponent
+**Fil:** `features/bi-login/transparent-login.component.ts`
+
+Bruges ved cookie-baseret login (embedded/iframe context). Kalder `UserService.loginCookie()` ved init og emitter `loginEvent` ved succes. Viser spinner imens.
+
+### AdLoginInfoBoxComponent
+**Fil:** `features/bi-login/ad-login-info-box/ad-login-info-box.component.ts`
+
+Lille informationsboks med link til AD-login info-side. URL hentes fra translation key `login.AdInfoLinkURL`.
+
+---
+
+## UI-lag: features/frontpage + features/password-reset-create
+
+### FrontPageComponent (features/frontpage/)
+Offentlig forside (ikke-logget). Viser country-specifikt billede (baseret på hostnavn), lokaliseret velkomst-tekst, og "Læs mere"-knap der åbner servicealert.f24.com i relevant land-sprog. Ingen auth-logik her.
+
+### PasswordResetCreateComponent (features/password-reset-create/)
+Bruges til BÅDE reset password og create password (første-gangs). 
+- URL-params: mail og 	oken (route input binding)
+- Formular: ny adgangskode + bekræft adgangskode (BiCustomValidators match)
+- Kalder UserService.resetPassword() / createPassword()
+- Fejl: BiCreateNewPassErrorDialogContentComponent viser forklarende dialog
+- Formular deaktiveres hvis token/email mangler i URL
+---
+
+## UI-lag: features/my-user
+
+**Filer:** `features/my-user/` (12 filer)
+**Domain:** identity_access
+
+### MyUserComponent (my-user.component.ts/.html)
+Container med 2 faner: "Info" og "Security".
+
+### UserInfoEditComponent (user-info-edit/)
+Redigér bruger-profil: navn, telefonnummer (<bi-phone-input>), sprog (dropdown). Gemning kræver nuværende adgangskode (dialog UserEditEnterPasswordDialogComponent). Understøtter live-validering med debounce.
+
+### UserEditEnterPasswordDialogComponent (user-info-edit/user-edit-enter-password-dialog/)
+Dialog: bekræft eksisterende adgangskode inden ændringer gemmes.
+
+### UserSecurityComponent (user-security/)
+Sikkerheds-indstillinger:
+- Skift adgangskode (nuværende + ny + bekræft, min 8 tegn; SuperAdmin ser alle felter som disabled)
+- 2-faktor-godkendelse: aktivér/deaktivér TOTP; QR-kode-dialog via <bi-two-factor-handler>
+- Authenticator app: tilknyt/fjern authenticator-app
+- Betingelser og vilkår (SuperAdmin): accept checkbox
+- Vises ikke for AD-logon-brugere
+
+### BiTwoFactorHandler (user-security/bi-two-factor-handler)
+Håndterer TOTP-opsætning: viser QR-kode, verifikations-input, bekræftelsesstatus.

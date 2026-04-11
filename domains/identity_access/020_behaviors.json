@@ -61,7 +61,7 @@
       "2. Extract idToken from AuthenticationResult",
       "3. POST /api/user/loginad { token: idToken, smsGroupId? }",
       "4. On success: store adLogin='1' in localStorage for silent SSO on next load",
-      "5. On HTTP 300: show profile selector (slideContainerValue=2)",
+      "5. On HTTP 300: show 2FA delivery method choice (slideContainerValue=2) — user selects SMS or email for pin delivery",
       "6. On HTTP 428 + authenticatorApp=true: show TOTP input (slideContainerValue=5)",
       "7. On HTTP 428 + authenticatorApp=false: send pin code by email",
       "8. On subsequent loads: attempt ssoSilent() first; if fails, remove adLogin flag"
@@ -98,7 +98,7 @@
     "type": "FACT",
     "description": "User requests password reset via email. Token (Guid) stored on User entity with expiry.",
     "steps": [
-      "1. User submits reset email in slide state 3",
+      "1. User submits reset email in slide state 1 (forgot password form is state 1, not state 3)",
       "2. POST /api/user/passwordresetrequest → generates Guid token, sets User.PasswordResetToken + User.DatePasswordResetTokenExpiresUtc",
       "3. Email sent with link containing token",
       "4. User clicks link → GET /new-password?token=<guid>",

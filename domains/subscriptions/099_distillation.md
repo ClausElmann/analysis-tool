@@ -117,3 +117,45 @@ These are **complementary**: `Subscription` (admin) configures what `subscriptio
 5. **Admin vs citizen split** — `GetSubscriptionsIndex`, `DownloadSubscriptions`, `SubscribeFromCsv` require authenticated admin session; citizen flow is anonymous+token
 6. **BalarmWebApp app boundary** — This controller runs in the legacy BalarmWebApp ASP.NET project (separate deployment from ServiceAlert.Api); shares Balarm service libraries but is a separate API host
 7. **`InvoiceErrorDto` / `SuperAdminInvoiceController`** — Domain extraction artifact; these billing entities do not belong to the subscription citizen flow (likely co-extracted due to shared service assembly)
+
+
+---
+
+## UI-lag: SubscribeModuleService (core/services)
+
+**Fil:** `core/services/subscribe-module.service.ts`  
+**Extends:** `SubscribeModuleBaseService`  
+**Domain:** subscriptions / Subscription
+
+| Metode | Beskrivelse |
+|---|---|
+| `getSubscriptionsIndex(customerId, state?)` | Oversigt over alle abonnementer (aktive/historiske/afmeldte) |
+| `downloadSubscriptionReports(customerId, countryId, state?)` | Download rapport som ArrayBuffer |
+| `updateAddressSubscriptionName(subId, name)` | Opdater navn på adresseabonnement |
+| `updateSupplyNumberSubscriptionName(subId, name)` | Opdater navn på supply-nummer abonnement |
+| `getNotificationInfo(customerId)` | Abonnement-notifikationsindstillinger for kunde |
+| `updateNotificationInfo(setting)` | Gem notifikationsindstillinger |
+| `insertSubscribersFromCSV(fileId, customerId)` | Importer abonnenter fra CSV-fil |
+| `deleteSubscription(subId)` | Slet abonnement |
+
+
+---
+
+## UI-lag: features/administration/subscribe-unsubscribe (15 filer)
+
+**Domæne:** subscriptions / Subscription  
+**Modul:** `subscribe-unsubscribe.module.ts`
+
+### SubscribeUnsubscribeComponent (Container)
+Tabs: Abonnements-modul / Opsætning / Rapport / Import / Notifikation / Enrollment-app
+
+### Faner og formål
+
+| Komponent | Tab | Funktion |
+|---|---|---|
+| `IFrameSubscriptionDisplayComponent` | Abonnements-modul | Viser abonnenter i en iFrame (kundens abonnements-portal embeddet); landevælger/kundevelger for super-admin |
+| `IFrameSubscriptionSetupComponent` | Opsætning | Konfigurer iFrame-abonnements-side (grupper, udseende, tekster) |
+| `SubscriptionReportComponent` | Rapport | Download rapport over abonnenter. `SubscriptionReportDownloaderService` (lokal) |
+| `SubscriptionImportComponent` | Import | Import abonnenter fra CSV/Excel via `DataImportService` |
+| `SubscriptionNotificationComponent` | Notifikation | Opsæt notifikations-email ved nye tilmeldinger |
+| `EnrollmentAppComponent` | Enrollment-app | Link til enrollment-app og statusinformation |

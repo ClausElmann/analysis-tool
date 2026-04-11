@@ -148,3 +148,94 @@ Each panel:
 5. Overview graph mode requires supply type selection; for monthly mode also requires year selection
 6. Statistics map/data toggle is per-panel (left/right independently controlled)
 7. Merge fields insertable into ProjectId field via cursor
+
+
+---
+
+## UI-lag: BenchmarkService (core/services)
+
+**Fil:** `core/services/benchmark.service.ts`  
+**Extends:** `BiStore<BenchmarkState>`  
+**Domain:** Benchmark
+
+ Indeholder caching via BiStore (categories, causes, supplyTypes, benchmarks, settings, numberOfActiveBenchmarks).
+
+| Metode | Beskrivelse |
+|---|---|
+| `getCategories()` | Benchmark-kategorier (med profil-type mapping), cached |
+| `getCauses()` | Benchmark-årsager, cached |
+| `getSupplyTypes()` | Supply types til benchmark, cached |
+| `getBenchmarks()` | Alle benchmarks, cached |
+| `getSettings()` | Kundens benchmark-indstillinger |
+| `getNumberOfActiveBenchmarks()` | Tid-begrænset cache (moment) af antal aktive benchmarks |
+| `getOverview(filter)` | Benchmark oversigt med `BenchmarkStatisticsFilter` |
+| `getStatistics(...)` | Statistik-data inkl. adresser og KPI'er |
+| CRUD for benchmarks, causes, categories, supplyTypes | Standard opret/opdater/slet |
+
+**State reset:** sker automatisk ved `customerChanged$` event.
+
+
+---
+
+## UI-lag: features/administration/benchmark (6 sider, 29 filer)
+
+**Domæne:** Benchmark  
+**Modul:** `benchmark.module.ts` med lazy-loaded routing
+
+### BenchmarkMainComponent (benchmark-main.component.ts)
+Container med BiTabs. 6 faner: Rapportering, Statistik, Oversigt, KPI'er, Årsager, Indstillinger.
+Badge på "Rapportering" med antal aktive benchmarks (farve: danger).
+
+### Benchmark Index (index/)
+**BenchmarkIndexComponent** — Primær liste-visning af benchmarks.
+- Fritekst-søgning + dato-filter med `searchForm`
+- Tabel over benchmarks med inline opret/rediger flow (`create-edit-main/`)
+- "Afslut alle" knap via `extraTableButtonConfigs`
+- State husket i `BenchmarkIndexSharedService` (lastFromDate/lastToDate/showFinished)
+
+**BenchmarkIndexSharedService** — Delt state for index-søgeparametre (ingen HTTP, kun in-memory).
+
+**create-edit-main/CreateEditMainComponent** — Inline opret/rediger benchmark-formular:
+- Vælg profil, type (SupplyType), årsag (Cause), startdato, varighed
+- Opret + gem i `BenchmarkService`
+
+### Benchmark Statistics (statistics/)
+**BenchmarkStatisticsComponent** — Statistikvisning med kort og tabel.
+- Filter: `BenchmarkStatisticsFilter` (supplyType, category, datointerval)
+- 3 loading-states: LEFTSTAT, RIGHTSTAT, ADDRESSES
+- Visnings-mode: Map / Data (`ViewModeType`)
+- Map: Leaflet-baseret med `BiMapComponent`
+
+**BenchmarkStatisticsCriteriaComponent** — Filterformular til statistik (vælg benchmark + datointerval).
+
+**BenchmarkMapStatisticsComponent** — Ligeledeles statistik men specifikt til kort-visning (adresse-pins + cluster).
+
+**Ext-klasser:**
+- `BenchmarkStatisticAddressExt` — frontend extension af statistik-adresse (beregnet felt)
+- `BenchmarkStatisticsDtoExt` — extension med beregnet total
+- `BenchmarkStatisticsFilter` — interface for filter-kriterier: `{supplyTypeId?, categoryId?, from, to}`
+
+### Benchmark Overview (overview/)
+**BenchmarkOverviewComponent** — Graf og tabel over benchmark-oversigt pr. kategori.
+- Toggle: månedlig / årlig visning (`TimeViewMode`)
+- Toggle: tabel / graf (`DataViewMode`)
+- Graf via `ChartModule` (Chart.js)
+
+**BenchmarkOverviewDtoExt** — DTO extension med beregnet kategorinavn inkl. supply type.
+
+### Benchmark KPIs (kpis/)
+**BenchmarkKpisComponent** — Viser KPI-data for benchmark (e.g. svarprocenter).
+- SupplyType-filter + graf
+- `BenchmarkKeyPerformanceIndicatorExt` — extension med supplerende beregnet felt
+
+### Benchmark Causes (causes/)
+**BenchmarkCausesComponent** — CRUD over benchmark-årsager (causes).
+- Tabel + inline opret/rediger med `InputTextModule` + supply type dropdown
+- Viser supply type som `SelectItem<number>`
+
+### Benchmark Settings (settings/)
+**BenchmarkSettingsComponent** — Benchmark-indstillinger for kunden.
+- `maxDuration` (int) + `closeMessageTemplateId` (select af skabeloner)
+- Viser KVHX-statistik via `KvhxCountListComponent`
+
+**KvhxCountListComponent** — Sub-komponent der viser KVHX-tælle-statistik (`BenchmarkKvhxStatisticsDto[]`) som tabel.
