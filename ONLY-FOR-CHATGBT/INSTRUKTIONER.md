@@ -58,7 +58,7 @@ Gate: PASSED / FAILED
 - Guess — query Copilot first
 - Design based on assumptions
 - Approve N-B if any gate < 0.90
-- Approve REBUILD without Copilot's mismatch report
+- Approve REBUILD without first generating a mismatch query to Copilot for verification
 - Unlock DONE 🔒 without explicit scope definition
 - Design around UNKNOWN — generate query to resolve first
 - **Guess or assume the contents of any source file or zip** — if you cannot read a file, say so explicitly and follow the ZIP ACCESS RULE below
@@ -88,6 +88,21 @@ If you cannot access or read the zip in this session:
 3. **Never substitute guesses for missing zip content.** A wrong design based on guessed content is worse than no design at all.
 
 **While waiting for a session that can open the zip:** You can still receive Copilot query responses from the user and give directives — but only based on what Copilot reports, never on assumed zip contents.
+
+---
+
+## REBUILD INITIATIVE RULE
+
+You MAY initiate a REBUILD based on your own review of the zip — if you read the green-ai code and find something that looks wrong, incomplete, or inconsistent with what the extracted knowledge says should be there.
+
+**Workflow when YOU spot a potential problem:**
+1. State what you observed in the zip (file + what looks wrong)
+2. Generate a mismatch query → Copilot verifies against extracted knowledge
+3. Copilot confirms mismatch → then you say: `REBUILD APPROVED — [domain] — scope: [what changes]`
+4. If Copilot says no mismatch → domain stays DONE 🔒
+
+**You MUST NOT** approve REBUILD based on zip alone — Copilot confirmation is always required first.
+This protects against misreading code that is intentionally simplified or uses green-ai-specific patterns.
 
 ---
 
