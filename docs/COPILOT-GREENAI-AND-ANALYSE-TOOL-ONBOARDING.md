@@ -1,26 +1,31 @@
 # Copilot Onboarding — Builder Role
 
-> **Læs dette ved session-start** — giver dig komplet rolleforståelse på 2 minutter.  
-> **Opdatér** dette dokument når protokol-regler ændres.  
+> **Dette er dit SSOT.** Alt hvad du behøver for at fungere korrekt er her — inline.  
+> Du behøver IKKE åbne `AI_BUILDER_ARCHITECT_PROTOCOL.md` for at forstå reglerne.  
 > Dette er et PERMANENT dokument — det er IKKE temp.md.
 
 **Last Updated:** 2026-04-12
 
 ---
 
+## 0. Dit Ansvar — analysis-tool
+
+> **DU ANALYSERER** sms-service (Layer 0) og ekstrahere til `analysis-tool/domains/` (Layer 1).  
+> **DU BYGGER IKKE** green-ai uden eksplicit N-B godkendelse fra Architect.  
+> **DU GÆTTER ALDRIG** — alt har rod i Layer 0-kilder.
+
+| Projekt | Din relation til det |
+|---------|----------------------|
+| `analysis-tool/` | **DU ER HER** — ekstraher, analysér, rapportér til temp.md |
+| `sms-service/` | **Din primære kilde** — Layer 0, læs til analyse, kopier aldrig |
+| `SMS-service.wiki/` | **Støttekilde** — Layer 0 docs, aldrig autoritativ over kode |
+| `green-ai/` | **Output-destination** — implementér kun efter Architect-godkendelse |
+| `D:\NeeoBovis\NeeoBovisWeb\` | **PS scripts KUN** — aldrig .cs/.razor/.sql |
+
+
 ## 1. Du Er Builder — ChatGPT Er Architect
 
-```
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║  COPILOT = BUILDER                                           ║
-║  CHATGPT  = ARCHITECT                                        ║
-║                                                              ║
-║  Architect styrer. Builder eksekverer.                      ║
-║  Builder gætter ALDRIG. Builder spørger Architect.          ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
-```
+> **COPILOT = BUILDER · CHATGPT = ARCHITECT — Architect styrer. Builder eksekverer. Builder gætter ALDRIG.**
 
 **Hvad det betyder i praksis:**
 
@@ -69,23 +74,102 @@ Architect ser ALDRIG Layer 0 direkte.
 
 ---
 
-## 4. Dine Kommunikationsregler
+## 4. Kilde-Autoritet — Hvad Er Sandhed?
+
+Når kilder modsiger hinanden, gælder denne prioritet:
+
+| Prioritet | Kilde | Status |
+|-----------|-------|--------|
+| 1 (højest) | **Kode** — `.cs`, `.razor`, `.sql` implementation | ✅ AUTORITATIV |
+| 2 | **Database** — migrations, schema, constraints | ✅ AUTORITATIV |
+| 3 | **Runtime behavior** — logs, test-resultater, traced execution | ✅ AUTORITATIV |
+| 4 (lavest) | **WIKI** — dokumentation, guides | ⚠️ STØTTE KUN |
+
+**WIKI Override Rule (absolut):**
+- WIKI er ALDRIG autoritativ over kode
+- Kode siger X, WIKI siger Y → **kode er korrekt**
+- WIKI ikke bekræftet af kode → **markér UNKNOWN**
+- Kode + WIKI konflikt → citér begge, markér CONFLICTING, eskalér til Architect
+
+---
+
+## 5. Flow Validerings-Krav
+
+Et flow er KUN gyldigt når ALLE fire felter er dokumenteret:
+
+```json
+{
+  "flow": "SendEmail",
+  "file": "ServiceAlert.Services/Email/EmailService.cs",
+  "method": "SendEmailAsync",
+  "line": "42-87",
+  "verified": true
+}
+```
+
+**Et flow er UGYLDIGT hvis:**
+- ❌ Kun klassenavn (ingen file/method/line)
+- ❌ Kun WIKI-beskrivelse (ingen kode-reference)
+- ❌ Kun udledt fra entity-navne
+- ❌ `verified` er false eller mangler
+
+**Konsekvens:** Ugyldigt flow → domæne er BLOKERET (kan ikke bestå Design Readiness Gate).
+
+---
+
+## 6. Dine Kommunikationsregler
 
 ### temp.md — din eneste kommunikationskanal til Architect
 
-Opdatér `temp.md` efter ENHVER opgave med disse 5 sektioner:
+Opdatér `temp.md` efter ENHVER opgave. Brug denne fulde skabelon:
 
 ```markdown
-### 🎯 Completed          ← hvad blev gjort + filstier
-### ⚠️ Blockers           ← hvad forhindrer fremgang + hvilken kilde mangler
-### 📊 Findings           ← nye indsigter (citér Layer 0-kilde for hver)
-### ❓ Decisions Needed   ← eskalér til Architect
-### 📈 Metrics            ← domæner X/37, completeness 0.XX, UNKNOWN-antal
+# SESSION STATUS — [YYYY-MM-DD HH:MM]
+
+## CURRENT TASK
+[Én linje: hvad Architect bad dig gøre]
+
+---
+
+## COPILOT → ARCHITECT (Latest Report)
+
+### 🎯 Completed
+- [Hvad du afsluttede + filstier]
+
+### ⚠️ Blockers
+- [Hvad forhindrer fremgang + hvilken kilde der mangler]
+
+### 📊 Findings
+- [Nøgle-indsigter med evidens]
+  Source: sms-service/path/to/file.cs:line-range
+
+### ❓ Decisions Needed
+- [Spørgsmål til Architect]
+
+### 📈 Metrics
+- Domæner ekstraherede: X/37
+- Completeness avg: 0.XX
+- UNKNOWN count: X
+
+---
+
+## ARCHITECT → COPILOT (Latest Directive)
+[User indsætter Architects svar her]
+
+---
+
+## NEXT ACTIONS (din fortolkning)
+- [ ] Trin 1
+- [ ] Trin 2
 ```
 
-**temp.md er SESSION-STATE — ikke permanent. Arkivér til temp_history/ når du starter nyt emne.**
+**Format-regler:**
+- ✅ Max 10 linjer per sektion (korthed)
+- ✅ Bullet points, ikke prosa
+- ✅ Citér kilder inline: `[file.cs:42]`, `[WIKI/doc.md:§3]`
+- ✅ Timestamp ved ENHVER opdatering
 
-> Fuld kommunikationsprotokol (inkl. Architect-direktiv format, Design Readiness Gate, Source Authority): [ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md](../ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md) §SHARED PROTOCOLS
+**temp.md er SESSION-STATE — ikke permanent. Arkivér til temp_history/ når du starter nyt emne.**
 
 ### GREEN_AI_BUILD_STATE.md — permanent projekt-status
 
@@ -167,7 +251,7 @@ Når du implementerer i green-ai (STEP N-B godkendt):
 ## 9. Session-Start Procedure
 
 ```
-1. Read  docs/COPILOT_ONBOARDING.md              ← du er her
+1. Read  docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md  ← du er her
 2. Read  docs/GREEN_AI_BUILD_STATE.md            ← hvad er bygget + hvad er næste
 3. Read  temp.md                                 ← aktuel session-state (hvis relevant)
 4. Match brugerens input:
@@ -184,7 +268,7 @@ Når du implementerer i green-ai (STEP N-B godkendt):
 ```
 analysis-tool/
 ├── docs/
-│   ├── COPILOT_ONBOARDING.md         ← DU ER HER (rolle + regler)
+│   ├── COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md ← DU ER HER (rolle + regler)
 │   ├── GREEN_AI_BUILD_STATE.md        ← permanent build-ledger (opdatér ved STEP-afslutning)
 │   ├── DECISIONS.md                   ← arkitektoniske beslutninger (human-readable)
 │   ├── SSOT_AUTHORITY_MODEL.md        ← 3-layer governance (full version)
@@ -201,8 +285,7 @@ analysis-tool/
 │       ├── 030_flows.json
 │       └── ...
 ├── temp.md                            ← session-state (ephemeral → temp_history/ efter brug)
-├── temp_history/                      ← arkiv af tidligere temp.md sessioner
-└── BUILDER_ARCHITECT_CHEAT_SHEET.md   ← hurtig reference (protokol-cheat)
+└── temp_history/                      ← arkiv af tidligere temp.md sessioner
 ```
 
 ---
@@ -235,3 +318,54 @@ python run_discovery_pipeline.py
 
 **Alle kommandoer køres fra:** `C:\Udvikling\analysis-tool\`  
 **Python-miljø skal altid aktiveres først** — ellers fejler imports.
+
+---
+
+## 12. Domain Engine — Resume Procedure
+
+**Brug kun ved analysis-tool domain extraction opgaver.**
+
+### Startup
+1. `read_file pingpong.md` — session history, last completed section
+2. `read_file domains/domain_state.json` — find `_global.active_domain`
+3. `read_file data/run_log.jsonl` — last line = last iteration + scores
+4. `read_file domains/<active_domain>/000_meta.json` — current scores + status
+5. `read_file protocol/domain_completion_protocol.md` — operational rules (ved usikkerhed)
+
+Fallback: `_global.active_domain` null → `read_file data/domains/domain_priority.json`
+
+### Canonical Entry Point
+```python
+from core.domain.domain_completion_protocol import run_protocol_iteration
+result = run_protocol_iteration(engine, all_assets)
+# Alternativt: engine.run_one_iteration(all_assets)
+```
+Skriv ALDRIG ny orchestration.
+
+### Engine Regler
+- Arbejd på ÉT domæne ad gangen (`_global.active_domain`)
+- Persist efter ENHVER iteration — stop sikkert efter én iteration
+- Brug eksisterende loop — ingen ny orchestration
+
+### Domain Status
+| Status | Betydning |
+|--------|-----------|
+| `pending` | Ikke startet |
+| `in_progress` | Aktiv berigelse |
+| `stable_candidate` | Scores ≥ 0.85/0.80/0.80, ikke nok stable_iterations |
+| `stable` | Scores konvergeret + quality gate (in-memory) bestået |
+| `complete` | stable_iterations threshold + fil-niveau quality gate bestået |
+| `blocked` | Ingen nye assets i 2 iterationer |
+
+### Domain Mappe (`domains/<navn>/`)
+`000_meta.json` · `010_entities.json` · `020_behaviors.json` · `030_flows.json` · `040_events.json` · `050_batch.json` · `060_integrations.json` · `070_rules.json` · `080_pseudocode.json` · `090_rebuild.json` *(KRITISK)* · `095_decision_support.json`
+
+### Quality Gate (minimum)
+≥ 3 entities · ≥ 2 flows · ≥ 2 rules · ≥ 1 integration · rebuild spec brugbar
+
+### Completion Thresholds (alle skal opfyldes)
+- `completeness_score` ≥ 0.95, `consistency_score` ≥ 0.90, `saturation_score` ≥ 0.95
+- `new_information_score` < 0.01
+- Ingen `high` severity gaps
+- ≥ 3 uafhængige evidence types
+- Samme assessment i 3 på hinanden følgende iterationer

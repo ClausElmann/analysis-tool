@@ -1,10 +1,35 @@
 # Copilot Onboarding — Builder Role
 
-> **Læs dette ved session-start** — giver dig komplet rolleforståelse på 2 minutter.  
-> **Opdatér** dette dokument når protokol-regler ændres.  
+> **Dette er dit SSOT.** Alt hvad du behøver for at fungere korrekt er her — inline.  
+> Du behøver IKKE åbne `AI_BUILDER_ARCHITECT_PROTOCOL.md` for at forstå reglerne.  
 > Dette er et PERMANENT dokument — det er IKKE temp.md.
 
 **Last Updated:** 2026-04-12
+
+---
+
+## 0. Workspace Map — 5 Projekter, 5 Roller
+
+```
+Workspace
+├── analysis-tool/        ← DU ER HER — Layer 1 extraction tool (Python pipelines)
+├── green-ai/             ← Layer 2 — det nye system der bygges (.NET/Blazor)
+├── sms-service/          ← Layer 0 — READONLY originalkilde (læs, aldrig kopier)
+└── SMS-service.wiki/     ← Layer 0 — READONLY udvikler-dokumentation til sms-service
+
+Ekstern (ikke i workspace):
+  D:\NeeoBovis\NeeoBovisWeb\   ← KUN kilde til PowerShell script inspiration
+```
+
+| Mappe | Rolle | Du må... |
+|-------|-------|-----------|
+| `analysis-tool/` | Layer 1 — ekstraktion + output | Læse + skrive |
+| `green-ai/` | Layer 2 — implementering | Læse + implementere (efter godkendelse) |
+| `sms-service/` | Layer 0 — original kilde | Kun læse til analyse |
+| `SMS-service.wiki/` | Layer 0 docs | Kun læse til analyse |
+| `D:\NeeoBovis\NeeoBovisWeb\` | Ekstern — PS script inspiration | **KUN PowerShell scripts** — aldrig .cs/.razor/.sql |
+
+⛔ **`NeeoBovisWeb` bruges KUN som inspiration til PowerShell scripts** — aldrig som kilde til C#, Blazor, SQL eller arkitektur.
 
 ---
 
@@ -69,23 +94,102 @@ Architect ser ALDRIG Layer 0 direkte.
 
 ---
 
-## 4. Dine Kommunikationsregler
+## 4. Kilde-Autoritet — Hvad Er Sandhed?
+
+Når kilder modsiger hinanden, gælder denne prioritet:
+
+| Prioritet | Kilde | Status |
+|-----------|-------|--------|
+| 1 (højest) | **Kode** — `.cs`, `.razor`, `.sql` implementation | ✅ AUTORITATIV |
+| 2 | **Database** — migrations, schema, constraints | ✅ AUTORITATIV |
+| 3 | **Runtime behavior** — logs, test-resultater, traced execution | ✅ AUTORITATIV |
+| 4 (lavest) | **WIKI** — dokumentation, guides | ⚠️ STØTTE KUN |
+
+**WIKI Override Rule (absolut):**
+- WIKI er ALDRIG autoritativ over kode
+- Kode siger X, WIKI siger Y → **kode er korrekt**
+- WIKI ikke bekræftet af kode → **markér UNKNOWN**
+- Kode + WIKI konflikt → citér begge, markér CONFLICTING, eskalér til Architect
+
+---
+
+## 5. Flow Validerings-Krav
+
+Et flow er KUN gyldigt når ALLE fire felter er dokumenteret:
+
+```json
+{
+  "flow": "SendEmail",
+  "file": "ServiceAlert.Services/Email/EmailService.cs",
+  "method": "SendEmailAsync",
+  "line": "42-87",
+  "verified": true
+}
+```
+
+**Et flow er UGYLDIGT hvis:**
+- ❌ Kun klassenavn (ingen file/method/line)
+- ❌ Kun WIKI-beskrivelse (ingen kode-reference)
+- ❌ Kun udledt fra entity-navne
+- ❌ `verified` er false eller mangler
+
+**Konsekvens:** Ugyldigt flow → domæne er BLOKERET (kan ikke bestå Design Readiness Gate).
+
+---
+
+## 6. Dine Kommunikationsregler
 
 ### temp.md — din eneste kommunikationskanal til Architect
 
-Opdatér `temp.md` efter ENHVER opgave med disse 5 sektioner:
+Opdatér `temp.md` efter ENHVER opgave. Brug denne fulde skabelon:
 
 ```markdown
-### 🎯 Completed          ← hvad blev gjort + filstier
-### ⚠️ Blockers           ← hvad forhindrer fremgang + hvilken kilde mangler
-### 📊 Findings           ← nye indsigter (citér Layer 0-kilde for hver)
-### ❓ Decisions Needed   ← eskalér til Architect
-### 📈 Metrics            ← domæner X/37, completeness 0.XX, UNKNOWN-antal
+# SESSION STATUS — [YYYY-MM-DD HH:MM]
+
+## CURRENT TASK
+[Én linje: hvad Architect bad dig gøre]
+
+---
+
+## COPILOT → ARCHITECT (Latest Report)
+
+### 🎯 Completed
+- [Hvad du afsluttede + filstier]
+
+### ⚠️ Blockers
+- [Hvad forhindrer fremgang + hvilken kilde der mangler]
+
+### 📊 Findings
+- [Nøgle-indsigter med evidens]
+  Source: sms-service/path/to/file.cs:line-range
+
+### ❓ Decisions Needed
+- [Spørgsmål til Architect]
+
+### 📈 Metrics
+- Domæner ekstraherede: X/37
+- Completeness avg: 0.XX
+- UNKNOWN count: X
+
+---
+
+## ARCHITECT → COPILOT (Latest Directive)
+[User indsætter Architects svar her]
+
+---
+
+## NEXT ACTIONS (din fortolkning)
+- [ ] Trin 1
+- [ ] Trin 2
 ```
 
-**temp.md er SESSION-STATE — ikke permanent. Arkivér til temp_history/ når du starter nyt emne.**
+**Format-regler:**
+- ✅ Max 10 linjer per sektion (korthed)
+- ✅ Bullet points, ikke prosa
+- ✅ Citér kilder inline: `[file.cs:42]`, `[WIKI/doc.md:§3]`
+- ✅ Timestamp ved ENHVER opdatering
 
-> Fuld kommunikationsprotokol (inkl. Architect-direktiv format, Design Readiness Gate, Source Authority): [ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md](../ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md) §SHARED PROTOCOLS
+**temp.md er SESSION-STATE — ikke permanent. Arkivér til temp_history/ når du starter nyt emne.**
 
 ### GREEN_AI_BUILD_STATE.md — permanent projekt-status
 
@@ -167,7 +271,7 @@ Når du implementerer i green-ai (STEP N-B godkendt):
 ## 9. Session-Start Procedure
 
 ```
-1. Read  docs/COPILOT_ONBOARDING.md              ← du er her
+1. Read  docs/COPILOT-GREENAI-ONBOARDING.md      ← du er her
 2. Read  docs/GREEN_AI_BUILD_STATE.md            ← hvad er bygget + hvad er næste
 3. Read  temp.md                                 ← aktuel session-state (hvis relevant)
 4. Match brugerens input:
@@ -184,7 +288,7 @@ Når du implementerer i green-ai (STEP N-B godkendt):
 ```
 analysis-tool/
 ├── docs/
-│   ├── COPILOT_ONBOARDING.md         ← DU ER HER (rolle + regler)
+│   ├── COPILOT-GREENAI-ONBOARDING.md ← DU ER HER (rolle + regler)
 │   ├── GREEN_AI_BUILD_STATE.md        ← permanent build-ledger (opdatér ved STEP-afslutning)
 │   ├── DECISIONS.md                   ← arkitektoniske beslutninger (human-readable)
 │   ├── SSOT_AUTHORITY_MODEL.md        ← 3-layer governance (full version)

@@ -1,15 +1,63 @@
 # Green-AI Build State
 
-> **Purpose:** Hvad eksisterer i green-ai LIGE NU. Ikke historik — nuværende tilstand.  
-> **Opdatér** når et STEP afsluttes (feature tilføjet, migration applied, lock ændret).  
-> **Læs** ved session-start i stedet for at gennemgå temp_history.
+> **Purpose:** Alt hvad jeg behøver at vide om green-ai — tech, build-state, locks, domain-states.  
+> **Opdatér** når et STEP afsluttes, migration applied, lock ændres, eller tech stack ændres.
 
 **Last Updated:** 2026-04-12  
 **Migration level:** V034  
 **Tests:** ~461 unit + 9 governance + 128/128 E2E ✅  
 **Build:** 0 warnings  
 **DB:** `GreenAI_DEV` på `(localdb)\MSSQLLocalDB`  
-**App:** `http://localhost:5057`
+**App:** `http://localhost:5057` — start: `dotnet run --project src/GreenAi.Api`
+
+---
+
+## Tech Stack
+
+| Lag | Teknologi |
+|-----|-----------|
+| Runtime | .NET 10 / C# 13 |
+| Arkitektur | Vertical Slice (feature-mappe) |
+| Frontend | Blazor Server + MudBlazor 8 |
+| Data | Dapper + Z.Dapper.Plus (NO EF) |
+| Auth | Custom JWT — ICurrentUser |
+| Mediator | MediatR + FluentValidation |
+| Migrationer | V001_Navn.sql (manuelt) |
+| Tests | xUnit v3 + NSubstitute |
+| Logging | Serilog → [dbo].[Logs] + console |
+
+---
+
+## UI System — wwwroot/css/ 🔒 LOCKED
+
+CSS cascade-rækkefølge (må ALDRIG ændres):
+```
+1. MudBlazor.min.css       ← base reset
+2. app.css                 ← --ga-* aliases → var(--color-*), layout tokens
+3. design-tokens.css       ← SSOT: alle tokens
+4. greenai-skin.css        ← MudBlazor palette overrides
+5. greenai-enterprise.css  ← tables, forms, desktop density
+6. portal-skin.css         ← .ga-* utilities + .ga-mobile-table (OWNER: mobile)
+```
+Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-palette-override">` i `MainLayout.razor`
+
+**Locks:** `portal-skin.css` ejer mobile · `design-tokens.css` er SSOT for tokens · `.ga-mobile-table` er eneste mobile table mekanisme · ingen globale CSS overrides uden failing test
+
+---
+
+## SSOT Navigation (green-ai/docs/SSOT/)
+
+| Emne | Fil |
+|------|-----|
+| Foundation | `docs/SSOT/governance/ssot-authority-model.md` |
+| Execution | `ai-governance/08_SSOT_EXECUTION_PROTOCOL.md` |
+| Endpoint/API | `docs/SSOT/backend/patterns/endpoint-pattern.md` |
+| Handler | `docs/SSOT/backend/patterns/handler-pattern.md` |
+| SQL/Dapper | `docs/SSOT/database/patterns/dapper-patterns.md` |
+| Auth/JWT | `docs/SSOT/identity/README.md` |
+| Labels | `docs/SSOT/localization/guides/label-creation-guide.md` |
+| UI tokens | `docs/SSOT/ui/color-system.md` |
+| Test strategi | `docs/SSOT/testing/testing-strategy.md` |
 
 ---
 
@@ -86,6 +134,27 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 
 ---
 
+## DOMAIN STATES (Live — opdatér ved N-B godkendelse)
+
+> Copilot opdaterer denne tabel når Architect siger "STEP N-B approved — [domain]" og når et domain markeres DONE.
+
+| Domain | State | Siden | Bemærkning |
+|--------|-------|-------|------------|
+| Email | DONE 🔒 | V034 | Lukket — ingen commits |
+| identity_access | DONE 🔒 | V034 | Auth + AdminLight |
+| UserSelfService | DONE 🔒 | V034 | PasswordReset, UpdateUser |
+| localization | N-B APPROVED | 2026-04-12 | Gap-fill — stubs eksisterer |
+| customer_administration | N-B APPROVED | 2026-04-12 | Gap-fill — stubs eksisterer |
+| job_management | N-A | — | Score 0.93 — klar til N-B når Architect godkender |
+| activity_log | N-A | — | Score 0.92 — klar til N-B når Architect godkender |
+| customer_management | N-A | — | Score 0.88 — analyse pågår |
+| Alle øvrige | N-A | — | Score < 0.88 — extraction mangler |
+
+**Regel:** Copilot MÅ KUN bygge domæner med state `N-B APPROVED`.  
+**Opdatering:** Når Architect godkender N-B → sæt state. Når build er done → sæt DONE 🔒.
+
+---
+
 ## Next Step — When Architect Says "fortsæt"
 
 **Protocol:** `STEP_NA_NB_GOVERNANCE_ACTIVE 🔒`
@@ -112,11 +181,10 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 
 ```
 New session receives "fortsæt":
-1. Read this file (GREEN_AI_BUILD_STATE.md)  ← you are here
-2. Read green-ai/AI_STATE.md                ← current build health
-3. Read the 000_meta.json for target domain ← completeness check
-4. Run STEP N-A (analysis, NO code)
-5. Report to temp.md → await Architect approval
-6. Implement STEP N-B after approval
-7. Update this file when STEP completes
+1. Read this file (GREEN_AI_BUILD_STATE.md)  ← du er her
+2. Read domains/<target>/000_meta.json      ← completeness check
+3. Run STEP N-A (analysis, NO code)
+4. Report to temp.md → await Architect approval
+5. Implement STEP N-B after approval
+6. Update this file when STEP completes
 ```

@@ -34,7 +34,7 @@ START SÅDAN HER (i denne rækkefølge):
   2. Åbn og læs STATE_SUMMARY.md
   3. Åbn og læs DOMAIN_OVERVIEW.md
   4. Åbn og læs analysis-tool/ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md
-  5. Åbn og læs green-ai/AI_STATE.md
+  5. Åbn og læs analysis-tool/docs/GREEN_AI_BUILD_STATE.md
   6. Rapportér: hvad du har læst, hvad der er klar til analyse, og stil mig 3 afklarende spørgsmål
      før du begynder gap-analysen.
 
@@ -122,7 +122,6 @@ green-ai/
   src/GreenAi.DB/Migrations/         ← SQL migrations (V001_...)
   docs/SSOT/                         ← SSOT, ARCHITECTURE, DECISIONS
   ai-governance/                     ← 13 governance-filer
-  AI_STATE.md                        ← Nuværende systemtilstand
   AI_WORK_CONTRACT.md                ← Trigger-tabel + absolutte regler
 ```
 

@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "green-ai Portal Core Plan — Phase 2 implementation contract. Machine-readable companion to PORTAL_CORE_PLAN.md.",
+  "version": "1.0.0",
+  "created": "2026-04-04",
+  "ssot_source": "docs/PORTAL_CORE_PLAN.json",
+  "phase": {
+    "id": "phase_2",
+    "name": "Core Portal Flows",
+    "gate": "SLICE-006 completed — 226/226 tests green",
+    "status": "not_started",
+    "goal": "Transform backend platform into reusable portal core"
+  },
+  "rules": [
+    { "id": "R-PHASE2-001", "text": "No business domains: sms, messaging, delivery, integrations" },
+    { "id": "R-PHASE2-002", "text": "All endpoints: handler-pattern → Result<T> → ToHttpResult()" },
+    { "id": "R-PHASE2-003", "text": "All UI: Loc.Get(...), loading state, error handling" },
+    { "id": "R-PHASE2-004", "text": "All new features added to feature-contract-map.json" },
+    { "id": "R-PHASE2-005", "text": "No hardcoded strings in Blazor" },
+    { "id": "R-PHASE2-006", "text": "Test naming: tests/Http/{Domain}/{Feature}Tests.cs — not SliceXXX" }
+  ],
+  "slices": [
+    {
+      "id": "P2-SLICE-001",
+      "name": "user_self_service",
+      "priority": 1,
+      "status": "not_started",
+      "goal": "User can view/update profile, request and confirm password reset",
+      "depends_on": ["P2-SLICE-002"],
+      "endpoints": [
+        { "route": "PUT /api/user/update", "status": "not_started" },
+        { "route": "POST /api/user/password-reset-request", "status": "not_started" },
+        { "route": "POST /api/user/password-reset-confirm", "status": "not_started" }
+      ],
+      "already_exists": [
+        { "route": "GET /api/auth/me", "note": "MeEndpoint — foundation SLICE-003" },
+        { "route": "POST /api/auth/change-password", "note": "ChangePasswordHandler — pre-foundation" }
+      ],
+      "ui": [
+        { "component": "UserProfilePage.razor", "status": "not_started" }
+      ],
+      "feature_contract_ids": [
+        "user_update_profile",
+        "user_password_reset_request",
+        "user_password_reset_confirm"
+      ],
+      "done_when": "User can update language, view profile, complete password reset end-to-end"
+    },
+    {
+      "id": "P2-SLICE-002",
+      "name": "email_foundation",
+      "priority": 2,
+      "status": "not_started",
+      "goal": "Template-based email infrastructure for reset links and future notifications",
+      "depends_on": [],
+      "migrations": [
+        { "name": "V021_EmailTemplates.sql", "status": "not_started" }
+      ],
+      "new_services": [
+        { "interface": "IEmailService", "implementation": "EmailService", "status": "not_started" },
+        { "class": "EmailTemplateRenderer", "status": "not_started" }
+      ],
+      "app_settings_required": [
+        "SmtpHost", "SmtpPort", "SmtpFromAddress", "SmtpFromName"
+      ],
+      "feature_contract_ids": [
+        "email_send_template"
+      ],
+      "done_when": "Password reset email with token sent and verifiable in test"
+    },
+    {
+      "id": "P2-SLICE-003",
+      "name": "admin_light",
+      "priority": 3,
+      "status": "not_started",
+      "goal": "Admin can create users, assign roles and profile access",
+      "depends_on": [],
+      "required_permission": "UserRole.ManageUsers",
+      "endpoints": [
+        { "route": "POST /api/admin/users", "status": "not_started" },
+        { "route": "POST /api/admin/users/{id}/roles", "status": "not_started" },
+        { "route": "POST /api/admin/users/{id}/profiles", "status": "not_started" }
+      ],
+      "ui": [
+        { "component": "AdminUserListPage.razor", "status": "not_started" }
+      ],
+      "constraints": [
+        "No mass import, LDAP, SAML in this slice",
+        "Requires IRequireAuthentication + IRequireProfile + manual permission check"
+      ],
+      "feature_contract_ids": [
+        "admin_create_user",
+        "admin_assign_role",
+        "admin_assign_profile"
+      ],
+      "done_when": "Admin can create user and assign access via API + minimal Blazor UI"
+    },
+    {
+      "id": "P2-SLICE-004",
+      "name": "ui_foundation",
+      "priority": 4,
+      "status": "not_started",
+      "goal": "Blazor shell with navigation, loading states, error handling, auth guards",
+      "depends_on": ["P2-SLICE-001"],
+      "components": [
+        { "component": "NavigationMenu.razor", "status": "not_started" },
+        { "component": "AppShell.razor", "status": "not_started" },
+        { "component": "LoadingOverlay.razor", "status": "not_started" },
+        { "component": "ErrorAlert.razor", "status": "not_started" }
+      ],
+      "constraints": [
+        "All pages must use AppShell",
+        "All loading states must use LoadingOverlay",
+        "Nav items hidden without permission (auth-guard)"
+      ],
+      "feature_contract_ids": [],
+      "done_when": "All pages render in AppShell, loading + error handled uniformly"
+    }
+  ],
+  "golden_sample_phase_2": {
+    "status": "not_started",
+    "capabilities": [
+      "user can update own profile (DisplayName + LanguageId)",
+      "user can change password (existing ChangePasswordHandler)",
+      "user can request password reset",
+      "user receives email with reset link",
+      "user can complete password reset via token",
+      "admin can create user",
+      "admin can assign role",
+      "new user can log in"
+    ],
+    "done_when": "All capabilities covered by HTTP integration tests"
+  },
+  "blocked_domains": [
+    { "domain": "sms", "reason": "R-PHASE2-001 — business domain" },
+    { "domain": "messaging", "reason": "R-PHASE2-001 — business domain" },
+    { "domain": "delivery", "reason": "R-PHASE2-001 — business domain" },
+    { "domain": "2fa_saml_azuread", "reason": "Phase 3" },
+    { "domain": "impersonation", "reason": "Phase 3" },
+    { "domain": "activity_log", "reason": "Enters with messaging" },
+    { "domain": "advanced_admin", "reason": "Phase 4" }
+  ]
+}

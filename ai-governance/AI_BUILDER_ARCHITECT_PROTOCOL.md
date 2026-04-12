@@ -1,16 +1,16 @@
 # AI Builder-Architect Protocol
 
 **Effective Date:** 2026-04-10  
-**Updated:** 2026-04-12  
+**Updated:** 2026-04-12 (v4.1)  
 **Status:** BINDING (governance)  
 **Current Phase:** DUAL MODE — extraction for new domains + active build (STEP N-B) for approved domains  
 **Scope:** Coordination between Copilot (Builder) and ChatGPT (Architect)
 
 **Related governance documents:**
 - [docs/SSOT_AUTHORITY_MODEL.md](../docs/SSOT_AUTHORITY_MODEL.md) — 3-layer authority model (Layer 0 → 1 → 2)
-- [docs/COPILOT_ONBOARDING.md](../docs/COPILOT_ONBOARDING.md) — Copilot Builder role, STEP N-A/N-B, session-start procedure
+- [docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md](../docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md) — **Copilot Builder SSOT** — rolle, states, regler, kommandoer
+- [docs/ARCHITECT_ONBOARDING.md](../docs/ARCHITECT_ONBOARDING.md) — **Architect SSOT** — rolle, states, regler, direktiv-format (send til ChatGPT)
 - [docs/GREEN_AI_BUILD_STATE.md](../docs/GREEN_AI_BUILD_STATE.md) — Current green-ai build state (what is implemented NOW)
-- [BUILDER_ARCHITECT_CHEAT_SHEET.md](../BUILDER_ARCHITECT_CHEAT_SHEET.md) — Quick reference card
 - [.github/copilot-instructions.md](../.github/copilot-instructions.md) — Session start rules for Copilot
 - [green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md](../../green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md) — Runtime execution rules (WHAT vs HOW)
 
@@ -22,48 +22,80 @@
 2. **PART 2: FOR CHATGPT (Architect/Strategist)** — Your responsibilities + what Builder does
 3. **SHARED PROTOCOLS** — Design gate, flow rules, source authority, workflows, escalation
 
-> 🔴 New in v2: Design Readiness Gate (0.90 per artifact, ALL independent), Flow Validation Requirement, Source Authority Hierarchy, Request-Response as default workflow, Design Lock global state
+> 🔴 New in v2: Design Readiness Gate (0.90 per artifact, ALL independent), Flow Validation Requirement, Source Authority Hierarchy  
+> 🔴 New in v4: Per-domain state model replaces global DESIGN LOCK — multiple domains can be in different states simultaneously
 
 ---
 
-## 🔴 DESIGN LOCK (GLOBAL STATE)
+## 🔴 DOMAIN STATE MODEL (PER-DOMAIN — REPLACES GLOBAL LOCK)
 
-**The system is ALWAYS in exactly one of two states. There is no gray area.**
+**Each domain has its own independent state. Multiple domains can be in different states simultaneously.**
 
-### STATE 1: ANALYSIS MODE (DEFAULT) — *also called STEP N-A in COPILOT_ONBOARDING.md*
-- **Design is FORBIDDEN**
-- Only extraction, analysis, and reporting are allowed
-- This is the starting state for every session
-- This is the state after every design decision completes
+```
+[DOMAIN] STATE: N-A  →  gate check  →  N-B  →  DONE
+                                 ↓
+                            BLOCKED (escalate)
+```
 
-### STATE 2: DESIGN MODE (EXPLICIT ONLY) — *also called STEP N-B in COPILOT_ONBOARDING.md*
-- **Entered ONLY when ALL of the following are true:**
-  1. Design Readiness Gate has PASSED (all artifact types ≥ 0.90, flows 100% verified)
-  2. Architect has explicitly stated the words: **"ENTER DESIGN MODE"**
+| State | Meaning | Who sets it |
+|-------|---------|-------------|
+| `N-A` | Analysis in progress — no build for this domain | Default for new domains |
+| `N-B APPROVED` | Architect approved build — implement per scope | Architect explicitly |
+| `DONE` | Domain complete in green-ai | Copilot after gate + build |
+| `BLOCKED` | Gate not passed after 3+ attempts | Copilot escalates |
 
-- **Until that explicit statement exists:**
-  - ANY design discussion is INVALID
-  - ANY design output is INVALID
-  - Copilot MUST ignore or reject design requests
-  - Copilot MUST respond: "Gate not passed / ENTER DESIGN MODE not received — in ANALYSIS MODE"
+### Per-Domain Gate Check (before N-B)
 
-### EXIT CONDITION
-After a design decision is issued:
-→ System AUTOMATICALLY RETURNS to **ANALYSIS MODE**
-→ A new "ENTER DESIGN MODE" is required for any further design work
+Before Architect approves N-B for a domain, ALL must be true:
+1. Design Readiness Gate PASSED (all artifact types ≥ 0.90, flows 100% verified)
+2. Architect has explicitly stated: **"STEP N-B approved — [domain]"**
 
-### ENFORCEMENT
-| Trigger | Required system state | If wrong state |
-|---------|----------------------|----------------|
-| Extraction request | ANALYSIS MODE | ✅ Proceed |
-| Design request (no trigger) | — | ❌ REJECT — ANALYSIS MODE active |
-| Design request + gate passed + "ENTER DESIGN MODE" | DESIGN MODE | ✅ Proceed |
-| Design request + gate NOT passed | — | ❌ REJECT — Gate not passed |
-| Session start | ANALYSIS MODE | Always |
+### Parallel Operation (CURRENT REALITY)
+
+Domains operate independently:
+```
+Email        → DONE 🔒
+DLR          → N-B APPROVED (build in progress)
+Localization → N-B APPROVED (gap-fill)
+job_mgmt     → N-A (analysis)
+messaging    → N-A (not yet started)
+```
+
+**This is correct and expected.** Building DLR does NOT require messaging to be analyzed first.
+
+### What This Replaces
+
+❌ OLD (wrong): One global "ENTER DESIGN MODE" required before ANY build  
+✅ NEW (correct): Each domain gets its own N-B approval — independently, in parallel
+
+### The Protocol Is a Safety System — NOT a Brake
+
+```
+✅ USE IT AS: Anti-guess gate, quality threshold, cross-domain impact checker
+❌ NOT AS:    Sequential stop-build rule that blocks all domains
+```
+
+### ABSOLUTE PROHIBITIONS (unchanged — these never relax)
+
+⛔ Build without analysis (no gate = no N-B)  
+⛔ Guess flows (file + method + line required — always)  
+⛔ Ignore cross-domain effects (SmsLog, CorrelationId, tenant isolation)  
+⛔ Skip verification (truth over speed — always)
 
 ---
 
 # PART 1: FOR COPILOT (Builder/Executor)
+
+> 📘 **ZERO-MEMORY ONBOARDING — LÆS DISSE FØRST:**
+>
+> **Dit SSOT:** [docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md](../docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md)
+> → Rolle, states, regler, stop-betingelser, kommandoer — alt på dansk, på 2 minutter.
+>
+> **Architects SSOT:** [docs/ARCHITECT_ONBOARDING.md](../docs/ARCHITECT_ONBOARDING.md)
+> → Send dette dokument til ChatGPT ved session-start (copy-paste indholdet eller upload som fil).
+> → Så ved Architect også hvad du arbejder ud fra — og I taler samme sprog.
+>
+> Vend tilbage hertil kun for dybere reference (analyse-capabilities, eskalerings-templates, eksempel-session).
 
 ## YOUR ROLE (Copilot)
 
@@ -390,6 +422,18 @@ You will:
 ---
 
 # PART 2: FOR CHATGPT (Architect/Strategist)
+
+> 📘 **ZERO-MEMORY ONBOARDING — LÆS DISSE FØRST:**
+>
+> **Dit SSOT:** [docs/ARCHITECT_ONBOARDING.md](../docs/ARCHITECT_ONBOARDING.md)
+> → Rolle, states, regler, direktiv-format — alt på dansk, på 2 minutter.
+> → Du har ingen fil-adgang — bed user paste eller uploade dette dokument til dig.
+>
+> **Copilots SSOT:** [docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md](../docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md)
+> → Bed user paste §9 Session-Start Procedure + §3 STEP-Protokollen så du ved hvad Copilot arbejder ud fra.
+> → Så taler I samme sprog og har samme forventning til states og gates.
+>
+> Vend tilbage hertil kun for dybere reference (analyse-capabilities, eksempel-session, decision authority).
 
 ## YOUR ROLE (Architect)
 
@@ -975,7 +1019,7 @@ Any single artifact type below threshold blocks the entire domain — regardless
 
 ### ✅ WORKFLOW A: BUILD PHASE (STEP N-B) — Current Primary Mode
 
-**Used when:** Layer 1 completeness ≥ 0.88 AND Architect has approved STEP N-B.
+**Used when:** Layer 1 completeness ≥ 0.90 (all artifact types) AND Architect has explicitly approved STEP N-B for this domain.
 
 1. **Architect approves:** "STEP N-B approved — implement [domain] per [scope]"
 2. **Copilot reads:** Layer 1 domain files (000_meta.json, entities, behaviors, flows) + green-ai SSOT patterns
@@ -1001,7 +1045,7 @@ Any single artifact type below threshold blocks the entire domain — regardless
 
 ### ✅ WORKFLOW B: ANALYSIS PHASE (STEP N-A) — For New Domains
 
-**Used when:** Domain not yet extracted OR Layer 1 score < 0.88.
+**Used when:** Domain not yet extracted OR any Layer 1 artifact type score < 0.90.
 
 **This is the MANDATORY default for new domains. Cannot be changed without explicit Architect directive.**
 
@@ -1214,6 +1258,6 @@ If a domain cannot reach the Design Readiness Threshold despite best efforts:
 
 ---
 
-**Last Updated:** 2026-04-12 (v3.3 — Dual-mode framing: extraction for new domains + active build (STEP N-B) now primary; added Build Phase workflow A; updated Copilot MUST list with build responsibilities)  
+**Last Updated:** 2026-04-12 (v4.1 — Zero-memory onboarding: Part 1 points to docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md; Part 2 points to docs/ARCHITECT_ONBOARDING.md; both sections now self-contained entry points)  
 **Governance Level:** BINDING  
 **Enforcement:** Both agents must follow protocol for successful Layer 0 → Layer 2 workflow

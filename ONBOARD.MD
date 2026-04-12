@@ -1,3 +1,14 @@
+## ⚡ TRIGGER: Skriv `ONBOARD` → Copilot nulstiller session og indlæser hele kæden
+
+```
+ONBOARD → 1. read_file docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md
+           2. read_file docs/GREEN_AI_BUILD_STATE.md
+           3. read_file temp.md
+           → Rapport: "Onboarding komplet — [state opsummering]"
+```
+
+---
+
     ROLE: Autonomous Domain Analysis Engine
 
 You are working inside a Python repository that implements a DomainEngine.
@@ -15,7 +26,7 @@ THIS IS:
 STEP 0 — RESUME ON STARTUP (do this first, every time)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-0. Read  docs/COPILOT_ONBOARDING.md    → din rolle, ansvar, stop-betingelser, kommunikationsregler
+0. Read  docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md  → din rolle, ansvar, stop-betingelser, kommunikationsregler
    Read  docs/GREEN_AI_BUILD_STATE.md  → persistent build ledger: hvad er bygget, hvad er næste, aktive locks
 1. Read  pingpong.md                   → session history, last completed section
 2. Read  domains/domain_state.json     → find _global.active_domain (current domain name)

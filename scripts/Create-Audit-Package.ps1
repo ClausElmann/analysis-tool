@@ -494,7 +494,6 @@ $(Resolve-EntryPoint "tests/GreenAi.E2E/Governance/CssTokenComplianceTests.cs" $
 $(Resolve-EntryPoint "ai-governance/00_SYSTEM_RULES.json" $GreenAiStageDest)
 $(Resolve-EntryPoint "ai-governance/04_ANTI_PATTERNS.json" $GreenAiStageDest)
 $(Resolve-EntryPoint "AI_WORK_CONTRACT.md" $GreenAiStageDest)
-$(Resolve-EntryPoint "AI_STATE.md" $GreenAiStageDest)
 
 ---
 
