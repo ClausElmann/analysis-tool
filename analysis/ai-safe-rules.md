@@ -279,6 +279,11 @@ A cache has a name, a declared TTL, a declared invalidation trigger, and a decla
 **RED LINE 10: NEVER build a service that cannot be fully exercised by a test that starts from empty state.**  
 If a service test requires pre-existing data from another service's domain that was not provided through this service's input interface, the service has an undeclared dependency. That dependency must be eliminated before the service is built.
 
+**RED LINE 11: NEVER copy code from the source system into the target system — not enums, not SQL rows, not logic.**  
+⚖️ **LEGAL BASIS:** The source system and target system are independent products with separate IP ownership. Copying enum values, static table rows, stored procedure logic, or mapping tables 1:1 — even with renaming — creates ownership ambiguity that could transfer IP rights unintentionally between products.  
+**Applies to:** C# enums, SQL seed data, stored procedure logic, gateway mapping tables, business rule constants.  
+**Correct path:** Extract the CONCEPT via analysis-tool → design the target system's OWN implementation inspired by the concept.
+
 ---
 
 ## QUICK REFERENCE: VIOLATIONS FROM LEGACY SYSTEM

@@ -43,11 +43,29 @@ Broadcast         : aggregate root
   State:             BroadcastState
   CreatedAtUtc:      DateTime
 
+  // Valid transitions:
+  //   Draft        → Submitted   (via Submit())
+  //   Submitted    → Targeting   (via MarkTargeting())
+  //   Targeting    → Targeted    (via MarkTargeted())
+  //   Targeted     → Dispatching (Wave 9+)
+  //   Dispatching  → Completed   (Wave 9+)
+  //   * → Cancelled              (Wave 9+)
+
   Submit() → void
     pre:  State == Draft
     post: State = Submitted
     emits: BroadcastReady(BroadcastId)
     throws: InvalidOperationException if State != Draft
+
+  MarkTargeting() → void
+    pre:  State == Submitted
+    post: State = Targeting
+    throws: InvalidOperationException if State != Submitted
+
+  MarkTargeted() → void
+    pre:  State == Targeting
+    post: State = Targeted
+    throws: InvalidOperationException if State != Targeting
 ```
 
 ### Command + Handler
@@ -164,6 +182,11 @@ Handle(TargetBroadcastCommand cmd) → PipelineTrace
     spec = broadcast.RecipientSpec
     trace.Add(PipelineStepResult.Ok("ReadRecipientSpec", inputCount:1, outputCount:1))
 
+  Step 1b — MarkBroadcastTargeting
+    broadcast.MarkTargeting()    // state: Submitted → Targeting
+    IBroadcastRepository.Save(broadcast)
+    trace.Add(PipelineStepResult.Ok("MarkBroadcastTargeting", inputCount:1, outputCount:1))
+
   Step 2 — ResolveAddresses
     result = IAddressService.GetAddressesByGeography(
                countryId=spec.CountryId, filter=spec.GeographicFilter,
@@ -202,9 +225,10 @@ Handle(TargetBroadcastCommand cmd) → PipelineTrace
                inputCount:filtered.Count, outputCount:targets.Count))
 
   Step 6 — MarkBroadcastTargeted
-    broadcast.MarkTargeted()    // Targeting → Targeted
+    broadcast.MarkTargeted()    // state: Targeting → Targeted
     IBroadcastRepository.Save(broadcast)
     trace.Add(PipelineStepResult.Ok("MarkBroadcastTargeted", inputCount:1, outputCount:1))
+    // pre-condition enforced: MarkTargeting() MUST have run (State==Targeting)
 
   return trace
 ```
@@ -227,9 +251,10 @@ IDeliveryTargetRepository:    // internal to Targeting Engine
 ### Method Signatures
 
 ```
-Handle(TargetBroadcastCommand)  → PipelineTrace
-Broadcast.MarkTargeted()        → void  (Targeting → Targeted)
-DeliveryTarget constructor      → DeliveryTarget (state=ReadyForDispatch)
+Handle(TargetBroadcastCommand)   → PipelineTrace
+Broadcast.MarkTargeting()        → void  (state: Submitted → Targeting)
+Broadcast.MarkTargeted()         → void  (state: Targeting → Targeted)
+DeliveryTarget constructor       → DeliveryTarget (state=ReadyForDispatch)
 ```
 
 ### Tests (from empty state)
@@ -239,8 +264,9 @@ TEST 1: Success (3 addresses, restriction=None, no virtual)
   addressService: returns [DK001 IsVirtual=false, DK002 IsVirtual=false, DK003 IsVirtual=false]
   → 3 DeliveryTargets saved: State=ReadyForDispatch, PhoneCode=null, PhoneNumber=null
   → broadcast.State = Targeted
-  → PipelineTrace 6 steps all Ok
-  → inputCount=3, outputCount=3 on CreateDeliveryTargets
+  → PipelineTrace 7 steps all Ok:
+     [ReadRecipientSpec, MarkBroadcastTargeting, ResolveAddresses,
+      FilterVirtualAddresses, ApplyAddressRestriction, CreateDeliveryTargets, MarkBroadcastTargeted]
   → NO ITeledataService calls
 
 TEST 2: Virtual filtered (1 of 3 virtual)
@@ -252,13 +278,13 @@ TEST 2: Virtual filtered (1 of 3 virtual)
 TEST 3: Address Service fails (retryable)
   addressService: Failed("AddressServiceUnavailable", isRetryable=true)
   → 0 DeliveryTargets saved
-  → broadcast.State unchanged
-  → PipelineTrace aborted at step 2: [ReadRecipientSpec Ok, ResolveAddresses Failed(retryable)]
+  → broadcast.State = Targeting  ← MarkTargeting ran before abort
+  → PipelineTrace: [ReadRecipientSpec Ok, MarkBroadcastTargeting Ok, ResolveAddresses Failed(retryable)]
 
 TEST 4: Empty result valid (0 recipients)
   addressService: Empty()
   → 0 DeliveryTargets saved
-  → broadcast.State = Targeted  ← zero is valid, still transitions
+  → broadcast.State = Targeted  ← zero is valid, still transitions through Targeting
   → CreateDeliveryTargets: {inputCount=0, outputCount=0, Ok}
 ```
 

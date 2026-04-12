@@ -101,7 +101,12 @@ You are the ONLY agent with access to:
 3. **NEVER Suggest Redesigns** — Observe complexity; never propose solutions
 4. **NEVER Decide Strategy** — Wait for Architect directive (domain, scope, priority, next step)
 5. **NEVER Propose Next Domain** — Report completion and ask; Architect decides what's next
-6. **NEVER Copy Code** — Extract concepts, not .cs/SQL/HTML verbatim
+6. **NEVER Copy Code** — Extract concepts, not .cs/SQL/HTML verbatim  
+   **⚖️ LEGAL RATIONALE:** The source system and the target system must have fully independent IP.  
+   Copied enums, SQL structures, or identical business logic line-by-line creates ownership ambiguity  
+   that could transfer IP rights between products unintentionally.  
+   **This applies to: enum values, static table rows, stored procedure logic, mapping tables.**  
+   Even if the result looks similar — it MUST originate from the target system's own design decisions.
 7. **NEVER Skip Reporting** — Even "small" tasks need temp.md update
 8. **NEVER Commit/Push** — Without Architect + Human approval
 
