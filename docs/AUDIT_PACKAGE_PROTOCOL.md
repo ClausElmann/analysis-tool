@@ -4,82 +4,126 @@
 
 ---
 
-## PURPOSE
+## INTRO-PROMPT TIL CHATGPT (kopi-klar — send denne sammen med ZIP)
 
-Generate a **Layer 1 extraction package** containing ONLY analyzed knowledge from sms-service for ChatGPT (Architect) to design green-ai.
+> Kopiér blokken nedenfor og send den som første besked sammen med ZIP-upload.
 
-**ChatGPT receives:**
-- ✅ Extracted domains (Layer 1 - analysis-tool output)
-- ✅ Completeness metrics (gaps, iteration counts)
-- ✅ Protocol documentation (Builder-Architect workflow)
-- ✅ Current state summary (domain readiness)
+---
 
-**ChatGPT does NOT receive:**
-- ❌ Original sms-service codebase (Layer 0)
-- ❌ WIKI documentation files
-- ❌ Raw data (PDFs, CSVs, JSON)
-- ❌ Python implementation scripts
-
-**Governance Principle:**
-> ChatGPT designs green-ai based on **CONCEPTS** (what sms-service does),  
-> NOT by copying **IMPLEMENTATION** (how sms-service does it).
-
-**Workflow:**
 ```
-ChatGPT sees gap in extraction → Requests Copilot to analyze → 
-Copilot scans Layer 0 (sms-service) → Extracts concepts to Layer 1 (analysis-tool) → 
-New package generated with updated knowledge → ChatGPT reviews → Loop
+Du er strategisk Arkitekt på et system-rebuild projekt.
+Jeg uploader en ZIP med to layers:
+
+  Layer 1 (analysis-tool/) — ekstraheret viden om det EKSISTERENDE system
+  Layer 2 (green-ai/)      — det NYE system vi er ved at bygge (erstatningen)
+
+Din opgave er en GAP-ANALYSE:
+  Sammenlign hvad systemet SKAL kunne (Layer 1) med hvad der ALLEREDE ER BYGGET (Layer 2).
+  For hvert domæne: er det korrekt bygget, delvist bygget, forkert bygget, eller ikke startet?
+
+REGLER — ABSOLUT BINDENDE:
+  1. Du MÅ ALDRIG gætte. Alt skal citere konkret fil og sti fra ZIP'en.
+  2. Du SKAL faktisk åbne og læse filerne — ikke antage indhold ud fra filnavne.
+  3. Hvis du er i tvivl om noget: sig det eksplicit og bed mig om mere analyse fra Copilot.
+  4. Du har KUN adgang til det der er i ZIP'en (Layer 1 + Layer 2).
+     Mangler du information om det eksisterende system: bed Copilot om at producere bedre Layer 1 output.
+     Du behøver ikke vide hvorfra Copilot henter sin viden — det er Copilots ansvar.
+
+START SÅDAN HER (i denne rækkefølge):
+  1. Åbn og læs README.md
+  2. Åbn og læs STATE_SUMMARY.md
+  3. Åbn og læs DOMAIN_OVERVIEW.md
+  4. Åbn og læs analysis-tool/ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md
+  5. Åbn og læs green-ai/AI_STATE.md
+  6. Rapportér: hvad du har læst, hvad der er klar til analyse, og stil mig 3 afklarende spørgsmål
+     før du begynder gap-analysen.
+
+Citer ALTID filsti + sektionsnavn når du konkluderer noget.
+Eksempel på korrekt citering: "analysis-tool/domains/identity_access/000_meta.json → score: 0.98"
+Eksempel på FORBUDT: "identity_access ser komplet ud" (uden at have åbnet filen)
 ```
 
 ---
 
-## PACKAGE CONTENTS (Layer 1 ONLY)
+## PURPOSE
 
-### ✅ Protocol Files
-```
-README.md                            ← START HERE (workflow overview)
-PROTOCOL_REVIEW_FOR_CHATGPT.md       ← Initial protocol review
-AI_BUILDER_ARCHITECT_PROTOCOL.md     ← Full protocol (400+ lines)
-BUILDER_ARCHITECT_CHEAT_SHEET.md     ← Quick reference
-temp.md                              ← Current session state
-```
+Generate a **review package** for ChatGPT (Architect) containing:
 
-### ✅ Extracted Domains (38 domains)
+- **Layer 1** — all extracted domain knowledge from analysis-tool
+- **Layer 2** — green-ai repo i nuværende byggetilstand
+
+**ChatGPT modtager:**
+- ✅ Ekstraherede domæner (Layer 1 — analysis-tool output)
+- ✅ Komplethedsmålinger (gaps, iteration counts)
+- ✅ Builder-Architect protokol + governance
+- ✅ Nuværende byggetilstand i green-ai (Layer 2)
+- ✅ Hjælpefiler: README.md, STATE_SUMMARY.md, DOMAIN_OVERVIEW.md
+
+**ChatGPT modtager IKKE og behøver IKKE kende til:**
+- ❌ Originalkilder (kode, dokumentation, rådata)
+- ❌ Hvorfra Layer 1 er ekstraheret
+- ❌ Stier eller navne på de systemer Copilot har læst
+
+**Governance Princip:**
+> Arkitekten designer green-ai baseret på **KONCEPTER** (hvad systemet gør, som dokumenteret i Layer 1).  
+> Mangler arkitekten information → beder den Copilot om bedre Layer 1 output.  
+> Copilot håndterer al kontakt med originalkilder — arkitekten ser dem aldrig.
+
+**Workflow:**
 ```
-domains/
-  Email/
-    000_meta.json                    ← Completeness: 0.91, Gaps: 1, Sources cited
-    010_entities.json                ← Extracted: EmailMessage, EmailTemplate, EmailQueue
-    020_behaviors.json               ← Extracted: SendEmail, QueueEmail, RetryFailed
-    030_flows.json                   ← User journey: Compose → Queue → Send → Log
-    040_events.json                  ← Domain events: EmailSent, EmailFailed
-    050_batch.json                   ← Background service patterns, retry logic
-    060_integrations.json            ← SendGrid API integration details
-    070_rules.json                   ← Validation: max recipients, subject length
-    080_pseudocode.json              ← Implementation sketches
-    090_rebuild.json                 ← Rebuilding notes for green-ai
-    095_decision_support.json        ← Design decisions, trade-offs
-  
-  customer_management/               ← Completeness: 0.88
-  identity_access/                   ← Completeness: 0.98
-  profile_management/                ← Completeness: 0.91
-  sms_group/                         ← Completeness: 0.84
-  
-  [... 33 more domains with same structure]
+ChatGPT identificerer gap → Beder Copilot om mere analyse →
+Copilot producerer bedre Layer 1 output →
+Ny ZIP genereres → ChatGPT reviewer → Loop
 ```
 
-### ✅ State Summary Files
+---
+
+## PACKAGE CONTENTS
+
+### ✅ Hjælpefiler (auto-genereret af scriptet)
 ```
-ARCHITECT_CURRENT_STATE.md           ← Metrics, completeness distribution, gaps
-ARCHITECT_DOMAIN_OVERVIEW.md         ← All 38 domains table (sortable by completeness)
+README.md                ← START HERE — struktur, workflow, hvad er hvad
+STATE_SUMMARY.md         ← Domæne komplethed, klar/mangler, antal filer pr layer
+DOMAIN_OVERVIEW.md       ← Alle 38 domæner i tabelform (score, gaps, status)
 ```
 
-### ✅ Documentation
+### ✅ Layer 1 — analysis-tool output
 ```
-docs/
-  SSOT_AUTHORITY_MODEL.md            ← 3-layer authority (Layer 0/1/2 definitions)
-  copilot-instructions.md            ← Copilot role as Builder
-  ARCHITECT_REVIEW_PACKAGE_PROTOCOL.md ← This protocol (reference doc)
+analysis-tool/
+  domains/                           ← 38 domæner × 10 artefakttyper
+    {domain}/
+      000_meta.json                  ← Komplethed, gaps, status, kilder
+      010_entities.json              ← Datammodeller
+      020_behaviors.json             ← Operationer
+      030_flows.json                 ← Brugerrejser
+      040_events.json                ← Domænehændelser
+      050_batch.json                 ← Baggrundsjobs, retry-logik
+      060_integrations.json          ← Eksterne afhængigheder
+      070_rules.json                 ← Forretningsregler
+      080_pseudocode.json            ← Implementeringsskitser
+      090_rebuild.json               ← Genopbygningsnoter til green-ai
+      095_decision_support.json      ← Design-beslutninger
+  analysis/                          ← 22 LOCKED wave-filer (DLR, contracts, system-status)
+  ai-slices/                         ← Slice-specs pr domæne
+  data/                              ← Pipeline-output: db_schema, api_map, bg_services
+  docs/                              ← SSOT model, authority model, plans
+  ai-governance/                     ← Builder-Architect protokol + governance
+    AI_BUILDER_ARCHITECT_PROTOCOL.md ← Samarbejdsregler (400+ linjer)
+    SSOT_AUTHORITY_MODEL.md          ← 3-lags autoritetsmodel
+  BUILDER_ARCHITECT_CHEAT_SHEET.md   ← Hurtig reference
+  PROTOCOL_REVIEW_FOR_CHATGPT.md     ← Initial protocol review
+  temp.md                            ← Nuværende session-status
+```
+
+### ✅ Layer 2 — green-ai (nuværende byggetilstand)
+```
+green-ai/
+  src/GreenAi.Api/Features/          ← Feature slices (Vertical Slice)
+  src/GreenAi.DB/Migrations/         ← SQL migrations (V001_...)
+  docs/SSOT/                         ← SSOT, ARCHITECTURE, DECISIONS
+  ai-governance/                     ← 13 governance-filer
+  AI_STATE.md                        ← Nuværende systemtilstand
+  AI_WORK_CONTRACT.md                ← Trigger-tabel + absolutte regler
 ```
 
 ---
@@ -141,16 +185,15 @@ Example: ARCHITECT_REVIEW_PACKAGE_20260410-141530.zip
 ```
 
 ### What Script Does
-1. Creates temporary folder with timestamp
-2. Copies protocol files (4 files)
-3. Copies extracted domains (38 domains, excludes `_archive/`)
-4. Generates ARCHITECT_CURRENT_STATE.md (metrics, completeness, gaps)
-5. Generates ARCHITECT_DOMAIN_OVERVIEW.md (table of all domains)
-6. Copies key documentation (SSOT model, Copilot instructions)
-7. Creates README.md (START HERE guide for ChatGPT)
-8. Compresses to ZIP
-9. Cleans up temporary folder
-10. Reports summary (domains, completeness, readiness)
+1. Opretter midlertidig mappe med timestamp
+2. Kopierer analysis-tool output (Layer 1) — ekskl. Python .py, raw/, output/, .venv/, .git/
+3. Kopierer green-ai repo (Layer 2) — ekskl. bin/, obj/, .dll, .exe, .pdb, .git/
+4. Genererer STATE_SUMMARY.md (komplethed, klar/mangler, filoptælling)
+5. Genererer DOMAIN_OVERVIEW.md (tabel over alle domæner)
+6. Genererer README.md (START HERE guide til ChatGPT)
+7. Komprimerer til ZIP
+8. Rydder midlertidig mappe op
+9. Rapporterer: L1-filer, L2-filer, ZIP-størrelse
 
 ---
 
@@ -381,23 +424,78 @@ Improvements over sms-service:
 
 ---
 
+## GAP-ANALYSE WORKFLOW (Arkitektens primære opgave)
+
+Arkitekten sammenligner **Layer 1** (hvad systemet skal kunne) med **Layer 2** (hvad der allerede er bygget) og beslutter for hvert domæne:
+
+| Udfald | Betingelse | Arkitektens handling |
+|--------|-----------|----------------------|
+| ✅ **Match** | Layer 2 dækker Layer 1 korrekt | Fortsæt — byg videre |
+| ⚠️ **Delvist** | Layer 2 mangler entiteter/flows fra Layer 1 | Udvid eksisterende implementering |
+| ❌ **Forkert** | Layer 2 er bygget på forkerte antagelser | Riv ned og byg om korrekt |
+| 🔲 **Ikke startet** | Domæne klar i Layer 1, intet i Layer 2 | Giv Copilot direktiv om at starte |
+
+### Eksempel
+
+```
+Layer 1: identity_access — 0.98 komplet
+  Entiteter: User, Profile, Role, Permission, JwtToken, RefreshToken
+  Flows: Login, Logout, TokenRefresh, PasswordReset, SCIMProvisioning
+
+Layer 2: green-ai/src/GreenAi.Api/Features/Auth/
+  Finder: Login, Register, JWT — MEN ingen RefreshToken, ingen SCIM
+
+Arkitekt beslutter:
+  ⚠️ DELVIST — tilføj RefreshToken-flow + SCIM-provisioning
+  Direktiv til Copilot: "Implementer RefreshToken rotation per slice_007,
+  og SCIM-provisioning per slice_010 i ai-slices/identity_access/"
+```
+
+### Processen i praksis
+
+```
+1. Arkitekt læser STATE_SUMMARY.md + DOMAIN_OVERVIEW.md  → overblik
+2. Arkitekt vælger prioriterede domæner (høj score + kritiske)
+3. For hvert domæne:
+   a. Læs analysis-tool/domains/{domain}/ (Layer 1 — krav)
+   b. Læs green-ai/src/.../Features/{domain}/ (Layer 2 — bygget)
+   c. Sammenlign → vælg udfald (Match/Delvist/Forkert/Ikke startet)
+4. Arkitekt formulerer direktiver til Copilot (via temp.md)
+5. Copilot implementerer → ny ZIP → loop
+```
+
+---
+
 ## ENFORCEMENT
 
-### Copilot MUST
-- ✅ Include ONLY Layer 1 (extracted domains) in package
-- ✅ EXCLUDE ALL Layer 0 (original sms-service code)
-- ✅ EXCLUDE ALL raw data (PDFs, CSVs)
-- ✅ EXCLUDE ALL Python implementation
-- ✅ Generate fresh package with timestamp
-- ✅ Report metrics (domains, completeness, gaps)
+### Hvad MED (INKLUDERES)
+- ✅ Layer 1: analysis-tool output (domæner, analyser, slices, governance, docs)
+- ✅ Layer 2: green-ai repo (src, docs, ai-governance, AI_STATE, AI_WORK_CONTRACT)
+- ✅ Auto-genererede hjælpefiler: README.md, STATE_SUMMARY.md, DOMAIN_OVERVIEW.md
 
-### ChatGPT MUST
-- ✅ Start with README.md
-- ✅ Review ARCHITECT_CURRENT_STATE.md before designing
-- ✅ Base green-ai design on concepts (Layer 1)
-- ✅ Request Copilot analysis when gaps identified
-- ❌ NEVER assume sms-service implementation details
-- ❌ NEVER copy sms-service patterns blindly
+### Hvad IKKE MED (EKSKLUDERES — Layer 0)
+- ❌ sms-service kildekode (C#, SQL, Razor, csproj)
+- ❌ WIKI dokumentation
+- ❌ raw/ data (PDF, CSV, labels.json)
+- ❌ Python implementering (*.py, .venv/, output/, __pycache__/)
+- ❌ Binærfiler (*.dll, *.exe, *.pdb)
+- ❌ Build output (bin/, obj/, TestResults/)
+- ❌ .git/ mapper
+
+### Copilot SKAL
+- ✅ Køre scriptet fra `c:\Udvikling\analysis-tool\`
+- ✅ Verificere at begge layers kom med (L1 + L2 filantal)
+- ✅ Rapportere ZIP-sti og størrelse til brugeren
+- ✅ Opdatere dette dokument hvis ZIP-indholdet ændres
+
+### ChatGPT SKAL
+- ✅ Starte med README.md
+- ✅ Bruge STATE_SUMMARY.md + DOMAIN_OVERVIEW.md til overblik
+- ✅ Base green-ai design på koncepter (Layer 1) — ikke sms-service kode
+- ✅ Bede Copilot om mere analyse ved gaps i Layer 1
+- ✅ Reviewe green-ai byggetilstand (Layer 2) inden nye direktiver
+- ❌ ALDRIG antage sms-service implementeringsdetaljer
+- ❌ ALDRIG kopiere sms-service mønstre blindt
 
 ### Package Quality Standards
 - ✅ All 38 domains included (no cherry-picking)

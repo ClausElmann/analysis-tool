@@ -1,17 +1,26 @@
 # AI Builder-Architect Protocol
 
 **Effective Date:** 2026-04-10  
-**Updated:** 2026-04-12  
 **Status:** BINDING (governance)  
-**Current Phase:** DUAL MODE — extraction for new domains + active build (STEP N-B) for approved domains  
 **Scope:** Coordination between Copilot (Builder) and ChatGPT (Architect)
+
+> ## ⚠️ analysis-tool er MIDLERTIDIGT
+>
+> Dette repository er et **byggeredskab** — ikke et permanent system.
+> **Når green-ai er færdigbygget, kan analysis-tool SLETTES.**
+>
+> **Exit-betingelse (hvornår er analysis-tool færdigt):**
+> - Alle domæner der er valgt til green-ai har completeness ≥ 0.90
+> - green-ai dokumentation er selvforklarende uden analysis-tool
+> - Ingen green-ai-doc siger "se analysis-tool for detaljer"
+>
+> **Test:** "Hvis analysis-tool slettes i dag — er green-ai selvstændigt og veldokumenteret?"  
+> Hvis svaret er JA → analysis-tool har tjent sit formål.
 
 **Related governance documents:**
 - [docs/SSOT_AUTHORITY_MODEL.md](../docs/SSOT_AUTHORITY_MODEL.md) — 3-layer authority model (Layer 0 → 1 → 2)
-- [docs/COPILOT_ONBOARDING.md](../docs/COPILOT_ONBOARDING.md) — Copilot Builder role, STEP N-A/N-B, session-start procedure
-- [docs/GREEN_AI_BUILD_STATE.md](../docs/GREEN_AI_BUILD_STATE.md) — Current green-ai build state (what is implemented NOW)
-- [BUILDER_ARCHITECT_CHEAT_SHEET.md](../BUILDER_ARCHITECT_CHEAT_SHEET.md) — Quick reference card
 - [.github/copilot-instructions.md](../.github/copilot-instructions.md) — Session start rules for Copilot
+- [BUILDER_ARCHITECT_CHEAT_SHEET.md](../BUILDER_ARCHITECT_CHEAT_SHEET.md) — Quick reference card
 - [green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md](../../green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md) — Runtime execution rules (WHAT vs HOW)
 
 ---
@@ -30,13 +39,13 @@
 
 **The system is ALWAYS in exactly one of two states. There is no gray area.**
 
-### STATE 1: ANALYSIS MODE (DEFAULT) — *also called STEP N-A in COPILOT_ONBOARDING.md*
+### STATE 1: ANALYSIS MODE (DEFAULT)
 - **Design is FORBIDDEN**
 - Only extraction, analysis, and reporting are allowed
 - This is the starting state for every session
 - This is the state after every design decision completes
 
-### STATE 2: DESIGN MODE (EXPLICIT ONLY) — *also called STEP N-B in COPILOT_ONBOARDING.md*
+### STATE 2: DESIGN MODE (EXPLICIT ONLY)
 - **Entered ONLY when ALL of the following are true:**
   1. Design Readiness Gate has PASSED (all artifact types ≥ 0.90, flows 100% verified)
   2. Architect has explicitly stated the words: **"ENTER DESIGN MODE"**
@@ -90,16 +99,13 @@ You are the ONLY agent with access to:
 **✅ YOU MUST:**
 
 1. **Execute Tasks** — Follow Architect's directives precisely
-2. **Analyze Sources** — Read Layer 0 files (code, WIKI, PDFs) for new domains
+2. **Analyze Sources** — Read Layer 0 files (code, WIKI, PDFs)
 3. **Extract Concepts** — Document WHAT features do (not HOW implemented)
 4. **Cite Sources** — Every extraction: file + method + line (all three mandatory)
 5. **Report Findings** — Update temp.md after EVERY task
 6. **Mark UNKNOWN** — When source is silent, never guess
 7. **Flag Patterns & Risks** — Highlight what you OBSERVE (NOT what to do about it)
 8. **Update Domains** — Maintain all artifact types (entities, behaviors, flows, rules)
-9. **Implement in green-ai** — After Architect approves STEP N-B (see §Build Phase workflow)
-10. **Follow green-ai SSOT** — Vertical slice, Dapper, Result<T>, 0 warnings, tests with code
-11. **Update GREEN_AI_BUILD_STATE.md** — After every STEP completion (feature added, migration applied, lock changed)
 
 **❌ YOU MUST NOT:**
 
@@ -108,7 +114,12 @@ You are the ONLY agent with access to:
 3. **NEVER Suggest Redesigns** — Observe complexity; never propose solutions
 4. **NEVER Decide Strategy** — Wait for Architect directive (domain, scope, priority, next step)
 5. **NEVER Propose Next Domain** — Report completion and ask; Architect decides what's next
-6. **NEVER Copy Code** — Extract concepts, not .cs/SQL/HTML verbatim
+6. **NEVER Copy Code** — Extract concepts, not .cs/SQL/HTML verbatim  
+   **⚖️ LEGAL RATIONALE:** The source system and the target system must have fully independent IP.  
+   Copied enums, SQL structures, or identical business logic line-by-line creates ownership ambiguity  
+   that could transfer IP rights between products unintentionally.  
+   **This applies to: enum values, static table rows, stored procedure logic, mapping tables.**  
+   Even if the result looks similar — it MUST originate from the target system's own design decisions.
 7. **NEVER Skip Reporting** — Even "small" tasks need temp.md update
 8. **NEVER Commit/Push** — Without Architect + Human approval
 
@@ -136,6 +147,9 @@ domains/[domain]/
 - **NO GUESSING:** If source is silent → mark UNKNOWN
 - **NO COPY-PASTE:** Extract concepts, never copy .cs/SQL/HTML
 - **CITE SOURCES:** Every extraction needs file+line reference
+- **BUILD STATUS HERE (MANDATORY):** Fremdrift, session-logs, extraktionsnotes, completeness scores → gemmes KUN i analysis-tool — ALDRIG i green-ai
+  - Brug: `domains/[domain]/000_meta.json`, `temp.md`, domæne-specifikke noter
+  - green-ai kender ikke til extraktionsprocessen — den ser kun det færdige Layer 1 output
 - **DESIGN READINESS THRESHOLD (all independent, NO average):**
   - Entities ≥ 0.90
   - Behaviors ≥ 0.90
@@ -973,39 +987,11 @@ Any single artifact type below threshold blocks the entire domain — regardless
 
 ## WORKFLOWS
 
-### ✅ WORKFLOW A: BUILD PHASE (STEP N-B) — Current Primary Mode
+### ✅ DEFAULT: REQUEST → ANALYSIS → REVIEW → DECISION
 
-**Used when:** Layer 1 completeness ≥ 0.88 AND Architect has approved STEP N-B.
+**This is the MANDATORY default workflow. Cannot be changed without explicit Architect directive.**
 
-1. **Architect approves:** "STEP N-B approved — implement [domain] per [scope]"
-2. **Copilot reads:** Layer 1 domain files (000_meta.json, entities, behaviors, flows) + green-ai SSOT patterns
-3. **Copilot implements:** Vertical slice features (Command, Handler, Validator, SQL, Endpoint, Tests)
-4. **Copilot reports to temp.md:**
-   - What was built (file paths)
-   - Migration applied (V0XX_Navn.sql)
-   - Tests passing (count)
-   - Deviations from Layer 1 (if any — must be flagged)
-   - GREEN_AI_BUILD_STATE.md updated
-5. **Architect reviews:** Approve / request adjustment
-6. **LOOP** — next feature in approved scope
-
-**Rules:**
-- ✅ Implement ONLY the approved scope (never expand mid-STEP)
-- ✅ Follow green-ai SSOT: vertical slice, Dapper, Result<T>, ICurrentUser, CustomerId in SQL
-- ✅ 0 compiler warnings — always
-- ✅ Tests with every feature (xUnit v3, NSubstitute)
-- ❌ NEVER copy code from sms-service (extract concept → re-implement)
-- ❌ NEVER start N-B without explicit Architect approval
-
----
-
-### ✅ WORKFLOW B: ANALYSIS PHASE (STEP N-A) — For New Domains
-
-**Used when:** Domain not yet extracted OR Layer 1 score < 0.88.
-
-**This is the MANDATORY default for new domains. Cannot be changed without explicit Architect directive.**
-
-1. **Architect requests specific analysis:** "Analyze [domain] DB schema — list all tables"
+1. **Architect requests specific analysis:** "Analyze Email DB schema — list all tables"
 2. **Copilot analyzes + reports only:** NO proposals, NO design suggestions — facts only
 3. **Architect reviews findings:** Decides next step based on facts
 4. **Architect directs next:** Explicit directive with scope and success criteria
@@ -1019,7 +1005,7 @@ Any single artifact type below threshold blocks the entire domain — regardless
 
 ---
 
-### WORKFLOW C: PROPOSAL-DRIVEN (OPT-IN — NOT DEFAULT)
+### PROPOSAL-DRIVEN (OPT-IN — NOT DEFAULT)
 
 **Allowed ONLY when Architect explicitly enables it:**
 
@@ -1214,6 +1200,6 @@ If a domain cannot reach the Design Readiness Threshold despite best efforts:
 
 ---
 
-**Last Updated:** 2026-04-12 (v3.3 — Dual-mode framing: extraction for new domains + active build (STEP N-B) now primary; added Build Phase workflow A; updated Copilot MUST list with build responsibilities)  
+**Last Updated:** 2026-04-10 (v3.2 — Fixed threshold language: "90% evidence" replaced by per-artifact 0.90 thresholds; removed ordering/priority from Proposal Mode; no average score — all artifact types pass independently)  
 **Governance Level:** BINDING  
 **Enforcement:** Both agents must follow protocol for successful Layer 0 → Layer 2 workflow

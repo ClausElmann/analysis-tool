@@ -1,6 +1,6 @@
 # Builder-Architect Protocol — Quick Reference
 
-**Full protocol:** [ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md](ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md) — BINDING (v3.1, read this for complete rules)  
+**Full protocol:** [ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md](ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md) — BINDING (v3.3, read this for complete rules)  
 **Authority model:** [docs/SSOT_AUTHORITY_MODEL.md](docs/SSOT_AUTHORITY_MODEL.md) — 3-layer hierarchy  
 **File:** `temp.md` (communication buffer)  
 **Updated:** After EVERY task  

@@ -15,6 +15,8 @@ THIS IS:
 STEP 0 — RESUME ON STARTUP (do this first, every time)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+0. Read  docs/COPILOT_ONBOARDING.md    → din rolle, ansvar, stop-betingelser, kommunikationsregler
+   Read  docs/GREEN_AI_BUILD_STATE.md  → persistent build ledger: hvad er bygget, hvad er næste, aktive locks
 1. Read  pingpong.md                   → session history, last completed section
 2. Read  domains/domain_state.json     → find _global.active_domain (current domain name)
 3. Read  data/run_log.jsonl            → find last line (last iteration + scores)
