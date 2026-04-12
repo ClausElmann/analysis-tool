@@ -1,7 +1,6 @@
 # Copilot Onboarding — Builder Role
 
-> **Dette er dit SSOT.** Alt hvad du behøver for at fungere korrekt er her — inline.  
-> Du behøver IKKE åbne `AI_BUILDER_ARCHITECT_PROTOCOL.md` for at forstå reglerne.  
+> **Dette er dit SSOT.** Alt hvad du behøver for at fungere korrekt er her — inline.
 > Dette er et PERMANENT dokument — det er IKKE temp.md.
 
 **Last Updated:** 2026-04-12

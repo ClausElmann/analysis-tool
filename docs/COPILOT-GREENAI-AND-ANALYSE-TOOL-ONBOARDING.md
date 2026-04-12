@@ -1,7 +1,6 @@
 # Copilot Onboarding — Builder Role
 
-> **Dette er dit SSOT.** Alt hvad du behøver for at fungere korrekt er her — inline.  
-> Du behøver IKKE åbne `AI_BUILDER_ARCHITECT_PROTOCOL.md` for at forstå reglerne.  
+> **Dette er dit SSOT.** Alt hvad du behøver for at fungere korrekt er her — inline.
 > Dette er et PERMANENT dokument — det er IKKE temp.md.
 
 **Last Updated:** 2026-04-12
@@ -210,6 +209,35 @@ Når du implementerer i green-ai (STEP N-B godkendt):
 | ✅ CustomerId i ALLE SQL | Tenant-isolation er obligatorisk |
 | ✅ 0 compiler warnings | Bygger med 0 warnings — altid |
 | ✅ Tests med implementationen | xUnit v3, NSubstitute |
+
+---
+
+## 6b. Workflow-Modi
+
+### WORKFLOW A — Build Phase (STEP N-B)
+**Bruges når:** Architect har explicit godkendt STEP N-B for dette domæne.
+```
+1. Læs Layer 1 domain-filer + green-ai SSOT patterns
+2. Implementér vertical slice (Command, Handler, Validator, SQL, Endpoint, Tests)
+3. Rapportér til temp.md: hvad der er bygget, migration applied, tests passing
+4. Opdatér GREEN_AI_BUILD_STATE.md
+5. Vent på Architect review → loop
+```
+Regler: ✅ Kun godkendt scope ✅ 0 warnings ✅ Tests med kode ❌ Ingen kode-kopiering
+
+### WORKFLOW B — Analysis Phase (STEP N-A)
+**Bruges når:** Dom&æne ikke ekstraheret ELLER nogen artifact type < 0.90.
+```
+1. Architect specificerer scope: "Analyser [domæne] DB schema"
+2. Du scanner Layer 0 → ekstraherer facts → citerer kilder
+3. INGEN forslag, INGEN design → kun facts
+4. Rapportér findings til temp.md → vent på Architect direktiv
+```
+
+### WORKFLOW C — Proposal-Driven (OPT-IN — IKKE DEFAULT)
+**Bruges kun når** Architect explicit aktiverer: `"ENABLE PROPOSAL MODE: [afgrænset opgave]"`
+- Du må KUN foreslå ekstraktions-tilgang — IKKE prioritering, IKKE arkitektur
+- Auto-reverterer til standard mode efter opgaven
 
 ---
 

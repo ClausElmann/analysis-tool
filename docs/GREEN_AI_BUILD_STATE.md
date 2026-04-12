@@ -138,6 +138,8 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 
 > Copilot opdaterer denne tabel når Architect siger "STEP N-B approved — [domain]" og når et domain markeres DONE.
 
+**States:** `N-A` · `N-B APPROVED` · `DONE 🔒` · `REBUILD APPROVED` (Architect låser op efter mismatch-rapport) · `BLOCKED`
+
 | Domain | State | Siden | Bemærkning |
 |--------|-------|-------|------------|
 | Email | DONE 🔒 | V034 | Lukket — ingen commits |
@@ -150,7 +152,8 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | customer_management | N-A | — | Score 0.88 — analyse pågår |
 | Alle øvrige | N-A | — | Score < 0.88 — extraction mangler |
 
-**Regel:** Copilot MÅ KUN bygge domæner med state `N-B APPROVED`.  
+**Regel:** Copilot MÅ KUN bygge domæner med state `N-B APPROVED` eller `REBUILD APPROVED`.  
+**Rebuild:** Copilot rapporterer mismatch → Architect siger `REBUILD APPROVED — [scope]` → Copilot implementerer inden for scope → DONE 🔒 gensættes.  
 **Opdatering:** Når Architect godkender N-B → sæt state. Når build er done → sæt DONE 🔒.
 
 ---

@@ -6,7 +6,7 @@
 **Status:** GOVERNANCE RULE — BLOCKING ENFORCEMENT
 
 **Related governance documents:**
-- [ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md](../ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md) — Builder-Architect coordination protocol (Design Lock, roles, gates)
+- [docs/ARCHITECT_ONBOARDING.md](../docs/ARCHITECT_ONBOARDING.md) — Builder-Architect coordination protocol (Design Lock, roles, gates)
 - [.github/copilot-instructions.md](../.github/copilot-instructions.md) — Session start rules for Copilot
 - [green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md](../../green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md) — Runtime WHAT vs HOW decision protocol
 

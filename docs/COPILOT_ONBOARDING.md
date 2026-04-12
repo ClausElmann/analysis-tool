@@ -85,7 +85,7 @@ Opdatér `temp.md` efter ENHVER opgave med disse 5 sektioner:
 
 **temp.md er SESSION-STATE — ikke permanent. Arkivér til temp_history/ når du starter nyt emne.**
 
-> Fuld kommunikationsprotokol (inkl. Architect-direktiv format, Design Readiness Gate, Source Authority): [ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md](../ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md) §SHARED PROTOCOLS
+(Al kommunikationsprotokol er nu inline i COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md)
 
 ### GREEN_AI_BUILD_STATE.md — permanent projekt-status
 

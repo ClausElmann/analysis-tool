@@ -30,8 +30,7 @@ New review package generated with updated data
 
 ### 1. Protocol Files
 ```
-PROTOCOL_REVIEW_FOR_CHATGPT.md       (Initial review request)
-AI_BUILDER_ARCHITECT_PROTOCOL.md     (Full protocol)
+ARCHITECT_ONBOARDING.md             (Architect rolle + workflows)
 BUILDER_ARCHITECT_CHEAT_SHEET.md     (Quick reference)
 temp.md                              (Current session state)
 ```

@@ -33,7 +33,7 @@ START SÅDAN HER (i denne rækkefølge):
   1. Åbn og læs README.md
   2. Åbn og læs STATE_SUMMARY.md
   3. Åbn og læs DOMAIN_OVERVIEW.md
-  4. Åbn og læs analysis-tool/ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md
+  4. Åbn og læs analysis-tool/docs/ARCHITECT_ONBOARDING.md
   5. Åbn og læs analysis-tool/docs/GREEN_AI_BUILD_STATE.md
   6. Rapportér: hvad du har læst, hvad der er klar til analyse, og stil mig 3 afklarende spørgsmål
      før du begynder gap-analysen.
@@ -107,9 +107,8 @@ analysis-tool/
   ai-slices/                         ← Slice-specs pr domæne
   data/                              ← Pipeline-output: db_schema, api_map, bg_services
   docs/                              ← SSOT model, authority model, plans
-  ai-governance/                     ← Builder-Architect protokol + governance
-    AI_BUILDER_ARCHITECT_PROTOCOL.md ← Samarbejdsregler (400+ linjer)
-    SSOT_AUTHORITY_MODEL.md          ← 3-lags autoritetsmodel
+    docs/                              ← SSOT model, authority model, onboarding
+      ARCHITECT_ONBOARDING.md          ← Architect rolle + regler + workflows
   BUILDER_ARCHITECT_CHEAT_SHEET.md   ← Hurtig reference
   PROTOCOL_REVIEW_FOR_CHATGPT.md     ← Initial protocol review
   temp.md                            ← Nuværende session-status

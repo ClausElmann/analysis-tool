@@ -24,7 +24,6 @@ Derefter svar på brugerens besked med fuld kontekst.
 | [docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md](../docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md) | **DIT SSOT** — rolle, regler, workspace, domain engine, kommandoer |
 | [docs/GREEN_AI_BUILD_STATE.md](../docs/GREEN_AI_BUILD_STATE.md) | Projekt-status, domain states, feature inventory |
 | [docs/ARCHITECT_ONBOARDING.md](../docs/ARCHITECT_ONBOARDING.md) | Architects SSOT (send til ChatGPT ved session-start) |
-| [ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md](../ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md) | Fuld governance (dybere reference) |
 
 ---
 

@@ -1,6 +1,6 @@
 # Builder-Architect Protocol — Quick Reference
 
-**Full protocol:** [ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md](ai-governance/AI_BUILDER_ARCHITECT_PROTOCOL.md) — BINDING (v4.1)
+**Last Updated:** 2026-04-12
 
 ---
 
