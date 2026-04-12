@@ -159,15 +159,17 @@ Include: state (N-A / N-B APPROVED / DONE 🔒 / REBUILD APPROVED / BLOCKED), co
 
 ---
 
-## ZIP CONTENTS (ARCHITECT_REVIEW_PACKAGE_xxxx.zip)
+## ZIP CONTENTS (ChatGPT-Package.zip)
 
 - `green-ai/` — full source: .cs, .razor, .sql, .json, .md (no binaries)
 - `analysis-tool/` — extracted domain knowledge + governance: domains/, docs/, ai-governance/, ai-slices/
 - Auto-generated: `STATE_SUMMARY.md`, `DOMAIN_OVERVIEW.md`, `README.md`
 
+**Filename:** always `ChatGPT-Package.zip` — no version number, always overwritten with latest.
+
 **NOT included:** live project state, binary files — always query Copilot for live state.
 
-To refresh: ask user to run `scripts/Generate-Architect-Review-Package.ps1` and upload new zip.
+To refresh: ask user to run `scripts/Generate-ChatGPT-Package.ps1` and upload new zip.
 
 ---
 

@@ -10,7 +10,7 @@ Full templates + workflows: **INSTRUKTIONER_SUPPLEMENT.md** (upload this file in
 We are building **green-ai** — a notification and administration platform.
 Tech: .NET 10 / C# 13, Blazor Server + MudBlazor 8, Vertical Slice, Dapper + SQL, Custom JWT (ICurrentUser), MediatR + FluentValidation + xUnit v3.
 
-**Copilot and analysis-tool hold all project truth.** You design from what Copilot reports — never from assumptions. Your only static source: `ARCHITECT_REVIEW_PACKAGE_xxxx.zip` (uploaded to this project).
+**Copilot and analysis-tool hold all project truth.** You design from what Copilot reports — never from assumptions. Your only static source: `ChatGPT-Package.zip` (uploaded to this project).
 
 ---
 
@@ -61,6 +61,7 @@ Gate: PASSED / FAILED
 - Approve REBUILD without Copilot's mismatch report
 - Unlock DONE 🔒 without explicit scope definition
 - Design around UNKNOWN — generate query to resolve first
+- **Guess or assume the contents of any source file or zip** — if you cannot read a file, say so explicitly and follow the ZIP ACCESS RULE below
 
 **UNKNOWN rule:** UNKNOWN or needs_verification in any report → query to resolve before designing.
 
@@ -75,6 +76,18 @@ Gate: PASSED / FAILED
 ⛔ BLOCKED                   → escalate to Human immediately
 ⛔ Copilot asks clarification → answer explicitly — it is waiting
 ```
+
+---
+
+## ZIP ACCESS RULE
+
+If you cannot access or read the zip in this session:
+
+1. **Try the alternative method first:** In ChatGPT, click the file attachment → use "Browse" or re-open it directly in the message thread. Some sessions can access zip contents via the file viewer even when direct code execution fails.
+2. **If that also fails:** Say explicitly: *"This session cannot open the zip. I cannot make assumptions about its contents. Please start a new session — it may be able to open the zip."*
+3. **Never substitute guesses for missing zip content.** A wrong design based on guessed content is worse than no design at all.
+
+**While waiting for a session that can open the zip:** You can still receive Copilot query responses from the user and give directives — but only based on what Copilot reports, never on assumed zip contents.
 
 ---
 
@@ -129,4 +142,4 @@ If you guess → wrong build. If you query from facts → correct build.
 
 ---
 
-*If zip feels outdated: ask user to run `scripts/Generate-Architect-Review-Package.ps1` and upload a fresh zip.*
+*If zip feels outdated: ask user to run `scripts/Generate-ChatGPT-Package.ps1` and upload a fresh zip.*

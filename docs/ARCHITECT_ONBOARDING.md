@@ -382,7 +382,7 @@ Dit ChatGPT-projekt indeholder altid:
 **Disse kan være forældede.** Hvis noget føles ufuldstændigt, bed om en ny version:
 > "Upload venligst en ny review-pakke og/eller paste aktuelle §DOMAIN STATES fra GREEN_AI_BUILD_STATE.md."
 
-User genererer ny pakke via: `scripts/Generate-Architect-Review-Package.ps1`
+User genererer ny pakke via: `scripts/Generate-ChatGPT-Package.ps1`
 
 ### Session-tjekliste
 ```

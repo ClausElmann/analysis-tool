@@ -167,13 +167,13 @@ c:\Udvikling\analysis-tool\
 
 ### Script Location
 ```
-c:\Udvikling\analysis-tool\scripts\Generate-Architect-Review-Package.ps1
+c:\Udvikling\analysis-tool\scripts\Generate-ChatGPT-Package.ps1
 ```
 
 ### Execution
 ```powershell
 cd c:\Udvikling\analysis-tool
-.\scripts\Generate-Architect-Review-Package.ps1
+.\.\scripts\Generate-ChatGPT-Package.ps1
 ```
 
 ### Output
@@ -547,4 +547,4 @@ Arkitekt beslutter:
 **Last Updated:** 2026-04-10  
 **Status:** BINDING  
 **Authority:** MANDATORY for all ChatGPT (Architect) reviews  
-**Script:** `scripts/Generate-Architect-Review-Package.ps1`
+**Script:** `scripts/Generate-ChatGPT-Package.ps1`

@@ -230,7 +230,7 @@ python analyzers/completeness_check.py
 python run_discovery_pipeline.py
 
 # Generer Architect Review Package (ZIP til ChatGPT)
-& "c:\Udvikling\analysis-tool\scripts\Generate-Architect-Review-Package.ps1"
+& "c:\Udvikling\analysis-tool\scripts\Generate-ChatGPT-Package.ps1"
 ```
 
 **Alle kommandoer køres fra:** `C:\Udvikling\analysis-tool\`  
