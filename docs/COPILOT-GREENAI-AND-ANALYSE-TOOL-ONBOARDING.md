@@ -120,6 +120,10 @@ Et flow er KUN gyldigt når ALLE fire felter er dokumenteret:
 
 ### temp.md — din eneste kommunikationskanal til Architect
 
+> 🔴 **KERNEREGEL: Arkitekten ser KUN hvad der er i temp.md. Chat er usynlig.**
+> Ethvert fund, beslutning, forslag, stop-condition, åbent spørgsmål, audit-svar → skriv i temp.md ØJEBLIKKELIGT.
+> Før ZIP genereres: gennemgå temp.md og spørg "er alt det Arkitekten skal vide her?" — hvis nej, tilføj det.
+
 Opdatér `temp.md` efter ENHVER opgave. Brug denne fulde skabelon:
 
 ```markdown
@@ -289,6 +293,12 @@ Regler: ✅ Kun godkendt scope ✅ 0 warnings ✅ Tests med kode ❌ Ingen kode-
 5. ALDRIG start N-B uden at se "approved" fra Architect i temp.md
 ```
 
+**SSOT-persistering — OBLIGATORISK i enhver session:**
+- Enhver ny proces / workflow / regel / pattern der aftales i chatten → skrives til SSOT med det samme
+- SSOT er din eneste hukommelse — session-hukommelse slettes, SSOT sletter ikke
+- Se `green-ai/AI_WORK_CONTRACT.md §Ny Proces → SSOT Mapping` for præcis placering per type
+- Tommelfingerregel: hvis du forklarer noget til brugeren mere end én gang → det hører hjemme i SSOT
+
 ---
 
 ## 10. Filstruktur Reference
@@ -341,6 +351,9 @@ python analyzers/completeness_check.py
 python run_discovery_pipeline.py
 
 # Generer Architect Review Package (ZIP til ChatGPT)
+# AUTOMATISK: scriptet genererer PACKAGE_TOKEN og skriver det i temp.md
+# Token-format: GA-YYYY-MMDD-V{migration}-{HHmm}  (migration level fra GREEN_AI_BUILD_STATE.md)
+# Fuld workflow: docs/CHATGPT_PACKAGE_PROTOCOL.md
 & "c:\Udvikling\analysis-tool\scripts\Generate-ChatGPT-Package.ps1"
 ```
 

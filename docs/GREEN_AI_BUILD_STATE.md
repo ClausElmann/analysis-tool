@@ -3,8 +3,8 @@
 > **Purpose:** Alt hvad jeg behøver at vide om green-ai — tech, build-state, locks, domain-states.  
 > **Opdatér** når et STEP afsluttes, migration applied, lock ændres, eller tech stack ændres.
 
-**Last Updated:** 2026-04-12  
-**Migration level:** V034  
+**Last Updated:** 2026-04-13  
+**Migration level:** V037  
 **Tests:** ~461 unit + 9 governance + 128/128 E2E ✅  
 **Build:** 0 warnings  
 **DB:** `GreenAI_DEV` på `(localdb)\MSSQLLocalDB`  
@@ -66,17 +66,19 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 | Domain | Features | Bemærkning |
 |--------|----------|------------|
 | AdminLight | AssignProfile, AssignRole, CreateUser, ListSettings, SaveSetting | ✅ |
+| ActivityLog | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs | ✅ DONE 🔒 |
 | Auth | ChangePassword, GetProfileContext, Login, Logout, Me, RefreshToken, SelectCustomer, SelectProfile | ✅ |
 | CustomerAdmin | GetCustomerSettings, GetProfiles, GetUsers | ⚠️ Stubs — gap-assessment mangler |
 | Email | Send, SendSystem, GatewayDispatch, WebhookStatusUpdate | ✅ CLOSED 🔒 |
 | Identity | ChangeUserEmail | ✅ |
+| JobManagement | LogJobTaskStatus, GetRecentAndOngoingTasks, ActiveJobs (SSE) — **unified monitoring** (Azure Batch + in-process) | ✅ DONE 🔒 |
 | Localization | BatchUpsertLabels, GetLabels | ⚠️ Stubs — gap-assessment mangler |
 | System | Health, Ping | ✅ |
 | UserSelfService | PasswordReset, UpdateUser | ✅ |
 
 ---
 
-## DB Schema akkurat nu (V034)
+## DB Schema akkurat nu (V037)
 
 | Tabel | Nøgle kolonner | Bemærkning |
 |-------|---------------|------------|
@@ -86,6 +88,13 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 | EmailAttachments | Id, EmailMessageId → EmailMessages (intra-domain FK) | ✅ |
 | Labels | Id, ResourceName, ResourceValue, LanguageId | ✅ |
 | Logs | Id, Timestamp, Level, Message, Exception | Serilog sink |
+| Jobs | Id, Name, DateCreatedUtc | Azure Batch job registry |
+| JobTasks | Id, JobId, AzureJobId, AzureTaskId, Parameters, DateCreatedUtc | Per-execution log |
+| JobTaskStatuses | Id, JobTaskId, StatusCode, StatusDurationMs?, Message?, DateCreatedUtc | Append-only status log |
+| ClientEvents | Id, Key, Payload, DateCreatedUtc | SSE bus (polled by ClientEventBackgroundService) |
+| ActivityLogs | Id, ActivityLogTypeCode, ObjectId | UNIQUE (ActivityLogTypeCode, ObjectId) — one parent per type+object |
+| ActivityLogEntryTypes | Id, DescriptionTranslationKey | UNIQUE (DescriptionTranslationKey) — GetOrCreate (dynamic lookup, NOT enum table) |
+| ActivityLogEntries | Id, ActivityLogId, EntryTypeId, DescriptionTranslationParms?, UserId?, DateCreatedUtc | Append-only; EntryTypeId FK → ActivityLogEntryTypes; TranslationKey stored (not resolved) |
 
 ---
 
@@ -113,8 +122,8 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 |--------|-------|-----------------|
 | identity_access | 0.98 | ✅ BUILT (STEP 12 complete) |
 | Email | 0.97 | ✅ BUILT + CLOSED 🔒 |
-| job_management | 0.93 | ⏳ Not started — HIGH PRIORITY |
-| activity_log | 0.92 | ⏳ Not started |
+| job_management | 0.93 | ✅ DONE 🔒 (V035) |
+| activity_log | 0.92 | ✅ DONE 🔒 (V036) |
 | localization | 0.915 | ⚠️ Partially built (BatchUpsertLabels, GetLabels exist — needs gap assessment) |
 | customer_administration | 0.88 | ⚠️ Partially built (GetCustomerSettings, GetProfiles, GetUsers — needs gap assessment) |
 | customer_management | 0.88 | ⏳ Not started |
@@ -145,10 +154,10 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | Email | DONE 🔒 | V034 | Lukket — ingen commits |
 | identity_access | DONE 🔒 | V034 | Auth + AdminLight |
 | UserSelfService | DONE 🔒 | V034 | PasswordReset, UpdateUser |
-| localization | N-B APPROVED | 2026-04-12 | Gap-fill — stubs eksisterer |
+| localization | DONE 🔒 | 2026-04-13 | AllowAnonymous fix + invariants dokumenteret |
 | customer_administration | N-B APPROVED | 2026-04-12 | Gap-fill — stubs eksisterer |
-| job_management | N-A | — | Score 0.93 — klar til N-B når Architect godkender |
-| activity_log | N-A | — | Score 0.92 — klar til N-B når Architect godkender |
+| job_management | DONE 🔒 | V035 | LogJobTaskStatus, GetRecentAndOngoingTasks, SSE (ActiveJobsHub + ClientEventBackgroundService) |
+| activity_log | DONE 🔒 | V037 | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs — FAIL-OPEN invariant |
 | customer_management | N-A | — | Score 0.88 — analyse pågår |
 | Alle øvrige | N-A | — | Score < 0.88 — extraction mangler |
 

@@ -164,6 +164,37 @@ if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 Compress-Archive -Path "$tmp\*" -DestinationPath $zipPath -CompressionLevel Optimal
 Remove-Item $tmp -Recurse -Force
 
+# --- PACKAGE_TOKEN: skriv til temp.md ---
+# Format: GA-YYYY-MMDD-V{migration}-{HHmm}
+# Henter migration level fra GREEN_AI_BUILD_STATE.md
+$buildStatePath = Join-Path $atRoot "docs\GREEN_AI_BUILD_STATE.md"
+$migrationLevel = "V???"
+if (Test-Path $buildStatePath) {
+    $buildContent = Get-Content $buildStatePath -Raw
+    if ($buildContent -match '\*\*Migration level:\*\*\s*(V\d+)') {
+        $migrationLevel = $Matches[1]
+    }
+}
+$tokenDate    = Get-Date -Format "yyyy-MMdd"
+$tokenTime    = Get-Date -Format "HHmm"
+$packageToken = "GA-$tokenDate-$migrationLevel-$tokenTime"
+
+$tempMdPath = Join-Path $atRoot "temp.md"
+if (Test-Path $tempMdPath) {
+    $tempContent = Get-Content $tempMdPath -Raw
+    # Erstat eksisterende token-linje hvis den findes
+    if ($tempContent -match '\*\*PACKAGE_TOKEN: GA-[\w-]+\*\*') {
+        $tempContent = $tempContent -replace '\*\*PACKAGE_TOKEN: GA-[\w-]+\*\*', "**PACKAGE_TOKEN: $packageToken**"
+    } else {
+        # Indsæt token efter første ---
+        $tempContent = $tempContent -replace '(---\r?\n)', "`$1`n> **PACKAGE_TOKEN: $packageToken**`n> ChatGPT SKAL citere dette token i sin første sætning som bevis på at den har læst denne ZIP.`n> Svar der IKKE starter med token-citering afvises.`n`n"
+    }
+    # Opdater også token-citation inde i selve audit-prompten
+    $tempContent = $tempContent -replace '"PACKAGE_TOKEN: GA-[\w-]+ bekræftet\."', """PACKAGE_TOKEN: $packageToken bekræftet."""
+    Set-Content -Path $tempMdPath -Value $tempContent -Encoding UTF8 -NoNewline
+    Write-Host "PACKAGE_TOKEN: $packageToken  →  temp.md opdateret" -ForegroundColor Yellow
+}
+
 $sz = [math]::Round((Get-Item $zipPath).Length / 1MB, 1)
 Write-Host ""
 Write-Host "DONE" -ForegroundColor Green
