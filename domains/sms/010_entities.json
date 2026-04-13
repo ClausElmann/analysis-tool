@@ -1,0 +1,260 @@
+[
+  {
+    "name": "SmsGroup",
+    "concept": "Root aggregate for a broadcast send operation. Represents a named group with send method configuration (SMS/Email/Voice), lookup settings, recipient configuration, and lifecycle state (draft -> looked-up -> sent). Contains references to channel-specific data entities (SmsData, EmailData, VoiceData, EboksData) and collections of SmsGroupItems and SmsLogs.",
+    "properties": [
+      "Id (long) — PK",
+      "GroupName (string)",
+      "DateCreatedUtc (DateTime)",
+      "DateUpdatedUtc (DateTime?)",
+      "DateLookupTimeUtc (DateTime?)",
+      "DateDelayToUtc (DateTime?)",
+      "DateSentUtc (DateTime?) — set by MarkSent(), null if not yet sent",
+      "SendSMS (bool)",
+      "SendEmail (bool)",
+      "SendVoice (bool)",
+      "SendMethod (string) — ByLevel/ByStdReceivers/ByMunicipality/etc.",
+      "IsLookedUp (bool)",
+      "LookupPrivate (bool)",
+      "LookupBusiness (bool)",
+      "SendToOwner (bool?)",
+      "OwnerAddressType (short?) — enum OwnerAddressType",
+      "SendToAddress (bool?)",
+      "SendToNumbersAndEmailsOnly (bool)",
+      "SendToCriticalAddressesOnly (bool?)",
+      "HasNoAddresses (bool)",
+      "CreatedFromSmsGroupId (long?) — copy source ref",
+      "HideInDrafts (bool?)",
+      "TestMode (bool)",
+      "Active (bool)",
+      "Archived (bool)",
+      "IsStencil (bool?)",
+      "DisableDuplicateControl (bool?)",
+      "AddressCount (int)",
+      "GeoObjects (string)",
+      "LastUpdatedByUserId (int?)",
+      "UserName (string) [NotMapped — joined from User]",
+      "OverruleBlockedNumber (bool)",
+      "InfoPortal (bool?)",
+      "WantsReceipt (bool?)",
+      "ProfileId (int) — FK",
+      "CountryId (int) — FK",
+      "WizardStep (int?)",
+      "BroadcastingCategory (string) [NotMapped]",
+      "FromApi (bool?)",
+      "SelectedTemplateId (int?)",
+      "IsRecalculated (bool)",
+      "LastMinuteLookup (bool)",
+      "IsMonthGroup (bool)",
+      "YearOfBirthMin (int?)",
+      "YearOfBirthMax (int?)",
+      "SmsData (SmsGroupSmsData)",
+      "EmailData (SmsGroupEmailData)",
+      "VoiceData (SmsGroupVoiceData)",
+      "EboksData (SmsGroupEboksData)",
+      "Attachments (ICollection<SmsGroupAttachment>)",
+      "SmsLog (virtual ICollection<SmsLog>) — EF navigation, not Dapper-loaded",
+      "SmsGroupItems (virtual ICollection<SmsGroupItem>) — EF navigation",
+      "WebMessages (virtual ICollection<WebMessage>) — EF navigation",
+      "ScheduledBroadcast (virtual SmsGroupSchedule) — EF navigation",
+      "Benchmark (virtual Benchmark) — EF navigation",
+      "RecipientPhoneNumbers (List<RecipientPhoneNumber>) — in-memory only",
+      "RecipientEboksAddresses (List<RecipientEboksAddress>) — in-memory only",
+      "RecipientCompanyRegistrationIds (List<RecipientCompanyRegistrationId>) — in-memory only"
+    ],
+    "mapping_status": "VERIFIED",
+    "navigation_properties_present": true,
+    "navigation_loading": "not automatic (Dapper) — virtual ICollection<> never populated by ORM; loaded separately via explicit Dapper queries",
+    "db_source": {
+      "table": "dbo.SmsGroups",
+      "verified_from": "ServiceAlert.Services/Dapper/DapperPlusRegistration.cs:397",
+      "note": "DapperPlusManager.Entity<SmsGroup>().Table(\"dbo.SmsGroups\").Identity(i => i.Id)"
+    },
+    "discrepancies": [
+      {
+        "field": "SmsLog / SmsGroupItems / WebMessages / ScheduledBroadcast / Benchmark",
+        "observation": "Declared as virtual ICollection/virtual property — EF navigation pattern. SmsGroup is mapped via Dapper (DapperPlusRegistration) not EF. These navigation properties are either unused or loaded separately via Dapper queries. They are not populated by the ORM mapping.",
+        "severity": "LOW"
+      }
+    ]
+  },
+  {
+    "name": "SmsGroupSmsData",
+    "concept": "SMS-specific configuration for a broadcast group. Stores the sender name/number and message text for SMS channel. 1:1 with SmsGroup via SmsGroupId PK/FK. No BaseEntity — SmsGroupId is the only key.",
+    "properties": [
+      "SmsGroupId (long) — PK and FK to SmsGroups",
+      "SendAs (string) — sender name or phone number",
+      "Message (string) — SMS message body",
+      "StandardReceiverText (string) — alternative text for standard receivers",
+      "ReceiveSmsReply (bool?) — if true, SMSSendAs must be a phone number",
+      "UseUCS2 (bool?) — force UCS-2 encoding"
+    ],
+    "mapping_status": "VERIFIED",
+    "pattern": "Extension table (1:1) — SmsGroupId is sole PK/FK. No BaseEntity. Same pattern as SmsGroupEmailData, SmsGroupVoiceData, SmsGroupEboksData",
+    "db_source": {
+      "table": "dbo.SmsGroupSmsData",
+      "verified_from": "ServiceAlert.Services/Dapper/DapperPlusRegistration.cs:410",
+      "note": "DapperPlusManager.Entity<SmsGroupSmsData>().Table(\"dbo.SmsGroupSmsData\").Key(x => x.SmsGroupId) — no Identity, SmsGroupId is sole key"
+    },
+    "discrepancies": []
+  },
+  {
+    "name": "SmsGroupItem",
+    "concept": "Recipient definition within a broadcast group. Represents an address/phone criterion used as input for lookup. May specify a phone number directly or an address range. StatusCode tracks individual recipient processing outcome. Can reference a StandardReceiver.",
+    "properties": [
+      "Id (int) — PK, from BaseEntity",
+      "Name (string)",
+      "Email (string)",
+      "PhoneCode (int?)",
+      "Phone (long?)",
+      "PhoneNumberType (PhoneNumberTypeEnum?)",
+      "StreetName (string)",
+      "Zip (int?)",
+      "City (string)",
+      "FromNumber (int?) — address range start",
+      "ToNumber (int?) — address range end",
+      "Letter (string) — set '0' for 'no letter'",
+      "Floor (string) — set '0' for 'no floor'",
+      "Door (string) — set '0' for 'no door'",
+      "Meters (int?)",
+      "EvenOdd (bool?)",
+      "StatusCode (int?)",
+      "ExternalRefId (long?)",
+      "ParentStandardReceiverGroupId (int?)",
+      "StandardReceiverGroupId (int?)",
+      "StandardReceiverId (int?)",
+      "SmsGroupId (long) — FK to SmsGroups",
+      "OnlySendToNumberIfProvided (bool) — default true",
+      "ResponseId (long?)",
+      "Group (virtual SmsGroup) — EF navigation",
+      "SmsGroupItemMergeField (virtual SmsGroupItemMergeField) — EF navigation"
+    ],
+    "mapping_status": "VERIFIED",
+    "db_source": {
+      "table": "dbo.SmsGroupItems",
+      "verified_from": "ServiceAlert.Services/Dapper/DapperPlusRegistration.cs:400",
+      "note": "DapperPlusManager.Entity<SmsGroupItem>().Table(\"dbo.SmsGroupItems\").Identity(i => i.Id)"
+    },
+    "discrepancies": []
+  },
+  {
+    "name": "SmsLog",
+    "concept": "Core SMS message record. One SmsLog per potential recipient. Created during lookup from SmsGroupItem address data. Carries receiver info, phone number, message text, current status code, and references to the originating SmsGroup and SmsGroupItem. Implements ILookupSmsLog for address lookup compatibility.",
+    "properties": [
+      "Id (long) — PK, from BaseEntity",
+      "Name (string) — receiver name",
+      "Kvhx (string) — address key",
+      "OwnerAddressKvhx (string)",
+      "PhoneCode (int?)",
+      "PhoneNumber (long?)",
+      "Text (string) — resolved message text",
+      "SmsSendAs (string) — sender name/number for SMS",
+      "EmailSendAs (string)",
+      "EmailSubject (string)",
+      "Email (string) — receiver email (marked ToDo: Remove)",
+      "TestMode (bool)",
+      "StatusCode (int) — SmsStatusCode enum value",
+      "DateGeneratedUtc (DateTime)",
+      "DateStatusUpdatedUtc (DateTime?)",
+      "DateRowUpdatedUtc (DateTime?)",
+      "DateDelayToUtc (DateTime?)",
+      "GatewayId (int?) — marked ToDo: In Use??",
+      "ExternalRefId (long?) — marked ToDo: In Use??",
+      "ProfileId (int) — FK",
+      "SmsGroupId (long) — FK to SmsGroups",
+      "SmsGroupItemId (int) — FK to SmsGroupItems",
+      "CompanyRegistrationId (string)",
+      "SupplyNumber (string)",
+      "SupplyNumberAlias (string)",
+      "Details (string)",
+      "ResponseId (long?)",
+      "DisplayAddress (string)",
+      "VoiceNumberId (int?)",
+      "GatewayProvider (GatewayProvider?) — enum: GatewayApi or Strex"
+    ],
+    "mapping_status": "VERIFIED",
+    "db_source": {
+      "table": "dbo.SmsLogs",
+      "verified_from": "ServiceAlert.Services/Dapper/DapperPlusRegistration.cs:415",
+      "note": "DapperPlusManager.Entity<SmsLog>().Table(\"dbo.SmsLogs\").Identity(x => x.Id)"
+    },
+    "discrepancies": [
+      {
+        "field": "Email",
+        "observation": "Field is marked '// Email Info <-- ToDo: Remove' in entity class. Still present on entity and presumably in DB table. May be vestigial from before dedicated Email channel was added.",
+        "legacy_field": true,
+        "removal_intent": "documented in code (// Email Info <-- ToDo: Remove)",
+        "severity": "MEDIUM"
+      },
+      {
+        "field": "GatewayId / ExternalRefId",
+        "observation": "Both marked '// External Ids <-- ToDo: In Use ??'. Unclear if actively used by gateway flows.",
+        "severity": "LOW"
+      }
+    ]
+  },
+  {
+    "name": "SmsLogStatus",
+    "concept": "Delivery status event per SmsLog. Stores gateway callback status codes with timestamp. Multiple statuses can exist per SmsLog (one per gateway callback event). Created from cross-domain write by Email domain (EmailService.UpdateEmailMessageStatusesAsync) when Email delivery status is received and SmsLogId is present.",
+    "properties": [
+      "Id (int) — PK, from BaseEntity",
+      "SmsLogId (long) — FK to SmsLogs",
+      "StatusCode (int)",
+      "DateReceivedUtc (DateTime)",
+      "Imported (bool?)",
+      "ErrorCode (string)",
+      "ErrorMessage (string)"
+    ],
+    "mapping_status": "VERIFIED",
+    "db_source": {
+      "table": "dbo.SmsLogStatuses",
+      "verified_from": "ServiceAlert.Services/Dapper/DapperPlusRegistration.cs:421",
+      "note": "DapperPlusManager.Entity<SmsLogStatus>().Table(\"dbo.SmsLogStatuses\").Identity(x => x.Id)"
+    },
+    "discrepancies": []
+  },
+  {
+    "name": "SmsLogsNoPhoneAddress",
+    "concept": "Record of a recipient address for which no phone number could be found during lookup. Tracks addresses that resulted in no SMS being sent. Same DB table as RejectedSmsLog read model (used in SmsLogRepository). Composite key: (SmsGroupId, SmsGroupItemId, Kvhx).",
+    "properties": [
+      "Id (int) — PK, from BaseEntity",
+      "SmsGroupId (long?) — FK to SmsGroups",
+      "DateGeneratedUtc (DateTime)",
+      "Kvhx (string) — address key",
+      "SmsGroupItemId (int?) — FK to SmsGroupItems"
+    ],
+    "mapping_status": "CONFLICTING",
+    "conflict_type": "Type mismatch (int vs long?) — same DB table read by two C# classes with different SmsGroupId types",
+    "impact": "Potential data truncation / mapping inconsistency on large SmsGroupId values (> int.MaxValue)",
+    "db_source": {
+      "table": "dbo.SmsLogsNoPhoneAddresses",
+      "verified_from": "ServiceAlert.Services/Dapper/DapperPlusRegistration.cs:419",
+      "note": "DapperPlusManager.Entity<SmsLogsNoPhoneAddress>().Table(\"dbo.SmsLogsNoPhoneAddresses\").Identity(x => x.Id).Key(k => new { k.SmsGroupId, k.SmsGroupItemId, k.Kvhx })"
+    },
+    "discrepancies": [
+      {
+        "field": "RejectedSmsLog (Entities/RejectedSmsLog.cs)",
+        "observation": "A separate class RejectedSmsLog (in SmsGroups.Entities namespace) reads from the same table. It has fewer fields (no SmsGroupItemId) and SmsGroupId is int (not long?). Used in SmsLogRepository.GetRejectedSmsLogs() as a partial read model. This is a code-level type inconsistency on the same table.",
+        "conflict_type": "Type mismatch (int vs long?) — same DB table, different SmsGroupId types",
+        "impact": "Potential data truncation / mapping inconsistency on large SmsGroupId values (> int.MaxValue)",
+        "severity": "CRITICAL"
+      }
+    ]
+  },
+  {
+    "name": "SmsGroupAttachment",
+    "concept": "Reference linking a broadcast group to a stored file (via ProfileStorageFile). Used to attach files to email sends within a broadcast. SmsGroupId + ProfileStorageFileId are the operative keys. Does not store file content — references ProfileStorageFiles which holds blob storage references.",
+    "properties": [
+      "Id (int) — PK, from BaseEntity",
+      "SmsGroupId (long) — FK to SmsGroups",
+      "ProfileStorageFileId (int) — FK to ProfileStorageFiles"
+    ],
+    "mapping_status": "VERIFIED",
+    "db_source": {
+      "table": "dbo.SmsGroupAttachments",
+      "verified_from": "ServiceAlert.Services/Messages/Repository/MessageRepository.cs:79",
+      "note": "SQL: SELECT * FROM SmsGroupAttachments WHERE smsGroupId = @smsGroupId. No DapperPlus registration found — uses raw Dapper query."
+    },
+    "discrepancies": []
+  }
+]

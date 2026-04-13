@@ -1,0 +1,2151 @@
+[
+  {
+    "name": "WebMessage",
+    "db_table": "dbo.WebMessages",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "SmsGroupId BIGINT NULL FK→SmsGroups (CASCADE DELETE)",
+      "Title NVARCHAR(500) NOT NULL",
+      "Text NVARCHAR(MAX) NOT NULL",
+      "ProfileId INT NOT NULL FK→Profiles (CASCADE DELETE)",
+      "TypeId INT NOT NULL FK→WebMessageTypes",
+      "CriticalStatus BIT NOT NULL",
+      "Completed BIT NOT NULL DEFAULT 0",
+      "DateCreatedUtc DATETIME NOT NULL",
+      "DateExpireUtc DATETIME NULL",
+      "DateDelayUtc DATETIME NULL",
+      "IsDraft BIT NULL",
+      "Status INT NOT NULL DEFAULT 0",
+      "EditedWebMessageId INT NULL FK→WebMessages (self-ref)"
+    ],
+    "related_tables": [
+      "dbo.WebMessageTypes"
+    ],
+    "layer_1_relevance": "INCLUDE — used in DeleteSmsGroupAsync webhook logic (F001). Dedicated Angular admin module web-messages.",
+    "green_ai_note": "EditedWebMessageId self-ref = edit creates new draft. TypeId FK must be modelled. Status int = own FSM."
+  },
+  {
+    "name": "SmsGroupSchedule",
+    "db_table": "dbo.SmsGroupSchedules",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "SmsGroupId BIGINT NOT NULL FK→SmsGroups (CASCADE DELETE)",
+      "CustomerId INT NOT NULL",
+      "FromDate DATE NOT NULL",
+      "EndDate DATE NULL",
+      "IntervalJson NVARCHAR(MAX) NULL",
+      "LocalTime TIME(7) NOT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — recurrence config for scheduled broadcasts. Angular admin module scheduled-broadcasts.",
+    "green_ai_note": "IntervalJson = recurrence stored as JSON blob, NOT RRULE/iCal. No IsActive column — state inferred from SmsGroup. Green-ai must decide: keep JSON or normalize."
+  },
+  {
+    "name": "SmsGroupScheduleException",
+    "db_table": "dbo.SmsGroupScheduleExceptions",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "SmsGroupScheduleId INT NOT NULL FK→SmsGroupSchedules",
+      "ExceptionDate DATE NOT NULL",
+      "NewDate DATE NULL",
+      "LocalTime TIME(7) NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — skip or reschedule a specific occurrence.",
+    "green_ai_note": "NewDate NULL = skip this occurrence. NewDate set = reschedule to that date. LocalTime override per exception."
+  },
+  {
+    "name": "SmsArchivedLog",
+    "db_table": "dbo.SmsArchivedLogs",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT NOT NULL PK (NOT IDENTITY — preserves original SmsLogs.Id)",
+      "ProfileId INT NOT NULL",
+      "SmsGroupId BIGINT NOT NULL",
+      "SmsGroupItemId INT NOT NULL",
+      "StatusCode INT NOT NULL",
+      "DateGeneratedUtc DATETIME NOT NULL",
+      "DateStatusUpdatedUtc DATETIME NULL",
+      "DateRowUpdatedUtc DATETIME NULL",
+      "PhoneCode INT NULL",
+      "PhoneNumber BIGINT NULL",
+      "Email NVARCHAR(200) NULL",
+      "SmsSendAs NVARCHAR(30) NULL",
+      "EmailSendAs NVARCHAR(200) NULL",
+      "EmailSubject NVARCHAR(200) NULL",
+      "ExternalRefId BIGINT NULL",
+      "Name NVARCHAR(250) NULL",
+      "Details NVARCHAR(50) NULL",
+      "TestMode BIT NOT NULL",
+      "GatewayId INT NULL",
+      "GatewayProvider INT NULL",
+      "Kvhx NVARCHAR(36) NULL",
+      "OwnerAddressKvhx NVARCHAR(36) NULL",
+      "DisplayAddress NVARCHAR(200) NULL",
+      "CompanyRegistrationId NVARCHAR(50) NULL",
+      "SupplyNumber NVARCHAR(50) NULL",
+      "SupplyNumberAlias NVARCHAR(100) NULL",
+      "VoiceNumberId INT NULL",
+      "DateSentUtc DATETIME NULL",
+      "SmsCount INT NULL",
+      "Text NVARCHAR(MAX) NULL",
+      "RecipientCount INT NULL",
+      "DateDelayToUtc DATETIME NULL",
+      "ResponseId BIGINT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — archival table for completed broadcasts.",
+    "green_ai_note": "PK is NOT IDENTITY — mirrors original SmsLogs.Id. GatewayProvider is newer field separate from GatewayId. Cross-channel: contains both SMS and Email fields (mirrors SmsLogs)."
+  },
+  {
+    "name": "WebhookRegistration",
+    "db_table": "dbo.WebhookRegistrations",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id UNIQUEIDENTIFIER NOT NULL PK",
+      "CustomerId INT NOT NULL",
+      "EventType INT NOT NULL",
+      "CallbackUrl NVARCHAR(MAX) NOT NULL",
+      "Secret NVARCHAR(100) NOT NULL",
+      "AlarmEmails NVARCHAR(MAX) NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — referenced in B007 (delete webhook) and B016 (status import webhook). API-only feature (no UI labels).",
+    "green_ai_note": "PK is GUID, not INT. CustomerId scope (not ProfileId). AlarmEmails for failure notification. EventType INT enum — values must be sourced from code."
+  },
+  {
+    "name": "WebhookMessage",
+    "db_table": "dbo.WebhookMessages",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL",
+      "EventType INT NOT NULL",
+      "Payload NVARCHAR(MAX) NOT NULL",
+      "DateCreatedUtc DATETIME NOT NULL",
+      "DateSentUtc DATETIME NULL",
+      "DateFailedUtc DATETIME NULL",
+      "RetryCount INT NOT NULL DEFAULT 0"
+    ],
+    "layer_1_relevance": "INCLUDE — outgoing webhook delivery tracking.",
+    "green_ai_note": "No WebhookRegistrationId FK on this table — link to registration is on WebhookMessageSendAttempts. DateFailedUtc for permanent failure tracking."
+  },
+  {
+    "name": "WebhookMessageSendAttempt",
+    "db_table": "dbo.WebhookMessageSendAttempts",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "WebhookMessageId INT NOT NULL",
+      "WebhookRegistrationId UNIQUEIDENTIFIER NOT NULL FK→WebhookRegistrations",
+      "DateStartedUtc DATETIME NOT NULL",
+      "DateCompletedUtc DATETIME NULL",
+      "ResponseCode INT NULL",
+      "ResponseMessage NVARCHAR(MAX) NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — individual HTTP attempt per message per registration.",
+    "green_ai_note": "WebhookRegistrationId is GUID FK here. One message can be attempted against multiple registrations."
+  },
+  {
+    "name": "ConversationPhoneNumber",
+    "db_table": "dbo.ConversationPhoneNumbers",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NULL",
+      "PhoneCode INT NOT NULL DEFAULT 45",
+      "PhoneNumber BIGINT NOT NULL",
+      "Name NVARCHAR(200) NOT NULL DEFAULT ''",
+      "GatewayProvider INT NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.ConversationPhoneNumberProfileMappings"
+    ],
+    "layer_1_relevance": "INCLUDE — inbound number for two-way SMS. Angular top-level sms-conversations module.",
+    "green_ai_note": "Profile mapping is many-to-many via ConversationPhoneNumberProfileMappings (no direct ProfileId here). GatewayProvider = which gateway receives inbound."
+  },
+  {
+    "name": "ConversationPhoneNumberProfileMapping",
+    "db_table": "dbo.ConversationPhoneNumberProfileMappings",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProfileId INT NOT NULL",
+      "ConversationPhoneNumberId INT NOT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — one inbound number shared across multiple profiles.",
+    "green_ai_note": "No CASCADE DELETE declared — cleanup must be explicit."
+  },
+  {
+    "name": "Conversation",
+    "db_table": "dbo.Conversations",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ConversationPhoneNumberId INT NOT NULL FK→ConversationPhoneNumbers",
+      "PartnerPhoneCode INT NOT NULL DEFAULT 0",
+      "PartnerPhoneNumber BIGINT NOT NULL",
+      "PartnerName NVARCHAR(200) NOT NULL",
+      "Unread BIT NOT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — thread grouping for two-way SMS.",
+    "green_ai_note": "No ProfileId directly — inferred through ConversationPhoneNumber→ProfileMapping. No DateCreatedUtc on this table. Unread flag for UI badge."
+  },
+  {
+    "name": "ConversationMessage",
+    "db_table": "dbo.ConversationMessages",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ConversationId INT NOT NULL FK→Conversations",
+      "Text NVARCHAR(MAX) NOT NULL",
+      "SmsLogId INT NULL FK→SmsLogs",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getdate()",
+      "Status INT NOT NULL DEFAULT 0"
+    ],
+    "layer_1_relevance": "INCLUDE — individual message in thread.",
+    "green_ai_note": "SmsLogId is INT (not BIGINT) — same overflow risk as BR014. No Direction column — direction inferred from SmsLogId NULL (inbound) vs set (outbound). Status int = delivery state."
+  },
+  {
+    "name": "Subscription",
+    "db_table": "dbo.Subscriptions",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL",
+      "IdentifierKey NVARCHAR(150) NOT NULL",
+      "PhoneNumber BIGINT NULL",
+      "PhoneCode INT NULL",
+      "PhoneNumberType INT NULL DEFAULT 1",
+      "Email NVARCHAR(200) NULL",
+      "SubscriberName NVARCHAR(100) NULL",
+      "SubscriptionTypeId SMALLINT NULL",
+      "Blocked BIT NOT NULL DEFAULT 0",
+      "Deleted BIT NOT NULL DEFAULT 0",
+      "Imported BIT NOT NULL DEFAULT 0",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DateLastUpdatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DateDeletedUtc DATETIME NULL",
+      "DateLastNotifiedUtc DATETIME NULL",
+      "DateNotInPhonenumbersUtc DATETIME NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — Lookup pipeline source (F006: LookupSubscriptionsCommand, LookupOwnerSubscriptionsCommand). 335 git commits = most actively developed domain.",
+    "green_ai_note": "IdentifierKey = Kvhx-based address key used to match subscriptions to lookup. Blocked vs Deleted are separate states. DateNotInPhonenumbersUtc = phone absent from registry (churn signal).",
+    "scope_note": "Subscription is a Lookup DATA SOURCE. Architect must decide: own domain or part of broadcast domain?"
+  },
+  {
+    "name": "SubscriptionSupplyNumber",
+    "db_table": "dbo.SubscriptionSupplyNumbers",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL",
+      "SupplyNumber NVARCHAR(50) NOT NULL",
+      "Alias NVARCHAR(200) NULL",
+      "SubscriberName NVARCHAR(100) NULL",
+      "PhoneCode INT NULL",
+      "PhoneNumber BIGINT NULL",
+      "PhoneNumberType INT NULL",
+      "Email NVARCHAR(200) NULL",
+      "SubscriptionTypeId INT NOT NULL",
+      "Imported BIT NOT NULL DEFAULT 0",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DateLastModifiedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DateDeletedUtc DATETIME NULL",
+      "DateLastNotifiedUtc DATETIME NULL",
+      "DateNotInPhoneNumbersUtc DATETIME NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — supply-number based subscriptions. F006 LookupSupplyNumbersSubscriptionsCommand. B017 merge-field supply branch.",
+    "green_ai_note": "Keyed on SupplyNumber string (not address Kvhx). Alias = human-readable supply point name for merge-field resolution."
+  },
+  {
+    "name": "SmsGroupApprovalRequest",
+    "db_table": "dbo.SmsGroupApprovalRequest",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProfileId INT NOT NULL",
+      "SmsGroupId INT NOT NULL",
+      "RequestedByUserId INT NOT NULL",
+      "ApprovedByUserId INT NULL",
+      "CreatedUTC DATETIME2(7) NOT NULL",
+      "ApprovedUTC DATETIME2(7) NULL"
+    ],
+    "related_tables": [
+      "dbo.SmsGroupApprovers"
+    ],
+    "layer_1_relevance": "INCLUDE — the unapproved/approval flow. A broadcast must be approved before sending.",
+    "green_ai_note": "ApprovedByUserId NULL = pending. ApprovedUTC NULL = not approved yet. No rejection state in DB — binary: pending or approved. SmsGroupId is INT here (vs BIGINT in SmsGroups) — potential type mismatch."
+  },
+  {
+    "name": "SmsGroupApprover",
+    "db_table": "dbo.SmsGroupApprovers",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProfileId INT NOT NULL",
+      "UserId INT NOT NULL",
+      "RecieveNotification BIT NOT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — defines who can approve broadcasts per profile.",
+    "green_ai_note": "Column typo: RecieveNotification (should be ReceiveNotification). Green-ai should correct spelling."
+  },
+  {
+    "name": "Warning",
+    "db_table": "dbo.Warnings",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProfileId INT NOT NULL",
+      "WarningTypeId INT NOT NULL FK→WarningTypes",
+      "Status INT NOT NULL",
+      "RecipientStrategy INT NULL",
+      "SourceRef NVARCHAR(200) NULL",
+      "SourceDateUtc DATETIME NULL",
+      "Serial NVARCHAR(100) NULL",
+      "DateCreatedUtc DATETIME NOT NULL",
+      "DateProcessedUtc DATETIME NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — externally triggered broadcast source (weather, critical infrastructure).",
+    "green_ai_note": "Status FSM: New=0, FirstRetry=1, SecondRetry=2, Failed=3, InProgress=4..6, Postponed=7/9, Done=10. SourceRef = external system ref. Serial = deduplication key.",
+    "related_tables": [
+      "dbo.WarningTypes",
+      "dbo.WarningTemplates",
+      "dbo.WarningFields",
+      "dbo.WarningRecipients",
+      "dbo.WarningProfileSettings"
+    ]
+  },
+  {
+    "name": "WarningType",
+    "db_table": "dbo.WarningTypes",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "NameTranslationKey NVARCHAR(200) NOT NULL",
+      "ProfileRoleId INT NOT NULL FK→ProfileRoles",
+      "SendAsSingleMessages BIT NOT NULL DEFAULT 1"
+    ],
+    "layer_1_relevance": "INCLUDE — category of warning, restricts which profiles can use it.",
+    "green_ai_note": "Name is a translation key (localization-aware). SendAsSingleMessages=false: all recipients get one grouped message."
+  },
+  {
+    "name": "WarningTemplate",
+    "db_table": "dbo.WarningTemplates",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "TypeId INT NOT NULL FK→WarningTypes",
+      "TemplateId INT NOT NULL FK→Templates",
+      "ProfileId INT NOT NULL FK→Profiles",
+      "AllowNightlyWarnings BIT NOT NULL",
+      "TestMode BIT NOT NULL DEFAULT 1",
+      "MaxAgeInHours SMALLINT NULL DEFAULT 4",
+      "HandleHour SMALLINT NULL DEFAULT 8",
+      "OnlyWarningIfStillInLatestData BIT NULL DEFAULT 1"
+    ],
+    "layer_1_relevance": "INCLUDE — Profile+WarningType to Template + send rules.",
+    "green_ai_note": "TestMode defaults to 1 (safe-off, same pattern as BR019). HandleHour = time of day to process. MaxAgeInHours = reject stale warnings."
+  },
+  {
+    "name": "Enrollment",
+    "db_table": "dbo.Enrollments",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "SenderId UNIQUEIDENTIFIER NOT NULL FK→Senders",
+      "EnrolleeAddressId INT NOT NULL FK→EnrolleeAddresses",
+      "Blocked BIT NOT NULL DEFAULT 0",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DateDeletedUtc DATETIME NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — VERIFIED Lookup data source: F006 LookupEnrollmentsCommand + LookupOwnerEnrollmentsCommand.",
+    "green_ai_note": "Blocked is separate from soft-delete. SenderId is GUID FK to Senders (the Enrollment app's profile concept). EnrolleeAddressId → EnrolleeAddresses (address-centric).",
+    "related_tables": [
+      "dbo.Enrollees",
+      "dbo.EnrolleeAddresses",
+      "dbo.Senders",
+      "dbo.SenderTips"
+    ]
+  },
+  {
+    "name": "Prospect",
+    "db_table": "dbo.Prospects",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Name NVARCHAR(200) NOT NULL",
+      "CompanyRegistrationId NVARCHAR(500) NULL",
+      "CountryId INT NOT NULL",
+      "CustomerId INT NULL (NULL until converted to Customer)",
+      "KvhxAddress NVARCHAR(36) NULL",
+      "WebsiteUrl NVARCHAR(500) NULL",
+      "ContactPersonEmail NVARCHAR(256) NULL",
+      "ContactPersonName NVARCHAR(60) NULL",
+      "ContactPersonPhone BIGINT NULL",
+      "ContactPersonPhoneCode INT NULL",
+      "Segment NVARCHAR(500) NULL",
+      "SenderGuid UNIQUEIDENTIFIER NULL",
+      "SMSSendAs NVARCHAR(100) NULL",
+      "InvoiceEmail NVARCHAR(256) NULL",
+      "EanGln NVARCHAR(100) NULL",
+      "ReferenceNumber NVARCHAR(100) NULL",
+      "RoleGroupId INT NULL",
+      "PaymentId INT NULL",
+      "NumberOfUserLicenses INT NULL",
+      "CreationPrice INT NULL",
+      "SubscriptionPrice INT NULL",
+      "SpecialAgreementText NVARCHAR(MAX) NULL",
+      "RegisterApplication BIT NULL",
+      "DisplayAddress NVARCHAR(200) NULL",
+      "Archive BIT NOT NULL DEFAULT 0",
+      "EconomicId INT NULL",
+      "DateCreatedUtc DATETIME NOT NULL",
+      "DateDeletedUtc DATETIME NULL"
+    ],
+    "layer_1_relevance": "INCLUDE (scope=INTERNAL) — internal sales CRM. Angular pipeline module.",
+    "green_ai_note": "CustomerId NULL until prospect converts. EconomicId = integration with e-conomic billing. Separate domain from broadcast/messaging.",
+    "related_tables": [
+      "dbo.ProspectContactPersons",
+      "dbo.ProspectProducts",
+      "dbo.ProspectCustomerAccounts"
+    ]
+  },
+  {
+    "name": "Statstidende",
+    "db_table": "dbo.Statstidende",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Name NVARCHAR(200) NOT NULL",
+      "ServiceName NVARCHAR(50) NOT NULL",
+      "Enable BIT NULL",
+      "MailSubject NVARCHAR(300) NULL",
+      "MailBody NVARCHAR(4000) NULL",
+      "MailBcc NVARCHAR(300) NULL",
+      "MailFromEmail NVARCHAR(100) NULL",
+      "MailFromName NVARCHAR(100) NULL",
+      "MessageTypePublicKey NVARCHAR(50) NULL",
+      "AddressFieldGroupPublicKey NVARCHAR(50) NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — external legal notification integration (Danish official gazette: death estates, insolvency, foreclosures).",
+    "green_ai_note": "ServiceName = Statstidende API endpoint identifier. MessageTypePublicKey + AddressFieldGroupPublicKey = API integration keys. Email-based (not SMS pipeline). Separate from broadcast pipeline.",
+    "related_tables": [
+      "dbo.StatstidendeData",
+      "dbo.StatstidendeReceivers",
+      "dbo.StatstidendeSubscriptions"
+    ]
+  },
+  {
+    "name": "StatstidendeData",
+    "db_table": "dbo.StatstidendeData",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id BIGINT IDENTITY PK",
+      "StatstidendeId INT NOT NULL FK→Statstidende (CASCADE DELETE+UPDATE)",
+      "MessageKey NVARCHAR(50) NOT NULL",
+      "PublicationDate DATETIME NOT NULL",
+      "JsonObject NVARCHAR(MAX) NOT NULL",
+      "Zipcode INT NULL",
+      "City NVARCHAR(100) NULL",
+      "Street NVARCHAR(200) NULL",
+      "Number INT NULL",
+      "Letter NVARCHAR(20) NULL",
+      "Floor NVARCHAR(20) NULL",
+      "Door NVARCHAR(20) NULL",
+      "Kvhx NVARCHAR(36) NULL",
+      "KvhxDawa NVARCHAR(36) NULL",
+      "SendtUtc DATETIME NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — incoming legal notices with address data for lookup.",
+    "green_ai_note": "JsonObject = raw Statstidende API payload. SendtUtc NULL = pending send. KvhxDawa vs Kvhx = two address keys (DAWA vs legacy)."
+  },
+  {
+    "name": "StatstidendeReceiver",
+    "db_table": "dbo.StatstidendeReceivers",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL FK→Customers (CASCADE DELETE)",
+      "Name NVARCHAR(500) NOT NULL",
+      "Email NVARCHAR(1000) NOT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — named email recipients for Statstidende notifications.",
+    "green_ai_note": "Email allows 1000 chars — likely semicolon-separated multiple addresses."
+  },
+  {
+    "name": "StatstidendeSubscription",
+    "db_table": "dbo.StatstidendeSubscriptions",
+    "mapping_status": "VERIFIED",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProfileId INT NOT NULL FK→Profiles",
+      "StatstidendeId INT NOT NULL FK→Statstidende",
+      "StatstidendeReceiverId INT NOT NULL FK→StatstidendeReceivers (CASCADE DELETE)",
+      "PK constraint: (StatstidendeId, ProfileId, StatstidendeReceiverId)"
+    ],
+    "layer_1_relevance": "INCLUDE — links a Profile to a Statstidende category and a named receiver.",
+    "green_ai_note": "Composite PK prevents duplicate subscriptions per profile+category+receiver."
+  },
+  {
+    "name": "LookupSelection",
+    "db_table": null,
+    "mapping_status": "IN_MEMORY",
+    "description": "In-memory pipeline type. Represents a user targeting criterion passed to the Lookup pipeline. Base interface ISelection with subtypes.",
+    "interface_hierarchy": [
+      "ISelection (marker)",
+      "INamedSelection: string? Name",
+      "IPhoneSelection extends INamedSelection: int? PhoneCode, long? PhoneNumber",
+      "IEmailSelection extends INamedSelection: string? Email",
+      "ILevelFilterSelection: string? Level1..Level5",
+      "AddressFilterSelection: int ZipCode, string? Street, int? FromNumber, int? ToNumber, bool? EvenOdd, string? Letter, string? Floor, string? Door, int? Meters",
+      "LevelFilterSelection: Level1..Level5",
+      "PhoneSelection: int? PhoneCode, long? PhoneNumber",
+      "EmailSelection: string? Email"
+    ],
+    "source": "Wiki: coded-lookup page",
+    "layer_1_relevance": "INCLUDE — persisted form is SmsGroupItems. Defines the broadcast creation API contract."
+  },
+  {
+    "name": "LookupOrigin",
+    "db_table": null,
+    "mapping_status": "IN_MEMORY",
+    "description": "In-memory pipeline type. An entity causing the message to be sent. Produced by ILookupExpander from Selections.",
+    "interfaces": [
+      "ILookupOrigin: string Name",
+      "ILookupAddressOrigin: string Kvhx",
+      "ILookupPhoneNumberOrigin: int PhoneCode, long PhoneNumber",
+      "ILookupEmailOrigin: string Email"
+    ],
+    "source": "Wiki: coded-lookup page",
+    "layer_1_relevance": "INCLUDE — Origin = broadcast reason/cause. Critical for why-was-this-sent reporting."
+  },
+  {
+    "name": "LookupTarget",
+    "db_table": null,
+    "mapping_status": "IN_MEMORY",
+    "description": "In-memory pipeline type. Pairing of a specific recipient with a specific Origin. Produced by ILookupEnricher.EnrichAsync().",
+    "interfaces": [
+      "ILookupTarget (marker interface)",
+      "ILookupEnricher: Task<IReadOnlyCollection<ILookupTarget>> EnrichAsync(IEnumerable<ILookupOrigin>)"
+    ],
+    "source": "Wiki: coded-lookup page",
+    "layer_1_relevance": "INCLUDE — Target is the join between recipient identity and message origin."
+  },
+  {
+    "name": "LookupDeliverable",
+    "db_table": null,
+    "mapping_status": "IN_MEMORY",
+    "description": "In-memory pipeline type. A channel-specific message that COULD be sent. Filtered deliverables are marked with FilterReason, not silently removed.",
+    "interfaces": [
+      "ILookupDeliverable (marker interface)",
+      "ILookupGenerator: Task<IReadOnlyCollection<ILookupDeliverable>> GenerateAsync(IEnumerable<ILookupTarget>)",
+      "ILookupFilter: Task<IReadOnlyCollection<ILookupDeliverable>> FilterAsync(IEnumerable<ILookupDeliverable>)"
+    ],
+    "channels": [
+      "SMS",
+      "Voice",
+      "Email",
+      "EboksPlus",
+      "EboksCVR"
+    ],
+    "filter_reason_values": [
+      "Robinson",
+      "NameMatch",
+      "Duplicate",
+      "DuplicateWithKvhx",
+      "LookupMaxNumbers"
+    ],
+    "source": "Wiki: coded-lookup page",
+    "layer_1_relevance": "INCLUDE — Deliverable maps to a DeliveryRecord row. FilterReason should be added as RejectionReason column in green-ai DeliveryRecord."
+  },
+  {
+    "name": "Customer",
+    "db_table": "dbo.Customers",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "PublicId UNIQUEIDENTIFIER NOT NULL DEFAULT newid()",
+      "Name NVARCHAR(200) NOT NULL",
+      "SMSSendAs NVARCHAR(100) NULL",
+      "EconomicId INT NULL",
+      "CountryId INT NOT NULL DEFAULT 1",
+      "Active BIT NOT NULL DEFAULT 1",
+      "Deleted BIT NOT NULL DEFAULT 0",
+      "DateDeletedUtc DATETIME NULL",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DateLastUpdatedUtc DATETIME NULL",
+      "TimeZoneId NVARCHAR(100) NULL",
+      "LanguageId INT NULL DEFAULT 1",
+      "DaysBeforeSMSdraftDeletion INT NULL",
+      "MaxNumberOfLicenses INT NULL",
+      "DefaultWebSMSgroupValidMinutes INT NULL",
+      "ForwardingNumber BIGINT NULL",
+      "MonthToDeleteBroadcast INT NOT NULL DEFAULT 60",
+      "MonthToDeleteMessages INT NOT NULL DEFAULT 60",
+      "KvhxAddress NVARCHAR(36) NULL",
+      "CompanyRegistrationId NVARCHAR(500) NULL",
+      "Segment NVARCHAR(500) NULL",
+      "WebsiteUrl NVARCHAR(500) NULL",
+      "RegisterApplication BIT NULL",
+      "Information NVARCHAR(MAX) NULL",
+      "AutoSignature NVARCHAR(200) NULL DEFAULT ''",
+      "ShowMessagesBeforeSelectedStartDateDays TINYINT NOT NULL DEFAULT 1",
+      "ShowMessagesAfterSelectedEndDateDays TINYINT NOT NULL DEFAULT 1",
+      "TerminationFlowStarted BIT NULL",
+      "ScimTokenUUID NVARCHAR(36) NULL",
+      "VoiceDeliveryWindowStart TIME(7) NULL",
+      "VoiceDeliveryWindowEnd TIME(7) NULL",
+      "VoiceSendAs NVARCHAR(20) NULL",
+      "VoiceNumberId INT NULL FK→VoiceNumbers",
+      "OneFlowDocumentId NVARCHAR(20) NULL"
+    ],
+    "related_tables": [
+      "dbo.CustomerAccounts",
+      "dbo.CustomerApiKeys",
+      "dbo.CustomerFtpSettings",
+      "dbo.CustomerImportFtpSettings",
+      "dbo.CustomerLogs",
+      "dbo.CustomerNotes",
+      "dbo.CustomerSamlSettings",
+      "dbo.CustomerSubscriptionSettings",
+      "dbo.CustomerUserRoleMappings",
+      "dbo.CustomerProfileRolePrices",
+      "dbo.Profiles"
+    ],
+    "layer_1_relevance": "INCLUDE — top-level tenant entity. All domain tables reference CustomerId.",
+    "green_ai_note": "PublicId (GUID) = external-facing identity, Id = internal FK. MonthToDeleteBroadcast + MonthToDeleteMessages = per-customer data retention policy. ScimTokenUUID = SCIM provisioning. VoiceDeliveryWindowStart/End = time-of-day gate for voice calls. Active vs Deleted are separate states."
+  },
+  {
+    "name": "Profile",
+    "db_table": "dbo.Profiles",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "PublicId UNIQUEIDENTIFIER NOT NULL DEFAULT newid()",
+      "Name NVARCHAR(250) NOT NULL",
+      "ProfileTypeId INT NOT NULL FK→ProfileTypes",
+      "CustomerId INT NOT NULL FK→Customers",
+      "SmsSendAs NVARCHAR(100) NULL",
+      "EmailSendAs NVARCHAR(200) NULL",
+      "EconomicId INT NULL",
+      "MapZoomLevel INT NULL",
+      "MapCenterCoordLatitude FLOAT NULL",
+      "MapCenterCoordLongitude FLOAT NULL",
+      "MapLayerId INT NULL",
+      "MapSearchMethod NVARCHAR(50) NULL DEFAULT 'Addresses'",
+      "LookupMaxNumbers SMALLINT NULL",
+      "RoleGroupId INT NULL FK→ProfileRoleGroups",
+      "CountryId INT NOT NULL DEFAULT 1",
+      "LanguageId INT NOT NULL DEFAULT 1",
+      "TimeZoneId NVARCHAR(100) NULL",
+      "EboksStrategy INT NULL DEFAULT 1",
+      "Sms2InternalDisplayName NVARCHAR(50) NULL",
+      "BenchmarkDisplayName NVARCHAR(50) NULL",
+      "WeeklyReportEmail NVARCHAR(500) NOT NULL DEFAULT ''",
+      "PublicName NVARCHAR(250) NULL",
+      "PublicAddress NVARCHAR(200) NULL",
+      "KvhxAddress NVARCHAR(36) NULL",
+      "CompanyRegistrationId NVARCHAR(500) NULL",
+      "Hidden BIT NOT NULL DEFAULT 0",
+      "Deleted BIT NOT NULL DEFAULT 0",
+      "DateDeletedUtc DATETIME NULL",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DateLastUpdatedUtc DATETIME NULL",
+      "DateLastPosListUpdateUtc DATETIME NULL",
+      "OneFlowDocumentId NVARCHAR(20) NULL"
+    ],
+    "related_tables": [
+      "dbo.ProfileRoleMappings",
+      "dbo.ProfileApiKeys",
+      "dbo.ProfileTypes"
+    ],
+    "layer_1_relevance": "INCLUDE — fundamental authorization and configuration scope. Every broadcast/lookup operation is Profile-scoped.",
+    "green_ai_note": "LookupMaxNumbers is enforced in F006 filter pipeline (BR filter). RoleGroupId = template used when creating Profile. EboksStrategy int = which e-Boks delivery strategy to use. Hidden = profile exists but not visible in UI. LookupMaxNumbers NULL = no cap."
+  },
+  {
+    "name": "CustomerAccount",
+    "db_table": "dbo.CustomerAccounts",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL",
+      "SubscriptionPrice MONEY NULL",
+      "SubscriptionPriceIncrease MONEY NULL",
+      "SubscriptionPriceIncreaseUTC DATETIME2(7) NULL",
+      "PricePerSms MONEY NULL",
+      "PricePerSmsInternational MONEY NULL",
+      "PricePerVoice MONEY NULL",
+      "PricePerVoiceInternational MONEY NULL",
+      "PricePerEmail MONEY NULL",
+      "PricePerEboks MONEY NULL",
+      "PricePerAddressLookup MONEY NULL",
+      "DetailedInvoice BIT NULL",
+      "InvoiceCycle SMALLINT NULL",
+      "InvoiceContact NVARCHAR(100) NULL",
+      "InvoiceReference NVARCHAR(100) NULL",
+      "CustomerAccountType NVARCHAR(MAX) NULL",
+      "SegmentCategory NVARCHAR(50) NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — pricing contract per customer. One-to-one with Customer.",
+    "green_ai_note": "Per-channel pricing (SMS, email, voice, eBoks, lookup). SubscriptionPriceIncreaseUTC = scheduled future price change. InvoiceCycle = monthly/quarterly etc. CustomerAccountType = contract type string (not enum)."
+  },
+  {
+    "name": "ProfileRole",
+    "db_table": "dbo.ProfileRoles",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Name NVARCHAR(256) NOT NULL",
+      "Description NVARCHAR(500) NULL",
+      "PublicVisible BIT NOT NULL DEFAULT 0",
+      "SuperAdminVisible BIT NOT NULL DEFAULT 1",
+      "ProfileRoleCategoryId INT NOT NULL DEFAULT 0",
+      "DateCreatedUtc DATETIME NULL DEFAULT getutcdate()",
+      "DateLastUpdatedUtc DATETIME NULL DEFAULT getutcdate()"
+    ],
+    "related_tables": [
+      "dbo.ProfileRoleMappings",
+      "dbo.ProfileRolePrices",
+      "dbo.CustomerProfileRolePrices",
+      "dbo.ProfileRolesInGroups"
+    ],
+    "layer_1_relevance": "INCLUDE — feature flags and permission system. Referenced throughout domain (B001 permission gates, F006 filter, WarningTypes).",
+    "green_ai_note": "PublicVisible = shown in self-service. SuperAdminVisible = only super-admins see it. ProfileRoleCategoryId groups roles for UI display. No IsEnabled column — presence in ProfileRoleMappings = enabled."
+  },
+  {
+    "name": "ProfileRoleMapping",
+    "db_table": "dbo.ProfileRoleMappings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProfileId INT NOT NULL FK→Profiles",
+      "ProfileRoleId INT NOT NULL FK→ProfileRoles",
+      "AddedManuallyDateUtc DATETIME NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — many-to-many: which roles are enabled for a profile.",
+    "green_ai_note": "AddedManuallyDateUtc NULL = role was added via RoleGroup template (not manually). NOCHECK constraints declared — FK enforcement is disabled in prod. Green-ai should enforce properly."
+  },
+  {
+    "name": "ProfileRolePrice",
+    "db_table": "dbo.ProfileRolePrices",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProfileRoleId INT NOT NULL FK→ProfileRoles",
+      "CountryId INT NOT NULL",
+      "Price MONEY NULL",
+      "Currency NVARCHAR(50) NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — default per-country price for a role feature.",
+    "green_ai_note": "Per-country pricing (DK, NO, SE, FI). Can be overridden per customer via CustomerProfileRolePrices."
+  },
+  {
+    "name": "CustomerProfileRolePrice",
+    "db_table": "dbo.CustomerProfileRolePrices",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL FK→Customers",
+      "ProfileRoleId INT NOT NULL FK→ProfileRoles",
+      "Price MONEY NOT NULL",
+      "Currency NVARCHAR(25) NOT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — customer-specific role price override.",
+    "green_ai_note": "Overrides ProfileRolePrices for a specific customer. No CountryId here — currency string encodes country implicitly."
+  },
+  {
+    "name": "ProfileRoleGroup",
+    "db_table": "dbo.ProfileRoleGroups",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Name NVARCHAR(50) NOT NULL",
+      "CountryId INT NOT NULL",
+      "OrderBy INT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — role template used when creating a new Profile.",
+    "green_ai_note": "Country-specific templates (DK/NO/SE/FI). OrderBy for UI display. Referenced from Profiles.RoleGroupId."
+  },
+  {
+    "name": "ProfileRolesInGroup",
+    "db_table": "dbo.ProfileRolesInGroups",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "GroupId INT NOT NULL FK→ProfileRoleGroups",
+      "RoleId INT NOT NULL FK→ProfileRoles"
+    ],
+    "layer_1_relevance": "INCLUDE — many-to-many: which roles are in a group template.",
+    "green_ai_note": "No CASCADE DELETE declared. When a group is used to create a Profile, roles are copied into ProfileRoleMappings with AddedManuallyDateUtc=NULL."
+  },
+  {
+    "name": "CustomerLog",
+    "db_table": "dbo.CustomerLogs",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL",
+      "UserId INT NOT NULL",
+      "Message NVARCHAR(MAX) NULL",
+      "DateInsertedUTC DATETIME NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — audit trail for account/pricing changes.",
+    "green_ai_note": "Free-text Message — no structured event type. UserId = who made the change. Used by sales/admin staff."
+  },
+  {
+    "name": "CustomerNote",
+    "db_table": "dbo.CustomerNotes",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL FK→Customers",
+      "Note NVARCHAR(500) NOT NULL",
+      "CreatedByUser INT NOT NULL FK→Users",
+      "DeletedByUser INT NULL FK→Users",
+      "DateCreatedUtc DATETIME NOT NULL",
+      "DateDeletedUtc DATETIME NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — CRM notes by sales/admin staff.",
+    "green_ai_note": "Soft-delete via DateDeletedUtc. CreatedByUser + DeletedByUser = full audit. No EditedBy — notes are immutable once created."
+  },
+  {
+    "name": "CustomerApiKey",
+    "db_table": "dbo.CustomerApiKeys",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL FK→Customers",
+      "Key NVARCHAR(500) NOT NULL",
+      "Secret NVARCHAR(500) NULL",
+      "Type NVARCHAR(500) NOT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — customer-level API access keys.",
+    "green_ai_note": "Type string categorizes the key (not an enum). Secret NULL = key-only auth (no HMAC). Compare with ProfileApiKeys (profile-scoped)."
+  },
+  {
+    "name": "ProfileApiKey",
+    "db_table": "dbo.ProfileApiKeys",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProfileId INT NOT NULL FK→Profiles",
+      "Key NVARCHAR(500) NOT NULL",
+      "Secret NVARCHAR(500) NULL",
+      "Type NVARCHAR(500) NOT NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — profile-level API access keys.",
+    "green_ai_note": "Same structure as CustomerApiKeys but Profile-scoped."
+  },
+  {
+    "name": "CustomerFtpSettings",
+    "db_table": "dbo.CustomerFtpSettings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL",
+      "Server NVARCHAR(500) NOT NULL",
+      "Path NVARCHAR(500) NOT NULL",
+      "UserName NVARCHAR(50) NOT NULL",
+      "Password NVARCHAR(50) NOT NULL",
+      "PrivateKey NVARCHAR(MAX) NULL",
+      "ServerType INT NOT NULL",
+      "DataImportSavedConfigurationId INT NULL",
+      "AllowOfficeHoursImport BIT NOT NULL DEFAULT 1"
+    ],
+    "layer_1_relevance": "INCLUDE — FTP/SFTP integration config for customer.",
+    "green_ai_note": "Password stored as NVARCHAR (plaintext or encrypted — unclear from schema). PrivateKey for SFTP key auth. ServerType int = FTP vs SFTP. AllowOfficeHoursImport = time-window gate for data imports."
+  },
+  {
+    "name": "CustomerSamlSettings",
+    "db_table": "dbo.CustomerSamlSettings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL",
+      "EntityId NVARCHAR(500) NOT NULL",
+      "MetadataUrl NVARCHAR(500) NOT NULL",
+      "EmailClaim NVARCHAR(500) NULL"
+    ],
+    "layer_1_relevance": "INCLUDE — SAML2 SSO per customer.",
+    "green_ai_note": "One record per customer. EmailClaim = SAML attribute name to use as email identity. MetadataUrl = IdP metadata endpoint."
+  },
+  {
+    "name": "CustomerSubscriptionSettings",
+    "db_table": "dbo.CustomerSubscriptionSettings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL (UNIQUE)",
+      "NotificationText NVARCHAR(MAX) NULL",
+      "NotificationFrequency INT NOT NULL",
+      "NotificationActive BIT NOT NULL DEFAULT 0",
+      "SubscriptionModuleTitle NVARCHAR(200) NULL",
+      "SubscriptionModuleGetCodeText NVARCHAR(1000) NULL",
+      "SubscriptionModuleConfirmText NVARCHAR(1000) NULL",
+      "SubscriptionModuleDisclaimerText NVARCHAR(4000) NULL",
+      "SubscriptionModuleShowDisclaimerText NVARCHAR(200) NULL",
+      "SubscriptionModuleSubscribedReceiptText NVARCHAR(1530) NULL",
+      "SubscriptionModuleUnSubscribedReceiptText NVARCHAR(1530) NULL",
+      "SubscriptionModuleAliasText NVARCHAR(50) NULL",
+      "SubscriptionModuleSupplyNumberText NVARCHAR(50) NULL",
+      "SubscriptionModuleByCustomerNumber BIT NULL",
+      "SubscriptionModuleDisableOperatorLookup BIT NULL",
+      "SubscriptionModuleAllowOnlySingleContactInfo BIT NULL DEFAULT 0"
+    ],
+    "layer_1_relevance": "INCLUDE — customer-specific subscription widget configuration (texts, behaviour).",
+    "green_ai_note": "UNIQUE constraint on CustomerId — one-to-one with Customer. All SubscriptionModule* = iframe widget configuration texts for the customer's public sign-up page. NotificationActive = whether to send periodic digest to staff."
+  },
+  {
+    "name": "CustomerUserRoleMapping",
+    "db_table": "dbo.CustomerUserRoleMappings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Customers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL",
+      "UserRoleId INT NOT NULL",
+      "DefaultSelected BIT NOT NULL DEFAULT 1",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()"
+    ],
+    "layer_1_relevance": "INCLUDE — which user roles are available/default for a customer.",
+    "green_ai_note": "UserRoleId references user-level roles (UserRoles table — not the same as ProfileRoles). DefaultSelected = pre-checked in role assignment UI."
+  },
+  {
+    "name": "StandardReceiver",
+    "db_table": "dbo.StandardReceivers",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Name NVARCHAR(100) COLLATE Danish_Norwegian_CI_AI NOT NULL",
+      "Phone BIGINT NULL",
+      "Email NVARCHAR(100) COLLATE Danish_Norwegian_CI_AI NULL",
+      "CustomerId INT NOT NULL",
+      "DateCreatedUtc DATETIME DEFAULT getutcdate() NULL",
+      "PhoneCode INT NULL",
+      "IsManaged BIT NOT NULL DEFAULT 0",
+      "ScimExternalId NVARCHAR(200) NULL",
+      "JobTitle NVARCHAR(100) NULL",
+      "OtherInfo NVARCHAR(100) NULL"
+    ],
+    "related_tables": [
+      "dbo.Customers",
+      "dbo.StandardReceiverGroupMappings",
+      "dbo.StandardReceiverProfileMappings",
+      "dbo.StandardReceiverPhoneNumbers"
+    ],
+    "layer_1_relevance": "INCLUDE — core recipient entity. Customer-scoped (not shared). IsManaged=SCIM-managed. Phone is BIGINT (not combined with PhoneCode in column).",
+    "green_ai_note": "Phone stored as BIGINT separate from PhoneCode INT. Multiple phone numbers via StandardReceiverPhoneNumbers. SCIM integration via ScimExternalId. Trusted recipient type (bypasses RobinsonCheck + LookupMaxNumbers)."
+  },
+  {
+    "name": "StandardReceiverGroup",
+    "db_table": "dbo.StandardReceiverGroups",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL FK->Customers (NOCHECK)",
+      "Name NVARCHAR(100) COLLATE Danish_Norwegian_CI_AI NOT NULL",
+      "DateCreatedUtc DATETIME DEFAULT getutcdate() NULL",
+      "IsActiveForSubscription BIT NULL",
+      "FtpPath NVARCHAR(500) NULL",
+      "IsManaged BIT NOT NULL DEFAULT 0",
+      "ScimExternalId NVARCHAR(200) NULL",
+      "DataImportSavedConfigurationId INT NULL",
+      "ReceiptEmail NVARCHAR(1000) NULL"
+    ],
+    "related_tables": [
+      "dbo.Customers",
+      "dbo.StandardReceiverGroupMappings",
+      "dbo.StandardReceiverGroupProfileMappings",
+      "dbo.StandardReceiverGroupKeywords",
+      "dbo.StandardReceiverGroupDistributionPhoneNumbers",
+      "dbo.DataImportSavedConfigurations"
+    ],
+    "layer_1_relevance": "INCLUDE — group aggregate. IsActiveForSubscription = keyword-join enabled. FtpPath = SFTP import. DataImportSavedConfigurationId links to import config. ReceiptEmail for group notifications.",
+    "green_ai_note": "FK to Customers has NOCHECK. DataImportSavedConfigurationId = cross-domain link to import system. Weather Warning groups use StandardReceiverGroupKeywords with WeatherWarning=1."
+  },
+  {
+    "name": "StandardReceiverGroupMapping",
+    "db_table": "dbo.StandardReceiverGroupMappings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "StandardReceiverId INT NOT NULL FK->StandardReceivers (NOCHECK)",
+      "StandardReceiverGroupId INT NOT NULL FK->StandardReceiverGroups (NOCHECK)",
+      "DateCreatedUtc DATETIME DEFAULT getutcdate() NULL"
+    ],
+    "related_tables": [
+      "dbo.StandardReceivers",
+      "dbo.StandardReceiverGroups"
+    ],
+    "layer_1_relevance": "INCLUDE — many-to-many receiver-group relation. Both FKs have NOCHECK.",
+    "green_ai_note": "Both FK constraints NOCHECK. Green-ai must enforce referential integrity in application layer."
+  },
+  {
+    "name": "StandardReceiverProfileMapping",
+    "db_table": "dbo.StandardReceiverProfileMappings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "StandardReceiverId INT NOT NULL FK->StandardReceivers (NOCHECK)",
+      "ProfileId INT NOT NULL FK->Profiles (NOCHECK)",
+      "SelectedDefault BIT NOT NULL",
+      "SendReport BIT NOT NULL",
+      "DateCreatedUtc DATETIME DEFAULT getutcdate() NULL"
+    ],
+    "related_tables": [
+      "dbo.StandardReceivers",
+      "dbo.Profiles"
+    ],
+    "layer_1_relevance": "INCLUDE — per-profile visibility + default selection. SelectedDefault = pre-selected in broadcast wizard. SendReport = delivery report sent to receiver.",
+    "green_ai_note": "Both FK NOCHECK. SelectedDefault controls wizard pre-selection. SendReport is per-mapping (not per-receiver)."
+  },
+  {
+    "name": "StandardReceiverGroupProfileMapping",
+    "db_table": "dbo.StandardReceiverGroupProfileMappings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "StandardReceiverGroupId INT NOT NULL FK->StandardReceiverGroups (NOCHECK)",
+      "ProfileId INT NOT NULL FK->Profiles (NOCHECK)",
+      "DateCreatedUtc DATETIME DEFAULT getutcdate() NULL",
+      "SelectedDefault BIT NOT NULL DEFAULT 0"
+    ],
+    "related_tables": [
+      "dbo.StandardReceiverGroups",
+      "dbo.Profiles"
+    ],
+    "layer_1_relevance": "INCLUDE — per-profile group visibility + default selection. Mirrors StandardReceiverProfileMapping pattern for groups.",
+    "green_ai_note": "Both FK NOCHECK (duplicate NOCHECK statements in sql file — likely migration artifact). SelectedDefault = group pre-selected in wizard."
+  },
+  {
+    "name": "StandardReceiverGroupKeyword",
+    "db_table": "dbo.StandardReceiverGroupKeywords",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "StandardReceiverGroupId INT NOT NULL FK->StandardReceiverGroups",
+      "Keyword NVARCHAR(100) NOT NULL",
+      "CancelWord NVARCHAR(100) NOT NULL",
+      "AddedMessage NVARCHAR(MAX) NOT NULL",
+      "CancelledMessage NVARCHAR(MAX) NOT NULL",
+      "NotFoundMessage NVARCHAR(MAX) NOT NULL",
+      "ReceiverNumber BIGINT NOT NULL DEFAULT 451204",
+      "WeatherWarning BIT NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.StandardReceiverGroups"
+    ],
+    "layer_1_relevance": "INCLUDE — SMS subscribe/unsubscribe via keyword. ReceiverNumber DEFAULT 451204 = hardcoded to 1204 number (Odinsbro uses 1919). WeatherWarning flag = special zip-code subscription flow.",
+    "green_ai_note": "ReceiverNumber DEFAULT hardcoded to 451204 — green-ai should make this configurable. WeatherWarning=1 triggers zip-code special flow. Messages (AddedMessage/CancelledMessage) are per-keyword customizable confirmation texts."
+  },
+  {
+    "name": "StandardReceiverGroupDistributionPhoneNumber",
+    "db_table": "dbo.StandardReceiverGroupDistributionPhoneNumbers",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "PhoneCode INT NOT NULL",
+      "PhoneNumber BIGINT NOT NULL",
+      "ProfileId INT NULL FK->Profiles (NOCHECK)",
+      "StandardReceiverGroupId INT NULL FK->StandardReceiverGroups (NOCHECK)",
+      "Name NVARCHAR(200) NULL"
+    ],
+    "related_tables": [
+      "dbo.StandardReceiverGroups",
+      "dbo.Profiles"
+    ],
+    "layer_1_relevance": "INCLUDE — inbound SMS to this number broadcasts to all group members. Both IDs nullable = phone number can be profile-level or group-level.",
+    "green_ai_note": "Both FK NOCHECK. Both ProfileId and StandardReceiverGroupId are nullable — one or both may be set. Inbound SMS routing to group broadcast."
+  },
+  {
+    "name": "StandardReceiverPhoneNumber",
+    "db_table": "dbo.StandardReceiverPhoneNumbers",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "StandardReceiverId INT NOT NULL FK->StandardReceivers",
+      "PhoneCode INT NOT NULL",
+      "PhoneNumber BIGINT NOT NULL",
+      "PhoneNumberType INT NOT NULL",
+      "UsedFor INT NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.StandardReceivers"
+    ],
+    "layer_1_relevance": "INCLUDE — multiple phone numbers per receiver. PhoneNumberType + UsedFor = enums (type and purpose of number).",
+    "green_ai_note": "Extension table for StandardReceivers.Phone (which holds primary number). PhoneNumberType and UsedFor are INT enums — enum values unknown from DB schema alone."
+  },
+  {
+    "name": "StandardReceiverGroupGroupMapping",
+    "db_table": "dbo.StandardReceiverGroupGroupMappings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "StandardReceiverGroupId INT NOT NULL",
+      "MemberStandardReceiverGroupId INT NOT NULL",
+      "DateCreatedUtc DATETIME DEFAULT getutcdate() NULL"
+    ],
+    "related_tables": [
+      "dbo.StandardReceiverGroups"
+    ],
+    "layer_1_relevance": "INCLUDE — group-of-groups (nested groups). No FK constraints defined in DDL.",
+    "green_ai_note": "No FK constraints in DDL (unlike other mapping tables). Self-referential group containment. Green-ai must handle recursion/depth limit."
+  },
+  {
+    "name": "StandardReceiverCustomerSettings",
+    "db_table": "dbo.StandardReceiverCustomerSettings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Standard-Receivers.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CustomerId INT NOT NULL UNIQUE",
+      "SubscriptionGetCodeText NVARCHAR(1000) NULL",
+      "GroupSubscribedReceiptText NVARCHAR(1530) NULL",
+      "GroupUnSubscribedReceiptText NVARCHAR(1530) NULL"
+    ],
+    "related_tables": [
+      "dbo.Customers"
+    ],
+    "layer_1_relevance": "INCLUDE — customer-level customization of subscription confirmation texts. UNIQUE on CustomerId = one-to-one with Customer.",
+    "green_ai_note": "Max 1530 chars for receipt texts (SMS multi-part limit consideration). UNIQUE index on CustomerId. Texts are per-customer overrides of default confirmation messages."
+  },
+  {
+    "name": "DataImportFile",
+    "db_table": "dbo.DataImportFiles",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Implementation/New-Import.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Filename NVARCHAR(200) NOT NULL",
+      "FileType NVARCHAR(100) NOT NULL",
+      "ImportFormat NVARCHAR(100) NULL",
+      "ProfileId INT NULL",
+      "CustomerId INT NULL",
+      "UploadedByUserId INT NULL",
+      "Status INT NOT NULL",
+      "SizeKb INT NULL",
+      "DateChangedUtc DATETIME NOT NULL",
+      "DateDeletedUtc DATETIME NULL",
+      "ErrorsJson NVARCHAR(MAX) NULL",
+      "ColumnNamesJson NVARCHAR(MAX) NOT NULL",
+      "ImportResultJson NVARCHAR(MAX) NULL",
+      "ImportSettingsJson NVARCHAR(MAX) NULL",
+      "TotalRowsCount INT NULL",
+      "InvalidRowsCount INT NULL",
+      "OriginalFileName NVARCHAR(100) NULL",
+      "DateInsertStartUtc DATETIME NULL",
+      "DateInsertedUtc DATETIME NULL"
+    ],
+    "related_tables": [
+      "dbo.DataImportFileColumnMappings",
+      "dbo.DataImportFileRows"
+    ],
+    "layer_1_relevance": "INCLUDE — central import file record. Status INT = import state FSM. ErrorsJson + ImportResultJson = structured feedback. ImportSettingsJson = per-file importer config. NOTE: DB columns extend wiki spec (wiki shows Purpose column, DB has ImportFormat instead).",
+    "green_ai_note": "Wiki spec differs from actual DB: Purpose column not in DB (ImportFormat is). 19 columns vs 6 in wiki. DateInsertStartUtc/DateInsertedUtc = two-phase insert tracking. Soft-delete via DateDeletedUtc."
+  },
+  {
+    "name": "DataImportFileColumnMapping",
+    "db_table": "dbo.DataImportFileColumnMappings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Implementation/New-Import.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "FileId INT NOT NULL FK->DataImportFiles",
+      "FileColumn NVARCHAR(50) NOT NULL",
+      "Field NVARCHAR(50) NULL",
+      "SettingsJson NVARCHAR(MAX) NULL"
+    ],
+    "related_tables": [
+      "dbo.DataImportFiles"
+    ],
+    "layer_1_relevance": "INCLUDE — maps source file columns to domain fields. SettingsJson = per-mapping configuration. Field NULL = unmapped column (skipped).",
+    "green_ai_note": "Field nullable = column explicitly unmapped. SettingsJson encodes column-level transform/parse settings."
+  },
+  {
+    "name": "DataImportFileRow",
+    "db_table": "dbo.DataImportFileRows",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Implementation/New-Import.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "FileId INT NOT NULL FK->DataImportFiles",
+      "SourceRowNumber INT NOT NULL",
+      "Json NVARCHAR(MAX) NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.DataImportFiles"
+    ],
+    "layer_1_relevance": "INCLUDE — intermediate JSON storage per row (stage between file read and domain insert). Covering index on FileId includes SourceRowNumber+Json for bulk read.",
+    "green_ai_note": "Intermediate staging table. Json = row serialized as JSON after pre-validation. Bulk-read optimized via covering index. Two indexes: one on FileId only, one covering all columns."
+  },
+  {
+    "name": "DataImportSavedConfiguration",
+    "db_table": "dbo.DataImportSavedConfigurations",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Implementation/New-Import.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Name NVARCHAR(100) NOT NULL",
+      "CustomerId INT NOT NULL",
+      "Purpose INT NOT NULL",
+      "Format INT NOT NULL",
+      "ImportSettings NVARCHAR(MAX) NULL"
+    ],
+    "related_tables": [
+      "dbo.DataImportSavedConfigurationColumnMappings",
+      "dbo.StandardReceiverGroups"
+    ],
+    "layer_1_relevance": "INCLUDE — reusable named import configuration per customer. Purpose INT + Format INT = enums. Referenced by StandardReceiverGroups.DataImportSavedConfigurationId.",
+    "green_ai_note": "Cross-domain link: StandardReceiverGroups references this table for SFTP-automated import. Purpose and Format are INT enums — values unknown from DB schema alone. ImportSettings = JSON blob for importer config."
+  },
+  {
+    "name": "DataImportSavedConfigurationColumnMapping",
+    "db_table": "dbo.DataImportSavedConfigurationColumnMappings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Implementation/New-Import.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ConfigurationId INT NOT NULL",
+      "FileColumn NVARCHAR(50) NOT NULL",
+      "Field NVARCHAR(50) NULL",
+      "SettingsJson NVARCHAR(MAX) NULL"
+    ],
+    "related_tables": [
+      "dbo.DataImportSavedConfigurations"
+    ],
+    "layer_1_relevance": "INCLUDE — saved column mappings for reusable configurations. Same structure as DataImportFileColumnMappings but scoped to saved config, not per-file.",
+    "green_ai_note": "No FK constraint in DDL (unlike DataImportFileColumnMappings which has FK). ConfigurationId referential integrity must be enforced in application layer."
+  },
+  {
+    "name": "ProspectContactPerson",
+    "db_table": "dbo.ProspectContactPersons",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Pipeline.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Name NVARCHAR(60) NOT NULL",
+      "Email NVARCHAR(255) NULL",
+      "PhoneNumber BIGINT NULL",
+      "PhoneCode INT NULL",
+      "ContactPersonTypeId SMALLINT NOT NULL FK->ContactPersonTypes",
+      "ProspectId INT NOT NULL FK->Prospects"
+    ],
+    "related_tables": [
+      "dbo.Prospects",
+      "dbo.ContactPersonTypes"
+    ],
+    "layer_1_relevance": "INCLUDE — contacts for a prospect (billing, technical, etc.). FK to ContactPersonTypes enum table.",
+    "green_ai_note": "ContactPersonTypeId is FK to ContactPersonTypes enum. Multiple contacts per prospect. Phone stored as BIGINT separate from PhoneCode."
+  },
+  {
+    "name": "ProspectCustomerAccount",
+    "db_table": "dbo.ProspectCustomerAccounts",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Pipeline.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProspectId INT NOT NULL FK->Prospects",
+      "InvoiceReference NVARCHAR(100) NULL",
+      "InvoiceContact NVARCHAR(100) NULL",
+      "DateCreatedUtc DATETIME NOT NULL",
+      "DateDeletedUtc DATETIME NULL"
+    ],
+    "related_tables": [
+      "dbo.Prospects"
+    ],
+    "layer_1_relevance": "INCLUDE — billing account pre-setup for prospect. Soft-delete via DateDeletedUtc.",
+    "green_ai_note": "One-to-one with Prospect (wiki class diagram shows composition). Created as part of pre-sale setup."
+  },
+  {
+    "name": "ProspectProduct",
+    "db_table": "dbo.ProspectProducts",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Pipeline.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProspectId INT NOT NULL FK->Prospects",
+      "ProductId INT NOT NULL FK->Products",
+      "Price MONEY NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.Prospects",
+      "dbo.Products"
+    ],
+    "layer_1_relevance": "INCLUDE — planned product purchases for a prospect at negotiated price. Price type is MONEY.",
+    "green_ai_note": "Price is per-prospect negotiated price (not list price). Links to Products table (external to Pipeline domain)."
+  },
+  {
+    "name": "ProspectUserRoleMapping",
+    "db_table": "dbo.ProspectUserRoleMappings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Pipeline.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProspectId INT NOT NULL",
+      "UserRoleId INT NOT NULL",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DefaultSelected BIT NOT NULL DEFAULT 1"
+    ],
+    "related_tables": [
+      "dbo.Prospects",
+      "dbo.UserRoles"
+    ],
+    "layer_1_relevance": "INCLUDE — pre-configures which user roles will be available when prospect converts to customer. DefaultSelected = pre-ticked in wizard.",
+    "green_ai_note": "No FK constraints in DDL. DefaultSelected DEFAULT 1 = all mappings pre-selected by default. Drives role setup at customer creation time."
+  },
+  {
+    "name": "ProcessTaskTemplate",
+    "db_table": "dbo.ProcessTaskTemplates",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Pipeline.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CountryId INT NOT NULL",
+      "TranslationKey NVARCHAR(200) NOT NULL",
+      "ResponsibleUserId INT NULL",
+      "Type NVARCHAR(50) NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.ProcessTasks"
+    ],
+    "layer_1_relevance": "INCLUDE — template defining a step in an onboarding or offboarding process. CountryId scoped. Type = process category (onboarding/cancellation/etc.).",
+    "green_ai_note": "TranslationKey = localization key for task name. Type is free-text NVARCHAR (not DB enum). Used across multiple process types: customer creation, cancellation, price-change notifications."
+  },
+  {
+    "name": "ProcessTask",
+    "db_table": "dbo.ProcessTasks",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Pipeline.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "SubjectId INT NOT NULL",
+      "ProcessTaskTemplatesId INT NOT NULL FK->ProcessTaskTemplates",
+      "ResponsibleUserId INT NULL",
+      "DateDeadlineUtc DATE NULL",
+      "DateCompletedUtc DATETIME NULL",
+      "Comment NVARCHAR(MAX) NULL"
+    ],
+    "related_tables": [
+      "dbo.ProcessTaskTemplates"
+    ],
+    "layer_1_relevance": "INCLUDE — a concrete task instance for a Prospect or Customer. SubjectId is polymorphic (ProspectId or CustomerId). DateCompletedUtc NULL = incomplete.",
+    "green_ai_note": "SubjectId POLYMORPHIC — refs either Prospect or Customer determined by Type on ProcessTaskTemplate (no FK). DateDeadlineUtc is DATE not DATETIME. Comment = support staff notes per task."
+  },
+  {
+    "name": "Address",
+    "db_table": "dbo.Addresses",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI — CLUSTERED PK (string!)",
+      "Id INT IDENTITY NOT NULL",
+      "Zipcode INT NOT NULL",
+      "City NVARCHAR(100) COLLATE Danish_Norwegian_CI_AI NOT NULL",
+      "LocationName NVARCHAR(100) NULL",
+      "Street NVARCHAR(200) NULL",
+      "Number INT NULL",
+      "Letter NVARCHAR(20) NULL",
+      "Floor NVARCHAR(20) NULL",
+      "Door NVARCHAR(20) NULL",
+      "Meters INT NULL",
+      "MunicipalityCode SMALLINT NOT NULL",
+      "StreetCode INT NOT NULL",
+      "Latitude FLOAT NULL",
+      "Longitude FLOAT NULL",
+      "CountryId INT NOT NULL",
+      "DateLastUpdatedUtc DATETIME NOT NULL",
+      "AccessAddressId UNIQUEIDENTIFIER NULL",
+      "Zone NVARCHAR(100) NULL",
+      "DateLastUpdatedGisUtc DATETIME NULL",
+      "OriginCode INT NULL",
+      "Status INT NULL",
+      "ExtUUID NVARCHAR(36) NULL",
+      "ExtDetails NVARCHAR(30) NULL",
+      "DateDeletedUtc DATETIME NULL",
+      "Kvh NVARCHAR(36) NULL",
+      "MunicipalityName NVARCHAR(100) NULL",
+      "TaxeringId NVARCHAR(20) NULL",
+      "ExtUuidAsGuid UNIQUEIDENTIFIER NULL",
+      "AddressType INT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressGeographies",
+      "dbo.AddressOwners",
+      "dbo.AddressStreetCodes",
+      "dbo.Municipalities",
+      "dbo.Countries"
+    ],
+    "layer_1_relevance": "INCLUDE — core entity. PK is Kvhx string (NOT Id INT). Soft-delete via DateDeletedUtc. OriginCode: 0=phone import, 1=DAWA adgangsadresse, 2=DAWA address, 21=PostnummerService, 22=Lantmateriet. 9 query-optimized indexes.",
+    "green_ai_note": "PK is Kvhx (string NVARCHAR(36)) — all FKs reference Kvhx not Id. Kvh = KVHX without the X suffix used for right-to-be-forgotten index. TaxeringId = Swedish property tax ID. AddressType INT enum unknown from DDL alone."
+  },
+  {
+    "name": "AddressGeography",
+    "db_table": "dbo.AddressGeographies",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Kvhx NVARCHAR(36) NOT NULL FK->Addresses (CASCADE DELETE+UPDATE)",
+      "Geo sys.geography NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.Addresses"
+    ],
+    "layer_1_relevance": "INCLUDE — spatial geography for address. Separated from Addresses for spatial index performance. SQL Server geography type with spatial index.",
+    "green_ai_note": "Spatial index SIX_AddressGeographies_Geo on [Geo]. CASCADE delete/update from Addresses. Used for proximity/polygon/spatial queries. Separate table avoids spatial index impact on bulk address updates."
+  },
+  {
+    "name": "AddressStreet",
+    "db_table": "dbo.AddressStreets",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CountryId INT NOT NULL",
+      "Name NVARCHAR(200) NULL",
+      "ZipCode INT NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressStreetCodes",
+      "dbo.AddressStreetAliases",
+      "dbo.Countries"
+    ],
+    "layer_1_relevance": "INCLUDE — named road section within a single zip code. UNIQUE index on (CountryId, ZipCode, Name). One street per zip code — streets spanning multiple zips = multiple records with same name.",
+    "green_ai_note": "Name can be NULL. Physical streets crossing zip codes = multiple Street entities per wiki. UNIQUE: (CountryId, ZipCode, Name)."
+  },
+  {
+    "name": "AddressStreetCode",
+    "db_table": "dbo.AddressStreetCodes",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "StreetId INT NOT NULL",
+      "Streetcode INT NOT NULL",
+      "MunicipalityCode INT NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressStreets",
+      "dbo.Municipalities"
+    ],
+    "layer_1_relevance": "INCLUDE — municipality-specific code for a street. A street crossing multiple municipalities has one StreetCode per municipality. Index on (MunicipalityCode, Streetcode) INCLUDE StreetId.",
+    "green_ai_note": "Column name is Streetcode (lowercase c) though entity uses StreetCode. Streets crossing multiple municipalities get one record per municipality. This is how Addresses.StreetCode resolves to a street + municipality."
+  },
+  {
+    "name": "AddressStreetAlias",
+    "db_table": "dbo.AddressStreetAliases",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "StreetId INT NOT NULL",
+      "Alias NVARCHAR(200) NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressStreets"
+    ],
+    "layer_1_relevance": "INCLUDE — zero or one alias per street. Used for Finnish addresses with Swedish name alongside Finnish name.",
+    "green_ai_note": "Wiki says max one alias per street — no UNIQUE constraint in DDL. Covering index: StreetId INCLUDES Alias."
+  },
+  {
+    "name": "AddressOwner",
+    "db_table": "dbo.AddressOwners",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "EsrPropertyId INT NOT NULL",
+      "PropertyOwnersId INT NOT NULL",
+      "OwnerName NVARCHAR(300) NOT NULL",
+      "OwnerStatus INT NULL",
+      "OwnerStatusText NVARCHAR(100) NULL",
+      "OwnerPartPercent FLOAT NULL",
+      "DateLastUpdatedUtc DATETIME NULL",
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NULL",
+      "OwnerAddressKvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NULL",
+      "CountryId INT NOT NULL",
+      "MunicipalityCode SMALLINT NOT NULL",
+      "OwnerPart NVARCHAR(30) NULL",
+      "CompanyRegistrationId NVARCHAR(50) NULL",
+      "IsDoubled BIT NOT NULL DEFAULT 0"
+    ],
+    "related_tables": [
+      "dbo.Addresses"
+    ],
+    "layer_1_relevance": "INCLUDE — property owner (DK: Datafordeleren). Kvhx = property address. OwnerAddressKvhx = owner residence. CompanyRegistrationId = CVR for business owners.",
+    "green_ai_note": "DK-specific. EsrPropertyId + PropertyOwnersId = Datafordeleren IDs. IsDoubled = duplicate detection flag. Kvhx nullable (owner may not have matched address). Indexes: CVR, by-property, by-owner."
+  },
+  {
+    "name": "Municipality",
+    "db_table": "dbo.Municipalities",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "MunicipalityCode SMALLINT NOT NULL",
+      "CountryId INT NULL DEFAULT 0",
+      "Region NVARCHAR(50) COLLATE Danish_Norwegian_CI_AI NULL",
+      "MunicipalityName NVARCHAR(50) COLLATE Danish_Norwegian_CI_AI NULL",
+      "DateLastUpdatedUtc DATETIME NOT NULL DEFAULT getutcdate()"
+    ],
+    "related_tables": [
+      "dbo.Countries",
+      "dbo.Addresses",
+      "dbo.AddressStreetCodes"
+    ],
+    "layer_1_relevance": "INCLUDE — reference table for municipality codes. CountryId DEFAULT 0 = legacy. Used as discriminator across all address tables.",
+    "green_ai_note": "CountryId default 0 = historical; old records may have 0. No UNIQUE constraint on MunicipalityCode in DDL (could span countries). Region = DK: Syddanmark etc."
+  },
+  {
+    "name": "Country",
+    "db_table": "dbo.Countries",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Name NVARCHAR(100) COLLATE Danish_Norwegian_CI_AI NOT NULL",
+      "TwoLetterIsoCode NVARCHAR(2) NOT NULL",
+      "ThreeLetterIsoCode NVARCHAR(3) NOT NULL",
+      "NumericIsoCode SMALLINT NOT NULL DEFAULT 0",
+      "PhoneCode INT NULL"
+    ],
+    "related_tables": [
+      "dbo.Addresses",
+      "dbo.Municipalities",
+      "dbo.AddressStreets"
+    ],
+    "layer_1_relevance": "INCLUDE — reference table. 4 active: DK, SE, FI, NO. PhoneCode = country dialing code (+45 etc.). STATISTICS_NORECOMPUTE=ON on PK.",
+    "green_ai_note": "CountryId is primary system discriminator across all address tables. Green-ai should model CountryId as strongly-typed value object. PhoneCode here = country calling code (context differs from StandardReceivers.PhoneCode = subscriber phone prefix)."
+  },
+  {
+    "name": "AddressBfeToLocalId",
+    "db_table": "dbo.AddressBfeToLocalIds",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "BfeNr INT PK",
+      "LocationId UNIQUEIDENTIFIER NULL",
+      "HousenumberLocationId UNIQUEIDENTIFIER NULL",
+      "LocationLookedUpUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "NoResult BIT NULL",
+      "BygningPaaFremmedGrund BIT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressOwners"
+    ],
+    "layer_1_relevance": "INCLUDE — DK cache: maps BFE property numbers to DAWA LocalIds. NoResult=1 = looked up, nothing found. BygningPaaFremmedGrund = building on foreign ground (special DK cadastral).",
+    "green_ai_note": "Cache prevents redundant Datafordeleren→DAWA API calls. BygningPaaFremmedGrund = DK legal concept: building independent of land ownership. Index on HousenumberLocationId."
+  },
+  {
+    "name": "AddressBfeExclusion",
+    "db_table": "dbo.AddressBfeExclusions",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "BFEnummer INT PK",
+      "SamletFastEjendomBFEnummer INT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressBfeToLocalIds"
+    ],
+    "layer_1_relevance": "INCLUDE — DK exclusion list for BFE numbers to skip in owner lookup.",
+    "green_ai_note": "SamletFastEjendomBFEnummer = parent composite property. Sub-parcels of composite properties are excluded from individual owner lookup."
+  },
+  {
+    "name": "AddressOwnerST",
+    "db_table": "dbo.AddressOwnersST",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "EsrPropertyId INT NOT NULL",
+      "PropertyOwnersId INT NOT NULL",
+      "OwnerName NVARCHAR(300) COLLATE Danish_Norwegian_CI_AI NULL",
+      "OwnerStatus INT NULL",
+      "OwnerStatusText NVARCHAR(100) NULL",
+      "OwnerPartPercent FLOAT NULL",
+      "DateLastUpdatedUtc DATETIME NULL",
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NULL",
+      "OwnerAddressKvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NULL",
+      "CountryId INT NOT NULL",
+      "MunicipalityCode SMALLINT NOT NULL",
+      "OwnerPart NVARCHAR(30) NULL",
+      "CompanyRegistrationId NVARCHAR(50) NULL",
+      "IsDoubled BIT NOT NULL DEFAULT 0"
+    ],
+    "related_tables": [
+      "dbo.AddressOwners"
+    ],
+    "layer_1_relevance": "INCLUDE — older owner import staging table (parallel to Address_ST_Owners which is newer). Results promoted to AddressOwners.",
+    "green_ai_note": "Older of two owner staging tables. Same structure as AddressOwners (with COLLATE on OwnerName). AddressOwnersST_IsDoubled index. EsrPropertyId = ESR system ID."
+  },
+  {
+    "name": "AddressSTOwner",
+    "db_table": "dbo.Address_ST_Owners",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ProcessingId UNIQUEIDENTIFIER NOT NULL",
+      "BFENr INT NOT NULL",
+      "AdresseLokalId UNIQUEIDENTIFIER NULL",
+      "DARadresse UNIQUEIDENTIFIER NULL",
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NULL",
+      "RegistrationDate DATETIME NULL",
+      "ActiveFromDate DATETIME NULL",
+      "Status NVARCHAR(50) NULL",
+      "OwnerId UNIQUEIDENTIFIER NOT NULL",
+      "OwnerName NVARCHAR(300) NOT NULL",
+      "OwnerStatus NVARCHAR(100) NULL",
+      "OwnerAddressKvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NULL",
+      "OwnerDARadresse UNIQUEIDENTIFIER NULL",
+      "OwnerPrimaryContact BIT NOT NULL",
+      "OwnerForholdsKode INT NULL",
+      "OwnerPartTaeller INT NULL",
+      "OwnerPartNaevner INT NULL",
+      "CountryId INT NOT NULL",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DateUpdatedUtc DATETIME NULL",
+      "OwnerCvr INT NULL",
+      "BusinessIncident NVARCHAR(200) NULL",
+      "OwnerChangeExportedUtc DATETIME NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressOwners"
+    ],
+    "layer_1_relevance": "INCLUDE — newer Datafordeleren owner staging. ProcessingId = batch run ID. OwnerChangeExportedUtc tracks delta export. Indexes for change-export workflow.",
+    "green_ai_note": "ProcessingId groups records from same import run. OwnerForholdsKode + OwnerPartTaeller/Naevner = DK legal ownership fraction. Results promoted to AddressOwners. Newer than AddressOwnersST."
+  },
+  {
+    "name": "AddressKvhxChange",
+    "db_table": "dbo.AddressKvhxChanges",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "OldKvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NOT NULL",
+      "NewKvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NOT NULL",
+      "CountryId INT NOT NULL",
+      "Source INT NOT NULL",
+      "DateCreatedUtc DATETIME NOT NULL",
+      "DateChangedUtc DATETIME NULL"
+    ],
+    "related_tables": [
+      "dbo.Addresses"
+    ],
+    "layer_1_relevance": "INCLUDE — tracks KVHX rename events. Used to migrate SmsGroup memberships and subscriptions from old to new Kvhx. DateChangedUtc = downstream migration completed.",
+    "green_ai_note": "Source INT = import origin enum. Critical for subscription/group data integrity when addresses are renumbered. File was AddressesKvhxChanges.sql but table is AddressKvhxChanges."
+  },
+  {
+    "name": "AddressCorrection",
+    "db_table": "dbo.AddressCorrections",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CountryId INT NOT NULL",
+      "OldKvhx NVARCHAR(36) NULL",
+      "NewKvhx NVARCHAR(36) NULL",
+      "Zipcode INT NULL",
+      "City NVARCHAR(100) NULL",
+      "LocationName NVARCHAR(100) NULL",
+      "Street NVARCHAR(200) NULL",
+      "Number INT NULL",
+      "Letter NVARCHAR(20) NULL",
+      "Floor NVARCHAR(20) NULL",
+      "Door NVARCHAR(20) NULL",
+      "Meters INT NULL",
+      "MunicipalityCode SMALLINT NULL",
+      "StreetCode INT NULL",
+      "Latitude FLOAT NULL",
+      "Longitude FLOAT NULL",
+      "ExtUUID NVARCHAR(36) NULL",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "CreatedByUserId INT NOT NULL DEFAULT 5168",
+      "DateEditedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "EditedByUserId INT NOT NULL DEFAULT 5168",
+      "Note NVARCHAR(MAX) NOT NULL DEFAULT empty-string",
+      "Approved BIT NOT NULL DEFAULT 1",
+      "Kvh NVARCHAR(36) NULL",
+      "MunicipalityName NVARCHAR(100) NULL"
+    ],
+    "related_tables": [
+      "dbo.Addresses"
+    ],
+    "layer_1_relevance": "INCLUDE — manual address data corrections with approval workflow. Approved DEFAULT 1 = auto-approved. CreatedByUserId DEFAULT 5168 = system user.",
+    "green_ai_note": "Hardcoded UserId 5168 = system/admin default. All fields nullable except CountryId — partial corrections allowed. Approved=0 = correction pending review."
+  },
+  {
+    "name": "AddressImportKvhxLog",
+    "db_table": "dbo.AddressImportKvhxLogs",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CountryId INT NOT NULL",
+      "Kvhx NVARCHAR(36) NOT NULL",
+      "ExtUUID NVARCHAR(36) NULL",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "UnhandledCount INT NOT NULL DEFAULT 0",
+      "DateHandledUtc DATETIME NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressImportKvhxLogsAffectedKvhx"
+    ],
+    "layer_1_relevance": "INCLUDE — tracks addresses that changed during import and need downstream processing. UnhandledCount = retry counter. DateHandledUtc NULL = pending.",
+    "green_ai_note": "Import queue table. UnhandledCount increments on failed processing. DateHandledUtc NULL = needs downstream processing (subscriptions/groups). Index on CountryId+Kvhx+ExtUUID."
+  },
+  {
+    "name": "AddressImportKvhxLogAffectedKvhx",
+    "db_table": "dbo.AddressImportKvhxLogsAffectedKvhx",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "CountryId INT NOT NULL",
+      "OldKvhx NVARCHAR(36) NOT NULL",
+      "NewKvhx NVARCHAR(36) NOT NULL",
+      "NewKvh NVARCHAR(36) NOT NULL",
+      "DateCreatedUtc DATETIME NOT NULL DEFAULT getutcdate()"
+    ],
+    "related_tables": [
+      "dbo.AddressImportKvhxLogs"
+    ],
+    "layer_1_relevance": "INCLUDE — the concrete old→new Kvhx mappings discovered during import. One parent log → multiple affected Kvhx pairs.",
+    "green_ai_note": "Relates to ADO work item #9312. Stores old→new mappings for downstream migration of subscriptions/groups after address renaming."
+  },
+  {
+    "name": "AddressSwedishProperty",
+    "db_table": "dbo.AddressSwedishProperties",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ObjectIdentity UNIQUEIDENTIFIER NOT NULL",
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NOT NULL",
+      "DateUpdatedUtc DATETIME NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.Addresses"
+    ],
+    "layer_1_relevance": "INCLUDE — SE: maps Lantmateriet ObjectIdentity (GUID) to Kvhx. Used for Swedish owner lookup.",
+    "green_ai_note": "ObjectIdentity = Lantmateriet property GUID. Per-customer API keys used for Lantmateriet (wiki). Simple mapping table."
+  },
+  {
+    "name": "AddressVirtualMarking",
+    "db_table": "dbo.AddressVirtualMarkings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NOT NULL",
+      "CountryId INT NOT NULL",
+      "DateUpdatedUtc DATETIME NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.Addresses"
+    ],
+    "layer_1_relevance": "INCLUDE — marks addresses as virtual (no physical delivery point). Purpose not fully described in wiki.",
+    "green_ai_note": "Likely Robinson-list equivalent or delivery-exclusion marker for addresses that exist in registry but have no physical location. Indexed on Kvhx."
+  },
+  {
+    "name": "AddressExportNorwegianStatistics",
+    "db_table": "dbo.AddressExportNorwegianStatistics",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "DateExportedUtc DATETIME2(7) NOT NULL",
+      "MunicipalityCode INT NOT NULL",
+      "ZipCodes INT NOT NULL",
+      "Streets INT NOT NULL",
+      "Properties INT NOT NULL",
+      "Buildings INT NOT NULL",
+      "Addresses INT NOT NULL",
+      "Doors INT NOT NULL",
+      "Owners INT NOT NULL",
+      "People INT NOT NULL"
+    ],
+    "related_tables": [],
+    "layer_1_relevance": "INCLUDE — audit/statistics per municipal export run to Framweb/Varsling24. Counts per entity type per municipality per export.",
+    "green_ai_note": "Audit trail for Norwegian Framweb export (Varsling24). One row per municipality per export run. Monitors data completeness."
+  },
+  {
+    "name": "AddressNorwegianProperty",
+    "db_table": "dbo.AddressNorwegianProperties",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "MunicipalityCode INT NOT NULL",
+      "FarmNumber INT NOT NULL",
+      "UseNumber INT NULL",
+      "TenantNumber INT NULL",
+      "SectionNumber INT NULL",
+      "ReferencePoint sys.geography NULL",
+      "Area sys.geography NULL",
+      "PlotId NVARCHAR(50) NULL",
+      "Type NVARCHAR(50) NOT NULL",
+      "PlotUnitId NVARCHAR(50) NULL",
+      "PlotUnitUUID UNIQUEIDENTIFIER NULL",
+      "PlotSubunitUUID UNIQUEIDENTIFIER NULL",
+      "DateUpdatedUtc DATETIME NOT NULL DEFAULT getutcdate()",
+      "DateDeletedUtc DATETIME NULL",
+      "PropertyId NVARCHAR(30) COLLATE Danish_Norwegian_CI_AI NOT NULL",
+      "IsRegistered BIT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressNorwegianPropertyAddresses"
+    ],
+    "layer_1_relevance": "INCLUDE — NO operational property record (post-import, normalized). Spatial indexes for Area polygon queries. PropertyId = Norwegian cadastral ID. IsRegistered = in Matrikkel.",
+    "green_ai_note": "Derived from AddressImportNorwegianProperties. Has spatial indexes (SIX_*_Area). PlotUnitId/UUID connect to plot system. Soft-delete via DateDeletedUtc."
+  },
+  {
+    "name": "AddressNorwegianPropertyAddress",
+    "db_table": "dbo.AddressNorwegianPropertyAddresses",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "MunicipalityCode INT NOT NULL",
+      "FarmNumber INT NOT NULL",
+      "UseNumber INT NULL",
+      "TenantNumber INT NULL",
+      "SectionNumber INT NULL",
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressNorwegianProperties",
+      "dbo.Addresses"
+    ],
+    "layer_1_relevance": "INCLUDE — links NO farm/property 5-tuple to Kvhx addresses. Bridge: (MunCode, FarmNr, UseNr, TenantNr, SectionNr) → Kvhx.",
+    "green_ai_note": "Junction between Norwegian cadastral system and KVHX address system. Index on Kvhx. Not 1:1 — a property may have multiple addresses."
+  },
+  {
+    "name": "AddressImportNorwegianChange",
+    "db_table": "dbo.AddressImportNorwegianChanges",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "ChangeNumber BIGINT PK",
+      "ObjectType INT NOT NULL",
+      "ObjectNumber BIGINT NOT NULL",
+      "ChangeType INT NOT NULL",
+      "DateChangedUtc DATETIME NOT NULL"
+    ],
+    "related_tables": [],
+    "layer_1_relevance": "INCLUDE — queue of Norwegian Kartverket change events. ObjectType = what entity changed. ChangeType = INSERT/UPDATE/DELETE. Drives import fan-out per wiki partial-import proposal.",
+    "green_ai_note": "Wiki proposes this as event queue: read → fan out to per-ObjectType handlers. ChangeNumber = sequential Kartverket ID. Wiki model name: AddressNorwegianChange."
+  },
+  {
+    "name": "AddressImportNorwegianBuilding",
+    "db_table": "dbo.AddressImportNorwegianBuildings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "BuildingId BIGINT PK",
+      "MunicipalityCode INT NOT NULL",
+      "BuildingTypeCode INT NULL",
+      "Status INT NOT NULL",
+      "SequenceNumber INT NULL",
+      "PreviousBuildingNumber BIGINT NULL",
+      "AffectedBuildingNumber BIGINT NULL",
+      "BuildingNumber BIGINT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianDoors"
+    ],
+    "layer_1_relevance": "INCLUDE — Norwegian building staging. PreviousBuildingNumber/AffectedBuildingNumber track merges/splits.",
+    "green_ai_note": "BuildingId (internal) vs BuildingNumber (Kartverket ID). Index on BuildingNumber INCLUDES BuildingTypeCode for door join queries."
+  },
+  {
+    "name": "AddressImportNorwegianAddress",
+    "db_table": "dbo.AddressImportNorwegianAddresses",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "AddressNumber BIGINT PK",
+      "AddressId NVARCHAR(50) NULL",
+      "Status INT NOT NULL",
+      "MunicipalityCode INT NOT NULL",
+      "StreetCode INT NULL",
+      "PropertyNumber BIGINT NULL",
+      "Number INT NULL",
+      "Letter NVARCHAR(20) NULL",
+      "ZipCodeNumber BIGINT NULL",
+      "StreetNumber BIGINT NULL",
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NULL",
+      "SubNumber INT NULL",
+      "RepresentationPoint sys.geography NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianStreets",
+      "dbo.AddressImportNorwegianZipCodes"
+    ],
+    "layer_1_relevance": "INCLUDE — Norwegian address staging. AddressId = Kartverket UUID. Kvhx populated after processing. RepresentationPoint = spatial geography.",
+    "green_ai_note": "ZipCodeNumber and StreetNumber are BIGINT FKs to import tables. PropertyNumber = FK to AddressImportNorwegianProperties. Indexes on Kvhx and PropertyNumber."
+  },
+  {
+    "name": "AddressImportNorwegianStreet",
+    "db_table": "dbo.AddressImportNorwegianStreets",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "StreetNumber BIGINT PK",
+      "MunicipalityCode INT NOT NULL",
+      "StreetCode INT NULL",
+      "Name NVARCHAR(100) NULL",
+      "Status INT NOT NULL DEFAULT 0"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianAddresses"
+    ],
+    "layer_1_relevance": "INCLUDE — Norwegian street staging. StreetCode nullable (may not be assigned yet for new streets).",
+    "green_ai_note": "StreetNumber = Kartverket BIGINT ID. StreetCode = official INT street code (nullable for new entries)."
+  },
+  {
+    "name": "AddressImportNorwegianZipCode",
+    "db_table": "dbo.AddressImportNorwegianZipCodes",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "ZipCodeNumber BIGINT PK",
+      "ZipCode INT NOT NULL",
+      "City NVARCHAR(100) NULL",
+      "Status INT NOT NULL DEFAULT 0"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianAddresses"
+    ],
+    "layer_1_relevance": "INCLUDE — Norwegian zip code staging. ZipCodeNumber = Kartverket ID, ZipCode = actual postal code.",
+    "green_ai_note": "ZipCodeNumber (BIGINT Kartverket ID) distinct from ZipCode (INT postal code). City nullable."
+  },
+  {
+    "name": "AddressImportNorwegianOwner",
+    "db_table": "dbo.AddressImportNorwegianOwners",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "OwnerId BIGINT PK",
+      "OwnershipCode NVARCHAR(10) NOT NULL",
+      "PersonId BIGINT NOT NULL",
+      "PropertyNumber BIGINT NOT NULL",
+      "PropertyId NVARCHAR(200) NOT NULL",
+      "PartNumber INT NOT NULL",
+      "PartNumerator BIGINT NULL",
+      "PartDenominator BIGINT NULL",
+      "DateActiveFrom DATE NULL",
+      "DateActiveUntil DATE NULL",
+      "Status INT NOT NULL DEFAULT 0"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianPeople",
+      "dbo.AddressImportNorwegianProperties"
+    ],
+    "layer_1_relevance": "INCLUDE — Norwegian owner staging. OwnershipCode = ownership type. PartNumerator/Denominator = fractional ownership. DateActiveFrom/Until = ownership period.",
+    "green_ai_note": "Indexes optimized for status-driven processing: Status-only, PropertyNumber+Status, PropertyId+Status. PartNumerator/Denominator = legal ownership fraction (Norwegian cadastral law)."
+  },
+  {
+    "name": "AddressImportNorwegianPerson",
+    "db_table": "dbo.AddressImportNorwegianPeople",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "PersonId BIGINT PK",
+      "Name NVARCHAR(200) NULL",
+      "PersonNumber NVARCHAR(50) NULL",
+      "AddressLine1 NVARCHAR(200) NULL",
+      "AddressLine2 NVARCHAR(200) NULL",
+      "AddressLine3 NVARCHAR(200) NULL",
+      "CountryCode NVARCHAR(8) NULL",
+      "MunicipalityCode INT NULL",
+      "StatusCode NVARCHAR(10) NULL",
+      "Type NVARCHAR(1) NULL",
+      "CategoryCode NVARCHAR(10) NULL",
+      "PersonIdCode NVARCHAR(1) NULL",
+      "Status INT NOT NULL DEFAULT 100",
+      "ZipCodeNumber BIGINT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianOwners"
+    ],
+    "layer_1_relevance": "INCLUDE — Norwegian person/company owning properties. PersonNumber = fodselsnummer or org-nr. Type NVARCHAR(1) = P(erson) vs O(rg).",
+    "green_ai_note": "Status DEFAULT 100 = unusual (active). PersonNumber may be sensitive (national ID). ZipCodeNumber BIGINT FK to AddressImportNorwegianZipCodes. AddressLine3 not in wiki model (added later)."
+  },
+  {
+    "name": "AddressImportNorwegianProperty",
+    "db_table": "dbo.AddressImportNorwegianProperties",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "PropertyNumber BIGINT PK",
+      "MunicipalityCode INT NOT NULL",
+      "FarmNumber INT NOT NULL",
+      "UseNumber INT NOT NULL",
+      "TenantNumber INT NULL",
+      "SectionNumber INT NULL",
+      "IsRegistered BIT NULL",
+      "Type NVARCHAR(50) NULL",
+      "IsSectioned BIT NULL",
+      "Latitude FLOAT NULL",
+      "Longitude FLOAT NULL",
+      "CoordinateSystemCode BIGINT NULL",
+      "Status INT NOT NULL DEFAULT 0",
+      "DateUpdatedUtc DATETIME NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianOwners",
+      "dbo.AddressNorwegianProperties"
+    ],
+    "layer_1_relevance": "INCLUDE — Norwegian property staging (Matrikkel data). 5-tuple cadastral key. Promoted to AddressNorwegianProperties after processing.",
+    "green_ai_note": "PropertyNumber = Kartverket unique ID. 5-tuple: (MunCode, FarmNr, UseNr, TenantNr, SectionNr). Compound index on full 5-tuple."
+  },
+  {
+    "name": "AddressImportNorwegianPlot",
+    "db_table": "dbo.AddressImportNorwegianPlots",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "PlotNumber BIGINT PK",
+      "Area sys.geography NULL",
+      "Status INT NOT NULL",
+      "RepresentationPoint sys.geography NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianPlotProperties"
+    ],
+    "layer_1_relevance": "INCLUDE — Norwegian plot/parcel staging with spatial Area polygon. Spatial index on Area.",
+    "green_ai_note": "Spatial index SIX_*_Area. RepresentationPoint = centroid. PlotNumber = Matrikkel plot ID. Used for cadastral boundary / spatial containment."
+  },
+  {
+    "name": "AddressImportNorwegianPlotProperty",
+    "db_table": "dbo.AddressImportNorwegianPlotProperties",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "PlotNumber BIGINT — composite PK",
+      "PropertyNumber BIGINT — composite PK",
+      "MainPlot BIT NOT NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianPlots",
+      "dbo.AddressImportNorwegianProperties"
+    ],
+    "layer_1_relevance": "INCLUDE — many-to-many: plots to properties. Composite PK (no IDENTITY). MainPlot = primary plot for the property.",
+    "green_ai_note": "Composite PK only (no IDENTITY). Many-to-many: property spans multiple plots, plot contains multiple properties. MainPlot discriminates primary relationship."
+  },
+  {
+    "name": "AddressImportNorwegianDoor",
+    "db_table": "dbo.AddressImportNorwegianDoors",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "DoorNumber BIGINT PK",
+      "AddressNumber BIGINT NULL",
+      "BuildingNumber BIGINT NULL",
+      "FloorType NVARCHAR(1) NULL",
+      "Floor INT NULL",
+      "Door INT NULL",
+      "Status INT NOT NULL",
+      "PropertyNumber BIGINT NULL",
+      "DoorTypeCode NVARCHAR(5) NULL",
+      "MunicipalityCode INT NOT NULL",
+      "AddressId NVARCHAR(50) NULL",
+      "FarmNumber INT NULL",
+      "UseNumber INT NULL",
+      "TenantNumber INT NULL",
+      "SectionNumber INT NULL",
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NULL"
+    ],
+    "related_tables": [
+      "dbo.AddressImportNorwegianAddresses",
+      "dbo.AddressImportNorwegianBuildings"
+    ],
+    "layer_1_relevance": "INCLUDE — Norwegian door/unit staging. Links addresses to buildings. Kvhx populated after processing. FloorType NVARCHAR(1) + Floor INT = Norwegian floor encoding.",
+    "green_ai_note": "Doors are sub-units (apartments). Heavily queried: indexes on AddressNumber, Status, Kvhx, PropertyNumber. Kvhx stored here after processing for traceability."
+  },
+  {
+    "name": "AddressImportFinnishBuilding",
+    "db_table": "dbo.AddressImportFinnishBuildings",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "AddressKey UNIQUEIDENTIFIER NOT NULL",
+      "BuildingKey UNIQUEIDENTIFIER NOT NULL",
+      "AddressFinnish NVARCHAR(300) NULL",
+      "AddressSwedish NVARCHAR(300) NULL",
+      "PostalOfficeFinnish NVARCHAR(300) NULL",
+      "PostalOfficeSwedish NVARCHAR(300) NULL",
+      "AddressNumber INT NULL",
+      "AddressNameFinnish NVARCHAR(200) NULL",
+      "AddressNameSwedish NVARCHAR(200) NULL",
+      "NumberPartOfAddressNumber INT NULL",
+      "NumberPartOfAddressNumber2 INT NULL",
+      "MunicipalityNumber INT NULL",
+      "SubdivisionLetterOfAddressNumber NVARCHAR(50) NULL",
+      "SubdivisionLetterOfAddressNumber2 NVARCHAR(50) NULL",
+      "PostalCode INT NULL",
+      "LocationSrid INT NULL",
+      "ModifiedTimestampUtc DATETIME NOT NULL",
+      "Latitude FLOAT NULL",
+      "Longitude FLOAT NULL",
+      "Source NVARCHAR(100) NOT NULL",
+      "PageNumber INT NOT NULL",
+      "Valid BIT NOT NULL",
+      "Note NVARCHAR(200) NULL",
+      "Imported BIT NOT NULL DEFAULT 0",
+      "Kvhx NVARCHAR(36) COLLATE Danish_Norwegian_CI_AI NULL"
+    ],
+    "related_tables": [
+      "dbo.Addresses"
+    ],
+    "layer_1_relevance": "INCLUDE — Finnish building staging (AvoinData .7z CSV). Finnish+Swedish bilingual names required. Imported=0 = not yet promoted. WARNING: AvoinData shuts down Feb 2025 — replacement pending.",
+    "green_ai_note": "Bilingual by Finnish law: AddressFinnish/AddressSwedish + street names in both languages. Source = which AvoinData batch. PageNumber = CSV page. AvoinData shutdown is active risk noted in wiki."
+  },
+  {
+    "name": "AddressImportFinnishZipCode",
+    "db_table": "dbo.AddressImportFinnishZipCodes",
+    "mapping_status": "VERIFIED",
+    "source": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md",
+    "columns": [
+      "Id INT IDENTITY PK",
+      "ZipCode INT NOT NULL",
+      "FinnishName NVARCHAR(30) NOT NULL",
+      "SwedishName NVARCHAR(30) NOT NULL",
+      "MunicipalityCode INT NOT NULL",
+      "Type INT NOT NULL",
+      "ActiveSince DATETIME2(7) NOT NULL DEFAULT getdate()"
+    ],
+    "related_tables": [
+      "dbo.AddressImportFinnishBuildings"
+    ],
+    "layer_1_relevance": "INCLUDE — Finnish zip codes with bilingual names. Both NOT NULL (required by law). Type INT = postal district category.",
+    "green_ai_note": "FinnishName + SwedishName both NOT NULL — Finnish addresses bilingual by law. ActiveSince uses getdate() not getutcdate() (local time default — inconsistency with rest of system)."
+  }
+]

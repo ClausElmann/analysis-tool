@@ -1,14 +1,9 @@
 # SSOT Authority Model — Control Protocol
 
 **Generated:** 2026-04-09  
-**Last Updated:** 2026-04-10  
+**Last Updated:** 2026-04-09  
 **Purpose:** Establishes STRICT control model for source-of-truth hierarchy from PRIMARY SOURCES through analysis-tool to green-ai implementation  
 **Status:** GOVERNANCE RULE — BLOCKING ENFORCEMENT
-
-**Related governance documents:**
-- [docs/ARCHITECT_ONBOARDING.md](../docs/ARCHITECT_ONBOARDING.md) — Builder-Architect coordination protocol (Design Lock, roles, gates)
-- [.github/copilot-instructions.md](../.github/copilot-instructions.md) — Session start rules for Copilot
-- [green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md](../../green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md) — Runtime WHAT vs HOW decision protocol
 
 ---
 

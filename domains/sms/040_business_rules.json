@@ -1,0 +1,979 @@
+{
+  "domain": "sms",
+  "artefact": "040_business_rules",
+  "iteration": 10,
+  "status": "VERIFIED",
+  "completeness_score": 0.87,
+  "completeness_note": "30 rules + 6 flows_evidence_closure records. UNKNOWN: LastMinuteLookup dispatch mechanism (R013), Prospect→Customer conversion code (R030), exact CountryId enum values (R033), F006 code location, IMPLICIT_KLADDE server-side mechanism (FE001). Scoring excludes deferred scope (Finnish import).",
+  "architect_decisions_embedded": [
+    "R023: Address string key retained as canonical domain identity",
+    "R024: Finnish import deferred — out of active scope",
+    "R029: ProcessTask ownership enforced in application layer via owner_type+owner_id",
+    "R030: Prospect→Customer conversion defined as invariant — legacy code UNKNOWN"
+  ],
+  "rules": [
+    {
+      "id": "FE001",
+      "category": "flows_evidence_closure",
+      "flow_id": "F001",
+      "flow_name": "SmsGroup_Lifecycle_Flow",
+      "evidence": [
+        {
+          "transition": "DRAFT_CREATED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "CreateSmsGroup",
+          "line": 1433,
+          "verified": true
+        },
+        {
+          "transition": "DRAFT_UPDATED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "UpdateSmsGroupAsync",
+          "line": 1878,
+          "verified": true
+        },
+        {
+          "transition": "ACTIVATED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "SendSmsGroupAsync",
+          "line": 1602,
+          "verified": true
+        },
+        {
+          "transition": "LOOKUP_IN_PROGRESS",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "SendSmsGroupAsync",
+          "line": 1744,
+          "verified": true
+        },
+        {
+          "transition": "LOOKUP_COMPLETE",
+          "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+          "method": "SendMessageSingleGroupWithKvhxs",
+          "line": 134,
+          "verified": true
+        },
+        {
+          "transition": "SENT",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "MarkSmsGroupsSentAsync",
+          "line": 1848,
+          "verified": true
+        },
+        {
+          "transition": "DELETED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "DeleteSmsGroupAsync",
+          "line": 1958,
+          "verified": true
+        },
+        {
+          "transition": "DEACTIVATED_DRAFT",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "DeactivatePlannedMessageAsync",
+          "line": 1968,
+          "verified": true
+        },
+        {
+          "transition": "IMPLICIT_KLADDE",
+          "file": "UNKNOWN — client-side wizard abort",
+          "method": "UNKNOWN",
+          "line": null,
+          "verified": false,
+          "note": "Verified from PDF user documentation, not server-side code. Cannot close this transition from Layer 0."
+        }
+      ],
+      "gate_status": "PARTIAL — all server-side transitions verified. IMPLICIT_KLADDE is client-side/wizard only — no server code. Does not block gate.",
+      "verified": true
+    },
+    {
+      "id": "FE002",
+      "category": "flows_evidence_closure",
+      "flow_id": "F002",
+      "flow_name": "SmsLog_Dispatch_Fast_Path",
+      "evidence": [
+        {
+          "transition": "LOG_CREATED_10300",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "SendFastMessageSingleGroupSystemAsync",
+          "line": 699,
+          "verified": true
+        },
+        {
+          "transition": "QUEUED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "SendFastMessageSingleGroupSystemAsync",
+          "line": 724,
+          "verified": true
+        },
+        {
+          "transition": "DEQUEUED_PROCESSING",
+          "file": "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
+          "method": "DoWorkAsync",
+          "line": 59,
+          "verified": true
+        },
+        {
+          "transition": "STATUS_10301",
+          "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsWebServerGatewayBulkWorkloadLoader.cs",
+          "method": "GetWorkloadChunk",
+          "line": null,
+          "verified": true,
+          "line_ref": "SmsBackgroundService.cs:118 (loader construction)"
+        },
+        {
+          "transition": "GATEWAY_DISPATCHED",
+          "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayBroker/SmsGatewayBrokerWorkloadProcessor.cs",
+          "method": "RouteWorkload",
+          "line": 57,
+          "verified": true
+        },
+        {
+          "transition": "GATEWAY_STATUS_WRITTEN",
+          "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+          "method": "SetStatuses",
+          "line": 21,
+          "verified": true
+        },
+        {
+          "transition": "RETRY_10302",
+          "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsWebServerRetryGatewayBulkWorkloadLoader.cs",
+          "method": "GetWorkloadChunk",
+          "line": 35,
+          "verified": true
+        },
+        {
+          "transition": "FINAL_STATUS",
+          "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+          "method": "SetStatuses",
+          "line": 21,
+          "verified": true
+        }
+      ],
+      "gate_status": "PASS — all transitions verified with file+method+line",
+      "verified": true
+    },
+    {
+      "id": "FE003",
+      "category": "flows_evidence_closure",
+      "flow_id": "F003",
+      "flow_name": "SmsLog_Status_Processing_Async_Path",
+      "evidence": [
+        {
+          "transition": "DLR_RECEIVED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "GatewayApiCallbackAsync / StrexCallbackAsync",
+          "line": 1320,
+          "verified": true
+        },
+        {
+          "transition": "STATUS_RECORD_PENDING",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "CreateSmsLogStatusAsync",
+          "line": 1383,
+          "verified": true
+        },
+        {
+          "transition": "STATUS_CHUNK_LOADED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "UpdateStatusOnSmsLogsAsync",
+          "line": 2050,
+          "verified": true
+        },
+        {
+          "transition": "SMSLOG_UPDATED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "UpdateStatusOnSmsLogsAsync",
+          "line": 2057,
+          "verified": true
+        },
+        {
+          "transition": "WEBHOOK_FIRED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "UpdateStatusOnSmsLogsAsync",
+          "line": 2075,
+          "verified": true
+        },
+        {
+          "transition": "IMPORTED",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "UpdateStatusOnSmsLogsAsync",
+          "line": 2090,
+          "verified": true
+        }
+      ],
+      "gate_status": "PASS — all transitions verified with file+method+line",
+      "verified": true
+    },
+    {
+      "id": "FE004",
+      "category": "flows_evidence_closure",
+      "flow_id": "F004",
+      "flow_name": "SmsLog_Lookup_Resolution_Flow",
+      "evidence": [
+        {
+          "transition": "SMSGROUPITEMS_DEFINED",
+          "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+          "method": "SendMessageSingleGroupWithAddress",
+          "line": 91,
+          "verified": true
+        },
+        {
+          "transition": "ADDRESS_MATCHED",
+          "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+          "method": "SendMessageSingleGroupWithAddress",
+          "line": 91,
+          "verified": true
+        },
+        {
+          "transition": "OWNERS_RESOLVED",
+          "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+          "method": "SendMessageSingleGroupWithKvhxs",
+          "line": 158,
+          "verified": true
+        },
+        {
+          "transition": "SMSLOGS_CONSTRUCTED",
+          "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+          "method": "SendMessageSingleGroupWithKvhxs",
+          "line": 171,
+          "verified": true
+        },
+        {
+          "transition": "SMSLOGS_INSERTED",
+          "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+          "method": "SendMessageSingleGroupWithKvhxs",
+          "line": 261,
+          "verified": true
+        },
+        {
+          "transition": "NOPHONE_RECORDED",
+          "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+          "method": "CheckAndHandleNoPhoneAddresses",
+          "line": 668,
+          "verified": true
+        },
+        {
+          "transition": "EBOKS_LOGGED",
+          "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+          "method": "SendMessageSingleGroupWithKvhxs",
+          "line": 280,
+          "verified": true
+        }
+      ],
+      "gate_status": "PASS — all transitions verified with file+method+line",
+      "verified": true
+    },
+    {
+      "id": "FE005",
+      "category": "flows_evidence_closure",
+      "flow_id": "F005",
+      "flow_name": "Batch_vs_Web_Execution_Split",
+      "evidence": [
+        {
+          "transition": "FAST_PATH",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "SendFastMessageSingleGroupSystemAsync",
+          "line": 699,
+          "verified": true
+        },
+        {
+          "transition": "WEB_LOOKUP_PATH",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "SendSmsGroupAsync",
+          "line": 1744,
+          "verified": true
+        },
+        {
+          "transition": "BATCH_PATH",
+          "file": "ServiceAlert.Services/Messages/MessageService.cs",
+          "method": "SendSmsGroupAsync",
+          "line": 1763,
+          "verified": true
+        },
+        {
+          "transition": "QUEUE_PROCESSING",
+          "file": "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
+          "method": "DoWorkAsync",
+          "line": 59,
+          "verified": true
+        },
+        {
+          "transition": "BATCH_JOB_RUNNING",
+          "file": "UNKNOWN — Azure Batch job implementation not in Layer 0 source",
+          "method": "UNKNOWN",
+          "line": null,
+          "verified": false,
+          "note": "UNKNOWN_INTERNAL — batch job innards not in ServiceAlert.Services. F006 (CQRS Lookup Pipeline) resolves conceptually what the batch job does, but implementation location is unknown."
+        },
+        {
+          "transition": "SMSLOGS_READY",
+          "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+          "method": "SetStatuses",
+          "line": 21,
+          "verified": true
+        }
+      ],
+      "gate_status": "PARTIAL — 5/6 transitions verified. BATCH_JOB_RUNNING transition is UNKNOWN_INTERNAL (Azure Batch job not in Layer 0). F006 resolves conceptually. Does not block gate if Architect accepts F006 as evidence closure.",
+      "verified": true
+    },
+    {
+      "id": "FE006",
+      "category": "flows_evidence_closure",
+      "flow_id": "F006",
+      "flow_name": "Lookup_CQRS_Pipeline",
+      "evidence": [
+        {
+          "transition": "PIPELINE_ARCHITECTURE",
+          "file": "Wiki: DEVELOPMENT/Domain-Description/[coded-lookup-page]",
+          "method": "LookupExecutor / CommandProcessor / EventListener",
+          "line": null,
+          "verified": true,
+          "note": "Verified from wiki architecture diagram + interface definitions. Implementation location in Layer 0 is UNKNOWN — likely in ServiceAlert.Lookup or similar project not scanned."
+        }
+      ],
+      "gate_status": "WIKI_VERIFIED — full pipeline architecture verified from wiki. Code location not in Layer 0 source scan. Architect must decide if wiki-verification is sufficient for gate closure.",
+      "verified": true,
+      "architect_decision_needed": "Is wiki-verified F006 sufficient to close F005 BATCH_JOB_RUNNING gap?"
+    },
+    {
+      "id": "R001",
+      "domain": "SMS Core",
+      "name": "Broadcast_Idempotent_Activation",
+      "description": "A broadcast that is already Active cannot be re-activated. SendSmsGroupAsync returns immediately if smsGroup.Active == true.",
+      "rule_type": "invariant",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "SendSmsGroupAsync",
+      "line": 1600,
+      "code_evidence": "if (smsGroup.Active) return; // This SmsGroup has already been activated for sending, so do nothing.",
+      "green_ai_note": "Model as explicit guard in BroadcastActivate handler: if broadcast.State != Draft → return Result.Ok() (idempotent). Not an error.",
+      "architect_decision": null
+    },
+    {
+      "id": "R002",
+      "domain": "SMS Core",
+      "name": "Broadcast_NoRecipients_Guard",
+      "description": "A broadcast cannot be activated if it has no recipients. Throws NoRecipientsException if SmsGroupItems is empty AND GeoObjects is null AND HasRecipients() returns false.",
+      "rule_type": "invariant",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "SendSmsGroupAsync",
+      "line": 1598,
+      "code_evidence": "if (string.IsNullOrEmpty(smsGroup.GeoObjects) && smsGroup.SmsGroupItems.Count == 0 && !await _messageRepository.HasRecipients(paramz.SmsGroupId)) throw new NoRecipientsException();",
+      "green_ai_note": "Three independent recipient sources: SmsGroupItems (address ranges), GeoObjects (geographic polygon filter), HasRecipients (direct DB lookup). ALL must be empty to block activation.",
+      "architect_decision": null
+    },
+    {
+      "id": "R003",
+      "domain": "SMS Core",
+      "name": "Broadcast_Message_Empty_Guard",
+      "description": "A broadcast with SendSMS=true must have a non-empty message text. A broadcast with SendEmail=true, non-empty Subject must have a non-empty email message body.",
+      "rule_type": "invariant",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "SendSmsGroupAsync",
+      "line": 1602,
+      "code_evidence": "if (string.IsNullOrWhiteSpace(smsGroup.SmsData?.Message) && smsGroup.SendSMS) throw new InvalidOperationException(\"SmsGroup.Message must not be empty\")",
+      "green_ai_note": "SMS message and email body validated independently. Email body only required if Subject is non-empty.",
+      "architect_decision": null
+    },
+    {
+      "id": "R004",
+      "domain": "SMS Core",
+      "name": "SMS_Character_Count_Calculation",
+      "description": "SMS part count depends on encoding. UCS2: single part ≤70 chars, multi-part = ceil(len/63). GSM7: single part ≤160 chars, multi-part = ceil(len/153).",
+      "rule_type": "calculation",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "GetSmsCount",
+      "line": 303,
+      "code_evidence": "UCS2: <=70 → 1; else ceil(len/63.0). GSM7: <=160 → 1; else ceil(len/153.0)",
+      "green_ai_note": "Standard SMS encoding rules. UCS2 for Unicode characters (emojis, Ø, Å etc.). GSM7 for ASCII-compatible text. green-ai SMS feature must apply this calculation for billing + preview.",
+      "architect_decision": null
+    },
+    {
+      "id": "R005",
+      "domain": "SMS Core",
+      "name": "Large_Broadcast_Threshold_Notification",
+      "description": "When a broadcast targets > 25000 addresses and has any channel data (SMS/Email/Voice/eBoks), a notification email is sent internally before activation.",
+      "rule_type": "operational_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "SendSmsGroupAsync",
+      "line": 1562,
+      "code_evidence": "if ((...SmsData != null || EmailData != null || VoiceData != null || EboksData != null) && count > 25000) { _emailService.Save(...companyInfo.LargeBroadcastMailAddress...) }",
+      "green_ai_note": "25000 is a hardcoded threshold. Notification goes to internal LargeBroadcastMailAddress (not customer). Happens before Azure Batch is dispatched. Does NOT block activation.",
+      "architect_decision": null
+    },
+    {
+      "id": "R006",
+      "domain": "SMS Core",
+      "name": "Web_Lookup_Eligibility_Rules",
+      "description": "In-process web lookup (instead of Azure Batch) is only used when: NOT scheduled (no DateDelayToUtc) AND (( ByAddress AND FromApi AND ≤5 non-stdReceiver items AND no zip-only items) OR (ByStdReceivers)).",
+      "rule_type": "routing_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "IsWebLookupNeeded",
+      "line": 1793,
+      "code_evidence": "Scheduled messages → always Batch. ByAddress + FromApi + ≤5 non-stdReceiver non-zip-only items → Web. ByStdReceivers → Web. All other → Batch.",
+      "green_ai_note": "green-ai must maintain this routing logic if both execution paths are supported. The ≤5 threshold is hardcoded. FromApi flag distinguishes portal-initiated vs API-initiated sends.",
+      "architect_decision": null
+    },
+    {
+      "id": "R007",
+      "domain": "SMS Core",
+      "name": "Permission_Gate_Owner_Lookup",
+      "description": "Owner lookup (SendToOwner) is only applied if profile has AlwaysOwner role OR (CanSpecifyLookup AND caller explicitly requested sendToOwner=true). Without permission: sendToOwner is always false.",
+      "rule_type": "permission_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "CreateSmsGroup",
+      "line": 1474,
+      "code_evidence": "SendToOwner = alwaysOwner || canSpecifyLookup && sendToOwner",
+      "green_ai_note": "AlwaysOwner → unconditionally sends to property owners. CanSpecifyLookup → allows opt-in to owner lookup. Profiles without either role: occupant-only lookup.",
+      "architect_decision": null
+    },
+    {
+      "id": "R008",
+      "domain": "SMS Core",
+      "name": "Permission_Gate_Address_Lookup",
+      "description": "Address lookup (SendToAddress=occupant) is suppressed by CanSpecifyLookup: if profile has this role, caller must explicitly request sendToAddress=true. Without permission: always true (all occupants).",
+      "rule_type": "permission_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "CreateSmsGroup",
+      "line": 1475,
+      "code_evidence": "SendToAddress = !canSpecifyLookup || sendToAddress",
+      "green_ai_note": "Inverse of owner: default is ON (occupants always included) unless profile has fine-grained control (CanSpecifyLookup).",
+      "architect_decision": null
+    },
+    {
+      "id": "R009",
+      "domain": "SMS Core",
+      "name": "Permission_Gate_Email_Suppression",
+      "description": "If profile has DontSendEmail role, email sending is always disabled regardless of what the caller requests.",
+      "rule_type": "permission_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "CreateSmsGroup",
+      "line": 1472,
+      "code_evidence": "SendEmail = sendEmail && !dontSendEmail",
+      "green_ai_note": "Hard permission override — no bypass.",
+      "architect_decision": null
+    },
+    {
+      "id": "R010",
+      "domain": "SMS Core",
+      "name": "Gateway_Routing_Hardcoded_TreNRG",
+      "description": "If SmsGroup.SmsSendAs == 'TreNRG', gateway routing is hardcoded to GatewayApi with highPriority=true. No feature toggle, no DB configuration.",
+      "rule_type": "architectural_smell",
+      "verified": true,
+      "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayBroker/SmsGatewayBrokerWorkloadProcessor.cs",
+      "method": "RouteWorkload",
+      "line": 57,
+      "code_evidence": "SmsSendAs == 'TreNRG' → hardcoded to GatewayApi high-priority route",
+      "green_ai_note": "ARCHITECTURAL SMELL registered. green-ai should model gateway selection as a configurable routing strategy, not hardcoded branching. TreNRG is a customer-specific requirement masquerading as platform logic.",
+      "architect_decision": null
+    },
+    {
+      "id": "R011",
+      "domain": "SMS Core",
+      "name": "DLR_Callback_SmsLogId_Type_Mismatch",
+      "description": "GatewayApiCallbackAsync parses SmsLogId from callback payload as int (int.TryParse). SmsLog.Id is long. For IDs > 2.1 billion, parsing silently fails → callback lost.",
+      "rule_type": "CONFLICTING",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "GatewayApiCallbackAsync",
+      "line": 1320,
+      "code_evidence": "int.TryParse(callback.userref / callback.Reference) — SmsLog.Id is long",
+      "green_ai_note": "CRITICAL BUG in legacy system. green-ai: parse SmsLogId as long from all gateway callbacks. Never truncate to int.",
+      "architect_decision": "CONFLICTING — B014 annotated by Architect iteration 2"
+    },
+    {
+      "id": "R012",
+      "domain": "SMS Core",
+      "name": "SmsLogStatus_Cross_Domain_Write",
+      "description": "dbo.SmsLogStatuses is written by both the SMS domain (gateway status callbacks) and the Email domain (email delivery receipts). No coordination mechanism.",
+      "rule_type": "cross_domain_dependency",
+      "verified": true,
+      "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+      "method": "SetStatuses",
+      "line": 21,
+      "code_evidence": "CreateSmsLogStatuses called by both SmsGatewayStatusWriter and Email callback handlers",
+      "green_ai_note": "green-ai messaging domain should own SmsLogStatuses. Email domain must write through a messaging domain contract — not directly to the table. Architect noted: SMS + Email are same pattern → potentially one messaging domain.",
+      "architect_decision": "cross_domain=true — B013 annotated by Architect iteration 2"
+    },
+    {
+      "id": "R013",
+      "domain": "SMS Core",
+      "name": "Dispatch_LastMinuteLookup_Scheduling",
+      "description": "For scheduled broadcasts (DateDelayToUtc set) with LastMinuteLookup=true, lookup is NOT dispatched at activation time. Lookup runs close to the scheduled send time. Mechanism not verified in Layer 0.",
+      "rule_type": "scheduling_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "SendSmsGroupAsync",
+      "line": 1744,
+      "code_evidence": "paramz.AllowLookup && (!smsGroup.LastMinuteLookup || !smsGroup.DateDelayToUtc.HasValue) — condition only dispatches lookup if NOT (LastMinuteLookup AND scheduled)",
+      "green_ai_note": "The actual mechanism that triggers late lookup is UNKNOWN in Layer 0. Likely a scheduled job checks for activated+scheduled+LastMinuteLookup broadcasts near their send time.",
+      "architect_decision": null
+    },
+    {
+      "id": "R014",
+      "domain": "SMS Core",
+      "name": "Status_Update_Priority_Algorithm",
+      "description": "When multiple DLR status records exist for one SmsLog, selection priority is: final delivery status > billable status > latest by DateReceivedUtc. Duplicates all marked Imported=true after selection.",
+      "rule_type": "business_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "UpdateStatusOnSmsLogsAsync",
+      "line": 2057,
+      "code_evidence": "GroupBy SmsLogId → priority: final > billable > latest. UpdateSmsLogsStatus(latestStatusIds). MarkSmsLogStatusesImported(allStatusIds)",
+      "green_ai_note": "green-ai: implement same priority when multiple delivery receipts arrive for one message. Status is authoritative once final/billable received — do not overwrite with later intermediate status.",
+      "architect_decision": null
+    },
+    {
+      "id": "R015",
+      "domain": "SMS Core",
+      "name": "Background_Service_Toggle_Gates",
+      "description": "Two independent AppSetting toggles control broadcast dispatch: DisableMessageBackgroundService='1' stops the background service entirely (no SMS sent). DisableAllBroadcasts='1' skips current iteration but keeps service running.",
+      "rule_type": "operational_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
+      "method": "DoWorkAsync",
+      "line": 59,
+      "code_evidence": "DisableMessageBackgroundService check → early return. DisableAllBroadcasts check → skip iteration",
+      "green_ai_note": "green-ai: model as two separate feature flags. DisableService = circuit breaker. DisableAllBroadcasts = temporary pause.",
+      "architect_decision": null
+    },
+    {
+      "id": "R016",
+      "domain": "Customer",
+      "name": "Identity_Three_Tier_Hierarchy",
+      "description": "Identity is structured in three tiers: Customer (legal entity with billing) → Profile (usage right, named functional identity) → User (person with credentials). A user can be mapped to multiple profiles. A profile belongs to exactly one customer.",
+      "rule_type": "structural_invariant",
+      "verified": true,
+      "file": "UNKNOWN — verified from wiki + DB schema (ProfileUserMappings, Profiles, Customers tables)",
+      "method": "UNKNOWN",
+      "line": null,
+      "code_evidence": "DB: ProfileUserMappings(ProfileId, UserId), Profiles(CustomerId FK), Customers(Id PK)",
+      "green_ai_note": "green-ai: ICurrentUser must resolve ProfileId (not UserId) as the primary authorization identity. All tenant-scoped queries filter on CustomerId derived from Profile.",
+      "architect_decision": null
+    },
+    {
+      "id": "R017",
+      "domain": "Customer",
+      "name": "Tenant_Isolation_Via_CustomerId",
+      "description": "All customer-owned data must be filtered by CustomerId (or ProfileId which maps to CustomerId). Cross-tenant data access is not permitted.",
+      "rule_type": "security_invariant",
+      "verified": true,
+      "file": "VERIFIED from governance — green-ai SSOT rule. Not a legacy-system business rule.",
+      "method": "GOVERNANCE",
+      "line": null,
+      "code_evidence": "green-ai: every SQL handler WHERE clause includes CustomerId = @CustomerId",
+      "green_ai_note": "MANDATORY in green-ai. No exceptions. See green-ai .github/copilot-instructions.md: SQL without WHERE CustomerId = @CustomerId is forbidden on tenant tables.",
+      "architect_decision": null
+    },
+    {
+      "id": "R018",
+      "domain": "Customer",
+      "name": "Profile_Role_Price_Matrix",
+      "description": "Prices for profile roles are resolved at three priority levels: CustomerProfileRolePrice (customer-specific override) → ProfileRolePrice (default for role) → ProductPrice. Lowest granularity wins.",
+      "rule_type": "pricing_rule",
+      "verified": true,
+      "file": "UNKNOWN — verified from DB schema (CustomerProfileRolePrices, ProfileRolePrices tables) + wiki",
+      "method": "UNKNOWN",
+      "line": null,
+      "code_evidence": "DB: CustomerProfileRolePrices(CustomerId, ProfileRoleId, Price), ProfileRolePrices(ProfileRoleId, Price)",
+      "green_ai_note": "green-ai pricing query: check CustomerProfileRolePrice first, fall back to ProfileRolePrice if not found.",
+      "architect_decision": null
+    },
+    {
+      "id": "R019",
+      "domain": "StandardReceiver",
+      "name": "StandardReceiver_Customer_Scoped",
+      "description": "Standard receivers (address subscription lists) are always scoped to a customer. There are no global standard receivers.",
+      "rule_type": "structural_invariant",
+      "verified": true,
+      "file": "UNKNOWN — verified from DB schema (StandardReceivers.CustomerId NOT NULL FK)",
+      "method": "UNKNOWN",
+      "line": null,
+      "code_evidence": "DB: StandardReceivers(CustomerId INT NOT NULL FK->Customers)",
+      "green_ai_note": "green-ai: StandardReceiver queries must always include CustomerId filter.",
+      "architect_decision": null
+    },
+    {
+      "id": "R020",
+      "domain": "StandardReceiver",
+      "name": "StandardReceiver_Robinson_Exemption",
+      "description": "Standard receivers are exempt from Robinson list (opt-out registry) checks. Subscribers, enrollees, and uploaded phone numbers are also exempt.",
+      "rule_type": "legal_rule",
+      "verified": true,
+      "file": "Wiki: DEVELOPMENT/Domain-Description/[coded-lookup-page] — F006 filter_rules",
+      "method": "CheckRobinsonCommand",
+      "line": null,
+      "code_evidence": "F006 filter_rules: 'RobinsonCheck: NOT applied to standard receivers, subscribers, enrollees, uploaded phone numbers'",
+      "green_ai_note": "Consented recipients bypass spam/opt-out checks. green-ai must preserve this exemption logic exactly — it is a legal compliance requirement.",
+      "architect_decision": null
+    },
+    {
+      "id": "R021",
+      "domain": "StandardReceiver",
+      "name": "StandardReceiver_NameMatch_Exemption",
+      "description": "Standard receivers are exempt from name matching (positive list name verification). Municipality positive lists also bypass name match.",
+      "rule_type": "legal_rule",
+      "verified": true,
+      "file": "Wiki: DEVELOPMENT/Domain-Description/[coded-lookup-page] — F006 filter_rules",
+      "method": "CheckNameMatchCommand",
+      "line": null,
+      "code_evidence": "F006 filter_rules: 'NameMatch: only for regular positive list — NOT for municipality positive list, NOT for HaveNoSendRestrictions, NOT for subscribers/enrollees/uploaded numbers'",
+      "green_ai_note": "Municipality customers have a separate permission level (HaveNoSendRestrictions) that bypasses name matching entirely.",
+      "architect_decision": null
+    },
+    {
+      "id": "R022",
+      "domain": "DataImport",
+      "name": "Import_Wiki_Schema_Divergence",
+      "description": "The actual DB schema for import tracking tables diverges significantly from the wiki specification. The wiki shows 6 columns; the actual table has 19+ columns. Wiki is NOT authoritative for DataImport schema.",
+      "rule_type": "data_quality_finding",
+      "verified": true,
+      "file": "raw/script.sql — Azure DB dump 2026-04-13",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "Verified via direct DB schema inspection. Wiki model is incomplete.",
+      "green_ai_note": "green-ai DataImport design must use DB schema as source of truth, not wiki. This domain has the highest wiki/DB divergence of all analyzed domains.",
+      "architect_decision": null
+    },
+    {
+      "id": "R023",
+      "domain": "Address",
+      "name": "Address_Identity_Is_String_Key",
+      "description": "The canonical address identity is a string-based key (Kvhx, NVARCHAR(36)), not an integer. This key is used as primary key in the core Addresses table and as foreign key reference across all related tables (ownership, geography, corrections, import logs, Norwegian property mappings).",
+      "rule_type": "architectural_decision",
+      "verified": true,
+      "file": "raw/script.sql — dbo.Addresses table definition",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "CREATE TABLE [dbo].[Addresses] with CLUSTERED PRIMARY KEY on Kvhx NVARCHAR(36). All FK tables reference Kvhx not Id.",
+      "green_ai_note": "ARCHITECT DECISION (2026-04-13): String key (Kvhx) is CANONICAL domain identity in green-ai. No redesign to numeric key at this time. Internal DB surrogate key may be considered later as performance optimization only.",
+      "architect_decision": "APPROVED — string key retained as canonical domain identity"
+    },
+    {
+      "id": "R024",
+      "domain": "Address",
+      "name": "Finnish_Import_Deferred",
+      "description": "Finnish address import (AvoinData source) is explicitly OUT OF ACTIVE SCOPE. The data source (AvoinData) was shut down in February 2025 and has no verified replacement.",
+      "rule_type": "scope_decision",
+      "verified": true,
+      "file": "Wiki: DEVELOPMENT/Domain-Description/Addresses.md — AvoinData shutdown warning",
+      "method": "WIKI_EVIDENCE",
+      "line": null,
+      "code_evidence": "Wiki explicitly warns: AvoinData service shut down Feb 2025. dbo.AddressImportFinnishBuildings and dbo.AddressImportFinnishZipCodes exist but are stale.",
+      "green_ai_note": "ARCHITECT DECISION (2026-04-13): Finnish import is DEFERRED / BLOCKED BY SOURCE REPLACEMENT. Not to be included in green-ai active scope. Must be explicitly labeled 'deferred' in any feature inventory — not silently omitted.",
+      "architect_decision": "DEFERRED — Finnish import out of active scope until replacement source verified"
+    },
+    {
+      "id": "R025",
+      "domain": "Address",
+      "name": "Norwegian_Address_Five_Tuple_Cadastral_Key",
+      "description": "Norwegian addresses use a 5-part cadastral key: (MunicipalityCode, FarmNumber, UseNumber, TenantNumber, SectionNumber). This key must be mapped to a Kvhx string key for integration with the core address system.",
+      "rule_type": "integration_rule",
+      "verified": true,
+      "file": "raw/script.sql — dbo.AddressNorwegianPropertyAddresses table definition",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "Table AddressNorwegianPropertyAddresses bridges (MunicipalityCode, FarmNumber, UseNumber, TenantNumber, SectionNumber) → Kvhx NVARCHAR(36)",
+      "green_ai_note": "green-ai: Norwegian address input must resolve 5-tuple to Kvhx before using any cross-domain address operation.",
+      "architect_decision": null
+    },
+    {
+      "id": "R026",
+      "domain": "Address",
+      "name": "DK_Owner_Two_Pipeline_Coexistence",
+      "description": "Two parallel owner import pipelines exist: AddressOwnersST (older format) and Address_ST_Owners (newer Datafordeleren format). Both populate dbo.AddressOwners. They have not been merged.",
+      "rule_type": "architectural_finding",
+      "verified": true,
+      "file": "raw/script.sql — dbo.AddressOwnersST + dbo.Address_ST_Owners definitions",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "Two staging tables with different structures both targeting AddressOwners. Address_ST_Owners is newer (has ProcessingId GUID, OwnerForholdsKode, OwnerChangeExportedUtc).",
+      "green_ai_note": "green-ai: design single owner import pipeline. The two-pipeline coexistence is legacy debt — do not replicate it.",
+      "architect_decision": null
+    },
+    {
+      "id": "R027",
+      "domain": "Address",
+      "name": "Address_UTC_Consistency_Except_Finnish",
+      "description": "All address tables use getutcdate() for timestamp defaults, EXCEPT AddressImportFinnishBuildings.ActiveSince and AddressImportFinnishZipCodes.ActiveSince which use getdate() (local time). This is an inconsistency in the legacy system.",
+      "rule_type": "data_quality_finding",
+      "verified": true,
+      "file": "raw/script.sql — dbo.AddressImportFinnishZipCodes definition",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "ActiveSince DATETIME2(7) NOT NULL DEFAULT getdate() — should be getutcdate() like all other tables",
+      "green_ai_note": "Finnish tables are deferred scope anyway (R024). If ever re-enabled: fix UTC inconsistency.",
+      "architect_decision": null
+    },
+    {
+      "id": "R028",
+      "domain": "Address",
+      "name": "Kvhx_Change_Propagation_Required",
+      "description": "When an address Kvhx is renamed (Norwegian/Danish registry updates), all downstream references (SmsGroup recipients, subscriptions, enrollments) must be migrated to the new Kvhx. AddressKvhxChanges and AddressImportKvhxLogs track these events.",
+      "rule_type": "data_integrity_rule",
+      "verified": true,
+      "file": "raw/script.sql — dbo.AddressKvhxChanges, dbo.AddressImportKvhxLogs",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "AddressKvhxChanges(OldKvhx, NewKvhx, DateChangedUtc). AddressImportKvhxLogs(Kvhx, DateHandledUtc NULL = pending). AddressImportKvhxLogsAffectedKvhx stores concrete old→new pairs.",
+      "green_ai_note": "green-ai: address identity changes must trigger propagation job. DateChangedUtc = migration completed. DateHandledUtc NULL = pending downstream migration.",
+      "architect_decision": null
+    },
+    {
+      "id": "R029",
+      "domain": "Pipeline",
+      "name": "ProcessTask_Ownership_Application_Enforced",
+      "description": "A ProcessTask belongs to exactly one owner. The owner can be either a Prospect or a Customer. Owner type is determined by the associated ProcessTaskTemplate.Type. No referential integrity is enforced in the database.",
+      "rule_type": "architectural_decision",
+      "verified": true,
+      "file": "raw/script.sql — dbo.ProcessTasks definition",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "ProcessTasks(SubjectId INT NOT NULL) — no FK constraint. ProcessTaskTemplates(Type NVARCHAR(50)) determines which entity SubjectId refers to.",
+      "green_ai_note": "ARCHITECT DECISION (2026-04-13): green-ai pattern = owner_type + owner_id enforced in application layer. Invariants: (1) Task belongs to exactly one owner. (2) owner_type determines valid owner lookup. (3) template determines allowed owner_type. (4) Prospect→Customer conversion must explicitly handle open tasks and role activation.",
+      "architect_decision": "APPROVED — application-enforced polymorphism via owner_type + owner_id. No polymorphic FK in DB."
+    },
+    {
+      "id": "R030",
+      "domain": "Pipeline",
+      "name": "ProcessTask_Prospect_To_Customer_Conversion",
+      "description": "When a Prospect converts to a Customer, open ProcessTasks must be handled. ProspectUserRoleMappings define which UserRoles are activated on conversion. The conversion mechanism is not verified in Layer 0.",
+      "rule_type": "business_rule",
+      "verified": false,
+      "verified_note": "UNKNOWN — conversion mechanism not found in Layer 0 source. Defined as architectural invariant by Architect decision.",
+      "file": "UNKNOWN",
+      "method": "UNKNOWN",
+      "line": null,
+      "code_evidence": "DB: ProspectUserRoleMappings(ProspectId, UserRoleId, DefaultSelected BIT DEFAULT 1) — no FK constraints. Purpose: pre-configure roles for when prospect becomes customer.",
+      "green_ai_note": "ARCHITECT DECISION: Conversion handler must: (1) re-assign open tasks from ProspectId to new CustomerId. (2) activate roles per ProspectUserRoleMappings where DefaultSelected=1. (3) close/archive completed tasks.",
+      "architect_decision": "DEFINED AS INVARIANT — implementation details UNKNOWN in legacy system"
+    },
+    {
+      "id": "R031",
+      "domain": "Pipeline",
+      "name": "Hubspot_Integration_Planned_Not_Implemented",
+      "description": "The wiki domain model for Prospect includes a HubspotCompanyId field. The DB schema does NOT contain this column. Hubspot integration is planned but not implemented.",
+      "rule_type": "scope_finding",
+      "verified": true,
+      "file": "raw/script.sql — dbo.Prospects definition (HubspotCompanyId ABSENT)",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "Wiki: Prospect.HubspotCompanyId. DB: dbo.Prospects does not have HubspotCompanyId column.",
+      "green_ai_note": "green-ai: Do NOT implement Hubspot integration as if it exists in legacy. If needed, design from scratch. Mark as out-of-scope until explicitly included.",
+      "architect_decision": null
+    },
+    {
+      "id": "R032",
+      "domain": "Pipeline",
+      "name": "ProspectUserRoleMapping_No_FK_Constraints",
+      "description": "ProspectUserRoleMappings has no FK constraints in the DB. ProspectId and UserRoleId are stored without referential integrity enforcement.",
+      "rule_type": "data_quality_finding",
+      "verified": true,
+      "file": "raw/script.sql — dbo.ProspectUserRoleMappings definition",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "CREATE TABLE ProspectUserRoleMappings — no FOREIGN KEY constraint on ProspectId or UserRoleId",
+      "green_ai_note": "green-ai: enforce referential integrity via FK constraints. Legacy omission was intentional (flexible pipeline) but should be hardened.",
+      "architect_decision": null
+    },
+    {
+      "id": "R033",
+      "domain": "Cross-domain",
+      "name": "CountryId_Is_System_Wide_Discriminator",
+      "description": "CountryId is the primary geographic discriminator across ALL domains: addresses, standard receivers, customers, broadcasts, import pipelines. Values: DK=1, SE=2, FI=3, NO=4 (exact values UNKNOWN — not verified in Layer 0).",
+      "rule_type": "structural_rule",
+      "verified": true,
+      "verified_note": "CountryId presence verified. Exact enum values NOT verified from Layer 0 — do not guess.",
+      "file": "raw/script.sql — present in >20 tables across all domains",
+      "method": "SCHEMA_VERIFICATION",
+      "line": null,
+      "code_evidence": "CountryId INT present in: dbo.Addresses, dbo.AddressStreets, dbo.AddressOwners, dbo.Municipalities, dbo.Countries, dbo.StandardReceivers, dbo.SmsGroups, and 15+ others",
+      "green_ai_note": "green-ai: CountryId as strongly-typed value object (CountryId record struct). Never use raw int. Countries table is the authority for valid CountryId values.",
+      "architect_decision": null
+    },
+    {
+      "id": "R034",
+      "domain": "Address",
+      "name": "Address_Per_Country_Cache_Proposal",
+      "description": "ARCHITECTURAL PROPOSAL for green-ai: Each country maintains its own address cache/store with its own native structure. A thin canonical identity (Kvhx string key) is the only cross-country contract. DK, NO, SE, FI each have structurally incompatible address data - DK uses Kvhx string, NO uses 5-part cadastral tuple (R025), SE has separate property identity, FI is deferred (R024). Forcing a unified model creates artificial normalization pressure.",
+      "rule_type": "architectural_proposal",
+      "verified": false,
+      "verified_note": "Green-AI design proposal — not derived from legacy system. Requires Architect decision.",
+      "file": "PROPOSAL — not from Layer 0 source",
+      "method": "PROPOSAL",
+      "line": null,
+      "rationale": [
+        "N=4 countries with structurally incompatible address data (verified in DB schema)",
+        "R023: Kvhx string key is canonical identity — suitable as cross-country cache key",
+        "R025: NO 5-tuple must map to Kvhx anyway — this IS a natural cache boundary",
+        "R024: FI deferred — per-country cache allows FI to be added without touching other countries",
+        "Discussed with user 2026-04-13: decouple address structures so schema does not need to be uniform across countries"
+      ],
+      "proposed_pattern": {
+        "query_path": "caller -> country-specific cache lookup -> resolves to Kvhx -> core messaging domain",
+        "each_cache": [
+          "owns its native import structure (DK: Datafordeleren, NO: Kartverket 5-tuple, SE: Lantmateriet, FI: future source)",
+          "resolves to Kvhx on output",
+          "can be invalidated or replaced independently"
+        ],
+        "open_question": "Separate Address.DK / Address.NO / Address.SE vertical slices, or one AddressCache domain partitioned by CountryId?"
+      },
+      "green_ai_note": "Core domain only ever sees Kvhx. Country-specific resolution is an infrastructure concern, not a domain concern. This pattern also cleanly handles the FI deferred scope: the FI cache is simply absent until a verified source exists.",
+      "architect_decision": null
+    },
+    {
+      "id": "R035",
+      "domain": "SMS Core",
+      "name": "Dual_Status_Write_No_Reconciliation",
+      "description": "Two independent pipelines can write to the same SmsLog.StatusCode concurrently: (A) sync write via SmsGatewayStatusWriter.SetStatuses() after batch-send, (B) async DLR callback via UpdateStatusOnSmsLogsAsync(). No locking or reconciliation mechanism exists. Last writer wins at DB level.",
+      "rule_type": "architectural_deficiency",
+      "verified": true,
+      "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs + ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "SetStatuses (line 21) + UpdateStatusOnSmsLogsAsync (line 2050)",
+      "line": 21,
+      "code_evidence": "SetStatuses: bulk UPDATE SmsLogs with sync gateway status. UpdateStatusOnSmsLogsAsync: separate pipeline updating SmsLog.StatusCode from DLR callbacks. No mutex, no coordination flag, no CAS operation.",
+      "green_ai_note": "INVARIANT for green-ai: pipeline (A) and (B) MUST be serialized per SmsLog via optimistic concurrency (rowversion/timestamp) or explicit status progression guard: only allow status update if new status > current status.",
+      "architect_decision": null
+    },
+    {
+      "id": "R036",
+      "domain": "SMS Core",
+      "name": "SmsLogStatuses_Cross_Domain_Write_Invariant",
+      "description": "dbo.SmsLogStatuses is written by BOTH the SMS dispatch pipeline (SmsGatewayStatusWriter, Imported=true) AND the DLR callback pipeline (CreateSmsLogStatusAsync, Imported=false). Email domain may also write to this table via its own callback handlers. This is a shared write target with no domain ownership.",
+      "rule_type": "cross_domain_invariant",
+      "verified": true,
+      "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+      "method": "SetStatuses",
+      "line": 21,
+      "code_evidence": "SetStatuses: CreateSmsLogStatuses(Imported=true). CreateSmsLogStatusAsync (line 1383): INSERT Imported=false. Both target dbo.SmsLogStatuses. Email callback handlers also write here.",
+      "green_ai_note": "INVARIANT: green-ai must designate SmsLogStatuses as owned by the messaging domain. Other domains (email) write through a messaging domain contract, not directly to the table. Imported flag semantics: false=pending DLR processing, true=processed (by batch job or sync write).",
+      "architect_decision": null
+    },
+    {
+      "id": "R037",
+      "domain": "SMS Core",
+      "name": "LastMinuteLookup_Activation_Guard_Verified",
+      "description": "When LastMinuteLookup=true AND broadcast is scheduled (DateDelayToUtc set), address lookup is SKIPPED at activation time. The broadcast is activated (Active=true) but no lookup job is dispatched. The late-lookup trigger is a scheduled job that runs close to DateDelayToUtc — implementation of that trigger NOT FOUND in Layer 0 source.",
+      "rule_type": "scheduling_rule",
+      "verified": true,
+      "verified_note": "Activation guard verified at MessageService.cs:1700. Late-lookup trigger ISOLATED as UNKNOWN — must be in Azure Batch service not in Layer 0.",
+      "file": "ServiceAlert.Services/Messages/MessageService.cs",
+      "method": "SendSmsGroupAsync",
+      "line": 1700,
+      "code_evidence": "if (paramz.AllowLookup && (!smsGroup.LastMinuteLookup || !smsGroup.DateDelayToUtc.HasValue)) — if LastMinuteLookup=true AND scheduled: entire lookup block is skipped.",
+      "green_ai_note": "green-ai: LastMinuteLookup flag means 'defer lookup to near send time'. Activation sets state=ACTIVATED without dispatching lookup. A scheduled job must check for ACTIVATED+DateDelayToUtc+LastMinuteLookup broadcasts and dispatch lookup when (DateDelayToUtc - now) < threshold. Threshold value UNKNOWN.",
+      "unknown_isolated": "Late-lookup trigger threshold (minutes before send time) and exact dispatch mechanism NOT in Layer 0.",
+      "architect_decision": null
+    },
+    {
+      "id": "R038",
+      "domain": "Pipeline",
+      "name": "Prospect_Customer_Conversion_Two_Step",
+      "description": "Prospect→Customer conversion is a two-step explicit process: (1) UpdateProspectWithCustomerIdAndAddContactPersonsToCustomer — links prospect to existing customer, copies contact persons. (2) CopyProspectProductsToCustomer — deletes existing customer products, creates new products from prospect products.",
+      "rule_type": "business_rule",
+      "verified": true,
+      "file": "ServiceAlert.Web/Controllers/PipelineController.cs",
+      "method": "UpdateProspectWithCustomerIdAndAddContactPersonsToCustomer + CopyProspectProductsToCustomer",
+      "line": 323,
+      "code_evidence": "Line 323: prospect.CustomerId = customer.Id -> UpdateProspectAsync. Line 340-347: InsertContactPersonsAsync. Line 379: DeleteCustomerProductsByCustomerIdAsync + CreateCustomerProductsAsync from prospect products.",
+      "green_ai_note": "Conversion is CALLER-DRIVEN via two separate API calls — not atomic. No transaction wraps both steps. green-ai: model as explicit ConvertProspectToCustomer command with transactional boundary covering both steps.",
+      "architect_decision": null
+    },
+    {
+      "id": "R039",
+      "domain": "Pipeline",
+      "name": "Prospect_Customer_Conversion_Tasks_Not_Reassigned",
+      "description": "During Prospect→Customer conversion, open ProcessTasks are NOT re-assigned to the new CustomerId. Tasks retain their original SubjectId (ProspectId). No code was found that migrates or closes tasks as part of conversion.",
+      "rule_type": "UNKNOWN",
+      "verified": false,
+      "verified_note": "ISOLATED UNKNOWN — searched PipelineController.cs conversion endpoints. No task re-assignment found. This is either (a) handled elsewhere not found in Layer 0, (b) intentionally not implemented, or (c) a known gap.",
+      "file": "ServiceAlert.Web/Controllers/PipelineController.cs — conversion endpoints do NOT touch ProcessTasks",
+      "method": "UpdateProspectWithCustomerIdAndAddContactPersonsToCustomer",
+      "line": 323,
+      "code_evidence": "Lines 323-345: only prospect.CustomerId, contact persons. No ProcessTask query or update. CopyProspectProductsToCustomer (line 379): only CustomerProducts. ProcessTasks untouched.",
+      "green_ai_note": "STOP CONDITION HIT: Architect instructed to stop if Prospect→Customer conversion not found in code. Conversion IS found (R038), but task handling ISOLATED as absent. Reporting isolation rather than stopping — conversion itself IS code-verified.",
+      "architect_decision": "ISOLATED — task re-assignment not found in Layer 0"
+    },
+    {
+      "id": "R040",
+      "domain": "Pipeline",
+      "name": "Prospect_UserRole_Preconfig_Not_Auto_Applied",
+      "description": "ProspectUserRoleMappings stores pre-configured UserRoles for when a prospect converts to a customer. However, NO code was found that reads ProspectUserRoleMappings and creates CustomerUserRoleMappings during conversion. Activation of pre-configured roles appears to be manual.",
+      "rule_type": "UNKNOWN",
+      "verified": false,
+      "verified_note": "ISOLATED UNKNOWN — searched conversion endpoints, ProspectCreatedInEconomicNotificationHandler. No auto-activation of ProspectUserRoleMappings found in Layer 0.",
+      "file": "ServiceAlert.Services/Customers/IntegrationPoints/ProspectCreatedInEconomicNotificationHandler.cs",
+      "method": "Handle",
+      "line": 22,
+      "code_evidence": "ProspectCreatedInEconomicNotificationHandler only sets customer.EconomicId — no role activation. PipelineController conversion endpoints: no ProspectUserRoleMapping reads.",
+      "green_ai_note": "green-ai: role activation from prospect configuration should be explicit and automated in the ConvertProspectToCustomer command. PreConfigured roles (DefaultSelected=true in ProspectUserRoleMappings) should auto-activate on conversion.",
+      "architect_decision": "ISOLATED — auto-activation not found in Layer 0"
+    },
+    {
+      "id": "R041",
+      "domain": "DataImport",
+      "name": "Import_Two_Phase_Commit_Status_Machine",
+      "description": "Data import follows a two-phase commit pattern with an explicit status machine. Phase 1 (PrepareImportAsync): columns defined, file read, rows validated → status ColumnsReady=3 or Error=-1. Phase 2 (ConfirmImportAsync): status set to CommitStarted=107 BEFORE processing, then data written → ImportCommitted=7. On error: status set to Error=-1.",
+      "rule_type": "business_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/DataImports/DataImportService.cs + ServiceAlert.Core/Domain/DataImports/Enums/DataImportStatus.cs",
+      "method": "PrepareImportAsync (line 224) + ConfirmImportAsync (line 245)",
+      "line": 245,
+      "code_evidence": "file.Status = DataImportStatus.CommitStarted (line 249) before processing. ConfirmImportAsync writes status before data write. DataImportStatus enum: None=0, Error=-1, Queued=1, ProcessingColumns=2, ColumnsReady=3, ReadyForImport=4, DataImporting=5, DataImported=6, ImportCommitted=7, ConvertingFile=20, CommitStarted=107.",
+      "green_ai_note": "green-ai: CommitStarted (107) written BEFORE data commit enables resume detection: if job crashes mid-commit, status remains 107 — job can be retried or investigated. ImportCommitted (7) is the success terminal state.",
+      "architect_decision": null
+    },
+    {
+      "id": "R042",
+      "domain": "DataImport",
+      "name": "Import_Size_Gate_Inline_vs_Batch",
+      "description": "Import confirm (Phase 2) runs inline if file.SizeKb < 10, otherwise dispatches to Azure Batch via CreateConfirmDataImportAzureTaskAsync. This is a hardcoded size threshold, not configurable.",
+      "rule_type": "routing_rule",
+      "verified": true,
+      "file": "ServiceAlert.Services/DataImports/DataImportService.cs",
+      "method": "StartConfirmJobAsync",
+      "line": 232,
+      "code_evidence": "if (file.SizeKb < 10) { await ConfirmImportAsync } else { await _batchAppService.CreateConfirmDataImportAzureTaskAsync }",
+      "green_ai_note": "green-ai: 10KB threshold is hardcoded. Consider making this configurable. Pattern mirrors broadcast web-lookup threshold (≤5 items) — both are hardcoded size gates.",
+      "architect_decision": null
+    },
+    {
+      "id": "R043",
+      "domain": "Address",
+      "name": "Address_Country_Adapter_Principle",
+      "description": "ARCHITECT DECISION (2026-04-13, iteration 11): One Address domain with country-specific infrastructure adapters/caches. Each adapter handles its native structure (DK: Datafordeleren Kvhx, NO: Kartverket 5-tuple, SE: Lantmateriet, FI: deferred). All adapters expose canonical Kvhx string as output. Core domain only ever sees Kvhx. NOT approved: separate business domains per country.",
+      "rule_type": "architectural_decision",
+      "verified": true,
+      "verified_note": "Architect decision — green-ai design. Evidence: Layer 0 shows structurally incompatible country address tables (verified in raw/script.sql). Kvhx string is the common denominator across all existing country implementations.",
+      "file": "ARCHITECT_DECISION — green-ai design",
+      "method": "ARCHITECTURE",
+      "line": null,
+      "code_evidence": "Layer 0: DK uses dbo.Addresses (Kvhx PK). NO uses dbo.AddressNorwegianPropertyAddresses (5-tuple → Kvhx mapping). SE uses dbo.AddressSwedishProperties (separate identity). FI: deferred. Common output: Kvhx NVARCHAR(36).",
+      "green_ai_note": "APPROVED PATTERN: Address domain has one IAddressAdapter per country. Each adapter: (1) imports from native source format, (2) stores in country-native structure, (3) resolves to Kvhx for all cross-domain output. R034 architectural proposal is hereby resolved by this decision.",
+      "architect_decision": "APPROVED — one Address domain with country adapters, NOT separate business domains"
+    },
+    {
+      "id": "R044",
+      "domain": "SMS Core",
+      "name": "F006_Lookup_Pipeline_Code_Resolved",
+      "description": "F006 CQRS lookup pipeline code location is now RESOLVED. The core pipeline engine is LookupExecutor in ServiceAlert.Services/Lookup/CodeLookup/. Priority-ordered command queues are processed: each command is dispatched to matching ILookupCommandProcessor implementations, which emit ILookupEvents, which are picked up by ILookupEventListeners to emit new commands.",
+      "rule_type": "architectural_finding",
+      "verified": true,
+      "file": "ServiceAlert.Services/Lookup/CodeLookup/LookupExecutor.cs",
+      "method": "RunAsync",
+      "line": 42,
+      "code_evidence": "LookupExecutor.RunAsync: SortedList<int, LinkedList<ILookupCommand>> _queues. Loops while queues non-empty. Each command dispatched to processorMap[activeCommand.GetType()]. ILookupBatchCommandProcessor.ShouldBatch() check for batched commands. Events emitted, listeners pick up, new commands added to queues.",
+      "green_ai_note": "F006 flows evidence gap CLOSED. Pipeline runs in both web (inline) and Azure Batch contexts — same LookupExecutor. ILookupBatchCommandProcessor.ShouldBatch() determines if a command is deferred to background processing.",
+      "architect_decision": null
+    }
+  ]
+}

@@ -1,0 +1,557 @@
+[
+  {
+    "id": "F001",
+    "name": "SmsGroup_Lifecycle_Flow",
+    "description": "Complete lifecycle of a SmsGroup from creation through activation, address lookup, marking sent, and eventual deletion or deactivation back to draft.",
+    "category": "lifecycle",
+    "verified": true,
+    "nodes": [
+      {"state": "DRAFT_CREATED",     "conditions": "Active=false, IsLookedUp=false, WizardStep=AddressSelection (1)"},
+      {"state": "DRAFT_UPDATED",     "conditions": "Active=false, WizardStep=2-3 (address/message steps)"},
+      {"state": "ACTIVATED",         "conditions": "Active=true, IsLookedUp=false, WizardStep=Complete (4)"},
+      {"state": "LOOKUP_IN_PROGRESS","conditions": "Active=true, IsLookedUp=false — Azure batch or web lookup running"},
+      {"state": "LOOKUP_COMPLETE",   "conditions": "Active=true, IsLookedUp=true — SmsLogs created in DB"},
+      {"state": "SENT",              "conditions": "Active=true, IsLookedUp=true, DateSentUtc != null"},
+      {"state": "DELETED",           "conditions": "Row removed from dbo.SmsGroups; SmsGroupDeletedNotification published"},
+      {"state": "DEACTIVATED_DRAFT", "conditions": "Active=false, IsLookedUp=false, WizardStep=3; SmsLogs deleted"}
+    ],
+    "transitions": [
+      {
+        "from": "—",
+        "to": "DRAFT_CREATED",
+        "trigger": "CreateSmsGroup()",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "CreateSmsGroup",
+        "line": 1433,
+        "notes": "BulkInsertSmsGroup + ActivityLog. Permission gates applied (AlwaysOwner, DontSendEmail etc.)"
+      },
+      {
+        "from": "DRAFT_CREATED",
+        "to": "DRAFT_UPDATED",
+        "trigger": "UpdateSmsGroupAsync()",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "UpdateSmsGroupAsync",
+        "line": 1878,
+        "notes": "Channel data MERGE/DELETE per SendEmail/SendVoice flags. DateUpdatedUtc=Now"
+      },
+      {
+        "from": "DRAFT_UPDATED",
+        "to": "ACTIVATED",
+        "trigger": "SendSmsGroupAsync()",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendSmsGroupAsync",
+        "line": 1602,
+        "notes": "Active=true, IsLookedUp=false, WizardStep=Complete. NoRecipientsException if no addresses. Guard: if already Active=true → return (idempotent)"
+      },
+      {
+        "from": "ACTIVATED",
+        "to": "LOOKUP_IN_PROGRESS",
+        "trigger": "Dispatch: AllowLookup + !LastMinuteLookup",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendSmsGroupAsync",
+        "line": 1744,
+        "notes": "EITHER: codedLookupService.LookupAsync (web, small group) OR _batchAppService.CreateLookupAzureTaskAsync (batch, large group). Determined by IsWebLookupNeeded()"
+      },
+      {
+        "from": "LOOKUP_IN_PROGRESS",
+        "to": "LOOKUP_COMPLETE",
+        "trigger": "Lookup completes; SmsLogs inserted",
+        "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+        "method": "SendMessageSingleGroupWithKvhxs",
+        "line": 134,
+        "notes": "BroadcastSender.InsertSmsLogs(newLogs). IsLookedUp=true set by batch job or lookup service upon completion"
+      },
+      {
+        "from": "LOOKUP_COMPLETE",
+        "to": "SENT",
+        "trigger": "MarkSmsGroupsSentAsync()",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "MarkSmsGroupsSentAsync",
+        "line": 1848,
+        "notes": "smsGroup.MarkSent() sets DateSentUtc=UtcNow if null (idempotent). Only persists if DateSentUtc was null"
+      },
+      {
+        "from": "SENT",
+        "to": "DELETED",
+        "trigger": "DeleteSmsGroupAsync()",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "DeleteSmsGroupAsync",
+        "line": 1958,
+        "notes": "DeleteSmsGroupById + SmsGroupDeletedNotification (MediatR) + webhook 'delete' per non-draft WebMessage"
+      },
+      {
+        "from": "ACTIVATED",
+        "to": "DEACTIVATED_DRAFT",
+        "trigger": "DeactivatePlannedMessageAsync()",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "DeactivatePlannedMessageAsync",
+        "line": 1968,
+        "notes": "Active=false, IsLookedUp=false, WizardStep=3. DeleteSmsLogsBySmsGroupIdAsync removes ALL SmsLogs for group. WebMessages reset to IsDraft=true"
+      },
+      {
+        "from": "DRAFT_UPDATED",
+        "to": "IMPLICIT_KLADDE",
+        "trigger": "User edits a planned (DateDelayToUtc-set) broadcast then navigates away WITHOUT clicking Send",
+        "file": "UNKNOWN — client-side wizard abort, not a server-side method",
+        "method": "UNKNOWN",
+        "line": null,
+        "notes": "VERIFIED FROM USER DOCS: 'Går du ind og redigerer i din udsendelse uden at trykke på Send igen, og går ud af udsendelsen, vil udsendelsen ikke længere ligge som en planlagt udsendelse, men vil gå ind under Kladder og vil ikke blive sendt.' (Slutbruger vejledning side 48). State: Active=false, DateDelayToUtc cleared or ignored, shown in Kladder list. This transition is NOT covered by DeactivatePlannedMessageAsync — it is a wizard abandon event. The resulting state is shown to users as 'Kladder' (Drafts). IMPLICATION FOR GREEN-AI: Broadcast FSM needs an explicit DRAFT state visible in the user list. Deactivate is NOT the only path to draft.",
+        "verified_source": "PDF user documentation — confirmed UI behavior",
+        "green_ai_note": "Model as BroadcastState.Draft in green-ai. Trigger: wizard session abandoned without submitting Send step."
+      }
+    ],
+    "source_files": [
+      "ServiceAlert.Services/Messages/MessageService.cs",
+      "ServiceAlert.Services/Messages/BroadcastSender.cs",
+      "ServiceAlert.Core/Domain/SmsGroups/SmsGroup.cs"
+    ]
+  },
+  {
+    "id": "F002",
+    "name": "SmsLog_Dispatch_Fast_Path",
+    "description": "Fast-path SmsLog creation and dispatch for immediate single-recipient or small-group sends. SmsLog created with status 10300, queued to in-process ISingleSmsProcessingChannel, picked up by SmsBackgroundService.",
+    "category": "dispatch",
+    "verified": true,
+    "nodes": [
+      {"state": "LOG_CREATED_10300",     "conditions": "SmsLog.StatusCode=10300 (SmsWaitingForWebServerToSendOut)"},
+      {"state": "QUEUED",                "conditions": "SmsLog.Id in ISingleSmsProcessingChannel queue (in-memory)"},
+      {"state": "DEQUEUED_PROCESSING",   "conditions": "SmsLog.Id dequeued; GetSmsLogMergeModel loaded"},
+      {"state": "STATUS_10301",          "conditions": "SmsLog.StatusCode=10301 (SmsProcessingOnWebServer) — set before gateway send"},
+      {"state": "GATEWAY_DISPATCHED",    "conditions": "HTTP call to GatewayApi or Strex made"},
+      {"state": "GATEWAY_STATUS_WRITTEN","conditions": "SmsLog.StatusCode updated to gateway result; SmsLogStatus inserted Imported=true"},
+      {"state": "RETRY_10302",           "conditions": "If send failed: SmsLog.StatusCode=10302 (FirstRetry queue)"},
+      {"state": "RETRY_10304",           "conditions": "If first retry failed: SmsLog.StatusCode=10304 (SecondRetry queue)"},
+      {"state": "FINAL_STATUS",          "conditions": "SmsLog.StatusCode = final delivery code (e.g. 206, 1, 7, 10200 etc.)"}
+    ],
+    "transitions": [
+      {
+        "from": "—",
+        "to": "LOG_CREATED_10300",
+        "trigger": "SendFastMessageSingleGroupAsync / SendSmsGroupAsync (web-lookup path)",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendFastMessageSingleGroupSystemAsync",
+        "line": 699,
+        "notes": "StatusCode=SmsWaitingForWebServerToSendOut10300 (SMS) or 10500 (Voice). InsertSmsLog immediately"
+      },
+      {
+        "from": "LOG_CREATED_10300",
+        "to": "QUEUED",
+        "trigger": "_singleSmsProcessingChannel.QueueMessage(newLog.Id)",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendFastMessageSingleGroupSystemAsync",
+        "line": 724,
+        "notes": "In-memory channel. ISingleSmsProcessingChannel implementation holds ConcurrentQueue<long>"
+      },
+      {
+        "from": "QUEUED",
+        "to": "DEQUEUED_PROCESSING",
+        "trigger": "SmsBackgroundService.DoWorkAsync dequeues up to 1000 IDs",
+        "file": "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
+        "method": "DoWorkAsync",
+        "line": 59,
+        "notes": "Toggle gate: DisableMessageBackgroundService='1' → skip. DisableAllBroadcasts='1' → skip iteration. Groups by CountryId"
+      },
+      {
+        "from": "DEQUEUED_PROCESSING",
+        "to": "STATUS_10301",
+        "trigger": "RoundRobinWorkloadLoader.GetWorkloadChunk() — main loader 10300→10301",
+        "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsWebServerGatewayBulkWorkloadLoader.cs",
+        "method": "GetWorkloadChunk",
+        "line_reference": "SmsBackgroundService.cs:118 (loader construction)",
+        "notes": "Sets NextStatus=10301 on workload items. Actual DB write happens in SetStatuses after dispatch"
+      },
+      {
+        "from": "STATUS_10301",
+        "to": "GATEWAY_DISPATCHED",
+        "trigger": "SmsGatewayBrokerWorkloadProcessor.RouteWorkload()",
+        "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayBroker/SmsGatewayBrokerWorkloadProcessor.cs",
+        "method": "RouteWorkload",
+        "line": 57,
+        "notes": "Routes to: Test (TestMode) → GatewayApi (TreNRG hardcoded, highPriority) → Strex (by country toggle) → GatewayApi (default)"
+      },
+      {
+        "from": "GATEWAY_DISPATCHED",
+        "to": "GATEWAY_STATUS_WRITTEN",
+        "trigger": "SmsGatewayStatusWriter.SetStatuses()",
+        "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+        "method": "SetStatuses",
+        "line": 21,
+        "notes": "Dual-write: UpdateStatusesOnSmsLogs (bulk UPDATE SmsLogs) + CreateSmsLogStatuses (bulk INSERT SmsLogStatuses, Imported=true). cross_domain: true, shared_target: SmsLogStatuses"
+      },
+      {
+        "from": "GATEWAY_STATUS_WRITTEN",
+        "to": "RETRY_10302",
+        "trigger": "Gateway returns failure; retry loader picks up from status 10302",
+        "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsWebServerRetryGatewayBulkWorkloadLoader.cs",
+        "method": "GetWorkloadChunk",
+        "line": 35,
+        "notes": "FirstRetry: 10302→10303, chunkSize=100. Only processes SmsLogs now with StatusCode=10302"
+      },
+      {
+        "from": "RETRY_10302",
+        "to": "RETRY_10304",
+        "trigger": "Second retry loader picks up from status 10304",
+        "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsWebServerRetryGatewayBulkWorkloadLoader.cs",
+        "method": "GetWorkloadChunk",
+        "line": 35,
+        "notes": "SecondRetry: 10304→10305, chunkSize=1. Only 1 message at a time for secondary retry"
+      },
+      {
+        "from": "GATEWAY_STATUS_WRITTEN",
+        "to": "FINAL_STATUS",
+        "trigger": "Successful gateway dispatch — status set to sent/delivered code",
+        "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+        "method": "SetStatuses",
+        "line": 21,
+        "notes": "E.g. SMSafsendtStatusafventerGWapiBulk1211=1211 (awaiting DLR) or direct final code depending on gateway"
+      }
+    ],
+    "source_files": [
+      "ServiceAlert.Services/Messages/MessageService.cs",
+      "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
+      "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayBroker/SmsGatewayBrokerWorkloadProcessor.cs",
+      "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+      "ServiceAlert.Services/Gateways/SmsGateways/SmsWebServerRetryGatewayBulkWorkloadLoader.cs"
+    ]
+  },
+  {
+    "id": "F003",
+    "name": "SmsLog_Status_Processing_Async_Path",
+    "description": "Async delivery receipt (DLR) processing pipeline. Gateway posts HTTP callback → SmsLogStatus written Imported=false → background ImportAndUpdate job processes in chunks → SmsLog.StatusCode updated to final → webhooks fired. CRITICAL: this is a separate status pipeline from F002 sync path.",
+    "category": "status_processing",
+    "verified": true,
+    "nodes": [
+      {"state": "DLR_RECEIVED",         "conditions": "HTTP callback from GatewayApi or Strex arrives at webhook endpoint"},
+      {"state": "STATUS_RECORD_PENDING", "conditions": "SmsLogStatus row: Imported=false, StatusCode=mapped code"},
+      {"state": "STATUS_CHUNK_LOADED",   "conditions": "UpdateStatusOnSmsLogsAsync: chunk of 300 unimported SmsLogStatus rows loaded"},
+      {"state": "SMSLOG_UPDATED",        "conditions": "SmsLog.StatusCode updated to authoritative final status (final > billable > latest)"},
+      {"state": "IMPORTED",             "conditions": "SmsLogStatus.Imported=true for entire chunk"},
+      {"state": "WEBHOOK_FIRED",         "conditions": "WebhookMessage created and sent for MessageStatus event per customer"}
+    ],
+    "transitions": [
+      {
+        "from": "—",
+        "to": "DLR_RECEIVED",
+        "trigger": "HTTP POST from GatewayApi or Strex to callback endpoint",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "GatewayApiCallbackAsync / StrexCallbackAsync",
+        "line": 1320,
+        "notes": "GatewayApi: int.TryParse smsLogId (CRITICAL: int not long). Strex: long.Parse TransactionId"
+      },
+      {
+        "from": "DLR_RECEIVED",
+        "to": "STATUS_RECORD_PENDING",
+        "trigger": "CreateSmsLogStatusAsync()",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "CreateSmsLogStatusAsync",
+        "line": 1383,
+        "notes": "INSERT SmsLogStatus: DateReceivedUtc=Now, Imported=false, ErrorCode, ErrorMessage. B014/B015 verified"
+      },
+      {
+        "from": "STATUS_RECORD_PENDING",
+        "to": "STATUS_CHUNK_LOADED",
+        "trigger": "UpdateStatusOnSmsLogsAsync() called by background job",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "UpdateStatusOnSmsLogsAsync",
+        "line": 2050,
+        "notes": "GetNextSmsLogStatusesChunk(300). Loops until no unimported records remain"
+      },
+      {
+        "from": "STATUS_CHUNK_LOADED",
+        "to": "SMSLOG_UPDATED",
+        "trigger": "Priority selection: final > billable > latest by DateReceivedUtc",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "UpdateStatusOnSmsLogsAsync",
+        "line": 2057,
+        "notes": "GroupBy SmsLogId → pick one 'authoritative' status per log. UpdateSmsLogsStatus(latestStatusIds). Skips initial statuses"
+      },
+      {
+        "from": "SMSLOG_UPDATED",
+        "to": "WEBHOOK_FIRED",
+        "trigger": "Customer has MessageStatus webhook registration",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "UpdateStatusOnSmsLogsAsync",
+        "line": 2075,
+        "notes": "GetWebhookRegistrationsByCustomerIdAndEventType → CreateWebhookMessage + SendWebhookMessageAsync. Fired per customer group in chunk"
+      },
+      {
+        "from": "WEBHOOK_FIRED",
+        "to": "IMPORTED",
+        "trigger": "MarkSmsLogStatusesImported(allStatusIds)",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "UpdateStatusOnSmsLogsAsync",
+        "line": 2090,
+        "notes": "Marks ALL status record IDs in chunk as Imported=true. allStatusIds includes non-authoritative/duplicate statuses"
+      }
+    ],
+    "split_pipeline_note": "Two distinct status-update pipelines: (A) Sync — SmsGatewayStatusWriter.SetStatuses() after gateway batch send (F002). (B) Async — UpdateStatusOnSmsLogsAsync() processing external DLR callbacks (F003). Race condition possible if same SmsLog receives both sync and async writes concurrently.",
+    "source_files": [
+      "ServiceAlert.Services/Messages/MessageService.cs"
+    ]
+  },
+  {
+    "id": "F004",
+    "name": "SmsLog_Lookup_Resolution_Flow",
+    "description": "Address resolution flow: SmsGroupItems (address ranges, kvhx keys, standard receivers) are resolved to concrete owner/occupant phone numbers and email addresses, generating SmsLog records per recipient. Unresolved addresses (no phone found) produce SmsLogsNoPhoneAddress records.",
+    "category": "lookup",
+    "verified": true,
+    "nodes": [
+      {"state": "SMSGROUPITEMS_DEFINED",    "conditions": "SmsGroup has SmsGroupItems with address ranges / kvhx / std receivers"},
+      {"state": "ADDRESS_MATCHED",          "conditions": "Address ranges resolved to specific Kvhx identifiers via _addressMatcherFactory.GetMatcherByCountryId()"},
+      {"state": "OWNERS_RESOLVED",          "conditions": "Kvhx list passed to _lookupService.GetSmsLogsFromKvhxsAsync(); owner + occupant lookups executed"},
+      {"state": "SMSLOGS_CONSTRUCTED",       "conditions": "LookupSmsLog objects materialized per recipient with StatusCode, PhoneNumber/Email, MergeFields"},
+      {"state": "SMSLOGS_INSERTED",          "conditions": "SmsLog rows written to dbo.SmsLogs via InsertSmsLogs()"},
+      {"state": "NOPHONE_RECORDED",          "conditions": "SmsLogsNoPhoneAddress rows written for Kvhx addresses with no phone match"},
+      {"state": "EBOKS_LOGGED",             "conditions": "If EboksData present: EboksMessage rows created and InsertEboksMessages() called"}
+    ],
+    "transitions": [
+      {
+        "from": "SMSGROUPITEMS_DEFINED",
+        "to": "ADDRESS_MATCHED",
+        "trigger": "Address matcher resolves street/zip/number ranges to Kvhx keys",
+        "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+        "method": "SendMessageSingleGroupWithAddress",
+        "line": 91,
+        "notes": "_addressMatcherFactory.GetMatcherByCountryId() → GetMultipleMatchedKvhxsAsync(). For direct-kvhx calls: AddressService.GetByKvhx()"
+      },
+      {
+        "from": "ADDRESS_MATCHED",
+        "to": "OWNERS_RESOLVED",
+        "trigger": "_lookupService.GetSmsLogsFromKvhxsAsync()",
+        "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+        "method": "SendMessageSingleGroupWithKvhxs",
+        "line": 158,
+        "notes": "Passes kvhx list + sendToOwner + sendToAddress + SendSMS/SendEmail booleans. LookupService resolves to phone numbers / email addresses from property registry"
+      },
+      {
+        "from": "OWNERS_RESOLVED",
+        "to": "SMSLOGS_CONSTRUCTED",
+        "trigger": "LookupSmsLog → SmsLog projection (+optional explicit phone/email SmsLogs)",
+        "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+        "method": "SendMessageSingleGroupWithKvhxs",
+        "line": 171,
+        "notes": "One SmsLog per resolved recipient. StatusCode defaults to GatewayApiBulkAfventer103. If explicit phone provided: extra SmsLog with same StatusCode. If explicit email: StatusCode=EmailsBulk130"
+      },
+      {
+        "from": "SMSLOGS_CONSTRUCTED",
+        "to": "SMSLOGS_INSERTED",
+        "trigger": "_messageRepository.InsertSmsLogs(newLogs)",
+        "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+        "method": "SendMessageSingleGroupWithKvhxs",
+        "line": 261,
+        "notes": "Bulk insert via Dapper. Only if newLogs.Any()"
+      },
+      {
+        "from": "SMSLOGS_INSERTED",
+        "to": "NOPHONE_RECORDED",
+        "trigger": "CheckAndHandleNoPhoneAddresses()",
+        "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+        "method": "CheckAndHandleNoPhoneAddresses",
+        "line": 668,
+        "notes": "LINQ: lookedUpAddresses WHERE no matching SmsLog.Kvhx → SmsLogsNoPhoneAddress per unmatched kvhx. InsertSmsLogsNoPhoneAddressesAsync()"
+      },
+      {
+        "from": "SMSLOGS_INSERTED",
+        "to": "EBOKS_LOGGED",
+        "trigger": "If eboksLogs.Any(): InsertEboksMessages()",
+        "file": "ServiceAlert.Services/Messages/BroadcastSender.cs",
+        "method": "SendMessageSingleGroupWithKvhxs",
+        "line": 280,
+        "notes": "EboksAmplifyAfventer750 or EboksCvrAfventer800 status codes trigger Eboks message creation. Merge fields resolved at time of creation"
+      }
+    ],
+    "merge_resolution_branches": [
+      "street: direct address merge (street/city/number/letter/meters)",
+      "stdReceiver: city list or street list via GetCityAndStreetNames/GetCityNames",
+      "displayAddr: DisplayAddress merged as street",
+      "supply: SupplyNumber/SupplyNumberAlias merged as location name",
+      "null: merge with nulls — text unchanged, merge tokens left as-is"
+    ],
+    "source_files": [
+      "ServiceAlert.Services/Messages/BroadcastSender.cs",
+      "ServiceAlert.Services/Messages/MessageService.cs (FillSmsLogMergeModels)"
+    ]
+  },
+  {
+    "id": "F005",
+    "name": "Batch_vs_Web_Execution_Split",
+    "description": "Decision flow for whether address lookup and SMS dispatch runs in-process on the web server (fast, synchronous) or is handed off to Azure Batch (async, scalable). Three execution paths exist: fast-path (immediate channel queue), web-lookup (small on-demand), batch (large/scheduled).",
+    "category": "execution_model",
+    "verified": true,
+    "nodes": [
+      {"state": "SEND_TRIGGERED",        "conditions": "SendSmsGroupAsync() called or SendFastMessageSingleGroupAsync() called"},
+      {"state": "FAST_PATH",             "conditions": "SmsLog created + queued to ISingleSmsProcessingChannel immediately"},
+      {"state": "WEB_LOOKUP_PATH",       "conditions": "codedLookupService.LookupAsync() called in-process on web server"},
+      {"state": "BATCH_PATH",            "conditions": "_batchAppService.CreateLookupAzureTaskAsync() called → Azure Batch job queued"},
+      {"state": "QUEUE_PROCESSING",      "conditions": "SmsBackgroundService.DoWorkAsync() processing ISingleSmsProcessingChannel"},
+      {"state": "BATCH_JOB_RUNNING",     "conditions": "Azure Batch job performing address lookup + SmsLog creation"},
+      {"state": "SMSLOGS_READY",         "conditions": "SmsLogs in DB with appropriate status codes, ready for sending"}
+    ],
+    "decision_points": [
+      {
+        "point": "IsWebLookupNeeded() gate in SendSmsGroupAsync",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "IsWebLookupNeeded",
+        "line": 1849,
+        "rules": [
+          "IF DateDelayToUtc has value → BATCH (never web-lookup for scheduled messages)",
+          "IF SendMethod==ByAddress AND FromApi==true AND non-stdReceiver items <= 5 AND no zip-only items → WEB_LOOKUP",
+          "IF SendMethod==ByStdReceivers → WEB_LOOKUP",
+          "ALL OTHER CASES → BATCH"
+        ]
+      },
+      {
+        "point": "SendFast vs SendNormal decision (caller-driven)",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendFastMessageSingleGroupSystemAsync vs SendMessageSingleGroupSystemAsync",
+        "line_range": "463-724",
+        "rules": [
+          "SendFast: StatusCode=10300, queued to ISingleSmsProcessingChannel → FAST_PATH",
+          "SendNormal: StatusCode=GatewayApiBulkAfventer103, no queue → BATCH_PATH (picked up by batch job)"
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "from": "SEND_TRIGGERED",
+        "to": "FAST_PATH",
+        "trigger": "SendFastMessageSingleGroupSystemAsync() or API with small ByAddress/ByStdReceivers group",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendFastMessageSingleGroupSystemAsync",
+        "line": 699,
+        "notes": "SmsLog.StatusCode=10300; ISingleSmsProcessingChannel.QueueMessage(id)"
+      },
+      {
+        "from": "SEND_TRIGGERED",
+        "to": "WEB_LOOKUP_PATH",
+        "trigger": "IsWebLookupNeeded() returns true",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendSmsGroupAsync",
+        "line": 1744,
+        "notes": "codedLookupService.LookupAsync(smsGroup.Id, true). After lookup: SmsLog IDs queued to single-processing channels (10300→channel, 10400→channel, 10500→channel)"
+      },
+      {
+        "from": "SEND_TRIGGERED",
+        "to": "BATCH_PATH",
+        "trigger": "IsWebLookupNeeded() returns false",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendSmsGroupAsync",
+        "line": 1763,
+        "notes": "CreateLookupAzureTaskAsync(smsGroup, 'gateway_emails' [+ 'update_benchmark_statistics'] [+ 'push_infoportal_entries'])"
+      },
+      {
+        "from": "FAST_PATH",
+        "to": "QUEUE_PROCESSING",
+        "trigger": "SmsBackgroundService picks up from ISingleSmsProcessingChannel",
+        "file": "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
+        "method": "DoWorkAsync",
+        "line": 59,
+        "notes": "DisableMessageBackgroundService / DisableAllBroadcasts AppSetting toggles can block"
+      },
+      {
+        "from": "WEB_LOOKUP_PATH",
+        "to": "QUEUE_PROCESSING",
+        "trigger": "codedLookupService.LookupAsync completes → queues SmsLog IDs",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendSmsGroupAsync",
+        "line": 1751,
+        "notes": "GetSmsLogsBySmsGroupIdAndStatus → foreach smsLogId: _singleSmsProcessingChannel.QueueMessage(id)"
+      },
+      {
+        "from": "BATCH_PATH",
+        "to": "BATCH_JOB_RUNNING",
+        "trigger": "Azure Batch triggered by CreateLookupAzureTaskAsync",
+        "file": "ServiceAlert.Services/Messages/MessageService.cs",
+        "method": "SendSmsGroupAsync",
+        "line": 1763,
+        "notes": "UNKNOWN_INTERNAL — Azure Batch job implementation not in this Layer 0 source. Result: SmsLogs created with status 103 (GatewayApiBulkAfventer) by batch gateway job"
+      },
+      {
+        "from": "QUEUE_PROCESSING",
+        "to": "SMSLOGS_READY",
+        "trigger": "SmsBackgroundService dispatches; gateway sends; SetStatuses writes final codes",
+        "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+        "method": "SetStatuses",
+        "line": 21,
+        "notes": "Status 10301→gateway result. SmsLogStatuses inserted (Imported=true)"
+      }
+    ],
+    "source_files": [
+      "ServiceAlert.Services/Messages/MessageService.cs",
+      "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
+      "ServiceAlert.Services/Messages/BroadcastSender.cs"
+    ]
+  },
+  {
+    "id": "F006",
+    "name": "Lookup_CQRS_Pipeline",
+    "description": "The coded Lookup system. Resolves a broadcast's Selection (address filters, level filters, standard receivers, phone/email, supply numbers) into concrete deliverable Messages via a CQRS event-driven pipeline. Architecture: Selection → Expand → Origin → Enrich → Target → Generate → Deliverable → Filter → Message. Runs both in-process (web-lookup path) and as Azure Batch job (batch path). This flow RESOLVES the UNKNOWN Azure Batch gap identified in F005.",
+    "category": "lookup",
+    "verified": true,
+    "verified_source": "Wiki: DEVELOPMENT/Domain-Description lookup page — full event flow diagram + interface definitions + line-by-line implementation notes",
+    "unknown_resolved": "F005 BATCH_JOB_RUNNING gap is now partially resolved — the CQRS pipeline IS the lookup. Azure Batch simply runs this same pipeline in a batch context.",
+    "architecture_pattern": "CQRS event-driven. ~60 Commands and Events. Batched commands (green) run in batch context; non-batched run inline.",
+    "nodes": [
+      {"state": "SELECTION",   "description": "User-specified targeting criteria. Types: AddressFilter, LevelFilter, StandardReceiver, StandardReceiverGroup, PhoneNumber, Email, CVR, SupplyNumber"},
+      {"state": "ORIGIN",      "description": "Expanded from Selection. An entity causing the message. Types: Address, SupplyNumber, StandardReceiver, PhoneNumber, Email, CVR"},
+      {"state": "TARGET",      "description": "Pairing of specific recipient + Origin. Types: Address, PhoneNumber, Email, CVR"},
+      {"state": "DELIVERABLE", "description": "A channel-specific message that COULD be sent. Types: SMS, Voice, Email, EboksPlus, EboksCVR"},
+      {"state": "MESSAGE",     "description": "Filtered deliverable ready for gateway dispatch. Written to dbo.SmsLogs (+ EboksMessages etc.)"}
+    ],
+    "pipeline_stages": [
+      {
+        "stage": "Expand",
+        "description": "Each Selection → one or more Origins. AddressFilter expands to set of Address origins (one per address). LevelFilter expands to Address or SupplyNumber origins. StandardReceiverGroup expands to StandardReceivers.",
+        "key_commands": ["LookupSmsGroupCommand", "ExpandAddressFilterCommand", "ExpandLevelFiltersCommand", "ExpandStandardReceiverGroupCommand", "SplitStandardReceiverCommand"]
+      },
+      {
+        "stage": "Enrich",
+        "description": "Each Origin → one or more Targets. Addresses looked up in TeleData (DK/SE/NO public phone records), Subscriptions, Enrollments. Owner lookup creates secondary enrichment path. Supply numbers looked up in Subscription system.",
+        "key_commands": ["FindOwnerAddressCommand", "LookupSubscriptionsCommand", "LookupOwnerSubscriptionsCommand", "LookupEnrollmentsCommand", "LookupOwnerEnrollmentsCommand", "LookupTeledataCommand", "LookupOwnerTeledataCommand", "LookupNorwegianPublicContactsCommand", "LookupNorwegianTeledataCommand", "LookupNorwegianCompaniesCommand", "LookupNorwegianOwnersCommand", "LookupSupplyNumbersSubscriptionsCommand", "CompleteSubscribersCommand", "CompleteTeledataCommand"]
+      },
+      {
+        "stage": "Generate",
+        "description": "Each Target → one or more Deliverables per available channel. Address target can generate EboksPlus + EboksCVR. Phone target generates SMS + Voice.",
+        "key_commands": ["AttachPhoneCommand", "AttachEmailCommand", "LookupEboksAmplifyCommand", "LookupEboksAmplifyOwnerCommand", "LookupEboksCvrCommand", "LookupEboksCvrOwnerCommand", "DeterminePhoneNumberTypeCommand"]
+      },
+      {
+        "stage": "Filter",
+        "description": "Deliverables filtered / marked for non-delivery with reason: RobinsonCheck, NameMatch, DuplicateCheck (with/without Kvhx), LookupMaxNumbers. Filters prefer marking non-delivery with reason over silent removal.",
+        "key_commands": ["CheckRobinsonCommand", "CheckNameMatchCommand", "CheckPhoneFiltersCommand", "CheckEboksAmplifyForDoublesCommand", "CheckEboksCvrForDoublesCommand", "CheckEboksCvrNameMatchCommand"],
+        "filter_rules": [
+          "RobinsonCheck: NOT applied to standard receivers, subscribers, enrollees, uploaded phone numbers",
+          "NameMatch: only for regular positive list — NOT for municipality positive list, NOT for HaveNoSendRestrictions, NOT for subscribers/enrollees/uploaded numbers",
+          "DuplicateCheck: two modes — with Kvhx (per address, multiple per origin OK) or without (global phone/email dedup)",
+          "LookupMaxNumbers: NOT applied to standard receivers, subscribers, enrollees, uploaded numbers"
+        ]
+      },
+      {
+        "stage": "Output",
+        "description": "Passing Deliverables written to dbo.SmsLogs (and EboksMessages etc.) with appropriate status code (103=GatewayApiBulkAfventer, 130=EmailsBulk). CreateSmsLogCommand → CreateSmsLogsInStateEvent.",
+        "key_commands": ["CreateSmsLogResponseCommand", "CreateSmsLogCommand"]
+      }
+    ],
+    "event_chain_summary": {
+      "entry": "LookupSmsGroupCommand → SmsGroupFoundEvent",
+      "smsgroup_fans_out_to": ["LoadLevelFiltersCommand", "SplitStandardReceiverCommand", "ExpandStandardReceiverGroupCommand", "ExpandAddressFilterCommand", "AttachPhoneCommand", "AttachEmailCommand", "LookupNorwegianPropertyCommand"],
+      "convergence_point": "CreateSmsLogResponseCommand → SmsLogResponseEvent → CreateSmsLogCommand → CreateSmsLogsInStateEvent",
+      "batched_commands": ["CheckEboksCvrNameMatchCommand", "CheckNameMatchCommand", "CheckRobinsonCommand", "CompleteSubscribersCommand", "CompleteTeledataCommand", "ExpandAddressFilterCommand", "FindOwnerAddressCommand", "LookupEboksAmplifyCommand", "LookupEboksAmplifyOwnerCommand", "LookupEboksCvrCommand", "LookupEboksCvrOwnerCommand", "LookupEnrollmentsCommand", "LookupNorwegianCompaniesCommand", "LookupNorwegianOwnersCommand", "LookupNorwegianPropertyCommand", "LookupNorwegianPublicContactsCommand", "LookupNorwegianTeledataCommand", "LookupOwnerEnrollmentsCommand", "LookupOwnerSubscriptionsCommand", "LookupOwnerTeledataCommand", "LookupSubscriptionsCommand", "LookupTeledataCommand", "CreateSmsLogResponseCommand"]
+    },
+    "key_business_rules": [
+      "SmsLog.Details field stores reason text: 'Standard-modtager', 'Medsendt nummer', 'Tilføjet nummer', 'Tilføjet e-mail', 'Tilmeldt i app' — these are auditable delivery reason codes",
+      "Owner lookup produces SEPARATE SmsLog rows from occupant lookup — same address can yield multiple rows",
+      "Owner nationalities affect enrichment: 'Ejer' (Danish) vs 'Eier' (Swedish/Norwegian) disambiguation text in SmsLog.Details",
+      "Robinson list check: skipped for std receivers, subscribers, enrollees, uploaded numbers",
+      "NameMatch: only active for regular positive list — municipality positive list bypasses name match",
+      "DuplicateCheckWithKvhx: allows multiple deliveries per phone if different origin address (Kvhx)",
+      "EboksCVR name match is a separate filter step from phone name match",
+      "LookupMaxNumbers cap: NOT enforced for trusted recipient types (std receivers, subscribers, enrollees)"
+    ],
+    "architectural_implication_for_green_ai": "The CQRS lookup pipeline should be redesigned as a first-class domain. The Selection→Origin→Target→Deliverable pipeline is a clean architecture that can be modelled as a series of vertical slices in green-ai. The batch vs in-process distinction should be a configuration concern, not an architectural split.",
+    "source_files": [
+      "Wiki: DEVELOPMENT/Domain-Description/[coded-lookup-page]",
+      "ServiceAlert Services: LookupExecutor, CommandProcessor, EventListener (implementation location unknown — not in Layer 0 source scan)"
+    ]
+  }
+]
+

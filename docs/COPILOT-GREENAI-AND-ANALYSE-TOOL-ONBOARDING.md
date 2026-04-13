@@ -197,6 +197,21 @@ Opdatér `docs/GREEN_AI_BUILD_STATE.md` når et STEP AFSLUTTES:
 
 ---
 
+## 5b. MANDATORY: Find Scripts/Tools — LÆS REGISTRE FØRST
+
+**FØR du bruger file_search eller grep_search efter et .ps1 / .py script:**
+
+```
+TRIN 1: read_file "c:\Udvikling\analysis-tool\scripts\TOOLS_REGISTER.json"
+TRIN 2: read_file "c:\Udvikling\green-ai\ai-governance\tool-registry.yaml"
+TRIN 3: Kun hvis BEGGE registre ikke nævner toolet → brug file_search
+```
+
+**Regel:** Aldrig konkludere "scriptet eksisterer ikke" uden at have læst begge registre.
+**Gælder for:** Enhver sætning der lyder som "lav zip", "kør script", "generer pakke", "find tool", "er der et script til X", "hvad hedder scriptet der..."
+
+---
+
 ## 6. Green-AI Implementation Regler
 
 Når du implementerer i green-ai (STEP N-B godkendt):

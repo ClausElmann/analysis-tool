@@ -238,7 +238,7 @@ sms-service er sat som readonly via settings i .code-workspace filen.
 GREEN-AI FUNDAMENT STATUS (opdateret 2026-03-31):
 - Blazor Server, .NET 10, Dapper, Serilog → SQL, JWT auth, MediatR pipeline
 - SharedKernel: ICurrentUser, IDbSession, Result<T>, StrongIds, ITenantContext, LoggingBehavior, AuthorizationBehavior, ValidationBehavior
-- Database: DbUp (V001 + V002_Logs), GreenAi.DB SSDT-projekt
+- Database: Apply-Migrations.ps1/sqlcmd (V001 + V002_Logs), GreenAi.DB SSDT-projekt
 - Tests: 4/4 grønne (unit + integration), DatabaseFixture + Respawn
 - Næste: CustomAuthenticationStateProvider + login-feature slice
 - Detaljer: green-ai/docs/STATUS.md

@@ -167,7 +167,7 @@
       "Add Respawn (database reset for integration tests)"
     ],
     "removals": [
-      "Do NOT add EF Core — even for migrations. Use DbUp or Flyway for SQL-file-based migrations.",
+      "Do NOT add EF Core — even for migrations. Use Apply-Migrations.ps1 (sqlcmd-based) for SQL-file migrations.",
       "Do NOT add ASP.NET Identity — even as a reference. Its presence confuses AI prompts."
     ],
     "structural_non_negotiables": [

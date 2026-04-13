@@ -1,0 +1,117 @@
+{
+  "domain": "sms",
+  "artifact": "095_decision_support",
+  "architect_package_token": "GA-2026-0413-V038-1406",
+  "architect_iteration": 4,
+  "decisions": [
+    {
+      "id": "D001",
+      "category": "naming",
+      "topic": "Canonical root aggregate name",
+      "decision": "Broadcast",
+      "rationale": "Most precise and AI-readable name. Notification is too broad. MessageCampaign is heavier and less operationally clear.",
+      "mapping": {
+        "SmsGroup": "Broadcast",
+        "SmsGroupItem": "BroadcastRecipient",
+        "SmsLog": "DeliveryRecord",
+        "SmsLogStatus": "DeliveryStatusEvent",
+        "SmsLogsNoPhoneAddress": "UnresolvedRecipient",
+        "SmsGroupAttachment": "BroadcastAttachment",
+        "SmsGroupSmsData": "SmsPayload",
+        "SmsGroupEmailData": "EmailPayload",
+        "SmsGroupVoiceData": "VoicePayload"
+      },
+      "architect_severity": "CRITICAL",
+      "status": "DECIDED"
+    },
+    {
+      "id": "D002",
+      "category": "bug_inheritance",
+      "topic": "Layer 0 bug inheritance policy",
+      "decision": "NO_BUG_INHERITANCE",
+      "rationale": "Layer 0 bugs are documented and marked CONFLICTING. Green-ai must not reproduce them. Compat-mode only if Architect explicitly requires it.",
+      "concrete_cases": [
+        {
+          "rule_ref": "BR014",
+          "layer0_bug": "GatewayApiCallbackAsync uses int.TryParse on SmsLog.Id (which is long). Silent failure for IDs > 2,147,483,647.",
+          "green_ai_fix": "All delivery record IDs must be long / strongly-typed ID. int.TryParse is FORBIDDEN for DeliveryRecord IDs."
+        }
+      ],
+      "architect_severity": "CRITICAL",
+      "status": "DECIDED"
+    },
+    {
+      "id": "D003",
+      "category": "design_constraint",
+      "topic": "Status model consistency guarantee",
+      "decision": "EVENTUALLY_CONSISTENT",
+      "rationale": "Multiple writers: SmsGatewayStatusWriter (sync), UpdateStatusOnSmsLogsAsync (async DLR), batch processes. No mutex/versioning on StatusCode in Layer 0.",
+      "green_ai_requirements": [
+        "Multiple writers are valid and expected",
+        "Status model must be priority-merge based: Final > Billable > Latest (BR001)",
+        "Simple last-write-wins is forbidden",
+        "Callbacks may arrive out of order — status resolution must be deterministic"
+      ],
+      "architect_severity": "CRITICAL",
+      "status": "DECIDED",
+      "platform_level": true
+    },
+    {
+      "id": "D004",
+      "category": "execution_model",
+      "topic": "Azure Batch unknown execution internals",
+      "decision": "REDESIGN_FROM_SCRATCH",
+      "rationale": "Azure Batch internals are not in Layer 0. Domain rules are complete enough for rebuild. Green-ai should not be bound to Azure Batch as legacy execution model.",
+      "note_for_rebuild": "Legacy used external batch execution. Internals not fully extracted. Rebuild may choose different scheduler/runtime (e.g. Hangfire, background service, or hosted IHostedService).",
+      "architect_severity": "HIGH",
+      "status": "DECIDED"
+    },
+    {
+      "id": "D005",
+      "category": "design_constraint",
+      "topic": "Status subsystem ownership",
+      "decision": "SHARED_SUBSYSTEM",
+      "rationale": "DeliveryStatusEvent (SmsLogStatus) is written by all 4 channels: SMS, Email, Voice, Eboks. It is shared messaging infrastructure, not local SMS detail.",
+      "green_ai_requirements": [
+        "DeliveryStatusEvent must be modelled centrally, not per-channel",
+        "Channel column or discriminator required to identify source",
+        "No channel-specific forks in status write logic"
+      ],
+      "architect_severity": "CRITICAL",
+      "status": "DECIDED"
+    },
+    {
+      "id": "D006",
+      "category": "domain_invariant",
+      "topic": "Status priority merge rule",
+      "decision": "CANONICAL_INVARIANT",
+      "rationale": "BR001 is not an implementation detail but a core delivery state invariant. Green-ai must not reduce this to last-write-wins.",
+      "rule": "IsFinal(3) > IsBillable(2) > default(1), ThenBy DateReceivedUtc ascending, Last() wins.",
+      "architect_severity": "CRITICAL",
+      "status": "DECIDED"
+    },
+    {
+      "id": "D007",
+      "category": "domain_invariant",
+      "topic": "Idempotency on Broadcast activation and sent-marking",
+      "decision": "REQUIRED_FIRST_CLASS",
+      "rationale": "Active guard and MarkSent guard are domain invariants, not just guard clauses.",
+      "green_ai_requirements": [
+        "Broadcast activation must be idempotent: repeat-activate is a no-op",
+        "MarkSent must be idempotent: only set DateSentUtc if null"
+      ],
+      "architect_severity": "HIGH",
+      "status": "DECIDED"
+    },
+    {
+      "id": "D008",
+      "category": "destructive_behavior",
+      "topic": "Deactivate deletes DeliveryRecords",
+      "decision": "EXPLICIT_DESIGN_CHOICE_REQUIRED",
+      "rationale": "Layer 0 DeactivatePlannedMessage destructively deletes SmsLogs. This is legacy behavior — Green-ai must take explicit stance.",
+      "options": ["Soft-delete (IsDeleted flag)", "Hard-delete (preserve legacy)", "Archive pattern"],
+      "architect_severity": "MEDIUM",
+      "status": "OPEN — Architect must decide at rebuild phase"
+    }
+  ]
+}

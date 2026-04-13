@@ -44,7 +44,7 @@ Write-Host "   -> $atCount filer"
 # --- Layer 2: green-ai ---
 Write-Host "Layer 2: green-ai..."
 $gaExcludeDirs = @('bin','obj','.vs','.git','TestResults','.venv','__pycache__','node_modules')
-$gaExcludeExts = @('.dll','.exe','.pdb','.zip','.nupkg','.suo','.user','.cache','.log')
+$gaExcludeExts = @('.dll','.exe','.pdb','.zip','.nupkg','.suo','.user','.cache','.log','.dbmdl','.jfm')
 $gaCount = Copy-Filtered $gaRoot "$tmp\green-ai" $gaExcludeDirs $gaExcludeExts
 Write-Host "   -> $gaCount filer"
 
@@ -118,6 +118,10 @@ $ov.ToString() | Out-File "$tmp\DOMAIN_OVERVIEW.md" -Encoding UTF8
 $rm = [System.Text.StringBuilder]::new()
 [void]$rm.AppendLine("# START HERE -- Architect Review Package")
 [void]$rm.AppendLine("")
+[void]$rm.AppendLine("> **PROOF OF READ — PACKAGE_TOKEN: PLACEHOLDER_TOKEN**")
+[void]$rm.AppendLine("> Dit svar SKAL starte med dette token som bevis paa at du har aabnet denne fil.")
+[void]$rm.AppendLine("> Svar baseret paa chat-historik (ikke ZIP) accepteres IKKE.")
+[void]$rm.AppendLine("")
 [void]$rm.AppendLine("**Dato:** $(Get-Date -Format 'yyyy-MM-dd HH:mm') | **Til:** ChatGPT Architect")
 [void]$rm.AppendLine("")
 [void]$rm.AppendLine("## HURTIG START")
@@ -161,36 +165,45 @@ $rm.ToString() | Out-File "$tmp\README.md" -Encoding UTF8
 Write-Host "Creating ZIP..."
 $zipPath = if ($OutputPath) { $OutputPath } else { Join-Path $atRoot "ChatGPT-Package.zip" }
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-Compress-Archive -Path "$tmp\*" -DestinationPath $zipPath -CompressionLevel Optimal
-Remove-Item $tmp -Recurse -Force
 
 # --- PACKAGE_TOKEN: skriv til temp.md ---
 # Format: GA-YYYY-MMDD-V{migration}-{HHmm}
-# Henter migration level fra GREEN_AI_BUILD_STATE.md
-$buildStatePath = Join-Path $atRoot "docs\GREEN_AI_BUILD_STATE.md"
+# Henter migration level direkte fra green-ai migrations-mappe (altid korrekt)
+$migrationsPath = Join-Path $gaRoot "src\GreenAi.Api\Database\Migrations"
 $migrationLevel = "V???"
-if (Test-Path $buildStatePath) {
-    $buildContent = Get-Content $buildStatePath -Raw
-    if ($buildContent -match '\*\*Migration level:\*\*\s*(V\d+)') {
-        $migrationLevel = $Matches[1]
-    }
+if (Test-Path $migrationsPath) {
+    $highest = Get-ChildItem $migrationsPath -Filter "V*.sql" |
+        ForEach-Object { if ($_.BaseName -match '^(V\d+)') { $Matches[1] } } |
+        Sort-Object { [int]($_ -replace 'V','') } |
+        Select-Object -Last 1
+    if ($highest) { $migrationLevel = $highest }
 }
 $tokenDate    = Get-Date -Format "yyyy-MMdd"
 $tokenTime    = Get-Date -Format "HHmm"
 $packageToken = "GA-$tokenDate-$migrationLevel-$tokenTime"
 
+# --- Opdater README.md i tmp med korrekt token (PLACEHOLDER_TOKEN → rigtig token) ---
+$readmePath = "$tmp\README.md"
+if (Test-Path $readmePath) {
+    (Get-Content $readmePath -Raw) -replace 'PLACEHOLDER_TOKEN', $packageToken | Set-Content $readmePath -Encoding UTF8 -NoNewline
+}
+
+# --- Compress ---
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+Compress-Archive -Path "$tmp\*" -DestinationPath $zipPath -CompressionLevel Optimal
+Remove-Item $tmp -Recurse -Force
+
 $tempMdPath = Join-Path $atRoot "temp.md"
 if (Test-Path $tempMdPath) {
     $tempContent = Get-Content $tempMdPath -Raw
-    # Erstat eksisterende token-linje hvis den findes
-    if ($tempContent -match '\*\*PACKAGE_TOKEN: GA-[\w-]+\*\*') {
-        $tempContent = $tempContent -replace '\*\*PACKAGE_TOKEN: GA-[\w-]+\*\*', "**PACKAGE_TOKEN: $packageToken**"
-    } else {
-        # Indsæt token efter første ---
-        $tempContent = $tempContent -replace '(---\r?\n)', "`$1`n> **PACKAGE_TOKEN: $packageToken**`n> ChatGPT SKAL citere dette token i sin første sætning som bevis på at den har læst denne ZIP.`n> Svar der IKKE starter med token-citering afvises.`n`n"
-    }
-    # Opdater også token-citation inde i selve audit-prompten
-    $tempContent = $tempContent -replace '"PACKAGE_TOKEN: GA-[\w-]+ bekræftet\."', """PACKAGE_TOKEN: $packageToken bekræftet."""
+    # Fjern ALLE eksisterende scattered token-blokke (inkl. V??? varianter)
+    $tempContent = $tempContent -replace '(?m)^> \*\*PACKAGE_TOKEN: GA-[\w?-]+\*\*\r?\n> ChatGPT SKAL.*?\r?\n> Svar der.*?\r?\n(\r?\n)?', ''
+    # Opdater token-citation inde i audit-prompten
+    $tempContent = $tempContent -replace '"PACKAGE_TOKEN: GA-[\w?-]+ bekræftet\."', """PACKAGE_TOKEN: $packageToken bekræftet."""
+    # Sæt ét canonical token-block præcist efter FØRSTE --- separator (max 1 indsætning)
+    $tokenBlock = "> **PACKAGE_TOKEN: $packageToken**`n> ChatGPT SKAL citere dette token i sin første sætning som bevis på at den har læst denne ZIP.`n> Svar der IKKE starter med token-citering afvises.`n`n"
+    $rxSep = [regex]::new('(?m)^---\s*\r?\n')
+    $tempContent = $rxSep.Replace($tempContent, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Value + $tokenBlock }, 1)
     Set-Content -Path $tempMdPath -Value $tempContent -Encoding UTF8 -NoNewline
     Write-Host "PACKAGE_TOKEN: $packageToken  →  temp.md opdateret" -ForegroundColor Yellow
 }

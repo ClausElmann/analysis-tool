@@ -1,0 +1,173 @@
+{
+  "domain": "sms",
+  "artifact": "099_rebuild_readiness",
+  "summary": "SMS domain analysis complete. Domain is READY for green-ai rebuild specification.",
+  "analysis_status": "DONE_LAYER1",
+  "gate_passed": true,
+  "completeness_score": 0.92,
+  "architect_verdict": "ACCEPTED",
+
+  "canonical_entities": [
+    {
+      "green_ai_name": "Broadcast",
+      "layer0_name": "SmsGroup",
+      "role": "Root aggregate. Multi-channel broadcast campaign. Contains scheduling, lookup config, and channel payloads.",
+      "key_invariants": ["Active guard (idempotent activation)", "DateSentUtc set-once (idempotent MarkSent)", "NoRecipients guard"]
+    },
+    {
+      "green_ai_name": "BroadcastRecipient",
+      "layer0_name": "SmsGroupItem",
+      "role": "Recipient definition per Broadcast. Holds address, phone, StandardReceiver ref, and merge fields."
+    },
+    {
+      "green_ai_name": "SmsPayload",
+      "layer0_name": "SmsGroupSmsData",
+      "role": "SMS channel payload for Broadcast. 1:1 with Broadcast. PK = BroadcastId (no identity)."
+    },
+    {
+      "green_ai_name": "DeliveryRecord",
+      "layer0_name": "SmsLog",
+      "role": "Single delivery attempt per recipient per channel. Created at dispatch. Status updated via priority-merge rule.",
+      "key_invariants": ["StatusCode updated via priority-merge (Final>Billable>Latest)", "Id must be long"]
+    },
+    {
+      "green_ai_name": "DeliveryStatusEvent",
+      "layer0_name": "SmsLogStatus",
+      "role": "Immutable DLR event from gateway/channel. Written by ALL channels (SMS, Email, Voice, Eboks). Shared subsystem.",
+      "key_invariants": ["Written with Imported=false", "Batch-processed in chunks of 300", "Priority-merge applied on import"]
+    },
+    {
+      "green_ai_name": "UnresolvedRecipient",
+      "layer0_name": "SmsLogsNoPhoneAddress",
+      "role": "Records recipients that could not be resolved to a phone number during lookup.",
+      "warning": "CONFLICTING in Layer 0: type mismatch on SmsGroupId (int vs long). Must use long in green-ai."
+    },
+    {
+      "green_ai_name": "BroadcastAttachment",
+      "layer0_name": "SmsGroupAttachment",
+      "role": "File attachment reference for Broadcast. Not registered in DapperPlus — loaded via repository directly."
+    }
+  ],
+
+  "critical_invariants": [
+    {
+      "id": "CI001",
+      "name": "EventuallyConsistent_StatusModel",
+      "rule": "System is EVENTUALLY CONSISTENT. Multiple writers, async callbacks, batch and background services write DeliveryRecord.StatusCode. Design must accommodate this.",
+      "source_decisions": ["D003", "D006"]
+    },
+    {
+      "id": "CI002",
+      "name": "StatusPriority_MergeRule",
+      "rule": "When multiple DeliveryStatusEvents exist for the same DeliveryRecord: IsFinal(3) > IsBillable(2) > default(1), ThenBy DateReceivedUtc ascending, Last() wins. Simple last-write-wins is FORBIDDEN.",
+      "source_rule": "BR001",
+      "source_decision": "D006"
+    },
+    {
+      "id": "CI003",
+      "name": "Broadcast_Activation_Idempotent",
+      "rule": "Activating a Broadcast that is already Active must be a no-op (return immediately). Not a DB constraint — must be enforced in domain logic.",
+      "source_rule": "BR005",
+      "source_decision": "D007"
+    },
+    {
+      "id": "CI004",
+      "name": "MarkSent_Idempotent",
+      "rule": "DateSentUtc is set only once (if null). Method returns true on first set, false on repeat call.",
+      "source_rule": "BR006",
+      "source_decision": "D007"
+    },
+    {
+      "id": "CI005",
+      "name": "NoRecipients_Guard",
+      "rule": "Broadcast with no recipients (SmsGroupItems empty AND GeoObjects empty AND HasRecipients=false) must throw before activation proceeds.",
+      "source_rule": "BR011"
+    },
+    {
+      "id": "CI006",
+      "name": "SmsCount_UCS2_GSM7",
+      "rule": "SMS part count is a first-class rule. UCS2: ≤70→1, else ceil(len/63). GSM7: ≤160→1, else ceil(len/153). Not cosmetic — affects pricing and delivery.",
+      "source_rules": ["BR002", "BR003"]
+    },
+    {
+      "id": "CI007",
+      "name": "GatewayRouting_Priority",
+      "rule": "Routing priority: TestMode → GatewayApi(TreNRG) → GatewayApi(highPriority) → Strex(country) → GatewayApi(default). This is a policy, not just implementation.",
+      "source_rule": "BR012",
+      "warning": "TreNRG is hardcoded string in Layer 0. Green-ai must NOT copy this. Extract to config."
+    },
+    {
+      "id": "CI008",
+      "name": "DeliveryStatusEvent_SharedSubsystem",
+      "rule": "DeliveryStatusEvents are written by all 4 channels. Must be modelled centrally with channel discriminator.",
+      "source_rule": "BR021",
+      "source_decision": "D005"
+    },
+    {
+      "id": "CI009",
+      "name": "LookupGate_WebVsBatch",
+      "rule": "Lookup dispatch: web-server (sync) only if no DateDelayToUtc AND (ByAddress+FromApi+≤5 items OR ByStdReceivers). Any DateDelayToUtc = batch always.",
+      "source_rules": ["BR008", "BR029"]
+    },
+    {
+      "id": "CI010",
+      "name": "LastMinuteLookup_SchedulingBypass",
+      "rule": "LastMinuteLookup+scheduled groups do NOT dispatch lookup at activation. Lookup must be triggered near DateDelayToUtc by scheduler.",
+      "source_rule": "BR009"
+    }
+  ],
+
+  "known_bugs_do_not_inherit": [
+    {
+      "id": "LB001",
+      "layer0_bug": "GatewayApiCallbackAsync: int.TryParse on DeliveryRecord.Id (which is long). Silent failure for IDs > 2,147,483,647.",
+      "source_rule": "BR014",
+      "green_ai_rule": "All DeliveryRecord IDs must be long or strongly-typed ID. int.TryParse is FORBIDDEN.",
+      "source_decision": "D002"
+    },
+    {
+      "id": "LB002",
+      "layer0_bug": "SmsLogsNoPhoneAddress: SmsGroupId type mismatch (int vs long) between write path and RejectedSmsLog read path.",
+      "source_entity": "E006 (SmsLogsNoPhoneAddress)",
+      "green_ai_rule": "UnresolvedRecipient.BroadcastId must be long. No int overloads."
+    },
+    {
+      "id": "LB003",
+      "layer0_bug": "TreNRG routing is hardcoded string. No config, no toggle — architectural smell embedded in routing logic.",
+      "source_rule": "BR012",
+      "green_ai_rule": "GatewayRouting must be config-driven. Hardcoded gateway name strings are FORBIDDEN."
+    }
+  ],
+
+  "acceptable_unknowns": [
+    {
+      "id": "AU001",
+      "unknown": "Azure Batch job internals (BatchServices/ and BalarmWebApp/ not in Layer 0)",
+      "decision": "REDESIGN_FROM_SCRATCH",
+      "rationale": "Unknown lies in execution infrastructure, not domain logic. Domain rules are complete enough for rebuild.",
+      "rebuild_note": "Green-ai may use IHostedService, Hangfire, or background service pattern. Not bound to Azure Batch.",
+      "source_decision": "D004"
+    }
+  ],
+
+  "open_decisions_for_rebuild_phase": [
+    {
+      "id": "OD001",
+      "topic": "Deactivate behavior: soft-delete vs hard-delete vs archive",
+      "ref_decision": "D008",
+      "options": ["Soft-delete (IsDeleted flag)", "Hard-delete (preserve legacy)", "Archive pattern"],
+      "required_from": "Architect at rebuild phase start"
+    }
+  ],
+
+  "rebuild_readiness_checklist": {
+    "canonical_naming_decided": true,
+    "bug_inheritance_policy_decided": true,
+    "consistency_model_decided": true,
+    "execution_model_unknowns_resolved": true,
+    "status_invariants_documented": true,
+    "idempotency_invariants_documented": true,
+    "open_decisions_blocking_build": 1,
+    "open_decision_ids": ["OD001"]
+  }
+}

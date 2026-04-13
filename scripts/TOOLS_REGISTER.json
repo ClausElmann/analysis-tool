@@ -42,28 +42,18 @@
       "last_verified": "2026-04-08"
     },
     {
-      "id": "capture-journey",
-      "name": "capture-journey.ps1",
-      "path": "green-ai/scripts/demo/capture-journey.ps1",
-      "full_path": "C:\\Udvikling\\green-ai\\scripts\\demo\\capture-journey.ps1",
+      "id": "generate-chatgpt-package",
+      "name": "Generate-ChatGPT-Package.ps1",
+      "path": "analysis-tool/scripts/Generate-ChatGPT-Package.ps1",
+      "full_path": "C:\\Udvikling\\analysis-tool\\scripts\\Generate-ChatGPT-Package.ps1",
       "type": "powershell",
-      "purpose": "Runs the DEMO CAPTURE pipeline for a specific journey proposal. Sets DEMO_JOURNEY_FILE env var and executes dotnet test --filter Category=DemoCapture. Output: TestResults/Demo/{journeyId}/manifest.json + screenshots.",
-      "usage": "& 'C:\\Udvikling\\green-ai\\scripts\\demo\\capture-journey.ps1' -JourneyFile 'data/journey-proposals/broadcasting-hub.json'",
-      "triggers": ["demo capture", "capture journey", "optag journey", "kør capture"],
-      "related": ["propose-journeys"],
-      "last_verified": "2026-04-08"
-    },
-    {
-      "id": "propose-journeys",
-      "name": "propose-journeys.ps1",
-      "path": "green-ai/scripts/demo/propose-journeys.ps1",
-      "full_path": "C:\\Udvikling\\green-ai\\scripts\\demo\\propose-journeys.ps1",
-      "type": "powershell",
-      "purpose": "Reads UI_MODEL_*.json from analysis-tool/docs and generates journey proposal JSON files in green-ai/data/journey-proposals/. One .json per UI scenario. Input for the DEMO CAPTURE pipeline.",
-      "usage": "& 'C:\\Udvikling\\green-ai\\scripts\\demo\\propose-journeys.ps1'",
-      "triggers": ["foreslå journeys", "generer journey forslag", "propose journeys", "lav journey forslag"],
-      "related": ["capture-journey"],
-      "last_verified": "2026-04-08"
+      "purpose": "Generates a ZIP package (ChatGPT-Package.zip) for the Architect (ChatGPT). Includes Layer 1 (analysis-tool domains + docs) and Layer 2 (green-ai complete). Auto-generates PACKAGE_TOKEN, STATE_SUMMARY.md, DOMAIN_OVERVIEW.md, README.md inside ZIP. Updates token in temp.md.",
+      "output": "C:\\Udvikling\\analysis-tool\\ChatGPT-Package.zip",
+      "token_format": "GA-{date}-V{migration}-{time}",
+      "usage": "pwsh 'C:\\Udvikling\\analysis-tool\\scripts\\Generate-ChatGPT-Package.ps1'",
+      "triggers": ["lav ny zip", "lav zip til arkitekt", "generate chatgpt package", "ny pakke til chatgpt", "zip til ham", "architect zip"],
+      "notes": "Run from c:\\Udvikling\\analysis-tool. Non-fatal: .dbmdl/.jfm files may be locked by SQL Server.",
+      "last_verified": "2026-04-13"
     }
   ]
 }

@@ -1,373 +1,210 @@
 [
   {
-    "category": "validation",
-    "name": "NullEmailMessageRejected",
-    "concept": "SaveEmailMessage() rejects null EmailMessage with a failure result before any DB operation",
-    "condition": "emailMessage == null",
-    "outcome": "return Result.Fail<EmailMessage>(\"EmailMessage was null!\") — no DB write performed",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "SaveEmailMessage",
-      "line": 109,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "NullRecipientsRejected",
-    "concept": "SendEmailMessages() requires non-null recipients collection; throws ArgumentNullException if null",
-    "condition": "recipients == null",
-    "outcome": "ArgumentNullException.ThrowIfNull(recipients) — operation aborts with exception",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "SendEmailMessages",
-      "line": 403,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "AttachmentFilterRule",
-    "concept": "Attachments are filtered before processing: any attachment with null content, zero-length content, or blank filename is silently excluded",
-    "condition": "a.Item1 != null && a.Item1.Length > 0 && !string.IsNullOrWhiteSpace(a.Item2)",
-    "outcome": "Attachments not meeting all three conditions are excluded from dbAttachments list; no error raised",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "SendEmailMessages",
-      "line": 409,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "SubjectMaxLength200",
-    "concept": "Email subject is truncated to 200 characters before being stored in EmailMessage",
-    "condition": "subject.Length > 200",
-    "outcome": "subject.Truncate(200) applied — excess characters silently removed; no error raised",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "SendEmailMessages",
-      "line": 406,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "ReplyToMaxLength200",
-    "concept": "ReplyTo field is truncated to 200 characters before being stored in EmailMessage",
-    "condition": "replyTo.Length > 200",
-    "outcome": "replyTo.Truncate(200) applied — excess characters silently removed; no error raised",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "SendEmailMessages",
-      "line": 407,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "RecipientEmailTrimmed",
-    "concept": "Recipient email address is trimmed of leading and trailing whitespace before being stored",
-    "condition": "recipient.Email has leading or trailing whitespace",
-    "outcome": "recipient.Email.Trim() assigned to ToEmail — whitespace stripped silently",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "SendEmailMessages",
-      "line": 419,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "GatewayEmptyBodyOrSubjectRejected",
-    "concept": "SendGridWorkloadProcessor rejects email dispatch if Body or Subject is empty; sets status ValidationError without sending",
-    "condition": "string.IsNullOrEmpty(mail.Body) || string.IsNullOrEmpty(mail.Subject)",
-    "outcome": "mail.Status = EmailStatus.ValidationError — SendGrid API is not called; message stranded at ValidationError",
-    "source": {
-      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
-      "method": "ProcessEmailMessage",
-      "line": 88,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "GatewayInvalidEmailAddressRejected",
-    "concept": "SendGridWorkloadProcessor validates recipient email format before dispatch; invalid format sets status InvalidEmail",
-    "condition": "!Tools.ValidateEmails(mail.ToEmail)",
-    "outcome": "mail.Status = EmailStatus.InvalidEmail — SendGrid API is not called",
-    "source": {
-      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
-      "method": "ProcessEmailMessage",
-      "line": 138,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "InboundSenderMustBeWhitelisted",
-    "concept": "InboundParseEventHandler silently drops inbound emails from senders not present in the Email2Sms whitelist",
-    "condition": "whitelist == null (IEmail2SmsWhitelistService.GetMatchingEntry(notification.From) returns null)",
-    "outcome": "return Task.CompletedTask — no SMS sent, no error raised, debug logged",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/SendGrid/EventHandlers/InboundParseEventHandlers/InboundParseEventHandler.cs",
-      "method": "Handle",
-      "line": 43,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "InboundRecipientMustBePhoneAddress",
-    "concept": "Inbound email recipient address must match regex ^(\\+?[0-9]+)@[^@]+$ to be processed as SMS; non-matching recipients are skipped with error log",
-    "condition": "!recipientRegex.Match(to).Success",
-    "outcome": "log error and continue to next recipient — no SMS send attempted for this recipient",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/SendGrid/EventHandlers/InboundParseEventHandlers/InboundParseEventHandler.cs",
-      "method": "Handle",
-      "line": 68,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "InboundNullEnvelopeDropped",
-    "concept": "InboundParse endpoint drops email if envelope.To or From is null — publishes no event",
-    "condition": "email.Envelope.To == null || email.From == null",
-    "outcome": "return Ok() — no InboundParseEvent published, no SMS triggered",
-    "source": {
-      "file": "ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs",
-      "method": "InboundParse",
-      "line": 103,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "BroadcastReceiptNullGuards",
-    "concept": "EmailSendBroadcastReceiptAsync() requires non-null profile, group, and sendToEmailsAndNames; throws on null",
-    "condition": "profile == null || group == null || sendToEmailsAndNames == null",
-    "outcome": "ArgumentNullException.ThrowIfNull() — operation aborts with exception for any null argument",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "EmailSendBroadcastReceiptAsync",
-      "line": 128,
-      "verified": true
-    }
-  },
-  {
-    "category": "validation",
-    "name": "TemplateBodyNullGuard",
-    "concept": "Broadcast receipt email is only sent if generated emailBody is not null; null body results in silent no-send",
-    "condition": "emailBody is not null",
-    "outcome": "SendEmailMessages() only called when emailBody has content; null body = no email sent, no error raised",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "EmailSendBroadcastReceiptAsync",
-      "line": 211,
-      "verified": true
-    }
-  },
-  {
-    "category": "state_transition",
-    "name": "InitialStatusImportingWhenAttachments",
-    "concept": "EmailMessage is created with Status=Importing when attachments are present; transitions to Queued only after attachments are persisted",
-    "condition": "hasAttachments == true",
-    "outcome": "Status = EmailStatus.Importing at creation; Status updated to EmailStatus.Queued after InsertEmailAttachments + UpdateEmailMessages",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "SendEmailMessages",
-      "line": 424,
-      "verified": true
-    }
-  },
-  {
-    "category": "state_transition",
-    "name": "InitialStatusQueuedWhenNoAttachments",
-    "concept": "EmailMessage is created directly with Status=Queued when no attachments are present",
-    "condition": "hasAttachments == false",
-    "outcome": "Status = EmailStatus.Queued at creation — no intermediate Importing state",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "SendEmailMessages",
-      "line": 424,
-      "verified": true
-    }
-  },
-  {
-    "category": "state_transition",
-    "name": "GatewaySuccessStatus",
-    "concept": "On successful SendGrid API response (HTTP < 400): status transitions to SentToGateway (live) or SentToGatewaySandbox (test mode)",
-    "condition": "(int)response.StatusCode < 400",
-    "outcome": "mail.Status = testMode ? EmailStatus.SentToGatewaySandbox : EmailStatus.SentToGateway; XmessageId stored from X-Message-Id header",
-    "source": {
-      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
-      "method": "ProcessEmailMessage",
-      "line": 147,
-      "verified": true
-    }
-  },
-  {
-    "category": "state_transition",
-    "name": "RetryStateMachine",
-    "concept": "On SendGrid API failure (HTTP >= 400): GetNextStatus() applies sequential retry state transitions; PriorityOrder incremented on each failure",
-    "condition": "(int)response.StatusCode >= 400",
-    "outcome": "SendingToGateway → QueuedFirstRetry → QueuedSecondRetry → QueuedThirdRetry → SentToGatewayFailed (terminal). PriorityOrder++ on each failure. Error response body uploaded to blob storage.",
-    "state_map": [
-      { "from": "SendingToGateway", "to": "QueuedFirstRetry" },
-      { "from": "SendingToGatewayFirstRetry", "to": "QueuedSecondRetry" },
-      { "from": "SendingToGatewaySecondRetry", "to": "QueuedThirdRetry" },
-      { "from": "SendingToGatewayThirdRetry", "to": "SentToGatewayFailed" },
-      { "from": "default", "to": "SentToGatewayFailed" }
-    ],
-    "source": {
-      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
-      "method": "GetNextStatus",
-      "line": 180,
-      "verified": true
-    }
-  },
-  {
-    "category": "state_transition",
-    "name": "GatewayExceptionStatus",
-    "concept": "If an unhandled exception occurs during ProcessEmailMessage, status is set to SentToGatewayFailed",
-    "condition": "Exception thrown in ProcessEmailMessage try block",
-    "outcome": "mail.Status = EmailStatus.SentToGatewayFailed; logged via _logger.Error; UpdateEmailMessage() still called to persist failure",
-    "source": {
-      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
-      "method": "ProcessEmailMessage",
-      "line": 162,
-      "verified": true
-    }
-  },
-  {
-    "category": "state_transition",
-    "name": "WebhookStatusNoDowngradeDefault",
-    "concept": "Webhook status updates cannot overwrite Delivered, Opened, or SpamReport status (DefaultNoChangeStatuses) for unspecified event types",
-    "condition": "incoming status not in {Opened, SpamReport, Clicked, Delivered}",
-    "outcome": "overwritingStatuses = DefaultNoChangeStatuses = {Delivered, Opened, SpamReport} — DB update skips records already at these statuses",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "UpdateEmailMessageStatusesAsync",
-      "line": 280,
-      "verified": true
-    }
-  },
-  {
-    "category": "state_transition",
-    "name": "WebhookDeliveredCannotOverwriteOpened",
-    "concept": "Webhook Delivered status cannot overwrite Opened status (DeliveredNoChangeStatuses — prevents status downgrade from engagement back to delivery)",
-    "condition": "incoming status == EmailStatus.Delivered",
-    "outcome": "overwritingStatuses = DeliveredNoChangeStatuses = {Opened} — DB update skips records already at Opened",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "UpdateEmailMessageStatusesAsync",
-      "line": 278,
-      "verified": true
-    }
-  },
-  {
-    "category": "state_transition",
-    "name": "WebhookEngagementAlwaysOverwrites",
-    "concept": "Webhook Opened, SpamReport, and Clicked statuses always overwrite any current status (AlwaysChangeStatuses — engagement events take unconditional precedence)",
-    "condition": "incoming status in {EmailStatus.Opened, EmailStatus.SpamReport, EmailStatus.Clicked}",
-    "outcome": "overwritingStatuses = AlwaysChangeStatuses = empty — DB update proceeds regardless of current status",
-    "source": {
-      "file": "ServiceAlert.Services/Mails/EmailService.cs",
-      "method": "UpdateEmailMessageStatusesAsync",
-      "line": 276,
-      "verified": true
-    }
-  },
-  {
-    "category": "state_transition",
-    "name": "GatewayMissingAttachmentFileFails",
-    "concept": "If a blob attachment file is not found on disk during SendGrid dispatch, the email is immediately failed (SentToGatewayFailed) without sending",
-    "condition": "!File.Exists(filePath) for a blobAttachment",
-    "outcome": "mail.Status = EmailStatus.SentToGatewayFailed; UpdateEmailMessage() called immediately; fatal log written; email not dispatched",
-    "source": {
-      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
-      "method": "ProcessEmailMessage",
-      "line": 126,
-      "verified": true
-    }
-  },
-  {
-    "category": "behavior_constraint",
-    "name": "BccFirstRecipientOnlyRule",
-    "concept": "BccEmails value is only applied to the first recipient in a bulk send; all subsequent recipients have BccEmails = null",
-    "condition": "first == true (first recipient in foreach loop)",
-    "outcome": "BccEmails = first ? bccEmails : null; first = false after first iteration — only record [0] carries BCC",
-    "source": {
+    "name": "BCC_FirstRecipientOnly",
+    "rule_description": "BccEmails is set only for the first recipient in a multi-recipient call. For all subsequent recipients, BccEmails is explicitly set to null. Enforced via bool first=true flag; first is set to false after first iteration.",
+    "enforcement_location": {
       "file": "ServiceAlert.Services/Mails/EmailService.cs",
       "method": "SendEmailMessages",
       "line": 430,
       "verified": true
-    }
+    },
+    "enforcement_type": "constraint"
   },
   {
-    "category": "behavior_constraint",
-    "name": "SendFastBypassesBackgroundWorker",
-    "concept": "When sendFast=true, message IDs are pushed to ISingleSendGridProcessingChannel in-memory channel; background worker polling loop is bypassed entirely",
-    "condition": "sendFast == true",
-    "outcome": "_singleSendGridProcessingChannel.QueueMessages() called — background DB polling path not triggered; messages processed via in-memory channel",
-    "source": {
+    "name": "SubjectMaxLength200",
+    "rule_description": "Email subject is truncated to 200 characters before being stored on EmailMessage. The original subject parameter value is never stored if it exceeds 200 chars.",
+    "enforcement_location": {
       "file": "ServiceAlert.Services/Mails/EmailService.cs",
       "method": "SendEmailMessages",
-      "line": 473,
+      "line": 406,
       "verified": true
-    }
+    },
+    "enforcement_type": "constraint"
   },
   {
-    "category": "behavior_constraint",
+    "name": "ReplyToMaxLength200",
+    "rule_description": "ReplyTo address is truncated to 200 characters before being stored on EmailMessage.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "method": "SendEmailMessages",
+      "line": 407,
+      "verified": true
+    },
+    "enforcement_type": "constraint"
+  },
+  {
+    "name": "InitialStatus_AttachmentsImporting",
+    "rule_description": "EmailMessage initial Status is set to Importing (not Queued) when hasAttachments=true. Status transitions to Queued only after attachments have been successfully written to DB via InsertEmailAttachments(). If no attachments, Status is set to Queued directly.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "method": "SendEmailMessages",
+      "line": 425,
+      "verified": true
+    },
+    "enforcement_type": "transition"
+  },
+  {
     "name": "TemplatePlaceholderFormat",
-    "concept": "Template merge field keys use $$KEY$$ format (uppercase, double-dollar delimiters, InvariantCultureIgnoreCase matching)",
-    "condition": "field.Key in MergeEmailFields()",
-    "outcome": "fieldName = $\"$${field.Key.ToUpperInvariant()}$$\"; Replace() uses StringComparison.InvariantCultureIgnoreCase — key case is normalized to uppercase before matching",
-    "source": {
+    "rule_description": "Template placeholder format is $$KEY$$ (double-dollar, uppercase key, closing double-dollar). Replacement is performed case-insensitively using StringComparison.InvariantCultureIgnoreCase. Content template is injected into master template via $$MAIN_CONTENT$$. Additional placeholders: $$COMPANYNAME$$, $$PRODUCTNAME$$, $$BASEURL$$, $$SUPPORTMAIL$$.",
+    "enforcement_location": {
       "file": "ServiceAlert.Services/Mails/EmailTemplateService.cs",
-      "method": "MergeEmailFields",
-      "line": 93,
+      "method": "GetTemplateByNameEnum",
+      "line": 53,
       "verified": true
-    }
+    },
+    "enforcement_type": "constraint"
   },
   {
-    "category": "behavior_constraint",
-    "name": "InboundTextFallbackFromHtml",
-    "concept": "If inbound email has no text body, HTML body is stripped to plain text as fallback for SMS message content",
-    "condition": "string.IsNullOrWhiteSpace(text) (email.Text is empty or missing)",
-    "outcome": "text = email.Html.HtmlToPlainText() — HTML tags stripped; result used as SMS message body",
-    "source": {
-      "file": "ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs",
-      "method": "InboundParse",
-      "line": 82,
-      "verified": true
-    }
-  },
-  {
-    "category": "behavior_constraint",
-    "name": "InboundZWSPTruncationRule",
-    "concept": "Inbound email content is truncated at the first ZWSP (Zero Width Non-Joiner, \\u200C) character; content after the marker is excluded from the SMS",
-    "condition": "text.IndexOf(\"\\u200C\") >= 0",
-    "outcome": "text = text[..index] — all content from \\u200C onward is dropped; used as customer-defined separator for email-only content",
-    "source": {
-      "file": "ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs",
-      "method": "InboundParse",
-      "line": 91,
-      "verified": true
-    }
-  },
-  {
-    "category": "cross_domain",
-    "name": "SmsLogStatusWriteOnEmailDelivery",
-    "concept": "When EmailMessage status is updated via delivery webhook and the update succeeds (DB actually changed), and the EmailMessage has a SmsLogId, a corresponding SmsLogStatus record is written to the SmsLog domain",
-    "condition": "updatedIds.Contains(value.Id) && long.TryParse(value.SmsLogId, ..., out long smsLog) succeeds",
-    "outcome": "_messageRepository.CreateSmsLogStatuses() called with list of CreateSmsLogStatusCommand records; cross-domain write from Email domain to SmsLog domain; only executed if smsLogUpdateStatuses.Any()",
-    "source": {
+    "name": "StatusNoDowngrade_AlwaysChange",
+    "rule_description": "Status updates to Opened, SpamReport, or Clicked always overwrite any existing status. Enforced by AlwaysChangeStatuses = Array.Empty<EmailStatus>(), meaning no statuses are excluded from being overwritten. The repository UpdateEmailMessageStatuses skips records whose current status is in the overwritingStatuses exclusion list — an empty list excludes nothing.",
+    "enforcement_location": {
       "file": "ServiceAlert.Services/Mails/EmailService.cs",
       "method": "UpdateEmailMessageStatusesAsync",
-      "line": 307,
+      "line": 282,
       "verified": true
+    },
+    "enforcement_type": "transition",
+    "definition_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 45,
+      "note": "private static IEnumerable<EmailStatus> AlwaysChangeStatuses = Array.Empty<EmailStatus>()"
+    }
+  },
+  {
+    "name": "StatusNoDowngrade_DeliveredCannotOverwriteOpened",
+    "rule_description": "Status update to Delivered cannot overwrite a message already in Opened status. Enforced by DeliveredNoChangeStatuses = new[] { EmailStatus.Opened } — records currently in Opened status are excluded from the batch update.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "method": "UpdateEmailMessageStatusesAsync",
+      "line": 285,
+      "verified": true
+    },
+    "enforcement_type": "transition",
+    "definition_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 44,
+      "note": "private static IEnumerable<EmailStatus> DeliveredNoChangeStatuses = new[] { EmailStatus.Opened }"
+    }
+  },
+  {
+    "name": "StatusNoDowngrade_DefaultCannotOverwriteTerminalStatuses",
+    "rule_description": "Default status updates (any status not Opened, SpamReport, Clicked, or Delivered) cannot overwrite a message already in Delivered, Opened, or SpamReport status. Enforced by DefaultNoChangeStatuses = new[] { EmailStatus.Delivered, EmailStatus.Opened, EmailStatus.SpamReport }.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "method": "UpdateEmailMessageStatusesAsync",
+      "line": 286,
+      "verified": true
+    },
+    "enforcement_type": "transition",
+    "definition_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "line": 43,
+      "note": "private static IEnumerable<EmailStatus> DefaultNoChangeStatuses = new[] { EmailStatus.Delivered, EmailStatus.Opened, EmailStatus.SpamReport }"
+    }
+  },
+  {
+    "name": "RetryStateTransition",
+    "rule_description": "On SendGrid API failure (HTTP >= 400), EmailMessage status progresses through exactly 3 retry stages before terminal failure: SendingToGateway -> QueuedFirstRetry -> QueuedSecondRetry -> QueuedThirdRetry -> SentToGatewayFailed. Any unexpected status also results in SentToGatewayFailed (default case). PriorityOrder is incremented on each failure.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+      "method": "GetNextStatus",
+      "line": 176,
+      "verified": true
+    },
+    "enforcement_type": "transition"
+  },
+  {
+    "name": "ValidationError_EmptyBodyOrSubject",
+    "rule_description": "If EmailMessage.Body or EmailMessage.Subject is null or empty, Status is set to ValidationError and the message is NOT dispatched to SendGrid. The send attempt is skipped entirely — no API call is made.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+      "method": "ProcessEmailMessage",
+      "line": 88,
+      "verified": true
+    },
+    "enforcement_type": "validation"
+  },
+  {
+    "name": "InvalidEmail_ValidateEmailsFails",
+    "rule_description": "If Tools.ValidateEmails(mail.ToEmail) returns false, Status is set to InvalidEmail and the message is NOT dispatched to SendGrid. No API call is made.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+      "method": "ProcessEmailMessage",
+      "line": 133,
+      "verified": true
+    },
+    "enforcement_type": "validation"
+  },
+  {
+    "name": "AttachmentFileMissing_SentToGatewayFailed",
+    "rule_description": "If a blob attachment file does not exist on disk when email is being processed (File.Exists returns false), Status is set to SentToGatewayFailed immediately and the email is NOT sent. UpdateEmailMessage is called synchronously inside the attachment loop.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+      "method": "ProcessEmailMessage",
+      "line": 125,
+      "verified": true
+    },
+    "enforcement_type": "constraint"
+  },
+  {
+    "name": "TestMode_SentToGatewaySandbox",
+    "rule_description": "If EmailMessage.TestMode=true and SendGrid API returns success (HTTP < 400), Status is set to SentToGatewaySandbox instead of SentToGateway. X-Message-Id is still stored. This is a terminal non-error status indicating the message was dispatched in test mode.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Gateways/EmailGateways/SendGridWorkloadProcessor.cs",
+      "method": "ProcessEmailMessage",
+      "line": 142,
+      "verified": true
+    },
+    "enforcement_type": "transition"
+  },
+  {
+    "name": "DisableMessageBackgroundService_Toggle",
+    "rule_description": "If AppSetting DisableMessageBackgroundService has value '1' (Ordinal string comparison), DoWorkAsync() returns immediately without processing any emails. Default value checked is '1'. This prevents the background service from running, typically used on dev environments pointing to production DB.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Messages/BackgrundServices/Email/SendGrid/SendGridBackgroundService.cs",
+      "method": "DoWorkAsync",
+      "line": 59,
+      "verified": true
+    },
+    "enforcement_type": "constraint"
+  },
+  {
+    "name": "DisableAllBroadcasts_Toggle",
+    "rule_description": "If AppSetting DisableAllBroadcasts has value '1' (Ordinal string comparison) at the start of a processing loop iteration, the iteration is skipped via continue. The background service remains running and continues waiting for new channel signals — it does not exit. Checked per-iteration inside the while loop.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Messages/BackgrundServices/Email/SendGrid/SendGridBackgroundService.cs",
+      "method": "DoWorkAsync",
+      "line": 74,
+      "verified": true
+    },
+    "enforcement_type": "constraint"
+  },
+  {
+    "name": "SendFast_ImmediateChannelQueueAfterDbInsert",
+    "rule_description": "If sendFast=true, ISingleSendGridProcessingChannel.QueueMessages() is called with the IDs of all persisted EmailMessages immediately after BulkInsertEmailMessages(). This occurs only after DB insert is complete. If sendFast=false (default), no channel signal is sent and messages are processed only by the scheduled batch job.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "method": "SendEmailMessages",
+      "line": 468,
+      "verified": true
+    },
+    "enforcement_type": "constraint"
+  },
+  {
+    "name": "CrossDomain_SmsLogStatuses_WrittenOnlyIfSmsLogIdValid",
+    "rule_description": "After EmailMessage status is updated via webhook: a cross-domain write to SmsLogStatuses is performed ONLY if (1) the email status was actually changed by the DB update (updatedIds contains the ID) AND (2) the value.SmsLogId can be parsed as a valid long. If SmsLogId is null, empty, or non-numeric, no SmsLog write occurs. The write is batched: _messageRepository.CreateSmsLogStatuses() is called once with all qualifying statuses.",
+    "enforcement_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "method": "UpdateEmailMessageStatusesAsync",
+      "line": 296,
+      "verified": true
+    },
+    "enforcement_type": "side_effect",
+    "write_location": {
+      "file": "ServiceAlert.Services/Mails/EmailService.cs",
+      "method": "UpdateEmailMessageStatusesAsync",
+      "line": 313,
+      "note": "_messageRepository.CreateSmsLogStatuses() — cross-domain write to SmsLog domain"
     }
   }
 ]

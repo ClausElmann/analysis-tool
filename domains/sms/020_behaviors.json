@@ -1,0 +1,418 @@
+[
+  {
+    "id": "B001",
+    "name": "SmsGroup_Create_WithPermissions",
+    "description": "Creates a new SmsGroup with profile-permission-based constraint application. Roles AlwaysOwner, CanSpecifyLookup, CanSelectLookupBusinessOrPrivate, DontSendEmail modify the resulting entity state before persistence.",
+    "trigger": "API or UI call to MessageService.CreateSmsGroup (param-based overload)",
+    "entities_affected": ["SmsGroup", "SmsGroupItem (default std. receivers if CanSelectStdReceivers)"],
+    "steps": [
+      "1. Read profile permissions for AlwaysOwner, CanSpecifyLookup, CanSelectLookupBusinessOrPrivate, DontSendEmail",
+      "2. Construct SmsGroup with Active=false, IsLookedUp=false, WizardStep=AddressSelection",
+      "3. Apply permission overrides: AlwaysOwner forces SendToOwner=true; CanSpecifyLookup gates SendToOwner/SendToAddress; CanSelectLookupBusinessOrPrivate gates LookupBusiness/LookupPrivate; DontSendEmail forces SendEmail=false",
+      "4. If CanSelectStdReceivers or CanSendByOnlyStdReceivers: add default standard receivers as SmsGroupItems",
+      "5. If saveToDatabase=true: call BulkInsertSmsGroup → ActivityLog entry"
+    ],
+    "status_transitions": [],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "CreateSmsGroup(string groupName, bool sendSMS, ...)",
+    "line": 1433,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B002",
+    "name": "SmsGroup_BulkInsert",
+    "description": "Persists a fully constructed SmsGroup and all associated child objects (SmsGroupItems, SmsGroupSmsData, SmsGroupEmailData, SmsGroupVoiceData, SmsGroupEboksData, Attachments) in a single bulk operation via DapperPlus.",
+    "trigger": "Called by CreateSmsGroup, CopyGroupAsync, or directly as BulkInsertSmsGroup",
+    "entities_affected": ["SmsGroup", "SmsGroupItem", "SmsGroupSmsData", "SmsGroupEmailData", "SmsGroupVoiceData"],
+    "steps": [
+      "1. Call _messageRepository.BulkInsertSmsGroup(smsGroup, hasMergeFields)"
+    ],
+    "status_transitions": [],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "BulkInsertSmsGroup",
+    "line": 1858,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B003",
+    "name": "SmsGroup_Update",
+    "description": "Updates a SmsGroup and all channel-specific data. Cleans HTML from SMS/Voice messages. Conditionally persists or deletes EmailData/VoiceData based on SendEmail/SendVoice flags and whether required fields (Subject/SendAs/Message) are populated. Updates DateUpdatedUtc to Now.",
+    "trigger": "UI update action or service-level orchestration",
+    "entities_affected": ["SmsGroup", "SmsGroupSmsData", "SmsGroupEmailData", "SmsGroupVoiceData", "WebMessage"],
+    "steps": [
+      "1. If SmsData present: strip HTML from Message and StandardReceiverText; call MergeSmsGroupSmsDataAsync",
+      "2. If EmailData null or !SendEmail: delete EmailData from DB",
+      "3. If EmailData present and SendEmail: only persist if Subject+SendAs+Message all non-empty, else delete",
+      "4. If VoiceData null or !SendVoice: delete VoiceData from DB",
+      "5. If VoiceData present and SendVoice: only persist if SendAs+Message non-empty, else delete",
+      "6. If WebMessages > 0: update each, fire webhooks for DraftChanged transitions",
+      "7. Set DateUpdatedUtc = DateTime.UtcNow; call UpdateSmsGroup"
+    ],
+    "status_transitions": [],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "UpdateSmsGroupAsync",
+    "line": 1878,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B004",
+    "name": "SmsGroup_Send_Activate",
+    "description": "Activates a SmsGroup for sending. Validates recipients, message content, and active state. Sets Active=true, IsLookedUp=false, WizardStep=Complete. Merges merge fields. Dispatches to web lookup (for small ByAddress groups from API) or Azure batch lookup task.",
+    "trigger": "User confirms send in UI, or API call to SendSmsGroupAsync",
+    "entities_affected": ["SmsGroup", "SmsGroupSmsData", "SmsGroupEmailData", "WebMessage"],
+    "steps": [
+      "1. Load SmsGroup by Id",
+      "2. Count distinct Kvhx from address lookup; if > 25000: send large-broadcast warning email",
+      "3. Validate: if no geo objects + no SmsGroupItems + no recipients in DB → throw NoRecipientsException",
+      "4. If smsGroup.Active == true: return immediately (idempotent)",
+      "5. Validate: if SendSMS and SmsData.Message empty → throw InvalidOperationException",
+      "6. Set Active=true, IsLookedUp=false, WizardStep=Complete",
+      "7. Merge [NrOfAddresses] merge fields into message text",
+      "8. If QuickResponseOptions exist: auto-append [QuickResponseLink] to SMS/Email/Eboks message text",
+      "9. Set WebMessages IsDraft=false; handle social media posts",
+      "10. Call UpdateSmsGroupAsync",
+      "11. Dispatch: IsWebLookupNeeded → codedLookupService.LookupAsync → queue SmsLog IDs to processing channels; else → CreateLookupAzureTaskAsync",
+      "12. If SendReceipt and no BroadcastNoReciept role: send broadcast receipt email"
+    ],
+    "status_transitions": [
+      {"entity": "SmsGroup", "from": "Active=false", "to": "Active=true, IsLookedUp=false"}
+    ],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "SendSmsGroupAsync",
+    "line": 1602,
+    "verified": true,
+    "discrepancies": [
+      {
+        "field": "AllowLookup / AllowWebLookup",
+        "observation": "Lookup dispatch is conditional on paramz.AllowLookup and paramz.AllowWebLookup flags — lookup can be skipped by caller. Not observable from entity alone."
+      }
+    ]
+  },
+  {
+    "id": "B005",
+    "name": "SmsGroup_WebLookupGate",
+    "description": "Determines whether address lookup is performed in-process on the web server (small/fast) or dispatched to an Azure Batch task (large/async). Web lookup is only allowed for: no scheduled delay, ByAddress send method, from API, ≤5 non-std-receiver items, and no wildcard-level zip-only items.",
+    "trigger": "Called from SendSmsGroupAsync before dispatching lookup",
+    "entities_affected": ["SmsGroup"],
+    "steps": [
+      "1. If DateDelayToUtc has value: return false (batch only)",
+      "2. If SendMethod==ByAddress AND FromApi AND SmsGroupItems (non-std-receiver) count <= 5 AND no zip-only items: return true (web lookup)",
+      "3. If SendMethod==ByStdReceivers: return true (web lookup)",
+      "4. All other cases: return false (batch)"
+    ],
+    "status_transitions": [],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "IsWebLookupNeeded",
+    "line": 1849,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B006",
+    "name": "SmsGroup_Copy",
+    "description": "Creates a full copy of an existing SmsGroup with new identity. Uses SmsGroup.CopyFrom() to clone lookup settings, channel data, and send configuration. Copies SmsGroupItems (with address expansion for ByAddress wildcards), attachments, QuickResponse setup, recipient properties, and WebMessages.",
+    "trigger": "Rebroadcast, stencil application, or API copy request",
+    "entities_affected": ["SmsGroup", "SmsGroupItem", "SmsGroupSmsData", "SmsGroupEmailData", "SmsGroupVoiceData", "SmsGroupEboksData", "SmsGroupAttachment", "WebMessage"],
+    "steps": [
+      "1. Load old SmsGroup + schedule + items",
+      "2. If ByAddress regular group with wildcard items: expand wildcard items by looking up preloaded addresses",
+      "3. Set GroupName: stencil/schedule = same name; regular = 'Copy of <name>'",
+      "4. Call SmsGroup.CopyFrom(oldSMSGroup, items) — clones settings + calls CreateClone on all channel data objects",
+      "5. BulkInsertSmsGroup (new ID assigned)",
+      "6. Copy WebMessages with reset IsDraft=true, Completed=false, new DateCreatedUtc",
+      "7. Copy non-deleted attachments",
+      "8. Copy QuickResponse setup (reset IDs)",
+      "9. CopyRecipientProperties (geo, municipality data)",
+      "10. Set WizardStep based on SendMethod and stencil/schedule flags"
+    ],
+    "status_transitions": [
+      {"entity": "SmsGroup (new)", "from": "none", "to": "Active=false, IsLookedUp=false (from CopyFrom)"}
+    ],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "CopyGroupAsync",
+    "line": 1909,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B007",
+    "name": "SmsGroup_Delete",
+    "description": "Deletes a SmsGroup and all associated data. Publishes SmsGroupDeletedNotification for downstream handlers. Non-draft WebMessages receive a webhook 'delete' event before deletion.",
+    "trigger": "User deletes a broadcast, or automated draft cleanup",
+    "entities_affected": ["SmsGroup"],
+    "steps": [
+      "1. For each non-draft WebMessage: call CreateAndQueueWebmessageWebhookMessageAsync('delete')",
+      "2. Call _messageRepository.DeleteSmsGroupById(smsGroup.Id)",
+      "3. Publish SmsGroupDeletedNotification via IMediator"
+    ],
+    "status_transitions": [],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "DeleteSmsGroupAsync",
+    "line": 1958,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B008",
+    "name": "SmsGroup_DeactivatePlanned",
+    "description": "Reverts a planned/active SmsGroup back to draft state. Sets Active=false, IsLookedUp=false, DateLookupTimeUtc=null, WizardStep=3 (WriteMessage tab). Marks all WebMessages as drafts. Deletes all SmsLogs for the group.",
+    "trigger": "User cancels a scheduled broadcast",
+    "entities_affected": ["SmsGroup", "SmsLog"],
+    "steps": [
+      "1. Set Active=false, IsLookedUp=false, DateLookupTimeUtc=null, WizardStep=3",
+      "2. Mark all WebMessages.IsDraft=true",
+      "3. Call UpdateSmsGroupAsync",
+      "4. Call DeleteSmsLogsBySmsGroupIdAsync — deletes ALL SmsLogs for this group",
+      "5. Create ActivityLog entry"
+    ],
+    "status_transitions": [
+      {"entity": "SmsGroup", "from": "Active=true/false, IsLookedUp=true", "to": "Active=false, IsLookedUp=false, WizardStep=3 (draft)"},
+      {"entity": "SmsLog", "from": "any", "to": "DELETED"}
+    ],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "DeactivatePlannedMessageAsync",
+    "line": 1968,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B009",
+    "name": "SmsGroup_MarkSent",
+    "description": "Marks a SmsGroup as sent by setting DateSentUtc if not already set (idempotent). Also handles recalculation flag reset. Called after batch processing confirms all messages have been dispatched.",
+    "trigger": "Batch job completion signal via MarkSmsGroupsSentAsync",
+    "entities_affected": ["SmsGroup"],
+    "steps": [
+      "1. Load SmsGroup by Id",
+      "2. Call smsGroup.MarkSent() — sets DateSentUtc = UtcNow if null; returns true if changed",
+      "3. If recalculate: call smsGroup.MarkForRecalculation() — sets IsRecalculated=true",
+      "4. If either changed: call UpdateSmsGroupAsync"
+    ],
+    "status_transitions": [
+      {"entity": "SmsGroup", "from": "DateSentUtc=null", "to": "DateSentUtc=UtcNow"}
+    ],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "MarkSmsGroupsSentAsync",
+    "line": 1848,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B010",
+    "name": "SmsLog_CreateForSingleSystem",
+    "description": "Creates one or two SmsLog records (phone + email) for a single-recipient system message. Uses a reusable monthly SmsGroup per system profile. SmsLog is inserted directly (not bulk). Status code differs: normal dispatch uses GatewayApiBulkAfventer103; fast dispatch uses SmsWaitingForWebServerToSendOut10300.",
+    "trigger": "SendMessageSingleGroupSystemAsync or SendFastMessageSingleGroupSystemAsync",
+    "entities_affected": ["SmsLog", "SmsGroup", "SmsGroupItem"],
+    "steps": [
+      "1. Get or create system profile for customer",
+      "2. Get or create monthly SmsGroup (name = profileName + MM-yyyy)",
+      "3. If phone number present: create SmsLog with StatusCode=GatewayApiBulkAfventer103 (normal) or SmsWaitingForWebServerToSendOut10300 (fast); InsertSmsLog",
+      "4. If email present: create SmsLog with StatusCode=EmailsBulk130 (normal) or EmailWaitingForWebServerToSendOut10400 (fast); InsertSmsLog",
+      "5. Fast path only: queue each SmsLog.Id to respective processing channel"
+    ],
+    "status_transitions": [
+      {"entity": "SmsLog (normal)", "from": "none", "to": "StatusCode=GatewayApiBulkAfventer103"},
+      {"entity": "SmsLog (fast)", "from": "none", "to": "StatusCode=SmsWaitingForWebServerToSendOut10300 (SMS) or EmailWaitingForWebServerToSendOut10400 (Email)"}
+    ],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "SendMessageSingleGroupSystemAsync / SendFastMessageSingleGroupSystemAsync",
+    "line_range": "463-535",
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B011",
+    "name": "SmsLog_BulkDispatch_BackgroundService",
+    "description": "Background service that continuously dequeues SmsLog IDs from ISingleSmsProcessingChannel, loads up to 1000 SmsLogMergeModels per batch with status SmsWaitingForWebServerToSendOut10300, groups by CountryId, runs a RoundRobin workload loader combining main + first retry + second retry loaders, then dispatches to SmsGatewayBrokerWorkloadProcessor. Writes gateway result statuses via SmsGatewayStatusWriter.",
+    "trigger": "Continuous background loop; wakes on ISingleSmsProcessingChannel signal",
+    "entities_affected": ["SmsLog", "SmsLogStatus"],
+    "steps": [
+      "1. Check AppSetting.DisableMessageBackgroundService == '1' → return immediately",
+      "2. Wait for _singleSmsProcessingChannel.WaitForMessages()",
+      "3. Check AppSetting.DisableAllBroadcasts == '1' → skip iteration",
+      "4. Dequeue up to 1000 SmsLog IDs from channel",
+      "5. Load SmsLogMergeModels with status SmsWaitingForWebServerToSendOut10300",
+      "6. Group by CountryId",
+      "7. Per country: create RoundRobinWorkloadLoader with [main(10300→10301), firstRetry(10302→10303, chunk=100), secondRetry(10304→10305, chunk=1)]",
+      "8. Create SmsGatewayBrokerWorkloadProcessor (routes to Strex, GatewayApi, or Test)",
+      "9. Create SmsGatewayStatusWriter",
+      "10. Run WorkloadExecutor → calls processor.ProcessWorkAsync + statusWriter.SetStatuses per chunk"
+    ],
+    "status_transitions": [
+      {"entity": "SmsLog", "from": "SmsWaitingForWebServerToSendOut10300", "to": "SmsProcessingOnWebServer10301 (main batch)"},
+      {"entity": "SmsLog", "from": "SmsWaitingForWebServerToSendOutFirstRetry10302", "to": "SmsProcessingOnWebServerFirstRetry10303"},
+      {"entity": "SmsLog", "from": "SmsWaitingForWebServerToSendOutSecondRetry10304", "to": "SmsProcessingOnWebServerSecondRetry10305"}
+    ],
+    "file": "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
+    "method": "DoWorkAsync",
+    "line": 59,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B012",
+    "name": "SmsLog_GatewayRouting",
+    "description": "Routes each SmsLog to the correct gateway processor based on: TestMode flag, hardcoded SmsSendAs=='TreNRG', highPriority flag, and country-based Strex enablement settings (EnableStrexDK, EnableStrexSE, EnableStrexFI, EnableStrexNO). Default fallback is GatewayApi.",
+    "trigger": "Called by SmsGatewayBrokerWorkloadProcessor.ProcessWorkAsync per workload batch",
+    "entities_affected": ["SmsLog"],
+    "steps": [
+      "1. If TestMode: route to TestWorkload (GatewayApiBulkTestWorkloadProcessor)",
+      "2. Else if SmsSendAs=='TreNRG' (case-insensitive): route to GatewayApi",
+      "3. Else if highPriority: route to GatewayApi",
+      "4. Else if EnableStrexDK and CountryId==DK: route to Strex",
+      "5. Else if EnableStrexSE and CountryId==SE: route to Strex",
+      "6. Else if EnableStrexFI and CountryId==FI: route to Strex",
+      "7. Else if EnableStrexNO and CountryId==NO: route to Strex",
+      "8. Default: route to GatewayApi"
+    ],
+    "status_transitions": [],
+    "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayBroker/SmsGatewayBrokerWorkloadProcessor.cs",
+    "method": "RouteWorkload",
+    "line": 57,
+    "verified": true,
+    "discrepancies": [
+      {
+        "field": "hardcoded 'TreNRG' string",
+        "observation": "Hardcoded company name in routing logic — no configuration or DB-driven rule. Architectural smell."
+      }
+    ]
+  },
+  {
+    "id": "B013",
+    "name": "SmsLog_StatusWrite_AfterGateway",
+    "description": "After gateway dispatch, writes two DB operations for each dispatched SmsLog: (1) bulk UpdateStatusesOnSmsLogs to flip StatusCode from processing to final; (2) bulk CreateSmsLogStatuses to insert new SmsLogStatus records with Imported=true.",
+    "trigger": "Called by SmsGatewayStatusWriter.SetStatuses after WorkloadExecutor.Run completes a chunk",
+    "entities_affected": ["SmsLog", "SmsLogStatus"],
+    "steps": [
+      "1. Call _messageService.UpdateStatusesOnSmsLogs(workloads) — bulk UPDATE SmsLogs.StatusCode from current to NextStatus",
+      "2. Call _messageService.CreateSmsLogStatuses(workloads) — bulk INSERT SmsLogStatuses with NextStatus, Imported=true, DateReceivedUtc"
+    ],
+    "status_transitions": [
+      {"entity": "SmsLog", "from": "SmsProcessingOnWebServer10301", "to": "gateway-assigned status"},
+      {"entity": "SmsLogStatus", "from": "none", "to": "new record with NextStatus code"}
+    ],
+    "file": "ServiceAlert.Services/Gateways/SmsGateways/SmsGatewayStatusWriter.cs",
+    "method": "SetStatuses",
+    "line": 21,
+    "cross_domain": true,
+    "shared_target": "SmsLogStatuses",
+    "cross_domain_note": "SmsLogStatuses written by SMS, Email (SendGridStatusWriter.cs:22), Voice, and Eboks status writers — shared kernel table, no domain boundary enforced at write level",
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B014",
+    "name": "SmsLogStatus_CreateFromGatewayApiCallback",
+    "description": "Creates a SmsLogStatus record when GatewayApi delivers a delivery receipt callback. Parses SmsLogId from callback.userref or callback.Reference (int parse). Calls CreateSmsLogStatusAsync which persists a SmsLogStatus with Imported=false.",
+    "trigger": "HTTP callback from GatewayApi gateway",
+    "entities_affected": ["SmsLogStatus"],
+    "steps": [
+      "1. Parse smsLogId from callback.userref or callback.Reference as int",
+      "2. Log potential gateway error",
+      "3. Call CreateSmsLogStatusAsync(smsLogId, GatewayFunctions.GatewayApiStatusCode(callback.status), errorCode, errorMessage)",
+      "4. CreateSmsLogStatusAsync: INSERT SmsLogStatus with Imported=false"
+    ],
+    "status_transitions": [
+      {"entity": "SmsLogStatus", "from": "none", "to": "new record, Imported=false"}
+    ],
+    "mapping_status": "CONFLICTING",
+    "conflict_type": "Identifier truncation (int vs long)",
+    "impact": "Lost delivery callbacks for SmsLog.Id > 2,147,483,647. Silent failure — no exception, callback silently ignored.",
+    "file": "ServiceAlert.Services/Messages/Messages/MessageService.cs",
+    "method": "GatewayApiCallbackAsync",
+    "line": 1320,
+    "verified": true,
+    "discrepancies": [
+      {
+        "field": "smsLogId type",
+        "observation": "int.TryParse used on callback.userref and callback.Reference. SmsLog.Id is long. For Id > 2.1B: TryParse fails silently → int smsLogId = 0 → no status record created. Same class of defect as RejectedSmsLog.SmsGroupId type mismatch."
+      }
+    ]
+  },
+  {
+    "id": "B015",
+    "name": "SmsLogStatus_CreateFromStrexCallback",
+    "description": "Creates a SmsLogStatus record when Strex delivers a delivery receipt (DeliveryReport). Parses SmsLogId from TransactionId (as long). Maps DetailedStatusCode enum to internal SmsStatusCode via GatewayFunctions.StrexStatusCode. Calls CreateSmsLogStatusAsync.",
+    "trigger": "HTTP callback from Strex gateway",
+    "entities_affected": ["SmsLogStatus"],
+    "steps": [
+      "1. Validate TransactionId is non-empty and parseable as long",
+      "2. Validate DetailedStatusCode is non-empty and parseable as StrexDeliveryReportDetailedStatus enum",
+      "3. Call CreateSmsLogStatusAsync(smsLogId=long.Parse(TransactionId), statusCode=StrexStatusCode(enum), errorCode=DetailedStatusCode, errorMessage=StatusDescription)"
+    ],
+    "status_transitions": [
+      {"entity": "SmsLogStatus", "from": "none", "to": "new record, Imported=false"}
+    ],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "StrexCallbackAsync",
+    "line": 1360,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B016",
+    "name": "SmsLogStatus_ImportAndUpdateSmsLog",
+    "description": "Background behavior that processes unimported SmsLogStatus records from DB in chunks of 300. For each chunk: finds the authoritative latest status per SmsLogId (final > billable > latest received), bulk-updates SmsLog.StatusCode, fires StatusUpdatesEvent to conversation service, fires webhook events per customer, then marks all chunk statuses as Imported.",
+    "trigger": "Periodic background job or batch task call to UpdateStatusOnSmsLogsAsync",
+    "entities_affected": ["SmsLog", "SmsLogStatus"],
+    "steps": [
+      "1. GetNextSmsLogStatusesChunk(300) — load 300 unimported SmsLogStatus records",
+      "2. Group by SmsLogId; pick latest per group (final > billable > latest by DateReceivedUtc)",
+      "3. Filter non-initial statuses only → UpdateSmsLogsStatus(latestStatusIds) — bulk UPDATE SmsLog.StatusCode",
+      "4. Publish StatusUpdatesEvent for profiles with SmsConversations role",
+      "5. For each customer: if webhooks registered for MessageStatus: serialize statuses → CreateWebhookMessage + SendWebhookMessageAsync",
+      "6. MarkSmsLogStatusesImported(all chunk IDs)"
+    ],
+    "status_transitions": [
+      {"entity": "SmsLog", "from": "any processing status", "to": "final delivery status (from gateway callback)"},
+      {"entity": "SmsLogStatus", "from": "Imported=false", "to": "Imported=true"}
+    ],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "UpdateStatusOnSmsLogsAsync",
+    "line": 2050,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B017",
+    "name": "SmsLog_MergeFields_Resolution",
+    "description": "Resolves merge field tokens ([Street], [City], [HouseNumber], [DateTime], [Name], [QuickResponseLink]) in SmsLog.Text and SmsLog.EmailSubject before dispatch. Resolution strategy varies by whether address, standard receiver, display address, or supply number is present. SMS character count (SmsCount) is computed here based on text length and UCS2 flag.",
+    "trigger": "Called from FillSmsLogMergeModels during GetSmsLogMergeModel* methods, before gateway dispatch",
+    "entities_affected": ["SmsLog (in-memory via SmsLogMergeModel)"],
+    "steps": [
+      "1. Localize date string per CountryId",
+      "2. Detect if test message (SendMethod==ByTestSingleSms/ByTestSingleEmail)",
+      "3. If Street present: merge street/city/number/letter/meters fields",
+      "4. Else if StandardReceiverId/GroupId: merge city list or street list (loaded from address lookup)",
+      "5. Else if DisplayAddress: merge as street field",
+      "6. Else if SupplyNumber: compute location name (alias if present); merge",
+      "7. Else: merge with nulls",
+      "8. Compute SmsCount: UCS2 → 70/63 chars per part; GSM7 → 160/153 chars per part"
+    ],
+    "status_transitions": [],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "FillSmsLogMergeModels",
+    "line": 1671,
+    "verified": true,
+    "discrepancies": []
+  },
+  {
+    "id": "B018",
+    "name": "SmsLog_NoPhoneAddress_Create",
+    "description": "Creates SmsLogsNoPhoneAddress records during lookup for addresses where no phone number could be found. Bulk inserts via repository.",
+    "trigger": "Address lookup completion — no phone matches found for specific kvhx addresses",
+    "entities_affected": ["SmsLogsNoPhoneAddress"],
+    "steps": [
+      "1. Collect all kvhx addresses with no phone result during lookup",
+      "2. Call InsertSmsLogsNoPhoneAddressesAsync(smsLogNoPhoneAddresses)"
+    ],
+    "status_transitions": [],
+    "file": "ServiceAlert.Services/Messages/MessageService.cs",
+    "method": "internal lookup flow",
+    "line": 2217,
+    "verified": true,
+    "discrepancies": []
+  }
+]
