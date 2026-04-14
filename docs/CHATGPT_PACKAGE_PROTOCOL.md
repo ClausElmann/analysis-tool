@@ -122,6 +122,9 @@ Hver ZIP indeholder et `PACKAGE_TOKEN` i `temp.md`. ChatGPT SKAL citere det i si
 - Token skrives til TO steder i `temp.md`: header-blokken øverst + citation-linjen inde i audit-prompt
 - Kør scriptet → token er opdateret i temp.md → temp.md kopieres med i ZIP → ChatGPT har token
 
+**⚠️ REGEL — SCRIPT SKAL ERSTATTE ALLE TOKEN-REFERENCER I temp.md:**
+Scriptet SKAL bruge global erstatning (ikke kun de 2 kendte steder). Alle forekomster af det gamle token-mønster `GA-\d{4}-\d{4}-V\d{3}-\d{4}` i `temp.md` SKAL erstattes med det nye token. Ellers opstår der forvirring når historiske COPILOT → ARCHITECT rapporter i filen refererer et andet token end ZIP'en indeholder.
+
 **Placering scriptet skriver i temp.md:**
 ```markdown
 > **PACKAGE_TOKEN: GA-2026-0413-V037-0933**

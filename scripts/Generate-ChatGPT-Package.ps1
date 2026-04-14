@@ -200,6 +200,8 @@ if (Test-Path $tempMdPath) {
     $tempContent = $tempContent -replace '(?m)^> \*\*PACKAGE_TOKEN: GA-[\w?-]+\*\*\r?\n> ChatGPT SKAL.*?\r?\n> Svar der.*?\r?\n(\r?\n)?', ''
     # Opdater token-citation inde i audit-prompten
     $tempContent = $tempContent -replace '"PACKAGE_TOKEN: GA-[\w?-]+ bekræftet\."', """PACKAGE_TOKEN: $packageToken bekræftet."""
+    # Global erstatning: ALLE token-forekomster i filen (historiske rapporter, etc.)
+    $tempContent = $tempContent -replace 'GA-\d{4}-\d{4}-V\d{3}-\d{4}', $packageToken
     # Sæt ét canonical token-block præcist efter FØRSTE --- separator (max 1 indsætning)
     $tokenBlock = "> **PACKAGE_TOKEN: $packageToken**`n> ChatGPT SKAL citere dette token i sin første sætning som bevis på at den har læst denne ZIP.`n> Svar der IKKE starter med token-citering afvises.`n`n"
     $rxSep = [regex]::new('(?m)^---\s*\r?\n')
