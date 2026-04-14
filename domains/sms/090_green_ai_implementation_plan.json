@@ -1,0 +1,390 @@
+{
+  "domain": "sms",
+  "artifact": "090_green_ai_implementation_plan",
+  "iteration": 1,
+  "domain_state": "N-B APPROVED",
+  "architect_approved_080": "2026-04-14",
+  "source_artifacts": [
+    "050_green_ai_feature_map.json",
+    "060_green_ai_entity_design.json",
+    "070_green_ai_application_slices.json",
+    "080_green_ai_build_slices.json"
+  ],
+  "note": "Implementation order for approved 080 build slices. No DB schema, no API/endpoint design, no UI. Pure sequencing and dependency mapping for controlled vertical-slice build waves.",
+  "carry_forward_from_080_gate": [
+    {
+      "id": "P1",
+      "about": "Delivery status ownership",
+      "required_in": "Wave 5 implementation",
+      "decision": "BS-MSG-07 (ReceiveDeliveryStatusCallback) and BS-MSG-08 (ProcessStatusProgression) must be implemented as two physically separate handlers with a single clear ownership boundary: callback handler ingests external signal only; progression handler owns the state mutation decision entirely."
+    },
+    {
+      "id": "P2",
+      "about": "Address canonical state write isolation",
+      "required_in": "Wave 2 implementation",
+      "decision": "BS-ADDR-01 (ResolveAddresses) must read from canonical ADDR-E01 state only. BS-ADDR-03 (RunCountryAddressImport) is the only authorized writer of canonical state. This separation must be made explicit in code — not just implied by boundary rules."
+    }
+  ],
+  "build_order_summary": [
+    "Wave 0 — Customer foundation (no internal dependencies)",
+    "Wave 1 — Subscriber foundation (depends on Wave 0)",
+    "Wave 2 — Address infrastructure (independent — can run parallel to Wave 1)",
+    "Wave 3 — Import pipeline (depends on Wave 1 for target aggregate)",
+    "Wave 4 — Pipeline/Prospect (depends on Wave 0)",
+    "Wave 5 — Messaging core: compose + recipient + activate (depends on Waves 0, 1, 2)",
+    "Wave 6 — Dispatch paths: sync + async (depends on Wave 5)",
+    "Wave 7 — Status pipeline: callback + progression + query (depends on Wave 6)"
+  ],
+  "waves": [
+    {
+      "wave": 0,
+      "name": "Customer Foundation",
+      "rationale": "AGG-CUST entities are referenced by almost every other aggregate. ManageCustomerHierarchy provides the Customer and Profile entities required by Messaging (via EvaluateProfileGate) and Subscriber (via ProfileStandardReceiverMapping). EvaluateProfileGate is a pure projection with no further dependencies. ManageApiKeyAccess is isolated.",
+      "build_slices": [
+        "BS-CUST-01 ManageCustomerHierarchy",
+        "BS-CUST-02 EvaluateProfileGate",
+        "BS-CUST-03 ManageApiKeyAccess"
+      ],
+      "dependency_prerequisites": [],
+      "slices_can_run_parallel": true,
+      "architectural_protections": [
+        "BS-CUST-02 must be implemented as a read-only projection — no state mutation",
+        "BS-CUST-03: OWASP A02 — hash stored only, cleartext returned once, never persisted"
+      ],
+      "risks": [
+        "LOW — no external dependencies, no concurrency concerns"
+      ],
+      "expected_outputs": [
+        "Customer, CustomerAccount, Profile CRUD functional",
+        "EvaluateProfileGate returns correct EffectiveProfilePermissions for all BR023-BR027 role combinations",
+        "CustomerApiKey create/revoke functional with hashed storage"
+      ],
+      "validation_checkpoint": "Wave 0 complete when: Customer hierarchy CRUD passes unit tests. EvaluateProfileGate returns correct permission set for all 5 role variants (BR023-BR027). API key hash is non-reversible and cleartext is not stored."
+    },
+    {
+      "wave": 1,
+      "name": "Subscriber Foundation",
+      "rationale": "AGG-SUB StandardReceiver entities are referenced by BS-MSG-02 (AddRecipientCriterion checks StandardReceiver existence). Must be available before Messaging wave. ManageReceiverPricing has no external dependencies and is safe to build alongside.",
+      "build_slices": [
+        "BS-SUB-01 ManageStandardReceiver",
+        "BS-SUB-02 ManageReceiverPricing"
+      ],
+      "dependency_prerequisites": [
+        "Wave 0 — BS-CUST-01 (ProfileId existence check in ManageStandardReceiver MapToProfile operation)"
+      ],
+      "slices_can_run_parallel": true,
+      "architectural_protections": [
+        "Keyword uniqueness per country: enforce at application layer with clear KeywordConflictException — not silent duplicate suppression"
+      ],
+      "risks": [
+        "LOW — keyword uniqueness can create race condition on concurrent create; enforce with DB unique constraint as backup"
+      ],
+      "expected_outputs": [
+        "StandardReceiver hierarchy: receiver, groups, keywords, distribution phones, profile mappings functional",
+        "ReceiverPriceSetting upsert by composite key functional"
+      ],
+      "validation_checkpoint": "Wave 1 complete when: StandardReceiver CRUD passes unit tests. Keyword uniqueness constraint enforced — duplicate keyword returns KeywordConflictException, not duplicate insert. ReceiverPriceSetting upsert is idempotent."
+    },
+    {
+      "wave": 2,
+      "name": "Address Infrastructure",
+      "rationale": "BS-ADDR-01 (ResolveAddresses) is called by Messaging dispatch slices (Waves 6). BS-ADDR-03 (RunCountryAddressImport) is the canonical state writer — must exist before resolution is meaningful. BS-ADDR-02 (LookupAddressOwner) is invoked by BS-ADDR-01 when sendToOwner=true. Wave 2 is independent from Wave 1 and can be built in parallel.",
+      "build_slices": [
+        "BS-ADDR-03 RunCountryAddressImport",
+        "BS-ADDR-01 ResolveAddresses",
+        "BS-ADDR-02 LookupAddressOwner"
+      ],
+      "dependency_prerequisites": [],
+      "slices_must_be_built_in_order": [
+        "BS-ADDR-03 FIRST — populates canonical state that BS-ADDR-01 reads",
+        "BS-ADDR-01 + BS-ADDR-02 after BS-ADDR-03"
+      ],
+      "architectural_protections": [
+        "P2 CARRY-FORWARD: BS-ADDR-01 must read from ADDR-E01 canonical state ONLY — no direct access to staging tables (ADDR-E05 NorwegianAddress, ADDR-E06 SwedishAddress). Enforce via repository abstraction.",
+        "BS-ADDR-03 is the SOLE authorized writer of ADDR-E01 canonical state. No other slice may write ResolvedAddress or AddressOwner directly.",
+        "FI (Finland): route to NullAdapter → throw NotSupportedException. Do NOT add conditional logic — fail-fast with clear error.",
+        "R043: country-native key must be resolved to Kvhx INSIDE the adapter. Kvhx is the only key that exits the adapter."
+      ],
+      "risks": [
+        "MEDIUM — country adapter isolation. Risk: a future developer writes to canonical state from outside BS-ADDR-03. Mitigation: enforce via repository interface visible only to BS-ADDR-03 handler."
+      ],
+      "expected_outputs": [
+        "BS-ADDR-03 imports NO, SE, DK address data and populates canonical state",
+        "BS-ADDR-01 resolves RecipientCriteria → Kvhx list, regardless of country",
+        "BS-ADDR-02 returns owner data for a Kvhx",
+        "FI route throws NotSupportedException"
+      ],
+      "validation_checkpoint": "Wave 2 complete when: BS-ADDR-03 imports sample data for NO/SE/DK and canonical state is populated. BS-ADDR-01 returns Kvhx for known test addresses. BS-ADDR-01 returns empty for unknown address (not error). BS-ADDR-02 returns owner for known Kvhx. FI route throws NotSupportedException."
+    },
+    {
+      "wave": 3,
+      "name": "Import Pipeline",
+      "rationale": "AGG-IMP is independent of Messaging — it is a general import mechanism that can target any aggregate (e.g. AGG-SUB). Wave 3 depends on Wave 1 for the target aggregate (BS-SUB-01 is the expected first import target). BS-IMP-02 and BS-IMP-03 must be built together — they form a crash-safe unit.",
+      "build_slices": [
+        "BS-IMP-01 PrepareImportJob",
+        "BS-IMP-02 ConfirmImportJob",
+        "BS-IMP-03 ResumeImportJob"
+      ],
+      "dependency_prerequisites": [
+        "Wave 1 — BS-SUB-01 (first concrete import target for subscriber data)"
+      ],
+      "slices_must_be_built_in_order": [
+        "BS-IMP-01 FIRST — creates the ImportJob that BS-IMP-02 consumes",
+        "BS-IMP-02 + BS-IMP-03 built together — crash-safe pair (R041)"
+      ],
+      "slices_must_be_implemented_together": [
+        "BS-IMP-02 ConfirmImportJob + BS-IMP-03 ResumeImportJob — CommitStarted(107) resume path must exist before ConfirmImportJob is production-ready"
+      ],
+      "architectural_protections": [
+        "R041 CRITICAL: BS-IMP-02 must write CommitStarted(107) marker BEFORE any data row is committed. This is the crash-safety invariant. Test: inject failure after marker write — verify resume via BS-IMP-03.",
+        "Terminal state guard: DataImported(6) or Error(-1) on entry → AlreadyProcessedException. Not a silent no-op.",
+        "Destructive path (Azure Batch for sizeKb >= 10): deferred as infrastructure. BS-IMP-02 inline path is Wave 3. Azure Batch integration is explicitly deferred."
+      ],
+      "risks": [
+        "HIGH — crash-safe import (R041). Risk: CommitStarted marker written but crash happens before data rows committed. BS-IMP-03 must handle this exact scenario. Test explicitly.",
+        "MEDIUM — import target coupling (COORD-04). Risk: import handler tight-couples to subscriber entity. Mitigation: typed domain command interface per import type."
+      ],
+      "deferred": [
+        "Azure Batch dispatch path for sizeKb >= 10 (infrastructure integration deferred). BS-IMP-02 implements inline path only in Wave 3. Azure Batch path is a separate deferred wave."
+      ],
+      "expected_outputs": [
+        "BS-IMP-01 creates ImportJob with column detection and status ReadyForImport",
+        "BS-IMP-02 commits valid rows inline for sizeKb < 10, DataImported(6) on success",
+        "BS-IMP-03 resumes from CommitStarted(107) to completion"
+      ],
+      "validation_checkpoint": "Wave 3 complete when: BS-IMP-01 creates job, detects columns. BS-IMP-02 commits valid rows and sets DataImported(6). Termination guard test: re-running ConfirmImportJob on DataImported job throws AlreadyProcessedException. Crash-safe test: simulate crash after CommitStarted(107) — BS-IMP-03 resumes correctly."
+    },
+    {
+      "wave": 4,
+      "name": "Pipeline / Prospect",
+      "rationale": "AGG-PIPE Prospect entities are independent of Messaging. ConvertProspectToCustomer (BS-PIPE-02) depends on Wave 0 (BS-CUST-01) for Customer creation. ManageProcessTask (BS-PIPE-03) depends on ManageProspectLifecycle (BS-PIPE-01) because Prospect ownership must exist before tasks can be assigned. Wave 4 can run in parallel with Waves 2–3.",
+      "build_slices": [
+        "BS-PIPE-01 ManageProspectLifecycle",
+        "BS-PIPE-03 ManageProcessTask",
+        "BS-PIPE-02 ConvertProspectToCustomer"
+      ],
+      "dependency_prerequisites": [
+        "Wave 0 — BS-CUST-01 (ConvertProspectToCustomer creates/links Customer)"
+      ],
+      "slices_must_be_built_in_order": [
+        "BS-PIPE-01 FIRST — Prospect entity must exist for BS-PIPE-03 owner validation",
+        "BS-PIPE-03 after BS-PIPE-01",
+        "BS-PIPE-02 last — requires BS-PIPE-01 (Prospect) + BS-CUST-01 (Customer)"
+      ],
+      "architectural_protections": [
+        "R038 CRITICAL: BS-PIPE-02 PATCH 2 is DESTRUCTIVE. All existing CustomerProducts deleted before ProspectProducts inserted. Log delete count BEFORE executing as audit trail.",
+        "R039 EXPLICIT: ProcessTasks must NOT be transfered at conversion. This is verified absence — test that no task migration occurs.",
+        "R040 EXPLICIT: ProspectUserRoleMappings must NOT be activated at conversion. Test that no role activation occurs.",
+        "PATCH 2 guard: Prospect.customerId must be set (PATCH 1 complete) before PATCH 2 is accepted."
+      ],
+      "risks": [
+        "HIGH — BS-PIPE-02 PATCH 2 destructive delete. Risk: PATCH 2 runs without audit log or before PATCH 1 confirmed. Mitigation: explicit guard check + log before delete.",
+        "MEDIUM — ProspectStatus FSM. Risk: invalid status transitions accepted silently. Mitigation: explicit FSM validation in BS-PIPE-01."
+      ],
+      "expected_outputs": [
+        "Prospect CRUD and FSM transitions functional",
+        "ProcessTask CRUD with polymorphic owner validation functional",
+        "ConvertProspectToCustomer: PATCH 1 idempotent, PATCH 2 destructive with audit log"
+      ],
+      "validation_checkpoint": "Wave 4 complete when: Prospect FSM rejects backward transitions. BS-PIPE-02 PATCH 1 idempotent. BS-PIPE-02 PATCH 2 deletes existing CustomerProducts and replaces from Prospect. No task migration test passes. No role activation test passes."
+    },
+    {
+      "wave": 5,
+      "name": "Messaging Core — Compose, Recipient, Activate",
+      "rationale": "Messaging core depends on Wave 0 (EvaluateProfileGate) and Wave 1 (ManageStandardReceiver for recipient existence check). Wave 2 (ResolveAddresses) must be available before Wave 6 but NOT required for Wave 5. Wave 5 stops at Broadcast activation — dispatch begins in Wave 6.",
+      "build_slices": [
+        "BS-MSG-01 ComposeBroadcast",
+        "BS-MSG-02 AddRecipientCriterion",
+        "BS-MSG-03 ActivateBroadcast"
+      ],
+      "dependency_prerequisites": [
+        "Wave 0 — BS-CUST-02 EvaluateProfileGate (called by BS-MSG-01 and BS-MSG-03)",
+        "Wave 1 — BS-SUB-01 ManageStandardReceiver (existence check in BS-MSG-02)"
+      ],
+      "slices_must_be_built_in_order": [
+        "BS-MSG-01 FIRST — creates Broadcast entity",
+        "BS-MSG-02 after BS-MSG-01 — appends RecipientCriterion to existing Broadcast",
+        "BS-MSG-03 after BS-MSG-02 — activates Broadcast and routes to dispatch"
+      ],
+      "architectural_protections": [
+        "BR004: BS-MSG-03 must be IDEMPOTENT — if Broadcast.active=true on entry, return early with no side effects. Test this explicitly.",
+        "Role gates (BR024-BR027) enforced at BOTH compose (BS-MSG-01) and activation (BS-MSG-03). Do not cache the result between calls.",
+        "BR005: BS-MSG-03 must reject zero-recipient broadcasts before setting active=true."
+      ],
+      "risks": [
+        "LOW-MEDIUM — role gate consistency. Risk: role gate applied at compose but bypassed at activate. Mitigation: both slices call BS-CUST-02 independently."
+      ],
+      "expected_outputs": [
+        "ComposeBroadcast creates DRAFT Broadcast with correct role-driven field overrides",
+        "AddRecipientCriterion appends criteria and enforces BR001/BR002 guards",
+        "ActivateBroadcast is idempotent, enforces BR004/BR005, determines dispatch path correctly"
+      ],
+      "validation_checkpoint": "Wave 5 complete when: BR024-BR027 overrides verified for all role combinations. BS-MSG-03 idempotency verified (double-activate = no extra side effect). Routing decision correct for sync/async/scheduled paths per BR007/BR008/R037."
+    },
+    {
+      "wave": 6,
+      "name": "Dispatch Paths — Sync, Async Enqueue, Async Execute",
+      "rationale": "Dispatch depends on Wave 5 (Broadcast must be activated) and Wave 2 (ResolveAddresses must be functional). All three dispatch slices should be built in this wave — they form the complete dual-pipeline. SC001 DualPipelineRaceCondition guard requires both sync and async paths to be complete before the guard is testable end-to-end.",
+      "build_slices": [
+        "BS-MSG-04 ExecuteSynchronousDispatch",
+        "BS-MSG-05 EnqueueAsyncDispatch",
+        "BS-MSG-06 ExecuteAsyncLookupAndDispatch"
+      ],
+      "dependency_prerequisites": [
+        "Wave 5 — BS-MSG-03 ActivateBroadcast (routing decision made there)",
+        "Wave 2 — BS-ADDR-01 ResolveAddresses (address resolution called by BS-MSG-04 and BS-MSG-06)"
+      ],
+      "slices_must_be_implemented_together": [
+        "BS-MSG-04 + BS-MSG-06 — both are SC001 participants. isLookedUp=true guard must be present in both before either is production-ready.",
+        "BS-MSG-05 is the enqueue step between BS-MSG-03 and BS-MSG-06 — trivial but required."
+      ],
+      "architectural_protections": [
+        "SC001 CRITICAL — isLookedUp=true MUST be written BEFORE gateway dispatch in BOTH BS-MSG-04 and BS-MSG-06. Crash-safe: if crash occurs after write but before dispatch, Messages exist but gateway call never happened — StatusProgressionGuard handles this as pending state.",
+        "BS-MSG-06 MUST SHORT-CIRCUIT if isLookedUp=true on entry. Log the short-circuit as observability. Do not treat it as an error.",
+        "PN-001: BroadcastEmailContent dispatch routes via EmailGateway adapter — not SMS gateway. EmailContent handling is sms_derived_extension — do not generalize."
+      ],
+      "risks": [
+        "HIGH — SC001 DualPipelineRaceCondition. Both sync and async pipelines could activate simultaneously on the same Broadcast. isLookedUp=true is the ONLY guard. Must be written atomically before gateway call.",
+        "MEDIUM — gateway dispatch failure after isLookedUp=true write. Messages are created but not sent. StatusProgressionGuard handles these as stuck-pending. Ensure monitoring or retry strategy is documented (not implemented here)."
+      ],
+      "expected_outputs": [
+        "BS-MSG-04 dispatches synchronously for BR008 broadcasts",
+        "BS-MSG-05 enqueues BroadcastId to pipeline",
+        "BS-MSG-06 dequeues and dispatches asynchronously with SC001 guard active"
+      ],
+      "validation_checkpoint": "Wave 6 complete when: SC001 race test passes — concurrent activate of same Broadcast results in exactly one dispatch. isLookedUp=true ordering test: verify flag is set before gateway mock is called. BS-MSG-06 short-circuit test: pre-set isLookedUp=true → verify no Messages created and no gateway call made."
+    },
+    {
+      "wave": 7,
+      "name": "Status Pipeline — Callback, Progression, Query",
+      "rationale": "Status pipeline depends on Wave 6 (Messages must exist before delivery status callbacks arrive). BS-MSG-07 and BS-MSG-08 must be built together as a complete status pipeline — P1 carry-forward requires explicit handler separation but they form one functional unit. BS-MSG-09 (query) is read-only and can be built alongside.",
+      "build_slices": [
+        "BS-MSG-07 ReceiveDeliveryStatusCallback",
+        "BS-MSG-08 ProcessStatusProgression",
+        "BS-MSG-09 QueryBroadcastStatus"
+      ],
+      "dependency_prerequisites": [
+        "Wave 6 — BS-MSG-04/BS-MSG-06 (Messages must exist for BS-MSG-07 to resolve MessageId)"
+      ],
+      "slices_must_be_implemented_together": [
+        "BS-MSG-07 + BS-MSG-08 — full status pipeline is not production-ready until both are built. P1 carry-forward requires explicit ownership boundary between them."
+      ],
+      "architectural_protections": [
+        "P1 CARRY-FORWARD: BS-MSG-07 handler = ingest only. Creates DeliveryStatusEvent(imported=false). Returns immediately. Must NOT evaluate rank or mutate Message.statusCode.",
+        "P1 CARRY-FORWARD: BS-MSG-08 handler = state mutation only. Reads pending events, evaluates rank, mutates Message.statusCode. These are separate classes — not one class with two methods.",
+        "B014 CRITICAL: BS-MSG-07 must parse MessageId as LONG (System.Int64). NOT int. Add explicit unit test asserting that a 64-bit ID (e.g. 3000000000) is parsed correctly without truncation.",
+        "StatusProgressionGuard: rank compare + statusCode update wrapped in single transaction per Message. Prevent concurrent rank-writes from both evaluating old rank simultaneously.",
+        "Terminal status immutability: DELIVERED and FAILED_FINAL block all further updates. Test that a callback arriving after terminal status results in imported=true and no Message.statusCode change."
+      ],
+      "risks": [
+        "HIGH — B014 long parse bug. Risk: developer uses int parse for MessageId → silent truncation of IDs > 2.1B. Mitigation: unit test with ID value 3000000000 asserts correct parse.",
+        "HIGH — concurrent StatusProgressionGuard. Risk: two batch workers process events for same Message simultaneously, both read old rank, both apply update. Mitigation: rank-compare-and-update in single transaction.",
+        "MEDIUM — gateway retry duplicates. BS-MSG-07 idempotency guard on (messageId + gatewayReference + rawStatusCode): duplicate callbacks must return existing eventId without creating new DeliveryStatusEvent."
+      ],
+      "expected_outputs": [
+        "BS-MSG-07 creates DeliveryStatusEvent(imported=false) per gateway callback",
+        "BS-MSG-08 processes batches of 300, applies rank progression, marks imported=true",
+        "BS-MSG-09 returns correct counts for recipientCount / sentCount / deliveredCount / failedCount"
+      ],
+      "validation_checkpoint": "Wave 7 complete when: B014 long-parse unit test passes. StatusProgressionGuard monotonic test: lower-rank callback leaves Message.statusCode unchanged. Terminal status test: callback after DELIVERED state has no effect on statusCode. Idempotency test: duplicate callback creates no new DeliveryStatusEvent. Query test: counts are correct after varied status transitions."
+    }
+  ],
+  "high_risk_slices": [
+    {
+      "slice": "BS-MSG-06 ExecuteAsyncLookupAndDispatch",
+      "risk": "SC001 DualPipelineRaceCondition",
+      "description": "isLookedUp=true must be written BEFORE gateway dispatch. Both sync and async pipelines compete on same Broadcast. Incorrect ordering causes double-dispatch.",
+      "mitigation": "Unit test: concurrent activation of same Broadcast results in exactly one gateway call."
+    },
+    {
+      "slice": "BS-MSG-07 ReceiveDeliveryStatusCallback",
+      "risk": "B014 int truncation bug",
+      "description": "GatewayApi returns MessageId as long. If parsed as int, IDs > 2.1B are silently truncated to wrong value — wrong Message is updated.",
+      "mitigation": "Explicit unit test with ID value 3000000000. Parser must use Int64/long."
+    },
+    {
+      "slice": "BS-MSG-08 ProcessStatusProgression",
+      "risk": "Concurrent rank-write race",
+      "description": "Two batch workers process events for same Message simultaneously. Both read old rank, both apply update — lower-rank write wins if not serialized.",
+      "mitigation": "Rank-compare-and-update in single DB transaction per Message."
+    },
+    {
+      "slice": "BS-IMP-02 ConfirmImportJob",
+      "risk": "R041 crash-safety failure",
+      "description": "If CommitStarted(107) is not written before first data row, a crash leaves job in ReadyForImport state — re-run would double-commit data.",
+      "mitigation": "Explicit crash-simulation test: verify that crash AFTER CommitStarted write is recoverable via BS-IMP-03 resume."
+    },
+    {
+      "slice": "BS-PIPE-02 ConvertProspectToCustomer",
+      "risk": "Destructive PATCH 2 without guard",
+      "description": "PATCH 2 deletes all existing CustomerProducts before replacing from Prospect. If executed without PATCH 1 guard, or executed twice, data loss occurs.",
+      "mitigation": "Log delete count as audit trail. Guard: Prospect.customerId must be set before PATCH 2. Test: verify PATCH 2 cannot run without prior PATCH 1."
+    }
+  ],
+  "slices_that_must_be_implemented_together": [
+    {
+      "group": "Status pipeline",
+      "slices": ["BS-MSG-07", "BS-MSG-08"],
+      "reason": "Callback ingestion and progression handling are one functional unit. P1 carry-forward: separate classes with explicit ownership boundary."
+    },
+    {
+      "group": "Dual dispatch + SC001 guard",
+      "slices": ["BS-MSG-04", "BS-MSG-06"],
+      "reason": "SC001 race guard requires isLookedUp=true in both paths. One path without the guard is production-unsafe."
+    },
+    {
+      "group": "Crash-safe import",
+      "slices": ["BS-IMP-02", "BS-IMP-03"],
+      "reason": "CommitStarted(107) resume path (BS-IMP-03) must exist when BS-IMP-02 is deployed. Deploying only BS-IMP-02 creates unrecoverable crashes."
+    }
+  ],
+  "slices_that_must_be_deferred": [
+    {
+      "slice": "Azure Batch dispatch path",
+      "reason": "Infrastructure integration (Azure Batch for sizeKb >= 10 in BS-IMP-02). Deferred to separate infrastructure wave. Inline path implemented in Wave 3.",
+      "unblocks_when": "Azure Batch infrastructure is provisioned"
+    },
+    {
+      "slice": "FI (Finland) address adapter",
+      "reason": "Source data supplier not yet replaced. BS-ADDR-01 and BS-ADDR-03 route FI to NullAdapter/NotSupportedException until source is confirmed.",
+      "unblocks_when": "Finnish address data source is confirmed and onboarded"
+    },
+    {
+      "slice": "Email/Voice/Eboks as independent senders",
+      "reason": "Non-SMS channels are sms_derived_extension (PN-001). They share IDeliveryStatusWriter contract (COORD-02) but are not promoted to independent building candidates without separate Architect decision.",
+      "unblocks_when": "Separate architectural decision per channel"
+    }
+  ],
+  "cross_aggregate_coordination_order": [
+    {
+      "coord": "COORD-03 EvaluateProfileGate",
+      "required_in_wave": 5,
+      "must_be_ready": "Wave 0",
+      "note": "BS-CUST-02 must be callable from BS-MSG-01 and BS-MSG-03"
+    },
+    {
+      "coord": "COORD-01 ResolveAddresses",
+      "required_in_wave": 6,
+      "must_be_ready": "Wave 2",
+      "note": "BS-ADDR-01 must be callable from BS-MSG-04 and BS-MSG-06"
+    },
+    {
+      "coord": "COORD-04 ImportConfirm → Target Aggregate",
+      "required_in_wave": 3,
+      "must_be_ready": "Wave 1",
+      "note": "BS-SUB-01 must accept typed domain command from BS-IMP-02"
+    },
+    {
+      "coord": "COORD-05 ProspectConversion → Customer",
+      "required_in_wave": 4,
+      "must_be_ready": "Wave 0",
+      "note": "BS-CUST-01 must accept CreateCustomer/link from BS-PIPE-02 PATCH 1"
+    },
+    {
+      "coord": "COORD-02 IDeliveryStatusWriter",
+      "required_in_wave": 7,
+      "must_be_ready": "Wave 6",
+      "note": "Messages must exist (Wave 6) before IDeliveryStatusWriter is meaningful"
+    }
+  ]
+}

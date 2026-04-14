@@ -1,0 +1,692 @@
+{
+  "domain": "sms",
+  "artifact": "050_green_ai_feature_map",
+  "iteration": 14,
+  "domain_state": "N-B",
+  "architect_review_iteration13": "REJECTED — use-case lens. Require system-structure lens.",
+  "architect_approved": null,
+  "source_artifacts": [
+    "010_entities.json",
+    "011_extended_entities.json",
+    "020_behaviors.json",
+    "030_flows.json",
+    "040_business_rules.json"
+  ],
+  "note": "System-structure mapping. No implementation details. All content derived from verified Layer 0 domain artifacts.",
+  "feature_groups": [
+    {
+      "id": "FG001",
+      "name": "Messaging",
+      "description": "System pipeline structure for message dispatch and status tracking. Two parallel pipelines without coordination in sms-service. Green-ai introduces StatusProgressionGuard.",
+      "features": [
+        {
+          "id": "FG001-S01",
+          "name": "SynchronousDispatch",
+          "description": "Direct gateway call path. Triggered by single-send (B010) or batch-activate (B004). Resolves merge fields (B017), routes to gateway via 5-branch priority (B012), writes Imported=true synchronously to SmsLog after call (B013). Broadcast prep behaviors (B001-B009: compose, activate, copy, delete) are upstream of this path.",
+          "involved_behaviors": [
+            "B004",
+            "B010",
+            "B012",
+            "B013",
+            "B017"
+          ],
+          "involved_flows": [
+            "F002 — Gateway_Send_Flow"
+          ],
+          "business_rules_applied": [
+            "BR012",
+            "BR013",
+            "BR017",
+            "BR019",
+            "BR020",
+            "R035 — context: sync write is ONE of TWO status write paths"
+          ],
+          "data_owner": "Messaging",
+          "writers": [
+            "SynchronousDispatch (Imported=true after gateway ACK)"
+          ],
+          "readers": [
+            "AsyncDispatchPipeline (pending queue)",
+            "StatusWritePaths (status reconciliation)"
+          ]
+        },
+        {
+          "id": "FG001-S02",
+          "name": "AsyncDispatchPipeline",
+          "description": "Background service that loads pending SmsLogs in three tiers (main queue + first retry + second retry) and dispatches in RoundRobin batches. Same gateway routing (B012) and sync status write (B013) as SynchronousDispatch. Kill switches: DisableMessageBackgroundService (BR019), DisableAllBroadcasts (BR020).",
+          "involved_behaviors": [
+            "B011",
+            "B012",
+            "B013",
+            "B017"
+          ],
+          "involved_flows": [
+            "F002 — Gateway_Send_Flow"
+          ],
+          "business_rules_applied": [
+            "BR012",
+            "BR013",
+            "BR019",
+            "BR020",
+            "R035 — context: async dispatch writes same SmsLog.StatusCode as DLR callback"
+          ],
+          "data_owner": "Messaging",
+          "writers": [
+            "AsyncDispatchPipeline (Imported=true per batch)"
+          ],
+          "readers": [
+            "BackgroundService scheduler",
+            "StatusWritePaths"
+          ]
+        },
+        {
+          "id": "FG001-S03",
+          "name": "StatusWritePaths",
+          "description": "TWO independent paths write to SmsLog.StatusCode and SmsLogStatuses. Path 1 (sync): SynchronousDispatch/AsyncDispatchPipeline write Imported=true after gateway call (B013). Path 2 (async DLR): gateway callbacks create SmsLogStatus records Imported=false (B014/B015), then B016 imports them in 300-chunk batches, selecting authoritative status per SmsLog. CRITICAL: paths do not coordinate (R035). SmsLogStatuses is a shared write surface: SMS + Email + Voice + Eboks all write here (R036).",
+          "involved_behaviors": [
+            "B013",
+            "B014",
+            "B015",
+            "B016"
+          ],
+          "involved_flows": [
+            "F003 — DLR_Callback_Flow"
+          ],
+          "business_rules_applied": [
+            "BR014 — GatewayApi int-parse CONFLICTING",
+            "R035 — dual write, no coordination",
+            "R036 — cross-domain shared write"
+          ],
+          "data_owner": "Messaging",
+          "writers": [
+            "SynchronousDispatch (Path 1)",
+            "AsyncDispatchPipeline (Path 1)",
+            "GatewayApi DLR callback (Path 2, B014)",
+            "Strex DLR callback (Path 2, B015)",
+            "Email/Voice/Eboks via contract (R036)"
+          ],
+          "readers": [
+            "StatusProgressionGuard",
+            "CustomerWebhookDispatch",
+            "BillingReporting"
+          ]
+        },
+        {
+          "id": "FG001-S04",
+          "name": "StatusProgressionGuard",
+          "description": "ARCHITECT DECISION (2026-04-13): Monotonic status state machine. Status may only move forward — never backward. A write is rejected if new_status rank <= current_status rank. Replaces the uncoordinated dual-write pattern from sms-service (R035). Terminal statuses (DELIVERED, FAILED_FINAL) cannot be overwritten by any path. Applied at the boundary of StatusWritePaths — both sync write and DLR import must pass through this guard.",
+          "involved_behaviors": [],
+          "involved_flows": [],
+          "business_rules_applied": [
+            "R035 — root cause this guard addresses"
+          ],
+          "architect_decision": "2026-04-13 — monotonic progression guard. NOT rowversion. Callback path cannot overwrite higher status.",
+          "data_owner": "Messaging",
+          "writers": [
+            "Messaging domain only — enforced by guard"
+          ],
+          "readers": [
+            "StatusWritePaths (all callers)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FG002",
+      "name": "Customer Management",
+      "description": "Three-tier identity model. Role-based feature gating. External access configuration.",
+      "features": [
+        {
+          "id": "FG002-F001",
+          "name": "CustomerHierarchy",
+          "description": "Customer (legal entity) → Profile (usage rights) → User (person). ProfileUserMappings link users to profiles. CustomerAccount holds billing details.",
+          "involved_entities": [
+            "Customer",
+            "Profile",
+            "User",
+            "ProfileUserMapping",
+            "CustomerAccount"
+          ],
+          "business_rules_applied": [],
+          "data_owner": "Customer",
+          "writers": [
+            "Customer administration (create/update)"
+          ],
+          "readers": [
+            "Messaging (permission gates)",
+            "Sales Pipeline (conversion target)",
+            "StandardReceiver (scope)"
+          ]
+        },
+        {
+          "id": "FG002-F002",
+          "name": "RolePermissionGating",
+          "description": "Profile roles evaluated at broadcast create and activate time. Roles: AlwaysOwner, CanSpecifyLookup, CanSelectLookupBusinessOrPrivate, DontSendEmail, CanSelectStdReceivers, CanSendByOnlyStdReceivers, BroadcastNoReciept, HasBenchmark, HasInfoPortal. NOT enforced at DB level — application-layer gate only.",
+          "involved_entities": [
+            "Profile",
+            "ProfileRole",
+            "ProfileUserMapping"
+          ],
+          "involved_behaviors": [
+            "B001",
+            "B004"
+          ],
+          "business_rules_applied": [
+            "BR023",
+            "BR024",
+            "BR025",
+            "BR026",
+            "BR027"
+          ],
+          "data_owner": "Customer",
+          "writers": [
+            "Customer administration (role assignment)"
+          ],
+          "readers": [
+            "Messaging (create + activate gates)"
+          ]
+        },
+        {
+          "id": "FG002-F003",
+          "name": "ExternalAccessManagement",
+          "description": "API keys (CustomerApiKey, scoped: ApiSendSingle / ApiHandleRecipients / ApiHandleMessageTemplates) and FTP access (FtpUser) as separate configuration domains under Customer.",
+          "involved_entities": [
+            "CustomerApiKey",
+            "FtpUser"
+          ],
+          "business_rules_applied": [],
+          "data_owner": "Customer",
+          "writers": [
+            "Customer administration"
+          ],
+          "readers": [
+            "Messaging API endpoints (API key auth gate)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FG003",
+      "name": "Subscription / StandardReceiver",
+      "description": "Customer-defined receiver lists and per-country pricing.",
+      "features": [
+        {
+          "id": "FG003-F001",
+          "name": "StandardReceiverManagement",
+          "description": "StandardReceivers (subscriptions) per customer. Grouped via StandardReceiverGroups. Keywords for SMS opt-in. DistributionPhone for stats. ProfileStandardReceiverMappings scope per-profile access.",
+          "involved_entities": [
+            "StandardReceiver",
+            "StandardReceiverGroup",
+            "StandardReceiverKeyword",
+            "DistributionPhone",
+            "ProfileStandardReceiverMapping"
+          ],
+          "business_rules_applied": [],
+          "data_owner": "Customer (StandardReceiver scoped to Customer)",
+          "writers": [
+            "Customer administration"
+          ],
+          "readers": [
+            "Messaging (SmsGroupItems)",
+            "Broadcast activate (recipient resolution)"
+          ]
+        },
+        {
+          "id": "FG003-F002",
+          "name": "ReceiverPriceMatrix",
+          "description": "Price per (CustomerStandardReceiver, CountryId). CustomerStandardReceiverSettings allows per-customer override. Stats stored at SmsGroupItem level, not per-message.",
+          "involved_entities": [
+            "CustomerStandardReceiver",
+            "CustomerStandardReceiverSettings",
+            "SmsGroupItem"
+          ],
+          "business_rules_applied": [],
+          "data_owner": "Customer",
+          "writers": [
+            "Customer administration (price configuration)"
+          ],
+          "readers": [
+            "Billing (statistics)",
+            "Broadcast reporting"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FG004",
+      "name": "Data Import",
+      "description": "Two-phase import pipeline with crash-safe lifecycle, size-based routing, and idempotent resume behavior.",
+      "features": [
+        {
+          "id": "FG004-F001",
+          "name": "ImportPrepare",
+          "description": "Phase 1: upload to blob, define column mappings, run pre-validation and full row validation. Status: Queued(1)→ProcessingColumns(2)→ColumnsReady(3)→ReadyForImport(4) → or Error(-1). ConvertingFile(20) sub-state for format conversion.",
+          "involved_entities": [
+            "DataImportFile",
+            "DataImportFileRow",
+            "DataImportColumnMapping",
+            "DataImportSavedConfiguration"
+          ],
+          "business_rules_applied": [
+            "R041 — status machine entry"
+          ],
+          "data_owner": "Customer (scoped per customer)",
+          "writers": [
+            "ImportPrepare pipeline"
+          ],
+          "readers": [
+            "ImportConfirm",
+            "TwoPhaseImportLifecycle guard"
+          ]
+        },
+        {
+          "id": "FG004-F002",
+          "name": "ImportConfirm",
+          "description": "Phase 2: commit validated rows. CommitStarted(107) written BEFORE data write (crash-resume marker), then ImportCommitted(7) on success. Error(-1) on failure. Post-processors run per ImportFormat after commit.",
+          "involved_entities": [
+            "DataImportFile",
+            "DataImportFileRow"
+          ],
+          "business_rules_applied": [
+            "R041 — CommitStarted crash guard",
+            "R042 — inline vs batch routing"
+          ],
+          "data_owner": "Customer",
+          "writers": [
+            "ImportConfirm pipeline"
+          ],
+          "readers": [
+            "Address domain (address-type imports)",
+            "IdempotentResumeBehavior (state check)"
+          ]
+        },
+        {
+          "id": "FG004-S01",
+          "name": "TwoPhaseImportLifecycle",
+          "description": "System-level view of R041 state machine. Two explicit phases separated by ReadyForImport(4) gate. Phase 1 (Prepare): Queued→ColumnsReady. Phase 2 (Confirm): DataImporting(5)→DataImported(6), mediated by CommitStarted(107) crash-guard. Error(-1) is terminal failure in either phase.",
+          "business_rules_applied": [
+            "R041"
+          ],
+          "data_owner": "Messaging/Import subsystem",
+          "writers": [
+            "ImportPrepare",
+            "ImportConfirm"
+          ],
+          "readers": [
+            "InlineVsBatchExecution (routing decision)",
+            "IdempotentResumeBehavior"
+          ]
+        },
+        {
+          "id": "FG004-S02",
+          "name": "InlineVsBatchExecution",
+          "description": "Size gate (R042): DataImportFile.SizeKb < 10 → run confirm inline (same request). SizeKb >= 10 → dispatch CreateConfirmDataImportAzureTaskAsync (Azure Batch). Same confirm logic runs in both contexts. Mirrors the SmsGroup lookup routing pattern (R028/B005).",
+          "business_rules_applied": [
+            "R042"
+          ],
+          "data_owner": "Messaging/Import subsystem",
+          "writers": [
+            "ImportConfirm dispatcher"
+          ],
+          "readers": [
+            "Azure Batch (large files)",
+            "Inline handler (small files)"
+          ]
+        },
+        {
+          "id": "FG004-S03",
+          "name": "IdempotentResumeBehavior",
+          "description": "CommitStarted(107) written atomically to DataImportFile BEFORE any data write. On restart/crash: if status = CommitStarted, resume from last committed row. If status = DataImported(6) or Error(-1): reject re-run (terminal). Prevents double-commit without distributed transaction.",
+          "business_rules_applied": [
+            "R041 — CommitStarted as crash-resume guard"
+          ],
+          "data_owner": "Messaging/Import subsystem",
+          "writers": [
+            "ImportConfirm (status transitions)"
+          ],
+          "readers": [
+            "Crash-recovery logic",
+            "Re-run prevention gate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FG005",
+      "name": "Address Resolution",
+      "description": "Per-country address resolution infrastructure. One domain, country-specific adapters. Core only sees canonical Kvhx string.",
+      "features": [
+        {
+          "id": "FG005-F001",
+          "name": "AddressLookupExecution",
+          "description": "Runs address lookup for a broadcast via CQRS priority-queue pipeline (LookupExecutor, verified: LookupExecutor.cs:42). Commands queued, dispatched to typed processors (ILookupCommandProcessor), emit events (ILookupEvent). Runs in both web-server (inline) and Azure Batch contexts.",
+          "involved_behaviors": [
+            "B005",
+            "B018"
+          ],
+          "involved_flows": [
+            "F004",
+            "F005",
+            "F006"
+          ],
+          "business_rules_applied": [
+            "BR006",
+            "BR007",
+            "BR008",
+            "R037",
+            "R044"
+          ],
+          "data_owner": "Address",
+          "writers": [
+            "LookupExecutor (SmsLog output)"
+          ],
+          "readers": [
+            "Messaging (broadcast activation dispatch)"
+          ]
+        },
+        {
+          "id": "FG005-F02",
+          "name": "AddressImportCountryAdapters",
+          "description": "Per-country import pipelines feed country-native staging tables. DK: Datafordeleren CSV → dbo.Addresses (Kvhx PK). NO: Kartverket → staging → dbo.AddressNorwegianProperties (5-tuple). SE: Lantmäteriet. FI: DEFERRED (AvoinData closed Feb 2025). Two parallel DK pipelines not yet converged.",
+          "involved_entities": [
+            "Address",
+            "AddressNorwegianProperty",
+            "AddressSwedishProperty",
+            "AddressImportNorwegianProperty",
+            "AddressImportFinnishBuilding",
+            "AddressImportFinnishZipCode"
+          ],
+          "business_rules_applied": [
+            "R043"
+          ],
+          "data_owner": "Address (per-country partition)",
+          "writers": [
+            "Country-specific import jobs (per-country adapter)"
+          ],
+          "readers": [
+            "CountryAdapterRouting",
+            "OwnershipLookup"
+          ]
+        },
+        {
+          "id": "FG005-F003",
+          "name": "OwnershipLookup",
+          "description": "Resolve property owner (name, contact) from Kvhx. DK: dbo.AddressOwners + staging dbo.AddressDatafordelerOwners. NO: AddressImportNorwegianOwners + AddressImportNorwegianPeople. Change tracking: AddressOwnerChange (Kvhx rename events), AddressChange (manual corrections).",
+          "involved_entities": [
+            "AddressOwner",
+            "AddressDatafordelerOwner",
+            "AddressOwnerChange",
+            "AddressChange"
+          ],
+          "business_rules_applied": [
+            "R043"
+          ],
+          "data_owner": "Address",
+          "writers": [
+            "Country import pipelines (ownership data)"
+          ],
+          "readers": [
+            "Messaging (SendToOwner behavior)"
+          ]
+        },
+        {
+          "id": "FG005-S01",
+          "name": "AddressResolutionFlow",
+          "description": "System-level flow: external source → country-native staging → Kvhx string output. ALL lookups regardless of country output canonical Kvhx. Flow: ExternalSource → CountryAdapter.Import → CountryNativeStore → CountryAdapter.Resolve → Kvhx. Core domain receives only Kvhx — never country-specific structure.",
+          "business_rules_applied": [
+            "R023 — Kvhx as canonical identity",
+            "R043"
+          ],
+          "data_owner": "Address",
+          "writers": [
+            "Country adapters (import + resolve)"
+          ],
+          "readers": [
+            "Messaging (Kvhx for SmsLog)",
+            "OwnershipLookup"
+          ]
+        },
+        {
+          "id": "FG005-S02",
+          "name": "CountryAdapterRouting",
+          "description": "IAddressAdapter per country. Routing by CountryId: DK → DatafordelerenAdapter, NO → KartverketAdapter (5-tuple → Kvhx resolution), SE → LantmaterietAdapter, FI → DeferredAdapter (blocked: source closed). Adapter selection happens at infrastructure layer — core domain calls generic interface.",
+          "business_rules_applied": [
+            "R043"
+          ],
+          "data_owner": "Address (infrastructure layer)",
+          "writers": [
+            "Import pipelines (per adapter)"
+          ],
+          "readers": [
+            "AddressLookupExecution"
+          ]
+        },
+        {
+          "id": "FG005-S03",
+          "name": "AddressCacheResponsibility",
+          "description": "Each country adapter owns its cache/store with its native structure. DK cache: dbo.Addresses (Kvhx PK, string). NO cache: dbo.AddressNorwegianProperties (5-tuple key). SE cache: dbo.AddressSwedishProperties. Only Kvhx string crosses the cache boundary to core. Cache invalidation is per-country — replacing FI source does not affect DK/NO/SE.",
+          "business_rules_applied": [
+            "R023",
+            "R043"
+          ],
+          "data_owner": "Address (per-country cache)",
+          "writers": [
+            "Country import pipelines only"
+          ],
+          "readers": [
+            "CountryAdapterRouting (resolve step)",
+            "OwnershipLookup"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FG006",
+      "name": "Sales Pipeline",
+      "description": "Prospect-to-customer conversion pipeline. Explicit gaps (verified absent behaviors) are represented as first-class features — absence is an implicit business rule.",
+      "features": [
+        {
+          "id": "FG006-F001",
+          "name": "ProspectLifecycle",
+          "description": "Create and manage prospect entities. Contact persons, pre-configured products (ProspectProduct), pre-configured user roles (ProspectUserRoleMapping), and process tasks (ProcessTask with owner_type=Prospect). TaskOwnershipModel governs how tasks are owned and what happens at conversion.",
+          "involved_entities": [
+            "Prospect",
+            "ContactPerson",
+            "ProspectProduct",
+            "ProspectUserRoleMapping",
+            "ProcessTask",
+            "ProcessTaskTemplate"
+          ],
+          "business_rules_applied": [
+            "R039",
+            "R040"
+          ],
+          "data_owner": "Pipeline",
+          "writers": [
+            "Pipeline admin (prospect management)"
+          ],
+          "readers": [
+            "ProspectToCustomerConversion",
+            "ConversionWithoutTaskMigration",
+            "ConversionWithoutRoleActivation"
+          ]
+        },
+        {
+          "id": "FG006-F002",
+          "name": "ProspectToCustomerConversion",
+          "description": "Two-step non-atomic conversion. Step 1 (PATCH UpdateProspectWithCustomerIdAndAddContactPersonsToCustomer): links Prospect.CustomerId, copies ContactPersons to Customer. Step 2 (PATCH CopyProspectProductsToCustomer): DESTRUCTIVE — deletes CustomerProducts then creates from ProspectProducts. Two separate API calls required — no transaction wrapping both steps.",
+          "involved_entities": [
+            "Prospect",
+            "Customer",
+            "ContactPerson",
+            "ProspectProduct",
+            "CustomerProduct"
+          ],
+          "business_rules_applied": [
+            "R038 — PipelineController.cs:323+379"
+          ],
+          "data_owner": "Pipeline → Customer (post-conversion)",
+          "writers": [
+            "Pipeline API (two-step PATCH)"
+          ],
+          "readers": [
+            "Customer Management (receives contact persons + products)"
+          ]
+        },
+        {
+          "id": "FG006-G01",
+          "name": "ConversionWithoutTaskMigration",
+          "description": "VERIFIED ABSENT (R039). Conversion code (both PATCHes) does NOT transfer ProcessTasks from Prospect to Customer. ARCHITECT DECISION (2026-04-13): LEAVE ON PROSPECT. Tasks remain as historical record on Prospect. Customer starts without inherited tasks. This is an intentional gap — not a bug to fix in green-ai without explicit business requirement.",
+          "involved_entities": [
+            "ProcessTask"
+          ],
+          "business_rules_applied": [
+            "R039 — ISOLATED UNKNOWN in sms-service. ARCHITECT DECIDED: LEAVE ON PROSPECT."
+          ],
+          "architect_decision": "2026-04-13 — tasks stay on Prospect. No reassignment to Customer at conversion.",
+          "data_owner": "Pipeline (Prospect side — tasks never migrate)",
+          "writers": [
+            "None at conversion — explicit non-action"
+          ],
+          "readers": [
+            "ProspectToCustomerConversion (must NOT migrate tasks)"
+          ]
+        },
+        {
+          "id": "FG006-G02",
+          "name": "ConversionWithoutRoleActivation",
+          "description": "VERIFIED ABSENT (R040). ProspectUserRoleMappings are NOT consumed at conversion. No code reads them to activate roles on the new Customer. ARCHITECT DECISION (2026-04-13): implicit business rule via absence. Green-ai must NOT auto-activate roles at conversion unless a new explicit business requirement is added.",
+          "involved_entities": [
+            "ProspectUserRoleMapping"
+          ],
+          "business_rules_applied": [
+            "R040 — ISOLATED UNKNOWN in sms-service. Intentional absence."
+          ],
+          "architect_decision": "2026-04-13 — role pre-config is NOT applied at conversion. Absence is the business rule.",
+          "data_owner": "Pipeline (role mappings stay on Prospect)",
+          "writers": [
+            "None at conversion — explicit non-action"
+          ],
+          "readers": [
+            "ProspectToCustomerConversion (must NOT activate roles)"
+          ]
+        },
+        {
+          "id": "FG006-S01",
+          "name": "TaskOwnershipModel",
+          "description": "ProcessTask is polymorphic: owned by Prospect OR Customer. Ownership via owner_type + owner_id (no DB referential integrity). ProcessTaskTemplate determines allowed owner_type. ARCHITECT DECISION (iteration 10): enforced in application layer — NOT polymorphic FK in DB. At conversion: tasks remain on Prospect (see ConversionWithoutTaskMigration).",
+          "involved_entities": [
+            "ProcessTask",
+            "ProcessTaskTemplate"
+          ],
+          "business_rules_applied": [
+            "R039"
+          ],
+          "architect_decision": "app-layer enforcement. owner_type determines valid owner_id lookup. Template constrains owner_type.",
+          "data_owner": "Pipeline",
+          "writers": [
+            "Task management (create/update/assign)"
+          ],
+          "readers": [
+            "ProspectLifecycle",
+            "ConversionWithoutTaskMigration (constraint source)"
+          ]
+        }
+      ]
+    }
+  ],
+  "system_concerns": [
+    {
+      "id": "SC001",
+      "name": "DualPipelineRaceCondition",
+      "source_rules": [
+        "R035"
+      ],
+      "description": "SynchronousDispatch (B013) and StatusWritePaths DLR import (B016) both write SmsLog.StatusCode without coordination. Last writer wins. In sms-service: unresolved. In green-ai: resolved by StatusProgressionGuard (FG001-S04).",
+      "green_ai_resolution": "StatusProgressionGuard — monotonic state machine. Only forward transitions allowed."
+    },
+    {
+      "id": "SC002",
+      "name": "CrossDomainWriteSurface_SmsLogStatuses",
+      "source_rules": [
+        "R036"
+      ],
+      "description": "dbo.SmsLogStatuses is written by SMS, Email, Voice, and Eboks status writers. No domain boundary enforcement at write level in sms-service. Messaging is NOT an isolated domain at this surface.",
+      "green_ai_resolution": "Messaging domain owns SmsLogStatuses. Email/Voice/Eboks write via IDeliveryStatusWriter contract — not directly to table. StatusProgressionGuard applies to all writers."
+    },
+    {
+      "id": "SC003",
+      "name": "PartialLifecycle_ProspectConversion",
+      "source_rules": [
+        "R038",
+        "R039",
+        "R040"
+      ],
+      "description": "Two-step non-atomic conversion (R038). Tasks NOT migrated (R039). Roles NOT activated (R040). The Prospect→Customer lifecycle is intentionally partial — three things that COULD happen do NOT happen. Absence is the business rule.",
+      "green_ai_resolution": "Represent as explicit features (ConversionWithoutTaskMigration, ConversionWithoutRoleActivation). Do not add migration logic without new business requirement."
+    },
+    {
+      "id": "SC004",
+      "name": "ImportIdempotency",
+      "source_rules": [
+        "R041"
+      ],
+      "description": "DataImport two-phase commit uses CommitStarted(107) as crash-resume marker. Terminal states (DataImported=6, Error=-1) prevent re-run. Without this guard: double-commit is possible on crash+restart.",
+      "green_ai_resolution": "IdempotentResumeBehavior (FG004-S03) captures this explicitly. CommitStarted state must be preserved in green-ai import pipeline."
+    },
+    {
+      "id": "SC005",
+      "name": "AddressAdapterIsolation",
+      "source_rules": [
+        "R043"
+      ],
+      "description": "Four national address systems with incompatible schemas. FI source closed Feb 2025. Two parallel DK pipelines not converged. If adapter boundaries are not maintained, country-specific logic bleeds into core domain.",
+      "green_ai_resolution": "CountryAdapterRouting + AddressCacheResponsibility (FG005-S02/S03) enforce the boundary. Core domain never receives country-native data structures."
+    }
+  ],
+  "architectural_decisions_mapping": {
+    "status_progression_guard": {
+      "source_rule": "R035",
+      "architect_decision_date": "2026-04-13",
+      "decision": "Monotonic status state machine (NOT rowversion). Status rank only increases. Callback path cannot overwrite a higher-ranked status. Terminal statuses (DELIVERED, FAILED_FINAL) are immutable.",
+      "rejected": "rowversion / optimistic concurrency — too coarse, doesn't prevent logical regression",
+      "green_ai_requirement": "StatusProgressionGuard applied at all SmsLog status write points. Status ranks must be defined in domain model before implementation."
+    },
+    "smslogstatuses_ownership": {
+      "source_rule": "R036",
+      "architect_decision_date": "2026-04-13",
+      "decision": "Messaging domain owns SmsLogStatuses. Email, Voice, Eboks are consumers — they write via IDeliveryStatusWriter contract, not directly. System concern SC002.",
+      "green_ai_requirement": "IDeliveryStatusWriter interface defined in Messaging domain. Other channel domains depend on Messaging for status writing."
+    },
+    "address_country_adapters": {
+      "source_rule": "R043",
+      "architect_decision_date": "iteration 10",
+      "decision": "One Address domain, per-country infrastructure adapters. Core receives only Kvhx. AddressCacheResponsibility per country.",
+      "status": "APPROVED — confirmed in iteration 13 review"
+    },
+    "process_task_conversion": {
+      "source_rule": "R039",
+      "architect_decision_date": "2026-04-13",
+      "decision": "LEAVE ON PROSPECT. Tasks remain as historical record. Customer starts clean. No reassignment logic at conversion.",
+      "rationale": "Code does not do it today. Implicit rule via absence. Avoids hidden data mutation without explicit business requirement.",
+      "green_ai_requirement": "ConversionWithoutTaskMigration (FG006-G01) is a hard constraint. Do not add task migration without new explicit requirement."
+    },
+    "last_minute_lookup_threshold": {
+      "source_rule": "R037",
+      "architect_decision_date": "2026-04-13",
+      "decision": "5 minutes before DateDelayToUtc",
+      "rationale": "Buffer for lookup + queue latency. Matches typical Azure Batch job scheduling window.",
+      "green_ai_requirement": "ScheduledLookupTrigger checks: ACTIVATED broadcasts with LastMinuteLookup=true AND DateDelayToUtc within 5 minutes. Configurable via AppSetting."
+    }
+  },
+  "cross_domain_dependency_matrix": {
+    "Messaging → Address Resolution": "DISPATCH: activation dispatches lookup. Receives Kvhx back as SmsLog records.",
+    "Messaging → Customer": "READ: profile roles at create + activate. WRITE: receipt emails post-send.",
+    "Messaging → StandardReceiver": "READ: default SmsGroupItems at broadcast create.",
+    "Address Resolution → Messaging": "OUTPUT: resolved Kvhx in SmsLog records.",
+    "Customer ← Sales Pipeline": "WRITE: conversion writes CustomerId to Prospect; creates ContactPerson + CustomerProduct on Customer.",
+    "Messaging ← DataImport": "INDIRECT: large imports feed Address domain which feeds Messaging lookup pipeline.",
+    "SmsLogStatuses ← all channels (SC002)": "CRITICAL: SMS + Email + Voice + Eboks. Messaging owns table. Others write via IDeliveryStatusWriter contract (green-ai requirement).",
+    "StatusProgressionGuard → all status writers": "CROSS-CUTTING CONCERN: all write paths to SmsLog.StatusCode pass through monotonic guard."
+  }
+}

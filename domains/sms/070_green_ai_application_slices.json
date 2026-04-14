@@ -1,0 +1,747 @@
+{
+  "domain": "sms",
+  "artifact": "070_green_ai_application_slices",
+  "iteration": 16,
+  "domain_state": "N-B",
+  "architect_approved_060": "2026-04-13",
+  "source_artifacts": [
+    "040_business_rules.json",
+    "050_green_ai_feature_map.json",
+    "060_green_ai_entity_design.json"
+  ],
+  "note": "Application-level slices for green-ai. Commands, queries, orchestrations. No DB schema, no API endpoints, no UI. Aggregate boundaries respected throughout.",
+  "precision_notes_applied_from_060_review": [
+    {
+      "id": "PN-001",
+      "about": "Messaging scope — Email/Voice/WebNotification channels",
+      "decision": "Non-SMS channel content (BroadcastEmailContent, WebNotification) marked as domain_scope: sms_derived_extension in affected slices. Not promoted to shared messaging candidates without explicit separate architectural decision.",
+      "applies_to_slices": [
+        "SL-MSG-04",
+        "SL-MSG-07"
+      ]
+    },
+    {
+      "id": "PN-002",
+      "about": "IDeliveryStatusWriter — contractual integration, not shared aggregate ownership",
+      "decision": "SL-MSG-07 and SL-MSG-08 carry explicit cross_aggregate_contract + ownership_note. Messaging owns write-surface semantics. Other channels have contract access only — no shared ownership.",
+      "applies_to_slices": [
+        "SL-MSG-07",
+        "SL-MSG-08",
+        "COORD-02"
+      ]
+    },
+    {
+      "id": "PN-003",
+      "about": "Address canonical state vs adapter staging/cache separation",
+      "decision": "Address slices divided: canonical-state read slices (SL-ADDR-01, SL-ADDR-02) vs adapter-import slices (SL-ADDR-03, SL-ADDR-04). canonical_state_note and adapter_staging_note added per slice. Staging tables are adapter-internal only.",
+      "applies_to_slices": [
+        "SL-ADDR-01",
+        "SL-ADDR-02",
+        "SL-ADDR-03",
+        "SL-ADDR-04"
+      ]
+    }
+  ],
+  "slices": [
+    {
+      "id": "SL-MSG-01",
+      "name": "ComposeBroadcast",
+      "type": "command",
+      "primary_aggregate": "AGG-MSG",
+      "involved_entities": [
+        "MSG-E01 Broadcast",
+        "MSG-E02 BroadcastSmsContent",
+        "MSG-E03 BroadcastEmailContent",
+        "MSG-E04 RecipientCriterion"
+      ],
+      "triggering_feature": [
+        "FG001.SynchronousDispatch",
+        "FG001.AsyncDispatchPipeline"
+      ],
+      "business_rules_enforced": [
+        "BR024 — AlwaysOwner role forces lookupConfig.sendToOwner=true",
+        "BR025 — DontSendEmail role forces channels.email=false",
+        "BR026 — CanSpecifyLookup gates sendToOwner/sendToAddress fields",
+        "BR027 — CanSelectLookupBusinessOrPrivate gates private/business lookup flags"
+      ],
+      "external_dependencies": [
+        "CUST-E03 Profile (validate ProfileId active)",
+        "CUST-E04 ProfileRoleAssignment (role gate — via EvaluateProfileGate SL-CUST-02)"
+      ],
+      "outputs_effects": [
+        "Broadcast created in DRAFT state (active=false, isLookedUp=false)",
+        "BroadcastSmsContent / BroadcastEmailContent created if channels specified",
+        "Returns BroadcastId"
+      ],
+      "idempotency_concurrency": "Not idempotent by default. API callers should provide client-side idempotency key. Role gate checked once at compose time — also re-checked at activation."
+    },
+    {
+      "id": "SL-MSG-02",
+      "name": "AddRecipientCriterion",
+      "type": "command",
+      "primary_aggregate": "AGG-MSG",
+      "involved_entities": [
+        "MSG-E01 Broadcast",
+        "MSG-E04 RecipientCriterion"
+      ],
+      "triggering_feature": [
+        "FG001.SynchronousDispatch",
+        "FG001.AsyncDispatchPipeline"
+      ],
+      "business_rules_enforced": [
+        "BR001 — rejected if Broadcast.active=true",
+        "BR002 — rejected if Broadcast.isLookedUp=true"
+      ],
+      "external_dependencies": [
+        "SUB-E01 StandardReceiver (existence check if standardReceiverId provided)"
+      ],
+      "outputs_effects": [
+        "RecipientCriterion added to Broadcast"
+      ],
+      "idempotency_concurrency": "Concurrent adds are safe. BR001/BR002 guard prevents adds after activation."
+    },
+    {
+      "id": "SL-MSG-03",
+      "name": "ActivateBroadcast",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-MSG",
+      "involved_entities": [
+        "MSG-E01 Broadcast",
+        "MSG-E04 RecipientCriterion"
+      ],
+      "triggering_feature": [
+        "FG001.SynchronousDispatch",
+        "FG001.AsyncDispatchPipeline"
+      ],
+      "business_rules_enforced": [
+        "BR004 — idempotent if already active (early return, no effect)",
+        "BR005 — reject if zero resolvable recipients",
+        "BR006 — warn if >25000 Kvhx (large broadcast)",
+        "BR007 — scheduledSendAt set → ALWAYS route async/batch, never sync",
+        "BR008 — sync gate: ByAddress + fromApi=true + ≤5 items + no zip-only → sync path",
+        "R037 — lastMinuteLookup=true AND scheduledSendAt set → skip lookup now, schedule ScheduledLookupTrigger 5 min before send"
+      ],
+      "external_dependencies": [
+        "CUST-E04 ProfileRoleAssignment (re-check gate at activation — via SL-CUST-02)"
+      ],
+      "outputs_effects": [
+        "Broadcast.active = true",
+        "Routes to SL-MSG-04 (sync path) OR SL-MSG-05 (enqueue async path)",
+        "If R037: queues ScheduledLookupTrigger — no immediate lookup"
+      ],
+      "idempotency_concurrency": "IDEMPOTENT (BR004). Concurrent activations are safe — second call returns early. Dispatch routing happens at most once per broadcast.",
+      "routing_decision": {
+        "sync_path": "BR008=true AND BR007=false AND R037_skip_lookup=false → SL-MSG-04",
+        "async_path": "BR007=true OR (BR008=false AND not_scheduled) → SL-MSG-05",
+        "last_minute_path": "R037=true AND scheduledSendAt set → ScheduledLookupTrigger queued"
+      }
+    },
+    {
+      "id": "SL-MSG-04",
+      "name": "ExecuteSynchronousDispatch",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-MSG",
+      "involved_entities": [
+        "MSG-E01 Broadcast",
+        "MSG-E04 RecipientCriterion",
+        "MSG-E05 Message"
+      ],
+      "triggering_feature": [
+        "FG001.SynchronousDispatch"
+      ],
+      "business_rules_enforced": [
+        "BR008 precondition — web path gate must be true before entry",
+        "StatusProgressionGuard active from first Message creation",
+        "isLookedUp=true must be set BEFORE gateway dispatch (SC001 guard)"
+      ],
+      "external_dependencies": [
+        "SL-ADDR-01 ExecuteAddressLookup (resolve Kvhx → phone numbers)",
+        "Gateway adapter (GatewayApi or Strex — infrastructure)"
+      ],
+      "outputs_effects": [
+        "Messages created with resolved phone numbers and merge-applied text",
+        "Messages dispatched to gateway synchronously",
+        "Broadcast.isLookedUp=true, Broadcast.dateSentAt set"
+      ],
+      "idempotency_concurrency": "NOT idempotent. Guarded by SL-MSG-03 idempotency — Broadcast.active+isLookedUp prevent re-entry. isLookedUp=true written before dispatch to prevent SC001.",
+      "system_concern": "SC001 DualPipelineRaceCondition",
+      "domain_scope_note": "PN-001: Email channel dispatch follows same orchestration but routes via EmailGateway adapter. BroadcastEmailContent is sms_derived_extension — not yet promoted to shared messaging candidate."
+    },
+    {
+      "id": "SL-MSG-05",
+      "name": "EnqueueAsyncDispatch",
+      "type": "command",
+      "primary_aggregate": "AGG-MSG",
+      "involved_entities": [
+        "MSG-E01 Broadcast"
+      ],
+      "triggering_feature": [
+        "FG001.AsyncDispatchPipeline"
+      ],
+      "business_rules_enforced": [
+        "BR007 precondition — scheduledSendAt set OR batch path chosen"
+      ],
+      "external_dependencies": [
+        "Azure Service Bus / Azure Batch (infrastructure — enqueue message)"
+      ],
+      "outputs_effects": [
+        "BroadcastId enqueued to async lookup pipeline",
+        "Broadcast state: ACTIVATED, isLookedUp=false (pending)"
+      ],
+      "idempotency_concurrency": "Safe to enqueue. Downstream SL-MSG-06 guards against duplicate processing via isLookedUp gate."
+    },
+    {
+      "id": "SL-MSG-06",
+      "name": "ExecuteAsyncLookupAndDispatch",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-MSG",
+      "involved_entities": [
+        "MSG-E01 Broadcast",
+        "MSG-E04 RecipientCriterion",
+        "MSG-E05 Message",
+        "MSG-E07 UnresolvedMessageRecord"
+      ],
+      "triggering_feature": [
+        "FG001.AsyncDispatchPipeline"
+      ],
+      "business_rules_enforced": [
+        "isLookedUp gate — SHORT-CIRCUIT if already true (SC001 DualPipelineRaceCondition guard)",
+        "isLookedUp=true WRITTEN BEFORE gateway dispatch (atomicity requirement)",
+        "BR006 — large broadcast warning at >25000 Kvhx",
+        "StatusProgressionGuard from first Message creation"
+      ],
+      "external_dependencies": [
+        "SL-ADDR-01 ExecuteAddressLookup (Kvhx → phone numbers)",
+        "Gateway adapter (infrastructure)"
+      ],
+      "outputs_effects": [
+        "Messages bulk-created with resolved phone numbers",
+        "UnresolvedMessageRecords created for no-phone addresses",
+        "Broadcast.isLookedUp=true, Broadcast.dateSentAt set"
+      ],
+      "idempotency_concurrency": "SC001: isLookedUp=true gate prevents double-dispatch if both sync and async pipelines race. CRITICAL ordering: set isLookedUp=true THEN dispatch to gateway. Bulk inserts use batch size from B018.",
+      "system_concern": "SC001 DualPipelineRaceCondition"
+    },
+    {
+      "id": "SL-MSG-07",
+      "name": "ReceiveDeliveryStatusCallback",
+      "type": "command",
+      "primary_aggregate": "AGG-MSG",
+      "involved_entities": [
+        "MSG-E05 Message",
+        "MSG-E06 DeliveryStatusEvent"
+      ],
+      "triggering_feature": [
+        "FG001.StatusWritePaths"
+      ],
+      "business_rules_enforced": [
+        "R036 — MUST write via IDeliveryStatusWriter. Direct table write FORBIDDEN.",
+        "B014 — GatewayApi DLR: parse MessageId as LONG (not int). Int truncation bug documented — IDs >2.1B silently wrong.",
+        "DeliveryStatusEvent created with imported=false (pending progression evaluation)"
+      ],
+      "external_dependencies": [
+        "Gateway callback (HTTP webhook — infrastructure boundary)"
+      ],
+      "outputs_effects": [
+        "DeliveryStatusEvent created (imported=false)",
+        "Queued for SL-MSG-08 ProcessStatusProgression"
+      ],
+      "idempotency_concurrency": "Gateways may retry callbacks. Idempotency guard: (messageId + gatewayReference + statusCode). Duplicate callbacks create duplicate DeliveryStatusEvents — StatusProgressionGuard handles ordering safely.",
+      "cross_aggregate_contract": "IDeliveryStatusWriter",
+      "ownership_note": "PN-002: Messaging aggregate owns write-surface semantics. Email, Voice, Eboks channels call IDeliveryStatusWriter. They do NOT acquire shared ownership of DeliveryStatusEvent storage — contract access only.",
+      "system_concern": "SC002 CrossDomainWriteSurface_SmsLogStatuses"
+    },
+    {
+      "id": "SL-MSG-08",
+      "name": "ProcessStatusProgression",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-MSG",
+      "involved_entities": [
+        "MSG-E05 Message",
+        "MSG-E06 DeliveryStatusEvent"
+      ],
+      "triggering_feature": [
+        "FG001.StatusProgressionGuard"
+      ],
+      "business_rules_enforced": [
+        "R035 + StatusProgressionGuard — statusCode may only increase in rank. Lower-rank callbacks rejected (imported=true, statusCode unchanged).",
+        "B016 — batch size 300 per run. Processes DeliveryStatusEvents where imported=false.",
+        "Terminal statuses (DELIVERED, FAILED_FINAL) block all further statusCode updates (immutable once terminal)"
+      ],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "Message.statusCode updated when new rank > current rank",
+        "Message.dateStatusUpdatedAt updated",
+        "DeliveryStatusEvent.imported = true (all processed events)",
+        "Lower-rank events: imported=true, Message.statusCode unchanged"
+      ],
+      "idempotency_concurrency": "IDEMPOTENT per event (already-imported events are no-op). StatusProgressionGuard check must be atomic: read current rank + compare + update in single transaction to prevent concurrent race.",
+      "system_concern": "SC001 DualPipelineRaceCondition (StatusProgressionGuard is the primary defense)"
+    },
+    {
+      "id": "SL-MSG-09",
+      "name": "QueryBroadcastStatus",
+      "type": "query",
+      "primary_aggregate": "AGG-MSG",
+      "involved_entities": [
+        "MSG-E01 Broadcast",
+        "MSG-E05 Message"
+      ],
+      "triggering_feature": [
+        "FG001.StatusWritePaths"
+      ],
+      "business_rules_enforced": [],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "Returns broadcast summary: recipientCount, sentCount, deliveredCount, failedCount",
+        "Optionally returns per-message status breakdown"
+      ],
+      "idempotency_concurrency": "Read-only. No concurrency concerns."
+    },
+    {
+      "id": "SL-CUST-01",
+      "name": "ManageCustomerHierarchy",
+      "type": "command",
+      "primary_aggregate": "AGG-CUST",
+      "involved_entities": [
+        "CUST-E01 Customer",
+        "CUST-E02 CustomerAccount",
+        "CUST-E03 Profile"
+      ],
+      "triggering_feature": [
+        "FG002.CustomerHierarchy"
+      ],
+      "business_rules_enforced": [],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "Customer created/updated",
+        "CustomerAccount created/updated",
+        "Profile created under Customer"
+      ],
+      "idempotency_concurrency": "Creates not idempotent. Updates idempotent by entity ID."
+    },
+    {
+      "id": "SL-CUST-02",
+      "name": "EvaluateProfileGate",
+      "type": "query",
+      "primary_aggregate": "AGG-CUST",
+      "involved_entities": [
+        "CUST-E03 Profile",
+        "CUST-E04 ProfileRoleAssignment"
+      ],
+      "triggering_feature": [
+        "FG002.RolePermissionGating"
+      ],
+      "business_rules_enforced": [
+        "BR023 — BroadcastNoReciept: receipt email suppressed",
+        "BR024 — AlwaysOwner: forces sendToOwner=true",
+        "BR025 — DontSendEmail: forces email channel off",
+        "BR026 — CanSpecifyLookup: gates sendToOwner / sendToAddress fields",
+        "BR027 — CanSelectLookupBusinessOrPrivate: gates private/business flags"
+      ],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "Returns effective permission set (EffectiveProfilePermissions) for ProfileId",
+        "Used by SL-MSG-01 (ComposeBroadcast) and SL-MSG-03 (ActivateBroadcast)"
+      ],
+      "idempotency_concurrency": "Read-only. No concurrency concerns."
+    },
+    {
+      "id": "SL-CUST-03",
+      "name": "ManageApiKeyAccess",
+      "type": "command",
+      "primary_aggregate": "AGG-CUST",
+      "involved_entities": [
+        "CUST-E06 CustomerApiKey"
+      ],
+      "triggering_feature": [
+        "FG002.ExternalAccessManagement"
+      ],
+      "business_rules_enforced": [
+        "SECURITY — API key hash stored (OWASP A02). Cleartext NEVER persisted.",
+        "Cleartext returned exactly once at creation — caller must store immediately"
+      ],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "CustomerApiKey created (hashed) / revoked",
+        "Cleartext key returned once at create — not retrievable after"
+      ],
+      "idempotency_concurrency": "Create not idempotent. Revoke idempotent by key ID.",
+      "security_note": "OWASP A02: Rotate via new key + revoke old key. Key hash algorithm must be non-reversible (bcrypt / SHA-256 + salt)."
+    },
+    {
+      "id": "SL-SUB-01",
+      "name": "ManageStandardReceiver",
+      "type": "command",
+      "primary_aggregate": "AGG-SUB",
+      "involved_entities": [
+        "SUB-E01 StandardReceiver",
+        "SUB-E02 StandardReceiverGroup",
+        "SUB-E03 StandardReceiverGroupKeyword",
+        "SUB-E04 DistributionPhone",
+        "SUB-E05 ProfileStandardReceiverMapping"
+      ],
+      "triggering_feature": [
+        "FG003.StandardReceiverManagement"
+      ],
+      "business_rules_enforced": [
+        "Keyword unique per country (SUB-E03 invariant)"
+      ],
+      "external_dependencies": [
+        "CUST-E03 Profile (validate ProfileId for mapping)"
+      ],
+      "outputs_effects": [
+        "StandardReceiver created/updated/deactivated",
+        "Groups, keywords, distribution phones managed",
+        "Profile-receiver mappings updated"
+      ],
+      "idempotency_concurrency": "Updates idempotent by entity ID. Keyword create enforces uniqueness (conflict returns error, not duplicate)."
+    },
+    {
+      "id": "SL-SUB-02",
+      "name": "ManageReceiverPricing",
+      "type": "command",
+      "primary_aggregate": "AGG-SUB",
+      "involved_entities": [
+        "SUB-E06 ReceiverPriceSetting"
+      ],
+      "triggering_feature": [
+        "FG003.ReceiverPriceMatrix"
+      ],
+      "business_rules_enforced": [],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "ReceiverPriceSetting upserted per (customerId, standardReceiverId, countryId)"
+      ],
+      "idempotency_concurrency": "IDEMPOTENT — upsert by composite key."
+    },
+    {
+      "id": "SL-IMP-01",
+      "name": "PrepareImportJob",
+      "type": "command",
+      "primary_aggregate": "AGG-IMP",
+      "involved_entities": [
+        "IMP-E01 ImportJob",
+        "IMP-E02 ImportColumnMapping",
+        "IMP-E04 ImportSavedConfiguration"
+      ],
+      "triggering_feature": [
+        "FG004.ImportPrepare",
+        "FG004.TwoPhaseImportLifecycle"
+      ],
+      "business_rules_enforced": [
+        "R042 — sizeKb < 10 → inline confirm path; sizeKb >= 10 → Azure Batch path (routing decision made at prepare time)",
+        "ImportJob status machine: Queued(1) → ProcessingColumns(2) → ColumnsReady(3) → ReadyForImport(4)"
+      ],
+      "external_dependencies": [
+        "Blob storage (file upload — infrastructure)"
+      ],
+      "outputs_effects": [
+        "ImportJob created (status=Queued)",
+        "Columns parsed → ImportColumnMappings created",
+        "Column mappings optionally pre-filled from ImportSavedConfiguration",
+        "Final status: ReadyForImport (status=4)"
+      ],
+      "idempotency_concurrency": "One job per file upload. Column detection idempotent given same file. Status machine prevents re-processing."
+    },
+    {
+      "id": "SL-IMP-02",
+      "name": "ConfirmImportJob",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-IMP",
+      "involved_entities": [
+        "IMP-E01 ImportJob",
+        "IMP-E02 ImportColumnMapping",
+        "IMP-E03 ImportRow"
+      ],
+      "triggering_feature": [
+        "FG004.ImportConfirm",
+        "FG004.TwoPhaseImportLifecycle",
+        "FG004.InlineVsBatchExecution"
+      ],
+      "business_rules_enforced": [
+        "R041 — CommitStarted(107) written as crash-safe marker BEFORE any data write. Atomicity: marker write must succeed before data rows are committed.",
+        "R042 — sizeKb < 10 → run inline; sizeKb >= 10 → dispatch to Azure Batch (CreateConfirmDataImportAzureTaskAsync)",
+        "Only valid ImportRows committed to target aggregate",
+        "Terminal states DataImported(6) and Error(-1) reject re-run (guard against double-commit)"
+      ],
+      "external_dependencies": [
+        "Azure Batch (conditional — only sizeKb >= 10)",
+        "Target aggregate for imported data (e.g. AGG-SUB for subscriber imports)"
+      ],
+      "outputs_effects": [
+        "ImportJob.status = CommitStarted(107) — written first",
+        "Valid ImportRows committed to target aggregate",
+        "ImportJob.status = DataImported(6) on success OR Error(-1) on failure"
+      ],
+      "idempotency_concurrency": "IDEMPOTENT via CommitStarted(107) resume: crash during data write → restart detects CommitStarted → routes to SL-IMP-03 ResumeImportJob. Double-commit prevented by terminal state check before entry.",
+      "system_concern": "SC004 ImportIdempotency"
+    },
+    {
+      "id": "SL-IMP-03",
+      "name": "ResumeImportJob",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-IMP",
+      "involved_entities": [
+        "IMP-E01 ImportJob",
+        "IMP-E03 ImportRow"
+      ],
+      "triggering_feature": [
+        "FG004.IdempotentResumeBehavior"
+      ],
+      "business_rules_enforced": [
+        "R041 — CommitStarted(107) is the resume entry condition. Only status=107 enters this path.",
+        "Resume reads last-committed row offset and continues from that position"
+      ],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "ImportJob completed from resume offset (equivalent end-state to SL-IMP-02)"
+      ],
+      "idempotency_concurrency": "Designed for single concurrent execution. Multiple concurrent resumes are safe — CommitStarted terminal guard prevents double-commit.",
+      "system_concern": "SC004 ImportIdempotency"
+    },
+    {
+      "id": "SL-ADDR-01",
+      "name": "ExecuteAddressLookup",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-ADDR",
+      "involved_entities": [
+        "ADDR-E01 ResolvedAddress",
+        "ADDR-E02 AddressOwner",
+        "ADDR-E08 AddressGeography"
+      ],
+      "triggering_feature": [
+        "FG005.AddressLookupExecution",
+        "FG005.AddressResolutionFlow"
+      ],
+      "business_rules_enforced": [
+        "R043 — only Kvhx string crosses adapter boundary. Country-native keys stay within adapter.",
+        "R023 — Kvhx string is canonical identity. Returns Kvhx, not DB surrogate.",
+        "SendToOwner on Broadcast determines whether AddressOwner data is fetched (via SL-ADDR-02)"
+      ],
+      "external_dependencies": [
+        "SL-ADDR-04 RouteToCountryAdapter (adapter dispatch — infrastructure)"
+      ],
+      "outputs_effects": [
+        "Returns list of (Kvhx, PhoneNumber?, OwnerName?) per RecipientCriterion",
+        "Unresolved criteria → reported as UnresolvedMessageRecord (MSG-E07) by caller"
+      ],
+      "idempotency_concurrency": "IDEMPOTENT — reads canonical ResolvedAddress state. Same criteria yields same result unless address cache was updated by SL-ADDR-03.",
+      "canonical_state_note": "PN-003: This slice operates on canonical state only (ADDR-E01 ResolvedAddress, ADDR-E02 AddressOwner). Country adapter staging tables (ADDR-E05 NorwegianAddress, ADDR-E06 SwedishAddress) are NOT accessible from this slice.",
+      "system_concern": "SC005 AddressAdapterIsolation"
+    },
+    {
+      "id": "SL-ADDR-02",
+      "name": "LookupAddressOwner",
+      "type": "query",
+      "primary_aggregate": "AGG-ADDR",
+      "involved_entities": [
+        "ADDR-E01 ResolvedAddress",
+        "ADDR-E02 AddressOwner"
+      ],
+      "triggering_feature": [
+        "FG005.OwnershipLookup"
+      ],
+      "business_rules_enforced": [
+        "Only executed when Broadcast.lookupConfig.sendToOwner=true",
+        "BR024 — AlwaysOwner role forces sendToOwner=true before this slice executes"
+      ],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "Returns (ownerName, ownerPhone, ownerType) for Kvhx"
+      ],
+      "idempotency_concurrency": "Read-only. No concurrency concerns.",
+      "canonical_state_note": "PN-003: Reads from ADDR-E02 AddressOwner (canonical cache, populated by SL-ADDR-03). Not from country adapter staging tables."
+    },
+    {
+      "id": "SL-ADDR-03",
+      "name": "RunCountryAddressImport",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-ADDR",
+      "involved_entities": [
+        "ADDR-E01 ResolvedAddress",
+        "ADDR-E02 AddressOwner",
+        "ADDR-E03 AddressKvhxChange",
+        "ADDR-E05 NorwegianAddress",
+        "ADDR-E06 SwedishAddress"
+      ],
+      "triggering_feature": [
+        "FG005.AddressImportCountryAdapters",
+        "FG005.CountryAdapterRouting",
+        "FG005.AddressCacheResponsibility"
+      ],
+      "business_rules_enforced": [
+        "R043 — adapter resolves country-native key to Kvhx before writing canonical state",
+        "AddressKvhxChange tracked when Kvhx renames detected",
+        "FI adapter (ADDR-E07) DEFERRED — no Finnish import until source replaced"
+      ],
+      "external_dependencies": [
+        "Kartverket (NO — external API/file)",
+        "Lantmäteriet (SE — external API/file)",
+        "Datafordeleren (DK — external API/file)"
+      ],
+      "outputs_effects": [
+        "ADDR-E01 ResolvedAddress refreshed (canonical state updated)",
+        "ADDR-E02 AddressOwner refreshed",
+        "ADDR-E03 AddressKvhxChange records created for detected renames",
+        "Country adapter staging tables updated (adapter-internal — not exposed to caller)"
+      ],
+      "idempotency_concurrency": "Idempotent per source batch. Kvhx renames detected and applied. Staging tables are adapter-internal.",
+      "adapter_staging_note": "PN-003: NorwegianAddress (ADDR-E05) and SwedishAddress (ADDR-E06) staging data is adapter-internal. The only output of this slice visible to Messaging is updated canonical ADDR-E01 ResolvedAddress.",
+      "system_concern": "SC005 AddressAdapterIsolation"
+    },
+    {
+      "id": "SL-ADDR-04",
+      "name": "RouteToCountryAdapter",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-ADDR",
+      "involved_entities": [
+        "ADDR-E01 ResolvedAddress",
+        "ADDR-E08 AddressGeography"
+      ],
+      "triggering_feature": [
+        "FG005.CountryAdapterRouting"
+      ],
+      "business_rules_enforced": [
+        "R043 — IAddressAdapter per country. Core dispatches by Broadcast.countryId.",
+        "FI — DEFERRED: route to NullAdapter / throw NotSupportedException until source replaced"
+      ],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "Dispatches to correct IAddressAdapter implementation",
+        "Returns Kvhx-based result set to SL-ADDR-01"
+      ],
+      "idempotency_concurrency": "Routing is stateless. No concurrency concerns.",
+      "system_concern": "SC005 AddressAdapterIsolation"
+    },
+    {
+      "id": "SL-PIPE-01",
+      "name": "ManageProspectLifecycle",
+      "type": "command",
+      "primary_aggregate": "AGG-PIPE",
+      "involved_entities": [
+        "PIPE-E01 Prospect",
+        "PIPE-E02 ProspectContactPerson",
+        "PIPE-E03 ProspectProduct",
+        "PIPE-E04 ProspectUserRoleMapping"
+      ],
+      "triggering_feature": [
+        "FG006.ProspectLifecycle"
+      ],
+      "business_rules_enforced": [],
+      "external_dependencies": [],
+      "outputs_effects": [
+        "Prospect created / status updated",
+        "Contact persons, products, user role pre-configs managed"
+      ],
+      "idempotency_concurrency": "Creates not idempotent. Status transitions must respect ProspectStatus FSM."
+    },
+    {
+      "id": "SL-PIPE-02",
+      "name": "ConvertProspectToCustomer",
+      "type": "orchestration",
+      "primary_aggregate": "AGG-PIPE",
+      "involved_entities": [
+        "PIPE-E01 Prospect",
+        "PIPE-E02 ProspectContactPerson",
+        "PIPE-E03 ProspectProduct",
+        "PIPE-E04 ProspectUserRoleMapping",
+        "PIPE-E05 ProcessTask"
+      ],
+      "triggering_feature": [
+        "FG006.ProspectToCustomerConversion",
+        "FG006.ConversionWithoutTaskMigration†",
+        "FG006.ConversionWithoutRoleActivation†"
+      ],
+      "business_rules_enforced": [
+        "R038 — Two-step NON-ATOMIC: PATCH 1 = set Prospect.customerId + COPY ContactPersons to Customer. PATCH 2 = REPLACE CustomerProducts from ProspectProducts (destructive).",
+        "R039 — ProcessTasks NOT transferred at conversion. LEAVE ON PROSPECT. Customer starts clean. Implementing task migration requires explicit new business requirement.",
+        "R040 — ProspectUserRoleMappings NOT activated on Customer. Historical record only. Implementing role auto-activation requires explicit new business requirement.",
+        "Gap feature ConversionWithoutTaskMigration† — verified absence, not omission.",
+        "Gap feature ConversionWithoutRoleActivation† — verified absence, not omission."
+      ],
+      "external_dependencies": [
+        "AGG-CUST (Customer + CustomerAccount — created or linked in PATCH 1)"
+      ],
+      "outputs_effects": [
+        "PATCH 1: Prospect.customerId set. ContactPersons COPIED (not moved) to Customer.",
+        "PATCH 2: CustomerProducts REPLACED from ProspectProducts (destructive — existing CustomerProducts deleted first).",
+        "ProcessTasks remain on Prospect — zero migration.",
+        "ProspectUserRoleMappings remain on Prospect — zero activation."
+      ],
+      "idempotency_concurrency": "NOT idempotent end-to-end — PATCH 2 is destructive. Guard against re-run: check Prospect.status before executing PATCH 2. PATCH 1 alone is idempotent by Prospect.customerId already set.",
+      "system_concern": "SC003 PartialLifecycle_ProspectConversion"
+    },
+    {
+      "id": "SL-PIPE-03",
+      "name": "ManageProcessTask",
+      "type": "command",
+      "primary_aggregate": "AGG-PIPE",
+      "involved_entities": [
+        "PIPE-E05 ProcessTask",
+        "PIPE-E06 ProcessTaskTemplate"
+      ],
+      "triggering_feature": [
+        "FG006.TaskOwnershipModel"
+      ],
+      "business_rules_enforced": [
+        "R039 — ownerType must be in ProcessTaskTemplate.allowedOwnerTypes (application-layer. No DB FK.)",
+        "ownerId must reference a valid entity of the declared ownerType — verified at command time"
+      ],
+      "external_dependencies": [
+        "PIPE-E06 ProcessTaskTemplate (ownerType validation)"
+      ],
+      "outputs_effects": [
+        "ProcessTask created / updated / completed under polymorphic ownerType+ownerId"
+      ],
+      "idempotency_concurrency": "Create not idempotent. Complete is idempotent (already-completed task is no-op)."
+    }
+  ],
+  "cross_aggregate_coordination": [
+    {
+      "id": "COORD-01",
+      "name": "BroadcastActivation → AddressLookup",
+      "description": "SL-MSG-03 ActivateBroadcast → SL-ADDR-01 ExecuteAddressLookup (via SL-ADDR-04 RouteToCountryAdapter). Messaging aggregate calls Address aggregate. Returns Kvhx strings only — not address structs.",
+      "caller": "SL-MSG-03 / SL-MSG-04 / SL-MSG-06",
+      "callee": "SL-ADDR-01 + SL-ADDR-04",
+      "contract": "IAddressAdapter — returns Kvhx[] per RecipientCriterion",
+      "boundary_rule": "R043 — Kvhx string is the only data that crosses the AGG-MSG / AGG-ADDR boundary"
+    },
+    {
+      "id": "COORD-02",
+      "name": "DeliveryStatus → Messaging (cross-channel)",
+      "description": "Email, Voice, Eboks channels write delivery status via IDeliveryStatusWriter. Called from infrastructure layer, not from another aggregate. Messaging retains ownership of the write-surface semantics.",
+      "caller": "Email/Voice/Eboks channel handlers (infrastructure)",
+      "callee": "SL-MSG-07 ReceiveDeliveryStatusCallback (via IDeliveryStatusWriter)",
+      "contract": "IDeliveryStatusWriter",
+      "boundary_rule": "R036/CAC-001 — all channel status writes via contract. No shared table ownership."
+    },
+    {
+      "id": "COORD-03",
+      "name": "BroadcastCompose → ProfileGate",
+      "description": "SL-MSG-01 and SL-MSG-03 call SL-CUST-02 EvaluateProfileGate to determine effective permissions before creating or activating a broadcast. Read-only cross-aggregate query.",
+      "caller": "SL-MSG-01, SL-MSG-03",
+      "callee": "SL-CUST-02 EvaluateProfileGate",
+      "contract": "ProfileId → EffectiveProfilePermissions",
+      "boundary_rule": "CAC-003 ProfileGate — checked at both compose and activate"
+    },
+    {
+      "id": "COORD-04",
+      "name": "ImportConfirm → Target Aggregate",
+      "description": "SL-IMP-02 ConfirmImportJob commits validated ImportRows to the target aggregate (e.g. AGG-SUB for subscriber data). The import aggregate does not own the target data — it orchestrates the write.",
+      "caller": "SL-IMP-02",
+      "callee": "Target aggregate command (e.g. SL-SUB-01 ManageStandardReceiver)",
+      "contract": "Typed domain command per import type",
+      "boundary_rule": "Import aggregate owns import lifecycle only — not target data"
+    },
+    {
+      "id": "COORD-05",
+      "name": "ProspectConversion → Customer",
+      "description": "SL-PIPE-02 ConvertProspectToCustomer creates or links a Customer entity in AGG-CUST as part of PATCH 1. Two-step, non-atomic. Customer creation succeeded does not imply task/role migration — those are explicit non-events (R039, R040).",
+      "caller": "SL-PIPE-02",
+      "callee": "SL-CUST-01 ManageCustomerHierarchy (PATCH 1 — Customer create/link)",
+      "contract": "Prospect.customerId set after Customer entity confirmed",
+      "boundary_rule": "R038/CAC-005 — two-step non-atomic. No implicit cascade from Prospect to Customer for tasks or roles."
+    }
+  ]
+}

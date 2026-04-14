@@ -1,0 +1,293 @@
+{
+  "domain": "sms",
+  "artifact": "091_build_execution_proposal_wave_0_1_2",
+  "iteration": 1,
+  "domain_state": "N-B APPROVED",
+  "architect_approved_090": "2026-04-14",
+  "source_artifacts": [
+    "080_green_ai_build_slices.json",
+    "090_green_ai_implementation_plan.json"
+  ],
+  "note": "Pre-build scope and sequencing proposal for Wave 0, 1, and 2. No actual code. No DB schema. No API/endpoint design. This artifact exists to allow Architect to approve the exact build scope and sequencing before build starts.",
+  "locked_architectural_rules": [
+    {
+      "id": "RULE-ADDR-01",
+      "rule": "BS-ADDR-03 (RunCountryAddressImport) is the ONLY authorized writer for canonical address ingestion (ADDR-E01 ResolvedAddress, ADDR-E02 AddressOwner). This does NOT mean it controls the entire Address aggregate — it only owns the canonical ingestion write path. Other address-related writes (e.g. future address correction flows) require explicit new Architect decision.",
+      "source": "P2 refined in 090 gate (2026-04-14)"
+    },
+    {
+      "id": "RULE-ADDR-02",
+      "rule": "BS-ADDR-01 (ResolveAddresses) is read-only against canonical state. It must never write to ADDR-E01 or ADDR-E02 directly. It is only allowed to READ from canonical tables populated by BS-ADDR-03.",
+      "source": "P2 / PN-003"
+    },
+    {
+      "id": "RULE-DISPATCH-01",
+      "rule": "Dispatch slices (Wave 6: BS-MSG-04, BS-MSG-06) must not implement hidden fallback logic when ResolveAddresses returns unresolved criteria. Unresolved = explicit UnresolvedCriterion in output. Dispatch creates UnresolvedMessageRecord. Dispatch does NOT silently skip, substitute, or retry — the unresolved outcome is the signal, not an error to suppress.",
+      "source": "Wave 2/6 implicit contract — locked in 090 gate (2026-04-14)"
+    }
+  ],
+  "waves": [
+    {
+      "wave": 0,
+      "name": "Customer Foundation",
+      "status": "PROPOSED",
+      "rationale": "AGG-CUST Customer/Profile/ApiKey are prerequisite dependencies for Wave 1 (Subscriber → ProfileId), Wave 4 (Pipeline/Prospect → Customer), and Wave 5 (Messaging Core → EvaluateProfileGate). Wave 0 has no upstream dependencies. All three slices are self-contained and can be built simultaneously.",
+      "dependency_confirmation": {
+        "upstream_dependencies": "NONE",
+        "downstream_consumers": [
+          "Wave 1 — BS-SUB-01 ManageStandardReceiver (ProfileId existence check via MapToProfile)",
+          "Wave 4 — BS-PIPE-02 ConvertProspectToCustomer (Customer create/link PATCH 1)",
+          "Wave 5 — BS-MSG-01 ComposeBroadcast (EvaluateProfileGate call)",
+          "Wave 5 — BS-MSG-03 ActivateBroadcast (EvaluateProfileGate call)"
+        ]
+      },
+      "build_slices": [
+        {
+          "slice": "BS-CUST-01 ManageCustomerHierarchy",
+          "parallel_group": "A (all Wave 0 slices are group A)",
+          "sequential_constraint": "NONE — can start immediately",
+          "build_notes": [
+            "Implement CreateCustomer, UpdateCustomer, CreateProfile, UpdateProfile, DeactivateCustomer, DeactivateProfile as separate operations within one handler boundary",
+            "CustomerAccount is a value-object companion to Customer — not a separate entity with independent lifecycle",
+            "Soft-delete on Customer/Profile (IsDeleted flag) — never hard delete"
+          ]
+        },
+        {
+          "slice": "BS-CUST-02 EvaluateProfileGate",
+          "parallel_group": "A",
+          "sequential_constraint": "NONE — can build parallel to BS-CUST-01 but should be tested against BS-CUST-01 data",
+          "build_notes": [
+            "Pure projection — zero state mutation. Any state mutation in this handler is a design error.",
+            "Returns EffectiveProfilePermissions for all 5 role variants (BR023-BR027) — must be testable with seeded Profile + role assignment data from BS-CUST-01"
+          ]
+        },
+        {
+          "slice": "BS-CUST-03 ManageApiKeyAccess",
+          "parallel_group": "A",
+          "sequential_constraint": "NONE — isolated, no dependency on BS-CUST-01 except CustomerId existence",
+          "build_notes": [
+            "OWASP A02: use PBKDF2 or bcrypt for hash. SHA-256+salt is acceptable minimum. Never MD5/SHA1.",
+            "CleartextKey returned in CreateKey response only. It must not appear in logs or exception messages.",
+            "Revoke = set IsActive=false, not delete — preserves audit trail"
+          ]
+        }
+      ],
+      "parallel_vs_sequential": {
+        "can_run_parallel": ["BS-CUST-01", "BS-CUST-02", "BS-CUST-03"],
+        "must_run_sequential": "BS-CUST-02 integration tests depend on data from BS-CUST-01 — sequential for test purposes, not for implementation"
+      },
+      "key_risks": [
+        {
+          "risk": "EvaluateProfileGate role combinations",
+          "description": "5 role flags (BR023-BR027) each override different fields. Risk: missing a combination in handler logic.",
+          "mitigation": "Unit test matrix: 5 roles × 2 states (present/absent) × each affected field. All 10 combinations verified."
+        },
+        {
+          "risk": "API key hash algorithm drift",
+          "description": "Developer uses SHA-256 without salt → reversible rainbow table attack (OWASP A02).",
+          "mitigation": "Code review gate: hash implementation must use salt. Unit test: creating two keys with same value produces different hashes."
+        }
+      ],
+      "rollback_isolation": "Wave 0 is fully isolated — no effects on downstream until Wave 1+ is built. Rollback = remove Wave 0 migrations and feature code. Zero risk of cascading impact.",
+      "validation_checkpoint": {
+        "description": "Wave 0 is complete and Wave 1 may begin when ALL of these pass:",
+        "required_tests": [
+          "BS-CUST-01: Customer CRUD — CreateCustomer, UpdateCustomer, CreateProfile, DeactivateCustomer — all pass",
+          "BS-CUST-02: EvaluateProfileGate — returns correct EffectiveProfilePermissions for all 5 role combinations (BR023-BR027)",
+          "BS-CUST-02: Profile not found → returns null/not-found result, does NOT throw unhandled exception",
+          "BS-CUST-03: CreateKey returns cleartext once; second call to retrieve key fails (not stored)",
+          "BS-CUST-03: Two CreateKey calls with same description produce different hashes (salt verified)",
+          "BS-CUST-03: RevokeKey is idempotent — revoking already-revoked key returns success"
+        ],
+        "what_must_be_proven_before_wave_1": "Customer and Profile entities are creatable, readable, and correctly reflect role assignments for EvaluateProfileGate. ProfileId exists as a stable foreign key reference."
+      }
+    },
+    {
+      "wave": 1,
+      "name": "Subscriber Foundation",
+      "status": "PROPOSED",
+      "rationale": "AGG-SUB StandardReceiver is referenced by BS-MSG-02 (AddRecipientCriterion — existence check) and by BS-IMP-02 as the first concrete import target. Wave 1 depends on Wave 0 for ProfileId validation in the MapToProfile operation. BS-SUB-02 (ManageReceiverPricing) has no cross-slice dependency and can be built in parallel.",
+      "dependency_confirmation": {
+        "upstream_dependencies": [
+          "Wave 0 complete — BS-CUST-01 (ProfileId must exist for MapToProfile operation in BS-SUB-01)"
+        ],
+        "downstream_consumers": [
+          "Wave 3 — BS-IMP-02 ConfirmImportJob (BS-SUB-01 is the first concrete import target via COORD-04)",
+          "Wave 5 — BS-MSG-02 AddRecipientCriterion (StandardReceiverId existence check)"
+        ]
+      },
+      "build_slices": [
+        {
+          "slice": "BS-SUB-01 ManageStandardReceiver",
+          "parallel_group": "B",
+          "sequential_constraint": "REQUIRES Wave 0 complete for ProfileId validation",
+          "build_notes": [
+            "Implement as operation-based handler: CreateReceiver, UpdateReceiver, DeactivateReceiver, AddGroup, AddKeyword, AddDistributionPhone, MapToProfile",
+            "Keyword uniqueness per country enforced at application layer. DB unique constraint is backup — application must throw KeywordConflictException (not expose DB constraint error to caller).",
+            "MapToProfile operation: verify ProfileId exists in AGG-CUST before creating mapping — use in-process call to BS-CUST-01 read path, not a direct FK dependency"
+          ]
+        },
+        {
+          "slice": "BS-SUB-02 ManageReceiverPricing",
+          "parallel_group": "B (can build in parallel with BS-SUB-01)",
+          "sequential_constraint": "NONE — no dependency on BS-SUB-01 for implementation. Integration tests should use BS-SUB-01-created receivers.",
+          "build_notes": [
+            "UPSERT semantics: INSERT if not exists, UPDATE if composite key (customerId, standardReceiverId, countryId) already present",
+            "No business logic beyond the upsert — deliberately simple"
+          ]
+        }
+      ],
+      "parallel_vs_sequential": {
+        "can_run_parallel": ["BS-SUB-01", "BS-SUB-02"],
+        "must_run_sequential": "BS-SUB-01 integration tests that test MapToProfile require Wave 0 Profile data. BS-SUB-02 integration tests that test pricing on real receivers require BS-SUB-01 data — sequential for test realism only."
+      },
+      "key_risks": [
+        {
+          "risk": "Keyword uniqueness race condition",
+          "description": "Two concurrent AddKeyword operations for same keyword/countryId — both pass application-layer check, both attempt insert. Risk: duplicate keyword created.",
+          "mitigation": "DB unique constraint on (keyword, countryId) as final guard. Application layer catches constraint violation and re-throws as KeywordConflictException — not a generic error."
+        },
+        {
+          "risk": "ProfileId validation coupling",
+          "description": "MapToProfile checks ProfileId existence. Risk: validation bypasses or leaks internal AGG-CUST internals.",
+          "mitigation": "ProfileId lookup via in-process read (not direct table join). StandardReceiver handler must not reference Customer tables directly."
+        }
+      ],
+      "rollback_isolation": "Wave 1 is isolated from Wave 0 data — StandardReceiver tables are separate from Customer tables. Rollback = remove Wave 1 migrations and feature code. Wave 0 remains intact.",
+      "validation_checkpoint": {
+        "description": "Wave 1 is complete and Wave 3 / Wave 5 may use Subscriber dependency when ALL of these pass:",
+        "required_tests": [
+          "BS-SUB-01: CreateReceiver, AddGroup, AddKeyword, AddDistributionPhone all pass",
+          "BS-SUB-01: AddKeyword — duplicate keyword for same countryId returns KeywordConflictException (not DB error)",
+          "BS-SUB-01: MapToProfile — ProfileId does not exist → returns not-found error, mapping not created",
+          "BS-SUB-01: DeactivateReceiver — receiver is soft-deactivated, not deleted",
+          "BS-SUB-02: UPSERT — creating price for new composite key succeeds",
+          "BS-SUB-02: UPSERT — updating price for existing composite key succeeds (idempotent)",
+          "BS-SUB-02: UPSERT — two concurrent upserts for same key produce exactly one final record (last-writer-wins, no duplicate)"
+        ],
+        "what_must_be_proven_before_wave_3_and_wave_5": "StandardReceiver entities are creatable with keywords, groups, and profile mappings. StandardReceiverId is a stable reference for Messaging AddRecipientCriterion. ReceiverPriceSetting upsert is idempotent."
+      }
+    },
+    {
+      "wave": 2,
+      "name": "Address Infrastructure",
+      "status": "PROPOSED",
+      "rationale": "Address infrastructure has no dependency on Wave 0 or Wave 1 — it can be built fully in parallel with Wave 1. However, within Wave 2 itself the slices must be built in order: BS-ADDR-03 (import + canonical state writer) must be built first, since BS-ADDR-01 and BS-ADDR-02 read from the canonical state that BS-ADDR-03 populates. Wave 2 is a prerequisite for Wave 6 dispatch.",
+      "dependency_confirmation": {
+        "upstream_dependencies": "NONE — Wave 2 is independent of Wave 0 and Wave 1",
+        "downstream_consumers": [
+          "Wave 6 — BS-MSG-04 ExecuteSynchronousDispatch (calls BS-ADDR-01 ResolveAddresses)",
+          "Wave 6 — BS-MSG-06 ExecuteAsyncLookupAndDispatch (calls BS-ADDR-01 ResolveAddresses)"
+        ]
+      },
+      "build_slices": [
+        {
+          "slice": "BS-ADDR-03 RunCountryAddressImport",
+          "parallel_group": "C-first (must be built before BS-ADDR-01 and BS-ADDR-02)",
+          "sequential_constraint": "Build first within Wave 2. BS-ADDR-01 and BS-ADDR-02 depend on canonical state data written by this slice.",
+          "build_notes": [
+            "RULE-ADDR-01 applies here: BS-ADDR-03 is the authorized writer for canonical address ingestion (ADDR-E01 ResolvedAddress, ADDR-E02 AddressOwner) — not for the entire Address aggregate",
+            "Each country adapter (NO: Kartverket, SE: Lantmäteriet, DK: Datafordeleren) resolves country-native keys to Kvhx INSIDE the adapter. Core never receives country-native keys.",
+            "FI (Finland): NullAdapter — throw NotSupportedException. Do NOT add conditional routing delays — fail immediately with clear error.",
+            "ADDR-E05 NorwegianAddress, ADDR-E06 SwedishAddress are adapter-internal staging tables. They must not be accessible via any public repository interface.",
+            "ADDR-E03 AddressKvhxChange: create a record on every detected Kvhx rename — no exception. This is an append-only audit trail."
+          ]
+        },
+        {
+          "slice": "BS-ADDR-01 ResolveAddresses",
+          "parallel_group": "C-second (parallel with BS-ADDR-02, after BS-ADDR-03)",
+          "sequential_constraint": "Requires BS-ADDR-03 to exist (and have seeded canonical data for integration tests)",
+          "build_notes": [
+            "RULE-ADDR-02 applies: read-only against canonical ADDR-E01. Must NOT write ResolvedAddress or AddressOwner under any code path.",
+            "Internally dispatches to correct IAddressAdapter by countryId — this is an internal implementation detail. No caller knows which adapter was used.",
+            "Output contract: resolved = [{criterionId, kvhx, phone?, ownerName?}], unresolved = [{criterionId, reason}]. Both lists are ALWAYS present — caller receives the complete picture.",
+            "RULE-DISPATCH-01 applies here (for Wave 6 consumers): unresolved criteria = explicit UnresolvedCriterion in output list. No hidden fallback or retry inside this slice."
+          ]
+        },
+        {
+          "slice": "BS-ADDR-02 LookupAddressOwner",
+          "parallel_group": "C-second (parallel with BS-ADDR-01, after BS-ADDR-03)",
+          "sequential_constraint": "Requires BS-ADDR-03 canonical state to be seeded for integration tests",
+          "build_notes": [
+            "Read-only from ADDR-E02 AddressOwner (canonical) only — NOT from staging tables",
+            "Returns ownerType: Private | Business | Unknown — never null",
+            "Called only when sendToOwner=true in dispatch context. Can also be called standalone for owner queries.",
+            "PN-003: AddressOwner canonical state is populated by BS-ADDR-03. This slice never calls a country adapter directly."
+          ]
+        }
+      ],
+      "parallel_vs_sequential": {
+        "can_run_parallel": ["BS-ADDR-01", "BS-ADDR-02"],
+        "must_run_sequential": ["BS-ADDR-03 must be complete before BS-ADDR-01 and BS-ADDR-02 integration tests can run meaningfully"],
+        "wave_2_vs_wave_1": "Wave 2 and Wave 1 can run fully in parallel — no shared dependencies"
+      },
+      "key_risks": [
+        {
+          "risk": "Canonical state write isolation violation",
+          "description": "Developer adds a write path to ADDR-E01 from BS-ADDR-01 (e.g. cache-on-first-resolve logic). This violates RULE-ADDR-01 and RULE-ADDR-02.",
+          "mitigation": "Repository interface for ADDR-E01 write must only be injected into BS-ADDR-03 handler. BS-ADDR-01 handler receives read-only IAddressReadRepository. Code review enforces this."
+        },
+        {
+          "risk": "Adapter key boundary violation",
+          "description": "Country-native key (e.g. Norwegian Koordinatnummer) leaks from adapter into Core layer.",
+          "mitigation": "IAddressAdapter contract returns only [{kvhx, phone?, ownerName?}]. Country-native key must never appear in return type. Unit test: adapter mock returns Kvhx — Core asserts it never sees a country-native key."
+        },
+        {
+          "risk": "FI route silent fallback",
+          "description": "Developer adds silent return-empty logic for FI instead of NotSupportedException — masking the deferred state.",
+          "mitigation": "FI unit test: invoking resolution with countryId=FI must throw NotSupportedException. Empty result is NOT acceptable."
+        },
+        {
+          "risk": "Unresolved address masked",
+          "description": "Developer filters out unresolved criteria from BS-ADDR-01 output to simplify caller code. Wave 6 dispatch then has no visibility into unresolved recipients.",
+          "mitigation": "RULE-DISPATCH-01: output contract always includes unresolved list. Unit test: if one criterion fails resolution, it appears in unresolved list with reason — it does NOT disappear."
+        }
+      ],
+      "rollback_isolation": "Wave 2 is isolated — address tables are independent of customer and subscriber tables. Rollback = remove Wave 2 migrations and feature code. Wave 0 and Wave 1 remain intact. Wave 6 (dispatch) cannot function without Wave 2 — Wave 6 must not start until Wave 2 validation checkpoint passes.",
+      "validation_checkpoint": {
+        "description": "Wave 2 is complete and Wave 6 may begin when ALL of these pass:",
+        "required_tests": [
+          "BS-ADDR-03: import NO address data → ADDR-E01 canonical state populated with Kvhx records",
+          "BS-ADDR-03: import SE address data → canonical state updated",
+          "BS-ADDR-03: DK import → canonical state updated",
+          "BS-ADDR-03: FI import → NotSupportedException thrown",
+          "BS-ADDR-03: re-import of same batch → no duplicate ADDR-E01 records (upsert by Kvhx)",
+          "BS-ADDR-03: Kvhx rename detected → ADDR-E03 AddressKvhxChange record created",
+          "BS-ADDR-01: known Kvhx criterion → resolved list contains (kvhx, phone)",
+          "BS-ADDR-01: unknown Kvhx criterion → unresolved list contains (criterionId, reason). Resolved list does NOT contain it.",
+          "BS-ADDR-01: mixed batch (some resolved, some not) → both lists populated correctly",
+          "BS-ADDR-01: countryId=FI → NotSupportedException",
+          "BS-ADDR-01: does NOT write to ADDR-E01 under any code path (verify via read-only repository interface)",
+          "BS-ADDR-02: known Kvhx → returns (ownerName, ownerPhone, ownerType)",
+          "BS-ADDR-02: unknown Kvhx → returns Unknown ownerType (not error)"
+        ],
+        "what_must_be_proven_before_wave_6": "ResolveAddresses is functional and returns explicit unresolved outcomes. Canonical state is populated and read-only from dispatcher's perspective. RULE-DISPATCH-01 contract is enforced."
+      }
+    }
+  ],
+  "build_order_recommendation": {
+    "parallel_tracks": [
+      {
+        "track": "Track A — Customer + Subscriber",
+        "order": "Wave 0 → Wave 1",
+        "note": "Sequential. Wave 1 depends on Wave 0 for ProfileId."
+      },
+      {
+        "track": "Track B — Address",
+        "order": "Wave 2 (BS-ADDR-03 → BS-ADDR-01 + BS-ADDR-02)",
+        "note": "Fully independent. Can start at same time as Wave 0."
+      }
+    ],
+    "earliest_start_for_waves_3_4_5": "Wave 3 can start after Wave 1 complete. Wave 4 can start after Wave 0 complete. Wave 5 can start after Wave 0 + Wave 1 complete.",
+    "blocking_dependency_for_wave_6": "Wave 6 cannot start until BOTH Wave 5 AND Wave 2 validation checkpoints pass."
+  },
+  "what_is_explicitly_out_of_scope_for_wave_0_1_2": [
+    "No DB schema decisions — schemas are derived from entity design (060) during build phase by the implementing developer",
+    "No API endpoint design — endpoints are derived from slice input/output contracts by the implementing developer",
+    "No UI components",
+    "No Azure Batch integration",
+    "No FI (Finland) address adapter implementation",
+    "No Messaging dispatch (Wave 6+)",
+    "No status pipeline (Wave 7)"
+  ]
+}

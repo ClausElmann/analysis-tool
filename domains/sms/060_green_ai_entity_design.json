@@ -1,0 +1,1066 @@
+{
+  "domain": "sms",
+  "artifact": "060_green_ai_entity_design",
+  "iteration": 15,
+  "domain_state": "N-B",
+  "architect_approved_050": "2026-04-13",
+  "source_artifacts": [
+    "010_entities.json",
+    "011_extended_entities.json",
+    "040_business_rules.json",
+    "050_green_ai_feature_map.json"
+  ],
+  "note": "Logical entity model for green-ai. No DB schema. No classes. No API endpoints. Fields are logical — not DB column types.",
+  "aggregates": [
+    {
+      "id": "AGG-MSG",
+      "name": "Messaging",
+      "description": "Root aggregate for broadcast lifecycle, recipient management, and message delivery. Owns SmsGroup as aggregate root. StatusProgressionGuard applies to all status writes (architect decision 2026-04-13).",
+      "root": "Broadcast",
+      "entities": [
+        {
+          "id": "MSG-E01",
+          "name": "Broadcast",
+          "maps_from": "SmsGroup",
+          "description": "Root aggregate entity. A named broadcast campaign covering one or more channels (SMS, Email, Voice, Eboks). Owns its lifecycle state machine (DRAFT → ACTIVATED → LOOKUP → SENT). Created under a Profile within a Customer.",
+          "fields": [
+            "id (identifier)",
+            "name (string)",
+            "profileId (ProfileId — typed identifier)",
+            "countryId (CountryId)",
+            "channels (flags: sms, email, voice, eboks)",
+            "sendMethod (enum: ByLevel, ByStdReceivers, ByMunicipality, ...)",
+            "lookupConfig (LookupConfig value object: lookupPrivate, lookupBusiness, sendToOwner, sendToAddress, ownerAddressType)",
+            "lastMinuteLookup (bool)",
+            "scheduledSendAt (datetime? — DateDelayToUtc)",
+            "isMonthGroup (bool)",
+            "testMode (bool)",
+            "active (bool)",
+            "isLookedUp (bool)",
+            "dateSentAt (datetime?)",
+            "fromApi (bool?)",
+            "wizardStep (int?)",
+            "smsContent (BroadcastSmsContent value object)",
+            "emailContent (BroadcastEmailContent value object)",
+            "voiceContent (BroadcastVoiceContent value object)",
+            "eboksContent (BroadcastEboksContent value object)",
+            "createdFromBroadcastId (identifier? — copy source)",
+            "selectedTemplateId (identifier?)",
+            "dateCreatedAt (datetime)",
+            "dateUpdatedAt (datetime?)"
+          ],
+          "invariants": [
+            "BR001 — active=true blocks all modifications",
+            "BR002 — isLookedUp=true blocks re-compose after activation",
+            "BR004 — activate is idempotent when already active",
+            "BR005 — activating with zero recipients raises NoRecipientsException",
+            "BR006 — activating with >25000 Kvhx triggers large-broadcast warning",
+            "BR007 / BR028 — scheduledSendAt set always routes to batch lookup path (IsWebLookupNeeded=false)",
+            "BR008 — web lookup gate: ByAddress + fromApi=true + ≤5 items + no zip-only",
+            "R037 — lastMinuteLookup=true AND scheduledSendAt set → skip lookup at activate; ScheduledLookupTrigger fires 5 min before send"
+          ],
+          "relationships": [
+            "HAS-MANY RecipientCriterion (owned, cascade delete)",
+            "HAS-ONE BroadcastSmsContent (extension table, owned)",
+            "HAS-ONE BroadcastEmailContent (extension table, owned)",
+            "HAS-ONE BroadcastVoiceContent (extension table, owned)",
+            "HAS-ONE BroadcastEboksContent (extension table, owned)",
+            "HAS-MANY Message (created during lookup, owned)",
+            "HAS-MANY BroadcastAttachment (owned)",
+            "HAS-MANY WebhookMessage (via CustomerWebhook, read-side)",
+            "BELONGS-TO Profile (AGG-CUST)",
+            "OPTIONAL BroadcastSchedule (scheduled recurrence)"
+          ],
+          "ownership": "Messaging aggregate",
+          "legacy_field_notes": [
+            "SmsLog.Email field marked ToDo:Remove — do NOT carry forward to green-ai",
+            "GatewayId / ExternalRefId marked ToDo:InUse?? — verify before including"
+          ]
+        },
+        {
+          "id": "MSG-E02",
+          "name": "BroadcastSmsContent",
+          "maps_from": "SmsGroupSmsData",
+          "description": "SMS-specific content for a broadcast. Extension entity: SmsGroupId is sole PK/FK. 1:1 with Broadcast.",
+          "fields": [
+            "broadcastId (identifier — sole key)",
+            "sendAs (string — sender name or phone number, max 11 chars — BR017)",
+            "messageText (string)",
+            "standardReceiverText (string?)",
+            "receiveSmsReply (bool?)",
+            "useUcs2Encoding (bool?)"
+          ],
+          "invariants": [
+            "BR017 — sendAs truncated to 11 chars at dispatch",
+            "BR015 — messageText required when broadcast.channels includes SMS"
+          ],
+          "relationships": [
+            "BELONGS-TO Broadcast (1:1)"
+          ],
+          "ownership": "Messaging aggregate"
+        },
+        {
+          "id": "MSG-E03",
+          "name": "BroadcastEmailContent",
+          "maps_from": "SmsGroupEmailData",
+          "description": "Email-specific content for a broadcast. Extension entity: SmsGroupId is sole PK/FK. 1:1 with Broadcast.",
+          "fields": [
+            "broadcastId (identifier — sole key)",
+            "sendAs (string — sender email, max 100 chars — BR018)",
+            "subject (string)",
+            "body (html string?)",
+            "replyTo (string?)"
+          ],
+          "invariants": [
+            "BR016 — subject without body is invalid",
+            "BR018 — sendAs max 100 chars"
+          ],
+          "relationships": [
+            "BELONGS-TO Broadcast (1:1)"
+          ],
+          "ownership": "Messaging aggregate"
+        },
+        {
+          "id": "MSG-E04",
+          "name": "RecipientCriterion",
+          "maps_from": "SmsGroupItem",
+          "description": "One recipient specification within a broadcast. Defines an address range, direct phone/email, or a StandardReceiver reference. Used as input to the address lookup pipeline. StatusCode tracks per-criterion lookup outcome.",
+          "fields": [
+            "id (identifier)",
+            "broadcastId (identifier — FK to Broadcast)",
+            "name (string?)",
+            "email (string?)",
+            "phone (PhoneNumber value object: code + number)",
+            "address (AddressCriterion value object: street, zip, city, fromNumber, toNumber, letter, floor, door, evenOdd, meters)",
+            "standardReceiverId (identifier? — FK to StandardReceiver AGG-SUB)",
+            "standardReceiverGroupId (identifier?)",
+            "statusCode (int?)",
+            "onlySendToPhoneIfProvided (bool)"
+          ],
+          "invariants": [
+            "At least one of: phone, address criterion, or standardReceiverId must be set",
+            "BR005 — broadcast must have at least one RecipientCriterion with resolvable recipients before activation"
+          ],
+          "relationships": [
+            "BELONGS-TO Broadcast (cascade delete)",
+            "OPTIONAL-REF StandardReceiver (AGG-SUB — read-only reference at lookup time)"
+          ],
+          "ownership": "Messaging aggregate"
+        },
+        {
+          "id": "MSG-E05",
+          "name": "Message",
+          "maps_from": "SmsLog",
+          "description": "A single resolved message record. Created during address lookup from a RecipientCriterion. Carries the resolved phone number, merge-field-resolved text, and current delivery status. StatusProgressionGuard enforces monotonic status transitions.",
+          "fields": [
+            "id (MessageId — long identifier)",
+            "broadcastId (identifier — FK to Broadcast)",
+            "recipientCriterionId (identifier — FK to RecipientCriterion)",
+            "profileId (ProfileId)",
+            "kvhx (string — resolved canonical address key)",
+            "ownerAddressKvhx (string?)",
+            "receiverName (string?)",
+            "phone (PhoneNumber value object: code + number)",
+            "resolvedText (string — merge fields applied)",
+            "smsSendAs (string — max 11 chars)",
+            "emailSendAs (string?)",
+            "emailSubject (string?)",
+            "statusCode (MessageStatus — enum, monotonic)",
+            "gatewayProvider (enum: GatewayApi, Strex)",
+            "testMode (bool)",
+            "dateGeneratedAt (datetime)",
+            "dateStatusUpdatedAt (datetime?)",
+            "dateDelayToAt (datetime?)",
+            "dateRowUpdatedAt (datetime?)",
+            "displayAddress (string?)",
+            "companyRegistrationId (string?)",
+            "supplyNumber (string?)",
+            "details (string?)"
+          ],
+          "invariants": [
+            "R035 + StatusProgressionGuard — statusCode may only increase in rank. Lower-ranked callbacks are rejected.",
+            "BR017 — smsSendAs max 11 chars (enforced at Message creation from BroadcastSmsContent.sendAs)",
+            "Terminal statuses (DELIVERED, FAILED_FINAL) cannot be overwritten"
+          ],
+          "relationships": [
+            "BELONGS-TO Broadcast",
+            "BELONGS-TO RecipientCriterion",
+            "HAS-MANY DeliveryStatusEvent (owned)"
+          ],
+          "ownership": "Messaging aggregate",
+          "legacy_notes": [
+            "Email field on SmsLog marked ToDo:Remove — NOT included in Message entity. Use emailSendAs/emailSubject fields already present."
+          ]
+        },
+        {
+          "id": "MSG-E06",
+          "name": "DeliveryStatusEvent",
+          "maps_from": "SmsLogStatus",
+          "description": "An individual gateway DLR (delivery receipt) event for a Message. Multiple events per Message (one per gateway callback). Created by DLR callback handlers (B014/B015). Imported=false on creation, true after StatusProgressionGuard processing (B016). CROSS-DOMAIN WRITE SURFACE (SC002): Email, Voice, Eboks channels also write here via IDeliveryStatusWriter.",
+          "fields": [
+            "id (identifier)",
+            "messageId (MessageId — FK to Message)",
+            "statusCode (int — raw gateway status code)",
+            "gatewayReference (string? — external gateway message id)",
+            "imported (bool — false=pending reconciliation, true=processed by StatusProgressionGuard)",
+            "receivedAt (datetime)",
+            "dateCreatedAt (datetime)"
+          ],
+          "invariants": [
+            "R036 — all channel writers (SMS, Email, Voice, Eboks) must write via IDeliveryStatusWriter",
+            "StatusProgressionGuard processes batches of 300 (B016) — imported transitions to true after processing",
+            "B014 CONFLICTING — GatewayApi DLR parses MessageId as int (truncates IDs > 2.1B). Green-ai MUST use long parse."
+          ],
+          "relationships": [
+            "BELONGS-TO Message (cascade delete)"
+          ],
+          "ownership": "Messaging aggregate — cross-domain write surface",
+          "shared_write_contract": "IDeliveryStatusWriter (all channels must use this — not direct table access)"
+        },
+        {
+          "id": "MSG-E07",
+          "name": "UnresolvedMessageRecord",
+          "maps_from": "SmsLogsNoPhoneAddress",
+          "description": "A bulk record for recipients where address lookup found no phone number. Created in batches (B018). Represents no-phone outcome — not a deliverable message. Used for reporting/exclusion tracking.",
+          "fields": [
+            "id (identifier)",
+            "broadcastId (identifier — FK to Broadcast)",
+            "recipientCriterionId (identifier?)",
+            "kvhx (string — address that had no phone)",
+            "name (string?)",
+            "dateCreatedAt (datetime)"
+          ],
+          "invariants": [
+            "Created only when address lookup finds no phone — not mutated after creation"
+          ],
+          "relationships": [
+            "BELONGS-TO Broadcast"
+          ],
+          "ownership": "Messaging aggregate"
+        },
+        {
+          "id": "MSG-E08",
+          "name": "BroadcastSchedule",
+          "maps_from": "SmsGroupSchedule + SmsGroupScheduleException",
+          "description": "Recurrence configuration for a scheduled broadcast. Contains JSON-blob interval config (not RRULE). Exception dates. Green-ai must decide: keep JSON or normalize to explicit recurrence fields.",
+          "fields": [
+            "id (identifier)",
+            "broadcastId (identifier — FK, cascade delete)",
+            "customerId (CustomerId)",
+            "fromDate (date)",
+            "endDate (date?)",
+            "intervalConfig (string — JSON blob, recurrence definition)",
+            "localTime (time)",
+            "exceptions (list of ExceptionDate value objects)"
+          ],
+          "invariants": [
+            "BR028 — scheduled broadcast (scheduledSendAt set) always routes to batch lookup. No web path for scheduled."
+          ],
+          "relationships": [
+            "BELONGS-TO Broadcast (1:1, cascade delete)"
+          ],
+          "ownership": "Messaging aggregate",
+          "open_question": "intervalConfig JSON blob — green-ai should consider normalizing to explicit recurrence model"
+        },
+        {
+          "id": "MSG-E09",
+          "name": "BroadcastAttachment",
+          "maps_from": "SmsGroupAttachment",
+          "description": "File attachment for a broadcast (Email/Eboks channels). Blob reference.",
+          "fields": [
+            "id (identifier)",
+            "broadcastId (identifier — FK, cascade delete)",
+            "fileName (string)",
+            "blobReference (string)",
+            "contentType (string)",
+            "dateCreatedAt (datetime)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO Broadcast (cascade delete)"
+          ],
+          "ownership": "Messaging aggregate"
+        },
+        {
+          "id": "MSG-E10",
+          "name": "WebNotification",
+          "maps_from": "WebMessage",
+          "description": "In-app notification entity published alongside a broadcast (e.g., critical alert). Has its own FSM (Status int). EditedWebMessageId self-ref: editing creates a new draft version. Optional link to a Broadcast.",
+          "fields": [
+            "id (identifier)",
+            "title (string)",
+            "text (html string)",
+            "profileId (ProfileId)",
+            "typeId (identifier — FK to WebMessageType)",
+            "criticalStatus (bool)",
+            "status (WebNotificationStatus — FSM: draft, active, completed, ...)",
+            "broadcastId (identifier? — optional link to Broadcast)",
+            "dateCreatedAt (datetime)",
+            "dateExpiresAt (datetime?)",
+            "dateDelayAt (datetime?)",
+            "isDraft (bool?)",
+            "editedFromId (identifier? — self-ref for version chain)"
+          ],
+          "invariants": [
+            "editedFromId creates version chain — editing creates new draft, not in-place mutation"
+          ],
+          "relationships": [
+            "OPTIONAL-REF Broadcast",
+            "BELONGS-TO Profile (AGG-CUST, cascade delete)"
+          ],
+          "ownership": "Messaging aggregate"
+        }
+      ]
+    },
+    {
+      "id": "AGG-CUST",
+      "name": "Customer",
+      "description": "Three-tier identity and access model. Customer (legal entity) → Profile (usage rights) → User (person). Role-based feature gating evaluated at broadcast create and activate time.",
+      "root": "Customer",
+      "entities": [
+        {
+          "id": "CUST-E01",
+          "name": "Customer",
+          "maps_from": "Customer",
+          "description": "Root aggregate entity. Legal entity. Owns Profiles. Conversion target for Pipeline prospects.",
+          "fields": [
+            "id (CustomerId)",
+            "name (string)",
+            "countryId (CountryId)",
+            "isActive (bool)",
+            "dateCreatedAt (datetime)",
+            "dateUpdatedAt (datetime?)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "HAS-MANY Profile",
+            "HAS-ONE CustomerAccount (billing)",
+            "HAS-MANY CustomerApiKey",
+            "HAS-MANY CustomerFtpSettings",
+            "OPTIONAL-REF Prospect (Pipeline — post-conversion backref)"
+          ],
+          "ownership": "Customer aggregate"
+        },
+        {
+          "id": "CUST-E02",
+          "name": "CustomerAccount",
+          "maps_from": "CustomerAccount + ProspectCustomerAccount",
+          "description": "Financial/billing details for a Customer. Separate entity from Customer identity. Also exists as ProspectCustomerAccount for pre-conversion configuration.",
+          "fields": [
+            "id (identifier)",
+            "customerId (CustomerId — FK)",
+            "contactName (string?)",
+            "contactEmail (string?)",
+            "billingAddress (Address value object?)",
+            "invoiceEmail (string?)",
+            "paymentTermDays (int?)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO Customer (1:1)"
+          ],
+          "ownership": "Customer aggregate"
+        },
+        {
+          "id": "CUST-E03",
+          "name": "Profile",
+          "maps_from": "Profile",
+          "description": "Usage-rights entity within a Customer. A user can hold multiple profiles across customers. Profile determines which features and broadcasts a user may create and send.",
+          "fields": [
+            "id (ProfileId)",
+            "customerId (CustomerId — FK)",
+            "displayName (string)",
+            "smsSendAsDefault (string? — default sender name)",
+            "emailSendAsDefault (string?)",
+            "isActive (bool)",
+            "dateCreatedAt (datetime)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO Customer",
+            "HAS-MANY ProfileRoleAssignment",
+            "HAS-MANY ProfileUserMapping",
+            "HAS-MANY ProfileStandardReceiverMapping (AGG-SUB)"
+          ],
+          "ownership": "Customer aggregate"
+        },
+        {
+          "id": "CUST-E04",
+          "name": "ProfileRoleAssignment",
+          "maps_from": "ProfileRoleMapping",
+          "description": "Assignment of a named role to a Profile. Evaluated at broadcast create and activate time to gate features. NOT enforced at DB level — application gate only.",
+          "fields": [
+            "id (identifier)",
+            "profileId (ProfileId — FK)",
+            "roleName (ProfileRole — enum: AlwaysOwner, CanSpecifyLookup, CanSelectLookupBusinessOrPrivate, DontSendEmail, CanSelectStdReceivers, CanSendByOnlyStdReceivers, BroadcastNoReciept, HasBenchmark, HasInfoPortal, ...)",
+            "dateAssignedAt (datetime)"
+          ],
+          "invariants": [
+            "BR023 — BroadcastNoReciept: receipt email suppressed",
+            "BR024 — AlwaysOwner: forces sendToOwner=true on broadcast create",
+            "BR025 — DontSendEmail: forces sendEmail=false on broadcast create",
+            "BR026 — CanSpecifyLookup: gates sendToOwner and sendToAddress fields",
+            "BR027 — CanSelectLookupBusinessOrPrivate: gates lookupBusiness and lookupPrivate fields"
+          ],
+          "relationships": [
+            "BELONGS-TO Profile"
+          ],
+          "ownership": "Customer aggregate"
+        },
+        {
+          "id": "CUST-E05",
+          "name": "ProfileUserMapping",
+          "maps_from": "CustomerUserRoleMapping (and implicit User↔Profile link)",
+          "description": "Links a User to a Profile. A user may be linked to multiple profiles. Provides the access context for a user session.",
+          "fields": [
+            "id (identifier)",
+            "profileId (ProfileId — FK)",
+            "userId (UserId — FK)",
+            "dateCreatedAt (datetime)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO Profile",
+            "BELONGS-TO User"
+          ],
+          "ownership": "Customer aggregate"
+        },
+        {
+          "id": "CUST-E06",
+          "name": "CustomerApiKey",
+          "maps_from": "CustomerApiKey + ProfileApiKey",
+          "description": "API access credential scoped to a Customer. Permissions: ApiSendSingle, ApiHandleRecipients, ApiHandleMessageTemplates. Used by external systems to authenticate before calling messaging endpoints.",
+          "fields": [
+            "id (identifier)",
+            "customerId (CustomerId — FK)",
+            "keyHash (string — hashed, not stored in plaintext)",
+            "permissions (flags: ApiSendSingle, ApiHandleRecipients, ApiHandleMessageTemplates)",
+            "description (string?)",
+            "isActive (bool)",
+            "dateCreatedAt (datetime)",
+            "dateExpiresAt (datetime?)"
+          ],
+          "invariants": [
+            "API key must be hashed at rest — NEVER store plaintext"
+          ],
+          "relationships": [
+            "BELONGS-TO Customer"
+          ],
+          "ownership": "Customer aggregate"
+        },
+        {
+          "id": "CUST-E07",
+          "name": "CustomerFtpSettings",
+          "maps_from": "CustomerFtpSettings",
+          "description": "FTP access configuration for a Customer. Used for file-based data exchange (import/export).",
+          "fields": [
+            "id (identifier)",
+            "customerId (CustomerId — FK)",
+            "ftpUsername (string)",
+            "ftpPasswordHash (string)",
+            "inboundPath (string?)",
+            "outboundPath (string?)",
+            "isActive (bool)"
+          ],
+          "invariants": [
+            "FTP password must be hashed at rest"
+          ],
+          "relationships": [
+            "BELONGS-TO Customer"
+          ],
+          "ownership": "Customer aggregate"
+        },
+        {
+          "id": "CUST-E08",
+          "name": "CustomerNote",
+          "maps_from": "CustomerNote + CustomerLog",
+          "description": "Freeform notes and audit log entries against a Customer. CustomerLog is system-generated (audit trail); CustomerNote is user-authored.",
+          "fields": [
+            "id (identifier)",
+            "customerId (CustomerId — FK)",
+            "type (enum: Note, AuditLog)",
+            "text (string)",
+            "createdByUserId (UserId?)",
+            "dateCreatedAt (datetime)"
+          ],
+          "invariants": [
+            "AuditLog entries are immutable once created"
+          ],
+          "relationships": [
+            "BELONGS-TO Customer"
+          ],
+          "ownership": "Customer aggregate"
+        }
+      ]
+    },
+    {
+      "id": "AGG-SUB",
+      "name": "Subscription",
+      "description": "Customer-defined receiver lists (subscriptions) that can be used as recipients in broadcasts. Pricing per country/receiver combination.",
+      "root": "StandardReceiver",
+      "entities": [
+        {
+          "id": "SUB-E01",
+          "name": "StandardReceiver",
+          "maps_from": "StandardReceiver",
+          "description": "Root entity. A pre-defined subscription list under a Customer. Can be linked to a Profile. Recipients in a broadcast can reference a StandardReceiver as a RecipientCriterion source.",
+          "fields": [
+            "id (identifier)",
+            "customerId (CustomerId — FK)",
+            "name (string)",
+            "isActive (bool)",
+            "dateCreatedAt (datetime)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO Customer (AGG-CUST)",
+            "HAS-MANY StandardReceiverGroup",
+            "HAS-MANY ProfileStandardReceiverMapping",
+            "HAS-MANY CustomerStandardReceiverSettings (pricing)"
+          ],
+          "ownership": "Subscription aggregate"
+        },
+        {
+          "id": "SUB-E02",
+          "name": "StandardReceiverGroup",
+          "maps_from": "StandardReceiverGroup + StandardReceiverGroupMapping + StandardReceiverGroupGroupMapping",
+          "description": "Grouping of StandardReceivers. Supports hierarchical grouping (group-of-groups). A group can have keywords for SMS opt-in.",
+          "fields": [
+            "id (identifier)",
+            "standardReceiverId (identifier — FK)",
+            "name (string)",
+            "parentGroupId (identifier? — self-ref for hierarchy)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO StandardReceiver",
+            "HAS-MANY StandardReceiverGroupKeyword"
+          ],
+          "ownership": "Subscription aggregate"
+        },
+        {
+          "id": "SUB-E03",
+          "name": "StandardReceiverGroupKeyword",
+          "maps_from": "StandardReceiverGroupKeyword",
+          "description": "SMS keyword that triggers subscription opt-in to a StandardReceiverGroup.",
+          "fields": [
+            "id (identifier)",
+            "groupId (identifier — FK)",
+            "keyword (string)",
+            "countryId (CountryId)"
+          ],
+          "invariants": [
+            "Keyword must be unique per country"
+          ],
+          "relationships": [
+            "BELONGS-TO StandardReceiverGroup"
+          ],
+          "ownership": "Subscription aggregate"
+        },
+        {
+          "id": "SUB-E04",
+          "name": "DistributionPhone",
+          "maps_from": "StandardReceiverGroupDistributionPhoneNumber",
+          "description": "Phone number that receives delivery statistics reports for a StandardReceiverGroup.",
+          "fields": [
+            "id (identifier)",
+            "groupId (identifier — FK)",
+            "phone (PhoneNumber value object)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO StandardReceiverGroup"
+          ],
+          "ownership": "Subscription aggregate"
+        },
+        {
+          "id": "SUB-E05",
+          "name": "ProfileStandardReceiverMapping",
+          "maps_from": "StandardReceiverProfileMapping + StandardReceiverGroupProfileMapping",
+          "description": "Controls which Profiles can use a StandardReceiver (or group) as a recipient source in broadcasts.",
+          "fields": [
+            "id (identifier)",
+            "profileId (ProfileId — FK)",
+            "standardReceiverId (identifier? — FK)",
+            "standardReceiverGroupId (identifier? — FK)",
+            "dateCreatedAt (datetime)"
+          ],
+          "invariants": [
+            "Exactly one of standardReceiverId or standardReceiverGroupId must be set"
+          ],
+          "relationships": [
+            "BELONGS-TO Profile (AGG-CUST)",
+            "OPTIONAL-REF StandardReceiver",
+            "OPTIONAL-REF StandardReceiverGroup"
+          ],
+          "ownership": "Subscription aggregate"
+        },
+        {
+          "id": "SUB-E06",
+          "name": "ReceiverPriceSetting",
+          "maps_from": "CustomerStandardReceiver + CustomerStandardReceiverSettings + StandardReceiverCustomerSettings",
+          "description": "Price configuration per (Customer, StandardReceiver, Country). CustomerStandardReceiverSettings holds the customer-specific override. Statistics stored at RecipientCriterion level (SmsGroupItem), not per message.",
+          "fields": [
+            "id (identifier)",
+            "customerId (CustomerId — FK)",
+            "standardReceiverId (identifier — FK)",
+            "countryId (CountryId)",
+            "pricePerUnit (decimal?)",
+            "billingUnit (string?)",
+            "isOverride (bool)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO Customer (AGG-CUST)",
+            "REF StandardReceiver"
+          ],
+          "ownership": "Subscription aggregate"
+        }
+      ]
+    },
+    {
+      "id": "AGG-IMP",
+      "name": "Import",
+      "description": "Two-phase import pipeline with crash-safe lifecycle, size-based routing, and idempotent resume behavior. R041 + R042 govern state machine and execution path.",
+      "root": "ImportJob",
+      "entities": [
+        {
+          "id": "IMP-E01",
+          "name": "ImportJob",
+          "maps_from": "DataImportFile",
+          "description": "Root entity. Represents one import operation. Owns the state machine: Queued(1)→ProcessingColumns(2)→ColumnsReady(3)→ReadyForImport(4)→DataImporting(5)→DataImported(6). Error state: -1. Sub-state ConvertingFile: 20. CommitStarted(107) is crash-resume marker written atomically before data write.",
+          "fields": [
+            "id (identifier)",
+            "customerId (CustomerId — FK)",
+            "originalFileName (string)",
+            "blobReference (string)",
+            "sizeKb (decimal)",
+            "status (ImportStatus — enum: Queued=1, ProcessingColumns=2, ColumnsReady=3, ReadyForImport=4, DataImporting=5, DataImported=6, CommitStarted=107, ConvertingFile=20, Error=-1)",
+            "importFormat (ImportFormat enum)",
+            "savedConfigurationId (identifier?)",
+            "errorMessage (string?)",
+            "rowCount (int?)",
+            "importedRowCount (int?)",
+            "dateCreatedAt (datetime)",
+            "dateCompletedAt (datetime?)"
+          ],
+          "invariants": [
+            "R041 — CommitStarted(107) written BEFORE data write. On restart: if status=CommitStarted, resume. Terminal: DataImported(6) or Error(-1) reject re-run.",
+            "R042 — sizeKb < 10 → run confirm inline; sizeKb >= 10 → dispatch to Azure Batch (CreateConfirmDataImportAzureTaskAsync)",
+            "IdempotentResumeBehavior: CommitStarted enables crash recovery without double-commit"
+          ],
+          "relationships": [
+            "BELONGS-TO Customer (AGG-CUST)",
+            "HAS-MANY ImportColumnMapping",
+            "HAS-MANY ImportRow",
+            "OPTIONAL-REF ImportSavedConfiguration"
+          ],
+          "ownership": "Import aggregate"
+        },
+        {
+          "id": "IMP-E02",
+          "name": "ImportColumnMapping",
+          "maps_from": "DataImportFileColumnMapping",
+          "description": "Column-to-field mapping definition for an ImportJob. Defined during Phase 1 (ImportPrepare).",
+          "fields": [
+            "id (identifier)",
+            "importJobId (identifier — FK)",
+            "columnIndex (int)",
+            "mappedFieldName (string)",
+            "isRequired (bool)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO ImportJob"
+          ],
+          "ownership": "Import aggregate"
+        },
+        {
+          "id": "IMP-E03",
+          "name": "ImportRow",
+          "maps_from": "DataImportFileRow",
+          "description": "A single validated data row in an ImportJob. Created during Phase 1 validation. Committed to domain in Phase 2.",
+          "fields": [
+            "id (identifier)",
+            "importJobId (identifier — FK)",
+            "rowNumber (int)",
+            "rowData (json — column values)",
+            "validationStatus (enum: Pending, Valid, Invalid)",
+            "validationErrors (string?)"
+          ],
+          "invariants": [
+            "Invalid rows are not committed to domain — Phase 2 only commits valid rows"
+          ],
+          "relationships": [
+            "BELONGS-TO ImportJob"
+          ],
+          "ownership": "Import aggregate"
+        },
+        {
+          "id": "IMP-E04",
+          "name": "ImportSavedConfiguration",
+          "maps_from": "DataImportSavedConfiguration + DataImportSavedConfigurationColumnMapping",
+          "description": "Reusable column-mapping template for recurring import formats. Scoped to Customer, optionally to ImportPurpose.",
+          "fields": [
+            "id (identifier)",
+            "customerId (CustomerId — FK)",
+            "name (string)",
+            "importFormat (ImportFormat enum)",
+            "columnMappings (list of SavedColumnMapping value objects)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO Customer (AGG-CUST)",
+            "REFERENCED-BY ImportJob (optional)"
+          ],
+          "ownership": "Import aggregate"
+        }
+      ]
+    },
+    {
+      "id": "AGG-ADDR",
+      "name": "Address",
+      "description": "Per-country address resolution infrastructure. One domain, per-country adapters. Core only uses canonical Kvhx string. R043: IAddressAdapter per country. FI adapter is deferred (source closed Feb 2025).",
+      "root": "ResolvedAddress",
+      "entities": [
+        {
+          "id": "ADDR-E01",
+          "name": "ResolvedAddress",
+          "maps_from": "Address",
+          "description": "Core address entity. Canonical Kvhx string is the primary key — NOT a numeric surrogate (architect decision iteration 10). DK-source. Covers street-level detail, geography, and owner.",
+          "fields": [
+            "kvhx (string — PRIMARY KEY, canonical identity)",
+            "countryId (CountryId)",
+            "streetName (string?)",
+            "houseNumber (string?)",
+            "floor (string?)",
+            "door (string?)",
+            "zipCode (string?)",
+            "city (string?)",
+            "municipalityCode (string?)",
+            "dateUpdatedAt (datetime?)"
+          ],
+          "invariants": [
+            "R023 — Kvhx string is canonical address identity. Never replaced by numeric surrogate at design level.",
+            "R043 — Core never receives country-native structures. Only Kvhx crosses adapter boundary."
+          ],
+          "relationships": [
+            "OPTIONAL AddressOwner",
+            "OPTIONAL AddressGeography",
+            "OPTIONAL AddressKvhxChange (rename tracking)"
+          ],
+          "ownership": "Address aggregate (DK adapter)"
+        },
+        {
+          "id": "ADDR-E02",
+          "name": "AddressOwner",
+          "maps_from": "AddressOwner + AddressDatafordelerOwner + AddressDatafordelerOwner2 + AddressOwnerST + AddressSTOwner",
+          "description": "Property owner resolved from a Kvhx address. DK: Datafordeleren (two staging variants for import). Change tracking via AddressKvhxChange. Used for SendToOwner behavior in broadcasts.",
+          "fields": [
+            "kvhx (string — PK/FK to ResolvedAddress)",
+            "ownerName (string?)",
+            "ownerPhone (PhoneNumber?)",
+            "ownerEmail (string?)",
+            "ownerType (enum: Private, Business)",
+            "dateUpdatedAt (datetime?)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "BELONGS-TO ResolvedAddress (1:1 per Kvhx)",
+            "TRACKED-BY AddressKvhxChange (rename events)"
+          ],
+          "ownership": "Address aggregate (DK adapter)"
+        },
+        {
+          "id": "ADDR-E03",
+          "name": "AddressKvhxChange",
+          "maps_from": "AddressKvhxChange",
+          "description": "Tracks Kvhx rename events (address identity changes). When a Kvhx is renumbered, all dependent records (SmsLogs, owners) need Kvhx update.",
+          "fields": [
+            "id (identifier)",
+            "oldKvhx (string)",
+            "newKvhx (string)",
+            "dateChangedAt (datetime)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "REF ResolvedAddress (old and new)"
+          ],
+          "ownership": "Address aggregate"
+        },
+        {
+          "id": "ADDR-E04",
+          "name": "AddressCorrection",
+          "maps_from": "AddressCorrection",
+          "description": "Manual correction record for a Kvhx. Allows operations team to override address data without touching the canonical import.",
+          "fields": [
+            "id (identifier)",
+            "kvhx (string — FK)",
+            "correctionField (string)",
+            "correctedValue (string)",
+            "reason (string?)",
+            "dateCreatedAt (datetime)"
+          ],
+          "invariants": [
+            "Corrections do not modify canonical ResolvedAddress — applied as an overlay"
+          ],
+          "relationships": [
+            "REF ResolvedAddress"
+          ],
+          "ownership": "Address aggregate"
+        },
+        {
+          "id": "ADDR-E05",
+          "name": "NorwegianAddress",
+          "maps_from": "AddressNorwegianProperty + AddressNorwegianPropertyAddress + AddressImportNorwegianProperty + AddressImportNorwegianBuilding + AddressImportNorwegianAddress + AddressImportNorwegianStreet + AddressImportNorwegianZipCode + AddressImportNorwegianOwner + AddressImportNorwegianPerson + AddressImportNorwegianPlot + AddressImportNorwegianPlotProperty + AddressImportNorwegianDoor + AddressImportNorwegianChange",
+          "description": "Norwegian address entities. Kartverket source. Native key: 5-tuple (municipalityCode + farmNr + useNr + tenantNr + sectionNr). Resolved to Kvhx string at adapter boundary. Import staging tables (AddressImportNorwegian*) are adapter-internal. Operational tables (AddressNorwegianProperty, AddressNorwegianPropertyAddress) are the cache.",
+          "fields": [
+            "id (identifier — 5-tuple composite or surrogate)",
+            "municipalityCode (string)",
+            "farmNr (int)",
+            "useNr (int)",
+            "tenantNr (int?)",
+            "sectionNr (int?)",
+            "resolvedKvhx (string — output of adapter resolution)",
+            "ownerName (string?)",
+            "ownerPhone (string?)"
+          ],
+          "invariants": [
+            "R043 — 5-tuple key never crosses adapter boundary. Only resolvedKvhx is exposed to core domain."
+          ],
+          "note": "All AddressImportNorwegian* staging tables are adapter-internal — NOT part of green-ai domain model. They exist only during import pipeline execution.",
+          "relationships": [
+            "Resolves-to ResolvedAddress (via Kvhx)"
+          ],
+          "ownership": "Address aggregate (NO adapter)"
+        },
+        {
+          "id": "ADDR-E06",
+          "name": "SwedishAddress",
+          "maps_from": "AddressSwedishProperty",
+          "description": "Swedish address entity. Lantmäteriet source. Resolves to Kvhx.",
+          "fields": [
+            "id (identifier)",
+            "swePropertyId (string — Lantmäteriet native key)",
+            "resolvedKvhx (string)"
+          ],
+          "invariants": [
+            "R043 — native key stays within SE adapter"
+          ],
+          "relationships": [
+            "Resolves-to ResolvedAddress (via Kvhx)"
+          ],
+          "ownership": "Address aggregate (SE adapter)"
+        },
+        {
+          "id": "ADDR-E07",
+          "name": "FinnishAddressImportData",
+          "maps_from": "AddressImportFinnishBuilding + AddressImportFinnishZipCode",
+          "description": "DEFERRED: AvoinData source closed Feb 2025. Staging tables exist in sms-service but are non-functional. Green-ai: represent as deferred adapter boundary — do not implement until replacement source is identified.",
+          "status": "DEFERRED — source closed",
+          "fields": [
+            "(deferred — structure exists in DB, source unavailable)"
+          ],
+          "invariants": [
+            "R043 — Finnish adapter follows same pattern. Deferred until AvoinData replacement identified."
+          ],
+          "relationships": [],
+          "ownership": "Address aggregate (FI adapter — DEFERRED)"
+        },
+        {
+          "id": "ADDR-E08",
+          "name": "AddressGeography",
+          "maps_from": "AddressGeography + AddressStreet + Municipality + Country + AddressBfeToLocalId + AddressVirtualMarking + AddressExportNorwegianStatistics",
+          "description": "Geographic reference data supporting address resolution. Municipality codes, country references, BFE-to-local mappings, virtual address markings, and export statistics for Norwegian data.",
+          "fields": [
+            "kvhx (string? — FK to ResolvedAddress)",
+            "latitude (decimal?)",
+            "longitude (decimal?)",
+            "municipalityCode (string)",
+            "countryId (CountryId)"
+          ],
+          "invariants": [],
+          "relationships": [
+            "OPTIONAL-REF ResolvedAddress"
+          ],
+          "ownership": "Address aggregate"
+        }
+      ]
+    },
+    {
+      "id": "AGG-PIPE",
+      "name": "Pipeline",
+      "description": "Sales prospect management and customer conversion. Conversion lifecycle has verified gaps (no task migration, no role activation) that are modelled as explicit constraints (R039, R040).",
+      "root": "Prospect",
+      "entities": [
+        {
+          "id": "PIPE-E01",
+          "name": "Prospect",
+          "maps_from": "Prospect",
+          "description": "Root aggregate entity. Pre-sales entity in conversion pipeline. Linked to a Customer after conversion (ProspectToCustomerConversion two-step). Tasks and role pre-configurations REMAIN on Prospect after conversion (architect decision: LEAVE ON PROSPECT).",
+          "fields": [
+            "id (identifier)",
+            "name (string)",
+            "customerId (CustomerId? — FK to AGG-CUST, set at conversion step 1)",
+            "status (ProspectStatus enum)",
+            "dateCreatedAt (datetime)",
+            "dateConvertedAt (datetime?)"
+          ],
+          "invariants": [
+            "R038 — Conversion is two-step: PATCH 1 sets customerId + copies ContactPersons. PATCH 2 replaces CustomerProducts. NOT atomic.",
+            "R039 — ProcessTasks are NOT transferred at conversion. LEAVE ON PROSPECT. Customer starts with no inherited tasks.",
+            "R040 — ProspectUserRoleMappings are NOT applied to Customer at conversion. Role pre-config stays on Prospect as historical record."
+          ],
+          "relationships": [
+            "OPTIONAL-REF Customer (AGG-CUST — set at conversion)",
+            "HAS-MANY ProspectContactPerson",
+            "HAS-MANY ProspectProduct",
+            "HAS-MANY ProspectUserRoleMapping",
+            "HAS-MANY ProcessTask (owner_type=Prospect)"
+          ],
+          "ownership": "Pipeline aggregate"
+        },
+        {
+          "id": "PIPE-E02",
+          "name": "ProspectContactPerson",
+          "maps_from": "ProspectContactPerson",
+          "description": "Contact person on a Prospect. At conversion step 1: copied (not moved) as new ContactPerson records on the Customer.",
+          "fields": [
+            "id (identifier)",
+            "prospectId (identifier — FK)",
+            "name (string)",
+            "email (string?)",
+            "phone (PhoneNumber?)",
+            "role (string?)"
+          ],
+          "invariants": [
+            "At conversion: COPIED to Customer as ContactPerson records. Original stays on Prospect."
+          ],
+          "relationships": [
+            "BELONGS-TO Prospect"
+          ],
+          "ownership": "Pipeline aggregate"
+        },
+        {
+          "id": "PIPE-E03",
+          "name": "ProspectProduct",
+          "maps_from": "ProspectProduct",
+          "description": "Pre-configured product/service for a Prospect. At conversion step 2 (DESTRUCTIVE): deletes existing CustomerProducts then creates new ones from ProspectProducts.",
+          "fields": [
+            "id (identifier)",
+            "prospectId (identifier — FK)",
+            "productName (string)",
+            "configuration (json?)"
+          ],
+          "invariants": [
+            "R038 — Conversion step 2 REPLACES CustomerProducts. Destructive. Must be intentional."
+          ],
+          "relationships": [
+            "BELONGS-TO Prospect"
+          ],
+          "ownership": "Pipeline aggregate"
+        },
+        {
+          "id": "PIPE-E04",
+          "name": "ProspectUserRoleMapping",
+          "maps_from": "ProspectUserRoleMapping",
+          "description": "Pre-configured user role assignments for a Prospect. These are NOT auto-activated at conversion (R040). They remain on Prospect as historical pre-configuration record. Absence of activation is the business rule.",
+          "fields": [
+            "id (identifier)",
+            "prospectId (identifier — FK)",
+            "roleName (ProfileRole — enum)",
+            "userId (UserId?)"
+          ],
+          "invariants": [
+            "R040 — NOT consumed at conversion. DO NOT implement auto-activation without explicit new business requirement."
+          ],
+          "relationships": [
+            "BELONGS-TO Prospect"
+          ],
+          "ownership": "Pipeline aggregate"
+        },
+        {
+          "id": "PIPE-E05",
+          "name": "ProcessTask",
+          "maps_from": "ProcessTask",
+          "description": "Work item owned by either a Prospect or a Customer. Polymorphic ownership via owner_type + owner_id (NOT FK-based). Template governs allowed owner_type. At conversion: tasks STAY ON PROSPECT (architect decision). Customer starts clean.",
+          "fields": [
+            "id (identifier)",
+            "templateId (identifier — FK to ProcessTaskTemplate)",
+            "ownerType (enum: Prospect, Customer)",
+            "ownerId (identifier — resolves to Prospect.id or Customer.id per ownerType)",
+            "status (TaskStatus enum)",
+            "title (string)",
+            "description (string?)",
+            "assignedToUserId (UserId?)",
+            "dateCreatedAt (datetime)",
+            "dueDateAt (datetime?)",
+            "dateCompletedAt (datetime?)"
+          ],
+          "invariants": [
+            "R039 — NOT transferred at Prospect→Customer conversion. LEAVE ON PROSPECT.",
+            "owner_type must match the allowed_owner_types in the referenced ProcessTaskTemplate",
+            "owner_id must reference a valid entity of the declared owner_type (enforced in application layer — no DB FK)"
+          ],
+          "relationships": [
+            "BELONGS-TO ProcessTaskTemplate",
+            "POLYMORPHIC-OWNER Prospect OR Customer (application-layer enforcement)"
+          ],
+          "ownership": "Pipeline aggregate"
+        },
+        {
+          "id": "PIPE-E06",
+          "name": "ProcessTaskTemplate",
+          "maps_from": "ProcessTaskTemplate",
+          "description": "Template that defines a class of work items. Constrains which owner_type is allowed for tasks created from this template.",
+          "fields": [
+            "id (identifier)",
+            "name (string)",
+            "description (string?)",
+            "allowedOwnerTypes (enum flags: Prospect, Customer)",
+            "defaultDueDays (int?)"
+          ],
+          "invariants": [
+            "ProcessTask.ownerType must be in template.allowedOwnerTypes"
+          ],
+          "relationships": [
+            "REFERENCED-BY ProcessTask"
+          ],
+          "ownership": "Pipeline aggregate"
+        }
+      ]
+    }
+  ],
+  "cross_aggregate_constraints": [
+    {
+      "id": "CAC-001",
+      "name": "IDeliveryStatusWriter",
+      "description": "All channels (SMS, Email, Voice, Eboks) that create DeliveryStatusEvent records MUST use IDeliveryStatusWriter from Messaging aggregate. Direct writes to the underlying table are prohibited (R036, SC002).",
+      "enforced_by": "Application layer contract"
+    },
+    {
+      "id": "CAC-002",
+      "name": "StatusProgressionGuard",
+      "description": "Message.statusCode and DeliveryStatusEvent.imported may only move forward in rank. Applied at all write points in Messaging aggregate. Terminal statuses are immutable (R035, SC001).",
+      "enforced_by": "Messaging aggregate root (Message entity)"
+    },
+    {
+      "id": "CAC-003",
+      "name": "ProfileGate",
+      "description": "All Broadcast operations are scoped to a ProfileId. Role checks (ProfileRoleAssignment) applied at Broadcast create and activate. NOT enforced by DB — enforced by Messaging feature handlers.",
+      "enforced_by": "Application layer (Messaging feature handlers)"
+    },
+    {
+      "id": "CAC-004",
+      "name": "AddressAdapterBoundary",
+      "description": "Core domain (Messaging) only receives Kvhx strings from Address aggregate. Country-native data structures never cross the adapter boundary (R043, SC005).",
+      "enforced_by": "IAddressAdapter interface (infrastructure layer)"
+    },
+    {
+      "id": "CAC-005",
+      "name": "ProspectConversionConstraint",
+      "description": "Prospect→Customer conversion is two-step non-atomic (R038). ProcessTasks NOT transferred (R039). ProspectUserRoleMappings NOT activated (R040). These are hard constraints — do not add migration logic without new explicit business requirement.",
+      "enforced_by": "Application layer (Pipeline conversion handlers)"
+    }
+  ]
+}

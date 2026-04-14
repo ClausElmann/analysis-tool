@@ -3,7 +3,7 @@
 > **Purpose:** Alt hvad jeg behøver at vide om green-ai — tech, build-state, locks, domain-states.  
 > **Opdatér** når et STEP afsluttes, migration applied, lock ændres, eller tech stack ændres.
 
-**Last Updated:** 2026-04-13  
+**Last Updated:** 2026-04-14 (090 implementation plan created)  
 **Migration level:** V037  
 **Tests:** ~461 unit + 9 governance + 128/128 E2E ✅  
 **Build:** 0 warnings  
@@ -158,6 +158,7 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | customer_administration | N-B APPROVED | 2026-04-12 | Gap-fill — stubs eksisterer |
 | job_management | DONE 🔒 | V035 | LogJobTaskStatus, GetRecentAndOngoingTasks, SSE (ActiveJobsHub + ClientEventBackgroundService) |
 | activity_log | DONE 🔒 | V037 | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs — FAIL-OPEN invariant |
+| sms | N-B APPROVED | 2026-04-14 | 080 build slices ready — 23 slices (AGG-MSG/CUST/SUB/IMP/ADDR/PIPE) |
 | customer_management | N-A | — | Score 0.88 — analyse pågår |
 | Alle øvrige | N-A | — | Score < 0.88 — extraction mangler |
 
