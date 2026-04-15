@@ -161,6 +161,27 @@ $rm = [System.Text.StringBuilder]::new()
 [void]$rm.AppendLine("Mangler arkitekten info -> bed analysis-tool om at producere bedre output -> ny ZIP")
 $rm.ToString() | Out-File "$tmp\README.md" -Encoding UTF8
 
+# --- Layer 2.5: Visual Intelligence ---
+Write-Host "Layer 2.5: visual intelligence..."
+$viDest = "$tmp\analysis-tool\visual-intelligence"
+$viPython = Join-Path $atRoot ".venv\Scripts\python.exe"
+$viRegistry = Join-Path $atRoot "data\visual_validation_registry.jsonl"
+if (Test-Path $viPython) {
+    Push-Location $atRoot
+    $viOut = & $viPython -m core.visual_intelligence_reporter `
+        --registry $viRegistry `
+        --output-dir $viDest 2>&1
+    Pop-Location
+    Write-Host "   -> $viOut"
+} else {
+    # Fallback: lav tomme placeholder-filer hvis venv ikke tilgængelig
+    New-Item -ItemType Directory -Path "$viDest\stats" -Force | Out-Null
+    '[]' | Out-File "$viDest\cache_index.jsonl" -Encoding UTF8
+    '{"note":"venv not found — run Generate-ChatGPT-Package.ps1 from analysis-tool with venv active"}' | Out-File "$viDest\stats\component_stability.json" -Encoding UTF8
+    '{"note":"venv not found"}' | Out-File "$viDest\stats\failure_patterns.json" -Encoding UTF8
+    Write-Host "   -> placeholder (venv not found)"
+}
+
 # --- ZIP ---
 Write-Host "Creating ZIP..."
 $zipPath = if ($OutputPath) { $OutputPath } else { Join-Path $atRoot "ChatGPT-Package.zip" }

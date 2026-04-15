@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -1303,3 +1304,441 @@ class TestWave8DependencyManifest:
         )
         from core.visual_fingerprint import _sha256_dict
         assert _sha256_dict(m_manual.to_canonical_dict()) != _sha256_dict(m_auto.to_canonical_dict())
+
+
+# ---------------------------------------------------------------------------
+# TestRenderSignature — props_hash + data_model_hash in RenderInputs
+# ---------------------------------------------------------------------------
+
+class TestRenderSignature:
+    """render_signature = component_id + props + data model + CSS + feature flags."""
+
+    def test_props_hash_changes_render_input_sha256(self, tmp_path):
+        png = _real_png(tmp_path)
+        ctx = _context()
+        fp_a = VisualFingerprintBuilder().build(
+            png, ctx, RenderInputs(component_hash="c1", props_hash="props-v1"),
+        )
+        fp_b = VisualFingerprintBuilder().build(
+            png, ctx, RenderInputs(component_hash="c1", props_hash="props-v2"),
+        )
+        assert fp_a.render_input_sha256 != fp_b.render_input_sha256
+
+    def test_data_model_hash_changes_render_input_sha256(self, tmp_path):
+        png = _real_png(tmp_path)
+        ctx = _context()
+        fp_a = VisualFingerprintBuilder().build(
+            png, ctx, RenderInputs(component_hash="c1", data_model_hash="model-v1"),
+        )
+        fp_b = VisualFingerprintBuilder().build(
+            png, ctx, RenderInputs(component_hash="c1", data_model_hash="model-v2"),
+        )
+        assert fp_a.render_input_sha256 != fp_b.render_input_sha256
+
+    def test_same_ui_new_data_forces_reanalysis(self, tmp_path):
+        png = _real_png(tmp_path)
+        ctx = _context()
+        fp_v1 = VisualFingerprintBuilder().build(
+            png, ctx, RenderInputs(component_hash="c1", data_model_hash="model-v1"),
+        )
+        fp_v2 = VisualFingerprintBuilder().build(
+            png, ctx, RenderInputs(component_hash="c1", data_model_hash="model-v2"),
+        )
+        cache = VisualDeltaCache(tmp_path)
+        cache.record_pass(fp_v1)
+        assert cache.should_skip(fp_v2, mode="STRICT") is False
+
+    def test_render_inputs_canonical_dict_includes_props_and_data_model(self):
+        ri = RenderInputs(props_hash="ph1", data_model_hash="dm1")
+        d = ri.to_canonical_dict()
+        assert d["propsHash"] == "ph1"
+        assert d["dataModelHash"] == "dm1"
+
+    def test_empty_props_and_data_model_backward_compat(self, tmp_path):
+        png = _real_png(tmp_path)
+        ctx = _context()
+        fp = VisualFingerprintBuilder().build(png, ctx, RenderInputs(component_hash="c1"))
+        cache = VisualDeltaCache(tmp_path)
+        cache.record_pass(fp)
+        assert cache.should_skip(fp, mode="STRICT") is True
+
+
+# ---------------------------------------------------------------------------
+# TestTTL — time-based invalidation (max_age_hours)
+# ---------------------------------------------------------------------------
+
+class TestTTL:
+    """TTL guard: entries older than max_age_hours are never skipped."""
+
+    def test_fresh_entry_within_ttl_is_skipped(self, tmp_path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, max_age_hours=24)
+        cache.record_pass(fp)
+        assert cache.should_skip(fp, mode="STRICT") is True
+
+    def test_expired_entry_forces_reanalysis(self, tmp_path):
+        from datetime import timedelta
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, max_age_hours=1)
+        cache.record_pass(fp)
+        old_ts = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
+        for entry in cache._entries:
+            if entry.result == "PASS":
+                entry._d["validatedAtUtc"] = old_ts
+        cache._flush()
+        cache2 = VisualDeltaCache(tmp_path, max_age_hours=1)
+        assert cache2.should_skip(fp, mode="STRICT") is False
+
+    def test_no_ttl_never_expires(self, tmp_path):
+        from datetime import timedelta
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, max_age_hours=None)
+        cache.record_pass(fp)
+        old_ts = (datetime.now(timezone.utc) - timedelta(days=365)).isoformat()
+        for entry in cache._entries:
+            if entry.result == "PASS":
+                entry._d["validatedAtUtc"] = old_ts
+        cache._flush()
+        cache2 = VisualDeltaCache(tmp_path, max_age_hours=None)
+        assert cache2.should_skip(fp, mode="STRICT") is True
+
+    def test_malformed_timestamp_does_not_raise(self, tmp_path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, max_age_hours=1)
+        cache.record_pass(fp)
+        for entry in cache._entries:
+            if entry.result == "PASS":
+                entry._d["validatedAtUtc"] = "NOT-A-DATE"
+        cache._flush()
+        cache2 = VisualDeltaCache(tmp_path, max_age_hours=1)
+        result = cache2.should_skip(fp, mode="STRICT")
+        assert isinstance(result, bool)
+
+    def test_production_mode_with_expired_ttl_forces_reanalysis(self, tmp_path):
+        from datetime import timedelta
+        fp = _complete_fp(tmp_path)
+        # Write with production_mode=False so _flush() is allowed for backdating.
+        cache = VisualDeltaCache(tmp_path, production_mode=False, max_age_hours=1)
+        cache.record_pass(fp)
+        old_ts = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
+        for entry in cache._entries:
+            if entry.result == "PASS":
+                entry._d["validatedAtUtc"] = old_ts
+        cache._flush()
+        # Reload with production_mode=True — expired entry must force reanalysis.
+        cache2 = VisualDeltaCache(tmp_path, production_mode=True, max_age_hours=1)
+        assert cache2.should_skip(fp, mode="STRICT") is False
+
+
+# ---------------------------------------------------------------------------
+# TestFailureHotZone — failure_rate_overrides
+# ---------------------------------------------------------------------------
+
+class TestFailureHotZone:
+    """High-failure screens are never skipped (stability override)."""
+
+    def test_screen_below_threshold_is_skipped(self, tmp_path):
+        fp = _complete_fp(tmp_path, screen_key="dashboard")
+        cache = VisualDeltaCache(
+            tmp_path,
+            failure_rate_overrides={"dashboard": 0.15},
+            failure_rate_threshold=0.20,
+        )
+        cache.record_pass(fp)
+        assert cache.should_skip(fp, mode="STRICT") is True
+
+    def test_screen_above_threshold_forces_reanalysis(self, tmp_path):
+        fp = _complete_fp(tmp_path, screen_key="dashboard")
+        cache = VisualDeltaCache(
+            tmp_path,
+            failure_rate_overrides={"dashboard": 0.25},
+            failure_rate_threshold=0.20,
+        )
+        cache.record_pass(fp)
+        assert cache.should_skip(fp, mode="STRICT") is False
+
+    def test_screen_at_exact_threshold_is_NOT_forced(self, tmp_path):
+        """Exactly at threshold (20%) — not forced (must be strictly above)."""
+        fp = _complete_fp(tmp_path, screen_key="dashboard")
+        cache = VisualDeltaCache(
+            tmp_path,
+            failure_rate_overrides={"dashboard": 0.20},
+            failure_rate_threshold=0.20,
+        )
+        cache.record_pass(fp)
+        assert cache.should_skip(fp, mode="STRICT") is True
+
+    def test_unknown_screen_not_affected(self, tmp_path):
+        fp = _complete_fp(tmp_path, screen_key="other-screen")
+        cache = VisualDeltaCache(
+            tmp_path,
+            failure_rate_overrides={"dashboard": 0.99},
+            failure_rate_threshold=0.20,
+        )
+        cache.record_pass(fp)
+        assert cache.should_skip(fp, mode="STRICT") is True
+
+    def test_empty_overrides_dict_no_effect(self, tmp_path):
+        fp = _complete_fp(tmp_path, screen_key="any-screen")
+        cache = VisualDeltaCache(tmp_path, failure_rate_overrides={})
+        cache.record_pass(fp)
+        assert cache.should_skip(fp, mode="STRICT") is True
+
+    def test_component_stability_integration(self, tmp_path):
+        """Simulates loading component_stability.json and applying overrides."""
+        stability = {
+            "checkout-page": 0.38,
+            "login-page":    0.05,
+            "dashboard":     0.21,
+        }
+        (tmp_path / "co").mkdir()
+        (tmp_path / "lo").mkdir()
+        fp_checkout = _complete_fp(tmp_path / "co", screen_key="checkout-page")
+        fp_login    = _complete_fp(tmp_path / "lo", screen_key="login-page")
+        cache_checkout = VisualDeltaCache(tmp_path / "co", failure_rate_overrides=stability)
+        cache_login    = VisualDeltaCache(tmp_path / "lo", failure_rate_overrides=stability)
+        cache_checkout.record_pass(fp_checkout)
+        cache_login.record_pass(fp_login)
+        assert cache_checkout.should_skip(fp_checkout, mode="STRICT") is False
+        assert cache_login.should_skip(fp_login, mode="STRICT") is True
+
+
+# ===========================================================================
+# Wave 11.1 — Enterprise Hardening Tests
+# ===========================================================================
+
+class TestConcurrencySafety:
+    """Fix 1: _flush() is disabled in production_mode=True."""
+
+    def test_flush_raises_in_production_mode(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, production_mode=True)
+        cache.record_pass(fp)
+        with pytest.raises(RuntimeError, match="not allowed in production_mode"):
+            cache._flush()
+
+    def test_flush_allowed_in_test_mode(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, production_mode=False)
+        cache.record_pass(fp)
+        # Should not raise — test mode allows rewrite
+        cache._flush()
+
+    def test_append_works_in_production_mode(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, production_mode=True)
+        entry = cache.record_pass(fp)
+        assert entry is not None
+        assert cache.pass_count() == 1
+
+
+class TestWriteReadModes:
+    """Fix 5: write_enabled + read_enabled mode gates."""
+
+    def test_write_disabled_record_pass_is_noop(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, write_enabled=False)
+        result = cache.record_pass(fp)
+        assert result is None
+        assert cache.pass_count() == 0
+
+    def test_write_disabled_record_fail_is_noop(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, write_enabled=False)
+        result = cache.record_fail(fp)
+        assert result is None
+        assert cache.fail_count() == 0
+
+    def test_read_disabled_should_skip_always_false(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        # Write entry first with a normal cache
+        writer = VisualDeltaCache(tmp_path)
+        writer.record_pass(fp)
+        # Now open a read_enabled=False cache — should never skip even with disk entry
+        cache = VisualDeltaCache(tmp_path, read_enabled=False)
+        result = cache.should_skip(fp, mode="FAST")
+        assert result is False
+
+    def test_dev_mode_write_false_does_not_pollute_registry(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, write_enabled=False, production_mode=False)
+        cache.record_pass(fp)
+        assert not (tmp_path / VisualDeltaCache._FILENAME).exists()
+
+    def test_production_mode_write_and_read_enabled(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(
+            tmp_path,
+            production_mode=True,
+            write_enabled=True,
+            read_enabled=True,
+        )
+        cache.record_pass(fp)
+        assert cache.pass_count() == 1
+        assert cache.should_skip(fp, mode="FAST") is True
+
+
+class TestFingerprintVersion:
+    """Fix 4: fingerprintVersion='v3' present in every entry."""
+
+    def test_fingerprint_version_written_on_record_pass(self, tmp_path: Path):
+        from core.visual_delta_cache import FINGERPRINT_VERSION
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path)
+        entry = cache.record_pass(fp)
+        assert entry is not None
+        assert entry.fingerprint_version == FINGERPRINT_VERSION
+
+    def test_fingerprint_version_in_jsonl(self, tmp_path: Path):
+        from core.visual_delta_cache import FINGERPRINT_VERSION
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path)
+        cache.record_pass(fp)
+        jsonl = (tmp_path / VisualDeltaCache._FILENAME).read_text(encoding="utf-8")
+        row = json.loads(jsonl.strip().splitlines()[0])
+        assert row["fingerprintVersion"] == FINGERPRINT_VERSION
+
+    def test_old_entries_without_version_return_v1(self, tmp_path: Path):
+        """Backward-compat: entries without fingerprintVersion default to 'v1'."""
+        from core.visual_delta_cache import VisualCacheEntry
+        entry = VisualCacheEntry({"screenKey": "x", "imageSha256": "y", "result": "PASS",
+                                  "normalizedImageSha256": "", "validationContextSha256": "",
+                                  "renderInputSha256": "", "validationFingerprintSha256": "",
+                                  "policyVersion": ""})
+        assert entry.fingerprint_version == "v1"
+
+
+class TestCacheMetrics:
+    """Fix 6: CacheMetrics hit/miss/forced tracking + get_metrics()."""
+
+    def test_miss_on_empty_cache(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path)
+        cache.should_skip(fp, mode="FAST")
+        m = cache.get_metrics()
+        assert m.misses == 1
+        assert m.hits == 0
+
+    def test_hit_after_record_pass(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path)
+        cache.record_pass(fp)
+        cache.should_skip(fp, mode="FAST")
+        m = cache.get_metrics()
+        assert m.hits >= 1
+
+    def test_forced_ttl_counted(self, tmp_path: Path):
+        from datetime import timedelta
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, max_age_hours=1)
+        cache.record_pass(fp)
+        old_ts = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
+        for entry in cache._entries:
+            if entry.result == "PASS":
+                entry._d["validatedAtUtc"] = old_ts
+        cache._flush()  # OK: production_mode=False (default)
+        cache2 = VisualDeltaCache(tmp_path, max_age_hours=1)
+        cache2.should_skip(fp, mode="FAST")
+        m = cache2.get_metrics()
+        assert m.forced_ttl >= 1
+
+    def test_forced_hot_zone_counted(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        stability = {fp.screen_key: 0.90}
+        cache = VisualDeltaCache(tmp_path, failure_rate_overrides=stability)
+        cache.record_pass(fp)
+        cache.should_skip(fp, mode="FAST")
+        m = cache.get_metrics()
+        assert m.forced_hot_zone >= 1
+
+    def test_writes_counted(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path)
+        cache.record_pass(fp)
+        cache.record_fail(fp)
+        m = cache.get_metrics()
+        assert m.writes == 2
+
+    def test_hit_rate_calculation(self, tmp_path: Path):
+        (tmp_path / "other").mkdir()
+        fp = _complete_fp(tmp_path)
+        fp2 = _complete_fp(tmp_path / "other", screen_key="other-screen")
+        cache = VisualDeltaCache(tmp_path)
+        cache.record_pass(fp)
+        # 1 hit
+        cache.should_skip(fp, mode="FAST")
+        # 1 miss (different fp)
+        cache.should_skip(fp2, mode="FAST")
+        m = cache.get_metrics()
+        assert m.hit_rate == pytest.approx(0.5, abs=0.01)
+
+    def test_read_disabled_counts_misses(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path, read_enabled=False)
+        cache.should_skip(fp, mode="FAST")
+        cache.should_skip(fp, mode="FAST")
+        m = cache.get_metrics()
+        assert m.misses == 2
+        assert m.hits == 0
+
+    def test_metrics_in_summary(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path)
+        cache.record_pass(fp)
+        s = cache.summary()
+        assert "metrics" in s
+        assert "writes" in s["metrics"]
+
+
+class TestLruHotCache:
+    """Fix 2 + 3: LRU hot cache + write dedup."""
+
+    def test_dedup_skips_write_for_same_fingerprint(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        cache = VisualDeltaCache(tmp_path)
+        cache.record_pass(fp)
+        # Second record_pass same fingerprint → deduplicated
+        cache.record_pass(fp)
+        m = cache.get_metrics()
+        assert m.dedup_skipped == 1
+
+    def test_no_dedup_for_different_fingerprint(self, tmp_path: Path):
+        (tmp_path / "s1").mkdir()
+        (tmp_path / "s2").mkdir()
+        fp1 = _complete_fp(tmp_path / "s1", screen_key="s1")
+        fp2 = _complete_fp(tmp_path / "s2", screen_key="s2")
+        cache = VisualDeltaCache(tmp_path)
+        cache.record_pass(fp1)
+        cache.record_pass(fp2)
+        m = cache.get_metrics()
+        assert m.dedup_skipped == 0
+        assert m.writes == 2
+
+    def test_hot_cache_seeded_from_disk_on_load(self, tmp_path: Path):
+        fp = _complete_fp(tmp_path)
+        # Write entry to disk
+        cache1 = VisualDeltaCache(tmp_path)
+        cache1.record_pass(fp)
+        # Load fresh cache — hot cache should be populated from JSONL
+        cache2 = VisualDeltaCache(tmp_path)
+        assert fp.validation_fingerprint_sha256 in cache2._hot_cache
+
+
+# ---------------------------------------------------------------------------
+# Helpers needed by Wave 11.1 tests
+# ---------------------------------------------------------------------------
+
+def _make_test_entry(fp):
+    """Minimal VisualCacheEntry for test injection."""
+    from core.visual_delta_cache import VisualCacheEntry
+    return VisualCacheEntry({
+        "screenKey": fp.screen_key,
+        "imageSha256": fp.image_sha256,
+        "normalizedImageSha256": fp.normalized_image_sha256,
+        "validationContextSha256": fp.validation_context_sha256,
+        "renderInputSha256": fp.render_input_sha256,
+        "validationFingerprintSha256": fp.validation_fingerprint_sha256,
+        "policyVersion": fp.policy_version,
+        "result": "PASS",
+        "validatedAtUtc": datetime.now(timezone.utc).isoformat(),
+    })

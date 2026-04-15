@@ -3,9 +3,9 @@
 > **Purpose:** Alt hvad jeg behøver at vide om green-ai — tech, build-state, locks, domain-states.  
 > **Opdatér** når et STEP afsluttes, migration applied, lock ændres, eller tech stack ændres.
 
-**Last Updated:** 2026-04-14 (090 implementation plan created)  
-**Migration level:** V037  
-**Tests:** ~461 unit + 9 governance + 128/128 E2E ✅  
+**Last Updated:** 2026-04-15 (Wave 10 execution correction — F1-F6 fixed)  
+**Migration level:** V050  
+**Tests:** 577 handler + 12 HTTP (server-required, always skipped in batch) + 924/924 Python (analysis-tool)  
 **Build:** 0 warnings  
 **DB:** `GreenAI_DEV` på `(localdb)\MSSQLLocalDB`  
 **App:** `http://localhost:5057` — start: `dotnet run --project src/GreenAi.Api`
@@ -78,7 +78,7 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 
 ---
 
-## DB Schema akkurat nu (V037)
+## DB Schema akkurat nu (V050)
 
 | Tabel | Nøgle kolonner | Bemærkning |
 |-------|---------------|------------|
@@ -95,6 +95,14 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 | ActivityLogs | Id, ActivityLogTypeCode, ObjectId | UNIQUE (ActivityLogTypeCode, ObjectId) — one parent per type+object |
 | ActivityLogEntryTypes | Id, DescriptionTranslationKey | UNIQUE (DescriptionTranslationKey) — GetOrCreate (dynamic lookup, NOT enum table) |
 | ActivityLogEntries | Id, ActivityLogId, EntryTypeId, DescriptionTranslationParms?, UserId?, DateCreatedUtc | Append-only; EntryTypeId FK → ActivityLogEntryTypes; TranslationKey stored (not resolved) |
+| Broadcasts | Id, CustomerId, ProfileId, Name, Active, IsLookedUp, Channels (tinyint), SendMethod, CountryId | SMS domain — AGG-MSG-01 |
+| BroadcastSmsContent | Id, BroadcastId, MessageText, SendAs, StandardReceiverText, ReceiveSmsReply, UseUcs2Encoding | SMS content for channel 1 |
+| BroadcastEmailContent | Id, BroadcastId, Subject, Body, SendAs, ReplyTo | SMS domain — email channel (2) |
+| RecipientCriteria | Id, BroadcastId, PhoneCode, PhoneNumber, ... | Raw criteria — RULE-CRITERIA-ARE-RAW |
+| ResolvedRecipients | Id, BroadcastId, PhoneNumber, StandardReceiverId, SourceType | Post-resolve snapshot (V046) |
+| UnresolvedCriteria | Id, BroadcastId, CriterionId, Reason | Explicit unresolved audit trail (V046) |
+| OutboundMessages | Id, BroadcastId, Recipient, Channel, Payload, Status, AttemptCount, ProviderMessageId, SentUtc, DeliveredUtc, FailedAtUtc, UpdatedUtc | CANONICAL execution truth (RULE-EXEC-01) — V050 |
+| DispatchAttempts | (legacy — NOT written in live flow) | DEPRECATED — do not use in new code |
 
 ---
 
@@ -158,7 +166,7 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | customer_administration | N-B APPROVED | 2026-04-12 | Gap-fill — stubs eksisterer |
 | job_management | DONE 🔒 | V035 | LogJobTaskStatus, GetRecentAndOngoingTasks, SSE (ActiveJobsHub + ClientEventBackgroundService) |
 | activity_log | DONE 🔒 | V037 | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs — FAIL-OPEN invariant |
-| sms | N-B APPROVED | 2026-04-14 | 080 build slices ready — 23 slices (AGG-MSG/CUST/SUB/IMP/ADDR/PIPE) |
+| sms | IN PROGRESS | 2026-04-15 | Wave 8 done (F1-F4+RULE-EXEC-01..06). Wave 10: F5 (STD_RECEIVER phone-normalized) + F6 (real payload) fixed. OutboundMessages = canonical truth. |
 | customer_management | N-A | — | Score 0.88 — analyse pågår |
 | Alle øvrige | N-A | — | Score < 0.88 — extraction mangler |
 

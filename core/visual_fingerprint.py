@@ -157,6 +157,8 @@ class RenderInputs:
     seed_hash: str = ""           # SHA256 of DB seed / fixture snapshot
     feature_flags_hash: str = ""  # SHA256 of active feature-flag values
     browser_profile_hash: str = ""
+    props_hash: str = ""          # SHA256 of component props / input bindings (render_signature)
+    data_model_hash: str = ""     # SHA256 of data model / state snapshot JSON (render_signature)
 
     def to_canonical_dict(self) -> dict:
         return {
@@ -166,6 +168,8 @@ class RenderInputs:
             "seedHash":          self.seed_hash,
             "featureFlagsHash":  self.feature_flags_hash,
             "browserProfileHash": self.browser_profile_hash,
+            "propsHash":         self.props_hash,
+            "dataModelHash":     self.data_model_hash,
         }
 
 

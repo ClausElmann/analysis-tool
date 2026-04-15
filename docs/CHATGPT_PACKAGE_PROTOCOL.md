@@ -1,7 +1,7 @@
 # ARCHITECT REVIEW PACKAGE PROTOCOL
 **For ChatGPT (Architect) — Analysis + Build Package**
 
-**Last Updated:** 2026-04-13
+**Last Updated:** 2026-04-15
 
 ## PURPOSE
 
@@ -76,6 +76,27 @@ green-ai/
 ```
 
 **Architect: Start med `docs/SSOT/backend/reference/` for domæne-forståelse, derefter `Features/` for implementering.**
+
+### 4. Visual Intelligence (Layer 2.5)
+```
+analysis-tool/visual-intelligence/
+  cache_index.jsonl              (VisualCacheEntry historik — hashes + metadata)
+  recent_runs/                   (seneste diff outputs som JSON)
+    run_YYYY-MM-DD_HHMM.json     (VisualDiffReport + fingerprint per screen)
+  stats/
+    component_stability.json     (pass/fail ratio pr komponent)
+    failure_patterns.json        (hyppige fejltyper: TEXT/LAYOUT/COMPONENT/VISUAL)
+```
+
+**Formål:**
+- Giver Architect indsigt i **runtime-adfærd** (ikke kun statisk build-state)
+- Muliggør prioritering baseret på **faktiske fejl** ("denne komponent fejler 38%")
+- Understøtter intelligent redesign og Wave 10 Auto Prioritization
+
+**⚠️ REGLER for Layer 2.5:**
+- ✅ Inkludér: hashes, diff metadata, stats, pass/fail ratios
+- ❌ ALDRIG: screenshots, raw images (for tungt + privat)
+- ❌ ALDRIG: paths der afslører kundeinformation
 
 ---
 
