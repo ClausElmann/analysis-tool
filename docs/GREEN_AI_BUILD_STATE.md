@@ -3,9 +3,9 @@
 > **Purpose:** Alt hvad jeg behøver at vide om green-ai — tech, build-state, locks, domain-states.  
 > **Opdatér** når et STEP afsluttes, migration applied, lock ændres, eller tech stack ændres.
 
-**Last Updated:** 2026-04-15 (Wave 10 execution correction — F1-F6 fixed)  
+**Last Updated:** 2026-04-15 (Wave 11.1 + Wave 12 — enterprise cache hardening + AutoDecisionEngine)  
 **Migration level:** V050  
-**Tests:** 577 handler + 12 HTTP (server-required, always skipped in batch) + 924/924 Python (analysis-tool)  
+**Tests:** 577 handler + 12 HTTP (server-required, always skipped in batch) + 996/996 Python (analysis-tool)  
 **Build:** 0 warnings  
 **DB:** `GreenAI_DEV` på `(localdb)\MSSQLLocalDB`  
 **App:** `http://localhost:5057` — start: `dotnet run --project src/GreenAi.Api`
@@ -119,6 +119,7 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 | `2FA_SMS_BLOCKED` 🔒 | SMS-domænet ikke bygget; ingen delvis 2FA |
 | `SMSLOG_CONFIRMED_REQUIRED_BUT_DEFERRED` 🔒 | SmsLog deferred til SMS-domænet |
 | `UI_SYSTEM_LOCKED` 🔒 | Ingen UI-ændringer uden failing test eller ny feature |
+| `EMAIL_RECIPIENT_NOT_SUPPORTED_IN_BROADCAST_MVP` 🔒 | Broadcast-domænet sender kun SMS. Email-kanal kræver separat email_delivery/-domæne |
 
 ---
 
@@ -176,6 +177,30 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 
 ---
 
+## Analysis-Tool — Visual System Wave Inventory
+
+| Wave | Komponent | Status |
+|------|-----------|--------|
+| Wave 8 | `VisualDeltaCache` v1 — 10-condition skip, production_mode | ✅ DONE |
+| Wave 8 | `VisualFingerprint` + `VisualFingerprintBuilder` | ✅ DONE |
+| Wave 8 | `VisualDiffEngine` — TEXT/LAYOUT/VISUAL/COMPONENT/UNKNOWN | ✅ DONE |
+| Wave 9 | `VisualDeltaExporter` — compare_with_last integration | ✅ DONE |
+| Wave 10 | `VisualIntelligenceReporter` — cache_index + stats (Layer 2.5) | ✅ DONE |
+| Wave 11 | `render_signature` — props_hash + data_model_hash (RenderInputs) | ✅ DONE |
+| Wave 11 | TTL (`max_age_hours`) + Failure hot zone (`failure_rate_overrides`) | ✅ DONE |
+| Wave 11.1 | `_flush()` production guard (concurrent safety) | ✅ DONE |
+| Wave 11.1 | LRU hot cache `OrderedDict` (50k bound) + write dedup | ✅ DONE |
+| Wave 11.1 | `FINGERPRINT_VERSION = "v3"` + backward compat | ✅ DONE |
+| Wave 11.1 | `write_enabled` / `read_enabled` (DEV vs PROD split) | ✅ DONE |
+| Wave 11.1 | `CacheMetrics` + `get_metrics()` (SLA monitoring) | ✅ DONE |
+| Wave 12 | `AutoDecisionEngine` — IGNORE/WARN/FAIL matrix | ✅ DONE |
+| Wave 13 | E2E pipeline integration (record_pass/fail mod rigtige screenshots) | ⏳ PENDING |
+| Wave 14 | CI-block hook — AutoDecisionEngine kobles på E2E output | ⏳ PENDING |
+
+**Python tests:** 996/996 ✅
+
+---
+
 ## Next Step — When Architect Says "fortsæt"
 
 **Protocol:** `STEP_NA_NB_GOVERNANCE_ACTIVE 🔒`
@@ -188,13 +213,18 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 
 | Priority | Domain | Score | Rationale |
 |----------|--------|-------|-----------|
-| 1 | `localization` | 0.915 | BatchUpsertLabels exists — likely gap-fill only (fast win) |
-| 2 | `customer_administration` | 0.88 | GetCustomerSettings/Profiles/Users stubs exist — likely gap-fill |
-| 3 | `job_management` | 0.93 | High completeness, 0 green-ai code — full implementation |
-| 4 | `activity_log` | 0.92 | High completeness, 0 green-ai code |
-| 5 | `customer_management` | 0.88 | High completeness, 0 green-ai code |
+| 1 | `customer_administration` | 0.88 | GetCustomerSettings/Profiles/Users stubs exist — N-B APPROVED |
+| 2 | `customer_management` | 0.88 | High completeness, 0 green-ai code |
+| 3 | `eboks_integration` | 0.88 | High completeness, 0 green-ai code |
+| 4 | `logging` | 0.88 | High completeness, 0 green-ai code |
+| 5 | `Delivery` | 0.84 | Needs gap check first |
 
 **Architect must decide** — Copilot does NOT choose the next domain autonomously.
+
+**Analysis-tool next candidates:**
+- Wave 13: E2E integration (connect pipeline to actual green-ai screenshots)
+- Wave 14: CI-block hook (AutoDecisionEngine → CI gate)
+- Eller: Architect kan prioritere grøn-ai SMS-domæne completion (Wave 10 er done, men SMS-feature-set ikke 🔒 endnu)
 
 ---
 

@@ -1,6 +1,6 @@
 # CHATGPT ROLE — SYSTEM ARCHITECT (BINDING GOVERNANCE)
 
-Last Updated: 2026-04-12
+Last Updated: 2026-04-15
 Full templates + workflows: **INSTRUKTIONER_SUPPLEMENT.md** (upload this file in ChatGPT sources)
 
 ---
@@ -129,16 +129,13 @@ Wait for the answer before giving any directive.
 
 Append-only session log — temporary, cleared between topics. You always see excerpts. Treat as snapshot — may be hours old. For fresh state: use session-start query above.
 
-**Size rule:** If user says temp.md > ~1000 lines, append to your next Copilot prompt:
-
+**Size rule:** Copilot styrer temp.md-størrelse proaktivt. Hvis du som Architect ser at temp.md er lang, send:
 ```
-Copilot: temp.md er over 1000 linjer — ryd op som del af denne opgave.
-- Arkivér gamle entries til temp_history/ med dato-suffix
-- Behold kun: CURRENT TASK + seneste COPILOT → ARCHITECT + seneste ARCHITECT → COPILOT
-- temp.md skal være under 1000 linjer når du er færdig
+Copilot: temp.md er for lang — ryd op nu.
+- Slet al færdigbehandlet indhold
+- Behold kun: aktive spørgsmål + uimplementerede direktiver + token
+- temp.md skal være under 200 linjer når du er færdig
 ```
-
-Repeat until user confirms < 1000 lines.
 
 ---
 

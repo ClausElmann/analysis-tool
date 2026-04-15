@@ -3,7 +3,7 @@
 **Source:** Layer 0 — sms-service source code + SQL  
 **Status:** VALIDATED (Wave 2, approved by Architect)  
 **Authority:** INFORMATIONAL — describes WHAT sms-service does  
-**Last updated:** 2026-04-12
+**Last updated:** 2026-04-15 (Wave gap-scan — NO/SE/FI import sources confirmed)
 
 ---
 
@@ -290,7 +290,9 @@ If `SendToCriticalAddressesOnly=true` AND address is not marked critical → exc
 | `DarFileDownloadImporter` | HTTP client (DAR file) | Import DK address file | BATCH JOB only |
 | `IEjerfortegnelseAppService` | HTTP client | Import DK property owners into `AddressOwners` | BATCH JOB only |
 | `IStatstidendeService` | HTTP client | Import DK corporate announcements (company status) | BATCH JOB only |
-| Norwegian/Swedish/Finnish sources | UNKNOWN | Import NO/SE/FI addresses + owners | BATCH JOB — source not identified |
+| `EndringslogsService` + `StoreService` (Kartverket) | HTTP client (Kartverket API) | Import NO addresses | BATCH JOB only |
+| `LantmaterietImporter` (Lantmäteriet) | HTTP client (weekly API) | Import SE addresses — day-after-fetch lag | BATCH JOB only |
+| AvoinData (Finland) | HTTP client | Import FI addresses | ⚠️ **CLOSED February 2025** — new FI source UNKNOWN |
 
 **Finding:** ALL external address/owner API calls are import-time batch jobs. The SMS lookup pipeline makes ZERO external HTTP calls for address resolution in the DK/SE/FI path. Norway KRR/1881 are the ONLY potential real-time external lookups (not verified — see UNKNOWNS).
 
@@ -329,7 +331,7 @@ All call `GetAllStreetsByZipAsync().GetAwaiter().GetResult()` in synchronous val
 | UNKNOWN-7 | Norwegian address residents + property owners processors (local vs external?) | MEDIUM |
 | UNKNOWN-8 | PhoneNumbers import schedule — how frequent? How stale can teledata be? | HIGH for data quality |
 | UNKNOWN-9 | `MunicipalityPositiveListAddressRestriction.GetTableJoins()` exact SQL (symmetric to PositiveList — inferred but not read) | LOW |
-| UNKNOWN-NO | NO/SE/FI address register import sources — which external services? | MEDIUM |
+| UNKNOWN-NO | ~~NO/SE/FI address register import sources~~ CLOSED: NO=Kartverket, SE=Lantmäteriet. FI=AvoinData ⚠️ source CLOSED Feb 2025 — new FI import source unknown | HIGH — FI addresses may be stale/broken in production |
 
 ---
 

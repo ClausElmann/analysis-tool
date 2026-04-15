@@ -3,7 +3,7 @@
 **Source:** Layer 0 — sms-service source code + SQL  
 **Status:** VALIDATED (Wave 1 + Wave 2, approved by Architect)  
 **Authority:** INFORMATIONAL — describes WHAT sms-service does, not HOW green-ai should implement  
-**Last updated:** 2026-04-12
+**Last updated:** 2026-04-15 (Wave gap-scan — all 12 permission flags confirmed + Robinson context)
 
 ---
 
@@ -354,10 +354,12 @@ WHERE Active=1 AND IsLookedUp=0
 
 | ID | What | Impact |
 |---|---|---|
-| UNKNOWN-5 | Norway KRR, Norway 1881, VarsleMeg processors — real-time external API or local? | HIGH for Norway |
+| UNKNOWN-5 | ~~Norway KRR, Norway 1881, VarsleMeg processors — real-time external API or local?~~ CLOSED: `NorwayKRRLookup`, `Norway1881Lookup`, `VarsleMegLookup` are 3 of the 12 permission flags (LookupState booleans). All 12 flags now fully documented above. | ✅ CLOSED |
 | UNKNOWN-4 | `LookupRetryPolicy` max retry count + backoff | MEDIUM |
 | UNKNOWN-6 | `ISmsLogBackgroundProcessingManager.CanRunInBackground()` exact condition | LOW |
 | UNKNOWN-7 | Norwegian address residents + property owners processors (local or external API?) | MEDIUM |
+
+**Robinson context (GAP-007):** Robinson is an **opt-in profile right** (`RobinsonCheck` flag), NOT a legal mandate for all sends. Customers that have this role enabled get their send filtered against `RobinsonEntries`. Status 207 = Robinson-filtered recipient. Data source and update frequency remain unknown.
 
 ---
 

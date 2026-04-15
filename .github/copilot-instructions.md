@@ -15,6 +15,12 @@ Derefter svar på brugerens besked med fuld kontekst.
 
 **COPILOT MÅ ALDRIG GÆTTE — ALT HAR ROD I LAYER 0-KILDER**
 
+**temp.md STØRRELSE — PROAKTIV RYDNING:**
+Efter enhver opgave: tjek om temp.md > 500 linjer. Hvis ja — ryd automatisk:
+- Slet: implementerede planer, afsluttede RESULT-blokke, gamle Wave-rapporter
+- Behold: seneste `COPILOT → ARCHITECT` (åbne spørgsmål), uimplementerede direktiver, token-header
+- Mål: < 200 linjer efter rydning
+
 ---
 
 ## DOKUMENTER

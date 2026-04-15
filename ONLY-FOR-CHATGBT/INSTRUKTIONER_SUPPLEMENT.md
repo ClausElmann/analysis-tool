@@ -1,6 +1,6 @@
 # INSTRUKTIONER_SUPPLEMENT — ChatGPT Architect Full Reference
 
-Last Updated: 2026-04-12
+Last Updated: 2026-04-15
 This file is the reference supplement for `INSTRUKTIONER.md` (Project Instructions).
 Upload this file in ChatGPT sources alongside the zip.
 

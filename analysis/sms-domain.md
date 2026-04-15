@@ -3,7 +3,7 @@
 **Source:** Layer 0 — sms-service source code + SQL  
 **Status:** VALIDATED (Wave 1 + Wave 2, approved by Architect)  
 **Authority:** INFORMATIONAL — describes WHAT sms-service does  
-**Last updated:** 2026-04-12
+**Last updated:** 2026-04-15 (Wave gap-scan — Voice channel, StandardReceivers, Email provider, ByLevel confirmed)
 
 ---
 
@@ -15,7 +15,7 @@ User creates SmsGroup (UI / API)
   → Lookup pipeline runs (see lookup-pipeline.md)
     → SmsLogs created (StatusCode=103 = ready for dispatch)
   → Batch dispatch (stored procedure claims rows)
-    → GatewayAPI / Strex call (external SMS gateway)
+    → GatewayAPI / Strex call (SMS gateway) — or Brevo/SendInBlue (email) — or Infobip (voice)
   → DLR callback received
     → SmsLog StatusCode updated
     → SmsLogStatus audit row appended
@@ -104,7 +104,60 @@ Written once by address expansion. Read at every lookup start. Cleared on SmsGro
 
 ---
 
-## 3. DISPATCH SQL (COMPLETE — from stored proc)
+## 2b. SENDMETHOD = "BYLEVEL" — BUSINESS MEANING
+
+`SmsGroup.SendMethod = "ByLevel"` triggers a **level-based address expansion** instead of the normal Zip-criteria TVP approach.
+
+**What "levels" are:**  
+A `ProfilePositiveList` can have up to **5 independent Levels**, each with a `Title` and a list of `Values` (e.g., Level 1 = "Commune", Level 2 = "Zone", etc.).
+When `SendMethod=ByLevel`, the user selects combinations of level-values, and the system cross-joins those combinations to produce a set of Kvhxs.
+
+**Flow:**
+```
+GetSmsGroupAddressesFromLevelsAsync(profileId, smsGroupId, smsGroup)
+  → ProfilePositiveListSelectedLevelFilterQuery — reads level selections
+  → LevelService.GetLevelCombinationIdsAsync(profileId, levels) — cross-join IDs
+  → LevelService.GetLevelCombinationListingsAsync(combinationIds) — Kvhx list
+  → AddressRepository.GetByMultipleKvhx(listings) — resolves to Addresses table
+```
+
+**Key constraints:**
+- Levels are **NOT** a strict address hierarchy (country → region → city). They are customer-defined arbitrary groupings.
+- Each Level is independent — selecting values in Level 2 does NOT restrict Level 1 automatically.
+- ByLevel bypasses the criteria TVP (`SmsGroupItemsType`) entirely.
+
+**DB tables involved:** `PositiveListLevels`, `PositiveListLevelValues`, `PositiveListLevelCombinations`, `ProfilePositiveListSelectedLevels`
+
+---
+
+## 2c. CHANNELS — CONFIRMED ACTIVE CHANNELS
+
+| Channel | Gateway/Provider | Background Service | Status |
+|---------|-----------------|-------------------|--------|
+| SMS | GatewayAPI (DK) / Strex (NO) | `SmsBackgroundService` | ✅ Active |
+| Email | SendGrid → migrating to Brevo/SendInBlue | `EmailBackgroundService` + `SendGridBackgroundService` | ✅ Active — migration in progress |
+| Voice | Infobip | `VoiceBackgroundService` | ✅ Active — Infobip replacement in progress (see WIKI: Implementation/Infobip-replacement.md) |
+| Web/Social | Facebook, Twitter | Unknown background service | ⚠️ Scope unknown for green-ai |
+
+**Email DLR:** via webhooks (Brevo delivers event callbacks — same pattern as SMS DLR).
+
+**NOTE FOR GREEN-AI:** `Broadcasts.Channels` enum currently has SMS=1, Email=2. Voice=3 is missing. Architect decision required before adding Voice.
+
+---
+
+## 2d. STANDARDRECEIVERS — BUSINESS CONTEXT
+
+**What they are:** Pre-defined recipient lists maintained per Customer (NOT global). Used for recipients who should always receive messages from that customer regardless of address lookup (e.g., key personnel, emergency contacts).
+
+**Structure:**
+- `StandardReceivers` — individual recipients (PhoneCode + PhoneNumber, optional Name)
+- `StandardReceiverGroups` — named collections of StandardReceivers per Customer
+- `SmsGroupItems.StandardReceiverId` — direct reference to one receiver
+- `SmsGroupItems.StandardReceiverGroupId` — reference to a group (expanded in pipeline Step 2)
+
+**Key property:** Customer-specific. A StandardReceiver belongs to exactly one Customer.
+
+**Active feature:** PR #12114 (sms group StandardReceiver admin), PR #12139 (StandardReceiver admin UI) — confirmed actively developed as of 2026-Q1.
 
 **File:** `ServiceAlert.DB/Stored Procedures/GetSmsLogMergeModelForSmsByStatusAndGatewayClass.sql`  
 **Called by:** Azure Batch dispatch job  
