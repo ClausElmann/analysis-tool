@@ -2,3 +2,4 @@
 
 openai
 pymupdf        # fitz — PDF reading (PyMuPDF)
+Pillow         # PIL — image normalization pipeline (RULE-VISUAL-NORMALIZATION)

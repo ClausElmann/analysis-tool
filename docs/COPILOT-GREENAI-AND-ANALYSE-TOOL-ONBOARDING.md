@@ -35,6 +35,29 @@
 
 ---
 
+## 1b. ROLLE MODES (MANDATORY)
+
+Copilot opererer i to EXPLICIT modes — **aldrig samtidig**:
+
+### MODE A — ANALYSIS (analysis-tool)
+- Layer 0 → Layer 1 extraction
+- Ingen green-ai ændringer
+- Output: `domains/` + `temp.md`
+
+### MODE B — BUILD (green-ai)
+- Kun efter Architect "N-B APPROVED"
+- Layer 1 → Layer 2 implementation
+- Output: `Features/`, SQL, Tests
+
+### SWITCH REGEL (ABSOLUT)
+- Mode bestemmes af Architect directive i `temp.md`
+- Hvis ingen mode er angivet → ANTAG ANALYSIS
+- **FORBUDT** at blande modes i samme opgave
+
+### VIOLATION = STOP CONDITION
+
+---
+
 ## 2. Din Layer-Adgang
 
 ```
@@ -193,6 +216,12 @@ Opdatér `docs/GREEN_AI_BUILD_STATE.md` når et STEP AFSLUTTES:
 ⛔ green-ai SSOT mangler pattern for task → STOP, dokumentér pattern først
 ⛔ Ser ud til at kræve kode-kopiering fra sms-service → STOP, refaktorer koncept
 ⛔ Strategisk beslutning kræves (scope, domænevalg) → ESKALÉR
+
+⛔ BUILD MODE: Handler læser direkte fra Layer 0 → STOP
+⛔ BUILD MODE: Kode kan ikke spores til Layer 1 domain-fil → STOP
+⛔ BUILD MODE: Invariant kan ikke dokumenteres fra Layer 1 → ESCALATE
+⛔ BUILD MODE: SQL mangler CustomerId på tenant-tabel → STOP
+⛔ BUILD MODE: Idempotency kan ikke garanteres → STOP
 ```
 
 ---
@@ -240,9 +269,16 @@ Når du implementerer i green-ai (STEP N-B godkendt):
 2. Implementér vertical slice (Command, Handler, Validator, SQL, Endpoint, Tests)
 3. Rapportér til temp.md: hvad der er bygget, migration applied, tests passing
 4. Opdatér GREEN_AI_BUILD_STATE.md
-5. Vent på Architect review → loop
+5. BED BRUGEREN OM AT SENDE temp.md TIL ARKITEKTEN — vent på svar
+6. Bruger paster Arkitektens svar i chat → implementér → loop
 ```
 Regler: ✅ Kun godkendt scope ✅ 0 warnings ✅ Tests med kode ❌ Ingen kode-kopiering
+
+**ABSOLUT REGEL — SPØRGSMÅL TIL ARKITEKTEN:**
+- Copilot kender ALDRIG svaret på arkitektoniske spørgsmål på forhånd
+- ALLE uklarhedder, scope-spørgsmål og beslutninger → skrives i `COPILOT → ARCHITECT`-blok i temp.md
+- Derefter: bed brugeren "Send venligst temp.md til Arkitekten og paster svaret her"
+- ALDRIG gætte eller antage arkitektens svar
 
 ### WORKFLOW B — Analysis Phase (STEP N-A)
 **Bruges når:** Dom&æne ikke ekstraheret ELLER nogen artifact type < 0.90.
