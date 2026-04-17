@@ -10,9 +10,9 @@ All AI processors must:
 CopilotAIProcessor uses GitHub Copilot via the OpenAI-compatible
 GitHub Copilot API endpoint:  https://api.githubcopilot.com
 
-Requires:
-  pip install openai
-  GITHUB_TOKEN env var  (a GitHub PAT or Copilot token)
+Token resolution order (automatic — no manual setup required):
+  1. GITHUB_TOKEN env var
+  2. gh auth token  (GitHub CLI — authenticated via VS Code or manual login)
 
 Default model:
   gpt-4.1  — free with GitHub Copilot subscription
@@ -21,6 +21,7 @@ Default model:
 import json
 import os
 import re
+import subprocess
 from abc import ABC, abstractmethod
 
 # Canonical domain output keys — every AI response must include all of these.
@@ -112,10 +113,14 @@ class CopilotAIProcessor(AIProcessor):
         max_retries: int = 3,
         github_token: str | None = None,
     ):
-        token = github_token or os.environ.get("GITHUB_TOKEN")
+        token = github_token or os.environ.get("GITHUB_TOKEN") or self._get_gh_token()
         if not token:
             raise ValueError(
-                "GitHub token required. Set GITHUB_TOKEN env var or pass github_token=."
+                "GitHub token not found.\n"
+                "Options:\n"
+                "  1. Install GitHub CLI and run: gh auth login\n"
+                "  2. Set env var: $env:GITHUB_TOKEN = 'your-token'\n"
+                "  3. Run with --stub for structure-only analysis (no LLM)"
             )
 
         try:
@@ -127,6 +132,24 @@ class CopilotAIProcessor(AIProcessor):
         self._model = model
         self._temperature = temperature
         self._max_retries = max_retries
+
+    @staticmethod
+    def _get_gh_token() -> str | None:
+        """Auto-detect token from GitHub CLI (gh auth token)."""
+        try:
+            result = subprocess.run(
+                ["gh", "auth", "token"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            token = result.stdout.strip()
+            if token and result.returncode == 0:
+                print("  [INFO] Using GitHub CLI token (gh auth token)")
+                return token
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+        return None
 
     def process(self, asset: dict, stage: str, prompt: str) -> dict:
         last_error: Exception | None = None

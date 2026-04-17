@@ -1,0 +1,63 @@
+{
+  "domain": "Templates",
+  "source": "GreenAI (green-ai/src)",
+  "capabilities": [
+    {
+      "id": "list_templates",
+      "intent": "List message templates for the authenticated user's customer and profile via JWT claims",
+      "business_value": "Users can retrieve pre-defined templates scoped to their profile before composing a message",
+      "flow": [
+        "HTTP GET request received at /api/v1/templates (evidence: GreenAi.Api/Features/Templates/GetTemplates/GetTemplatesEndpoint.cs:8)",
+        "GetTemplatesHandler.Handle reads ProfileId + CustomerId from ICurrentUser JWT claims (evidence: GreenAi.Api/Features/Templates/GetTemplates/GetTemplatesHandler.cs:21)",
+        "Delegate to MessageTemplateRepository.GetForProfileAsync (evidence: GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:17)",
+        "Return list of MessageTemplateDto"
+      ],
+      "constraints": [
+        "ProfileId from JWT — immutable, no DB-based profile switching",
+        "CustomerId from JWT — tenant isolation"
+      ],
+      "rules": [
+        "RequireAuthorization — only authenticated users",
+        "ICurrentUser (JWT claims) — no DB identity lookup"
+      ],
+      "evidence": [
+        "GreenAi.Api/Features/Templates/GetTemplates/GetTemplatesEndpoint.cs:8",
+        "GreenAi.Api/Features/Templates/GetTemplates/GetTemplatesHandler.cs:21",
+        "GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:17"
+      ],
+      "confidence": 0.91
+    },
+    {
+      "id": "get_template_by_id",
+      "intent": "Retrieve a single message template by ID, scoped to the authenticated customer AND profile (access guard)",
+      "business_value": "Allows fetching a specific template for use in SendDirect (TemplateId parameter) — profile access check prevents cross-profile template access",
+      "flow": [
+        "MessageTemplateRepository.GetByIdAsync called with id, customerId, AND profileId (evidence: GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:24)",
+        "SQL JOIN MessageTemplateProfileAccess enforces profile ownership before returning (evidence: GreenAi.Api/Features/Templates/GetTemplateById.sql:1)",
+        "Returns MessageTemplateDto or null (null = template not found, wrong customer, or profile has no access)"
+      ],
+      "constraints": [
+        "CustomerId isolation — WHERE Id=@Id AND CustomerId=@CustomerId",
+        "ProfileId access gate — INNER JOIN MessageTemplateProfileAccess"
+      ],
+      "rules": [
+        "Channel consistency enforced by SendDirectHandler: template.Channel MUST match command.Channel — INVALID_TEMPLATE_CHANNEL if mismatch"
+      ],
+      "evidence": [
+        "GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:24",
+        "GreenAi.Api/Features/Templates/GetTemplateById.sql:1",
+        "GreenAi.Api/Features/Api/V1/Messages/SendDirect/SendDirectHandler.cs:248"
+      ],
+      "confidence": 0.93
+    }
+  ],
+  "unknown_hints": [
+    "create_template",
+    "update_template",
+    "delete_template",
+    "template_profile_access",
+    "dynamic_mergefields_management",
+    "email_template_crud",
+    "resolve_content"
+  ]
+}

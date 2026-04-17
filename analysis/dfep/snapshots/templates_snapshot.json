@@ -1,0 +1,37 @@
+{
+  "domain": "Templates",
+  "date": "2026-04-17",
+  "match_score": 0.25,
+  "total_l0": 8,
+  "exact_matches": 2,
+  "partial_matches": 0,
+  "missing": 6,
+  "gate_verdict": "FAILED",
+  "l0_capability_ids": [
+    "list_templates",
+    "get_template_by_id",
+    "create_template",
+    "update_template",
+    "delete_template",
+    "template_profile_access",
+    "dynamic_mergefields_management",
+    "email_template_crud"
+  ],
+  "missing_ids": [
+    "create_template",
+    "update_template",
+    "delete_template",
+    "template_profile_access",
+    "dynamic_mergefields_management",
+    "email_template_crud"
+  ],
+  "exact_ids": [
+    "list_templates",
+    "get_template_by_id"
+  ],
+  "partial_ids": [],
+  "blocker_ids": [
+    "create_template",
+    "update_template"
+  ]
+}

@@ -239,6 +239,9 @@ Opdatér `docs/GREEN_AI_BUILD_STATE.md` når et STEP AFSLUTTES:
 ⛔ BUILD MODE: Invariant kan ikke dokumenteres fra Layer 1 → ESCALATE
 ⛔ BUILD MODE: SQL mangler CustomerId på tenant-tabel → STOP
 ⛔ BUILD MODE: Idempotency kan ikke garanteres → STOP
+⛔ DONE GATE: Domæne erklæres DONE 🔒 uden DFEP verification → STOP, kør dfep_runner --domain X --write-temp først
+⛔ DFEP MODE: confidence < 0.80 per capability → markér UNKNOWN, ESKALÉR til Architect
+⛔ DFEP MODE: AI output kan ikke valideres mod source facts → ESKALÉR
 ```
 
 ---

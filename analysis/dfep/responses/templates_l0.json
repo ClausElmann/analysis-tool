@@ -1,0 +1,185 @@
+{
+  "domain": "Templates",
+  "source": "Level 0 (sms-service)",
+  "capabilities": [
+    {
+      "id": "list_templates",
+      "intent": "List templates available for SMS and email for a given customer and profile",
+      "business_value": "Users can browse pre-defined templates scoped to their account and profile before composing a message",
+      "flow": [
+        "Receive customerId and profileId as input (evidence: ServiceAlert.Services/Templates/TemplateService.cs:32)",
+        "Delegate to GetTemplatesForSmsAndEmail or GetTemplates (evidence: ServiceAlert.Services/Templates/TemplateService.cs:40)",
+        "Return filtered template list scoped to customer+profile"
+      ],
+      "constraints": [
+        "CustomerId scoping required for tenant isolation",
+        "ProfileId optional — if null returns customer-wide templates"
+      ],
+      "rules": [
+        "GetTemplatesForSmsAndEmail: profileId is mandatory",
+        "GetTemplates: profileId is optional (null = customer-wide)"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Templates/TemplateService.cs:32",
+        "ServiceAlert.Services/Templates/TemplateService.cs:40",
+        "ServiceAlert.Api/Controllers/TemplateController.cs:33"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "id": "get_template_by_id",
+      "intent": "Retrieve a single template by ID",
+      "business_value": "Allows fetching full template content (body, subject) before sending or editing",
+      "flow": [
+        "Receive templateId as input (evidence: ServiceAlert.Services/Templates/TemplateService.cs:45)",
+        "Delegate to GetTemplateById (evidence: ServiceAlert.Services/Templates/TemplateService.cs:45)",
+        "Return single Template with channel-specific content"
+      ],
+      "constraints": [
+        "CustomerId isolation — must not return templates from other customers"
+      ],
+      "rules": [],
+      "evidence": [
+        "ServiceAlert.Services/Templates/TemplateService.cs:45"
+      ],
+      "confidence": 0.88
+    },
+    {
+      "id": "create_template",
+      "intent": "Create a new message template with channel-specific content",
+      "business_value": "Allows administrators to define reusable message templates for SMS and/or email",
+      "flow": [
+        "Receive template data (name, channel content) (evidence: ServiceAlert.Services/Templates/TemplateService.cs:50)",
+        "Call InsertAsync (evidence: ServiceAlert.Services/Templates/TemplateService.cs:50)",
+        "Return created template ID"
+      ],
+      "constraints": [
+        "CustomerId must be set on creation"
+      ],
+      "rules": [],
+      "evidence": [
+        "ServiceAlert.Services/Templates/TemplateService.cs:50"
+      ],
+      "confidence": 0.85
+    },
+    {
+      "id": "update_template",
+      "intent": "Update an existing message template",
+      "business_value": "Allows editing template content without recreating it",
+      "flow": [
+        "Receive templateId and updated fields (evidence: ServiceAlert.Services/Templates/TemplateService.cs:55)",
+        "Call UpdateAsync (evidence: ServiceAlert.Services/Templates/TemplateService.cs:55)",
+        "Return success/failure"
+      ],
+      "constraints": [],
+      "rules": [],
+      "evidence": [
+        "ServiceAlert.Services/Templates/TemplateService.cs:55"
+      ],
+      "confidence": 0.85
+    },
+    {
+      "id": "delete_template",
+      "intent": "Delete a message template and its channel-specific sub-entities",
+      "business_value": "Allows removing obsolete templates from the system",
+      "flow": [
+        "Receive templateId (evidence: ServiceAlert.Services/Templates/TemplateService.cs:80)",
+        "Call Delete — cascades to TemplateSms (CASCADE) or handles TemplateEmails via code (evidence: ServiceAlert.Services/Templates/TemplateService.cs:80)",
+        "Return success"
+      ],
+      "constraints": [
+        "TemplateEmails: no CASCADE — must be deleted via code before template delete"
+      ],
+      "rules": [],
+      "evidence": [
+        "ServiceAlert.Services/Templates/TemplateService.cs:80"
+      ],
+      "confidence": 0.83
+    },
+    {
+      "id": "template_profile_access",
+      "intent": "Manage which profiles have visibility to which templates (M:M link/unlink)",
+      "business_value": "Controls which users see which templates — templates can be shared across profiles",
+      "flow": [
+        "GetTemplateProfileMappings: list existing links (evidence: ServiceAlert.Services/Templates/TemplateService.cs:598)",
+        "LinkProfileToTemplates: associate a profile with multiple templates (evidence: ServiceAlert.Services/Templates/TemplateService.cs:603)",
+        "UnlinkProfileFromTemplates: remove all template links for a profile (evidence: ServiceAlert.Services/Templates/TemplateService.cs:608)",
+        "LinkTemplateToProfiles: associate a template with multiple profiles (evidence: ServiceAlert.Services/Templates/TemplateService.cs:613)",
+        "UnlinkTemplateFromProfiles: remove all profile links for a template (evidence: ServiceAlert.Services/Templates/TemplateService.cs:618)"
+      ],
+      "constraints": [
+        "No FK constraints on TemplateProfileMappings — application-managed integrity"
+      ],
+      "rules": [
+        "Templates are customer-scoped; profile mapping adds visibility restriction on top",
+        "One template can be visible to multiple profiles (M:M)"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Templates/TemplateService.cs:598",
+        "ServiceAlert.Services/Templates/TemplateService.cs:603",
+        "ServiceAlert.Services/Templates/TemplateService.cs:608",
+        "ServiceAlert.Services/Templates/TemplateService.cs:613",
+        "ServiceAlert.Services/Templates/TemplateService.cs:618"
+      ],
+      "confidence": 0.93
+    },
+    {
+      "id": "dynamic_mergefields_management",
+      "intent": "Define, update, and delete customer-specific dynamic merge field definitions",
+      "business_value": "Customers can define their own personalisation tokens (e.g. [CustomerRef]) for use in templates",
+      "flow": [
+        "GetDynamicMergefields: list defined merge fields for customer (evidence: ServiceAlert.Services/Templates/TemplateService.cs:229)",
+        "InsertDynamicMergefield: create new merge field definition (evidence: ServiceAlert.Services/Templates/TemplateService.cs:242)",
+        "UpdateDynamicMergefield: rename or reconfigure existing merge field (evidence: ServiceAlert.Services/Templates/TemplateService.cs:417)",
+        "DeleteDynamicMergefield: remove merge field and process affected templates (evidence: ServiceAlert.Services/Templates/TemplateService.cs:428)",
+        "CheckMergefieldUsageAndProcessTemplates: validate templates still valid after delete (evidence: ServiceAlert.Services/Templates/TemplateService.cs:255)"
+      ],
+      "constraints": [
+        "Merge fields are customer-scoped (CustomerID = @CustomerId)"
+      ],
+      "rules": [
+        "Management format {TYPE:NAME} used for definition — NOT runtime format",
+        "Runtime format is [FieldName] (square brackets) — resolved at send time"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Templates/TemplateService.cs:213",
+        "ServiceAlert.Services/Templates/TemplateService.cs:229",
+        "ServiceAlert.Services/Templates/TemplateService.cs:242",
+        "ServiceAlert.Services/Templates/TemplateService.cs:255",
+        "ServiceAlert.Services/Templates/TemplateService.cs:417",
+        "ServiceAlert.Services/Templates/TemplateService.cs:428"
+      ],
+      "confidence": 0.90
+    },
+    {
+      "id": "email_template_crud",
+      "intent": "CRUD operations for system email templates (not business SMS templates)",
+      "business_value": "Manages HTML email templates used for system notifications (password reset, receipts etc.)",
+      "flow": [
+        "Insert email template into EmailTemplates table (evidence: ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:17)",
+        "Update email template by name+language (evidence: ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:22)",
+        "Delete email template (evidence: ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:27)",
+        "GetAllTemplates: list all email templates (evidence: ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:32)",
+        "GetTemplateByNameEnum: lookup by name enum + languageId (evidence: ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:37)"
+      ],
+      "constraints": [
+        "Scoped by LanguageId and template Name",
+        "Separate from business SMS/email templates — system-use only"
+      ],
+      "rules": [
+        "Uses EmailTemplates table (separate from Templates/TemplateSms/TemplateEmails)"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:17",
+        "ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:22",
+        "ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:27",
+        "ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:32",
+        "ServiceAlert.Services/Mails/Repository/EmailTemplateRepository.cs:37"
+      ],
+      "confidence": 0.91
+    }
+  ],
+  "unknown_hints": [
+    "resolve_content"
+  ]
+}

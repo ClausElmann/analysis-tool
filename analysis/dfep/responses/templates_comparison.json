@@ -1,0 +1,81 @@
+{
+  "domain": "Templates",
+  "comparisons": [
+    {
+      "l0_capability_id": "list_templates",
+      "ga_capability_id": "list_templates",
+      "match": "MATCH_CLEAN_REBUILD",
+      "severity": "LOW",
+      "difference": "L0 exposes GetTemplatesForSmsAndEmail (profileId mandatory) and GetTemplates (profileId optional, customer-wide). GreenAI exposes GetForProfileAsync (profileId from JWT claims — always profile-scoped). Clean rebuild: same customer outcome (see filtered templates for their profile) via different mechanism (JWT-enforced vs explicit param).",
+      "impact": "Customer-wide listing (no profile filter) not available in GreenAI. No documented customer workflow requires it. Profile-scoped listing is the standard use case.",
+      "action": "VERIFY whether customer-wide template listing (profileId=null) is a real customer workflow. If not: MATCH_CLEAN_REBUILD is correct. If yes: add optional profileId param."
+    },
+    {
+      "l0_capability_id": "get_template_by_id",
+      "ga_capability_id": "get_template_by_id",
+      "match": "MATCH_EXACT",
+      "severity": "LOW",
+      "difference": "Both retrieve template by ID, scoped to CustomerId AND ProfileId. GreenAI additionally enforces channel consistency (INVALID_TEMPLATE_CHANNEL if template.Channel != command.Channel). Security is stronger in GreenAI than in L0.",
+      "impact": "No user impact — GreenAI is functionally equivalent and more secure.",
+      "action": "DONE."
+    },
+    {
+      "l0_capability_id": "create_template",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "HIGH",
+      "difference": "L0 InsertAsync creates message templates (SMS + email channel variants, profile access seed). GreenAI has no create-template capability. What the customer achieves: create a reusable message template for outgoing SMS/email. Constraints: must belong to a CustomerId, channel-typed. Access: customer admin or system. State: new row in MessageTemplates.",
+      "impact": "GreenAI users cannot create new message templates. Templates must be seeded via DB migration.",
+      "action": "Phase 2: ADD Create Template feature — POST /api/v1/templates"
+    },
+    {
+      "l0_capability_id": "update_template",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "HIGH",
+      "difference": "L0 UpdateAsync modifies template content, channel variants, and profile access. GreenAI has no update capability. What customer achieves: edit an existing template's body/subject. State: updated row in MessageTemplates.",
+      "impact": "GreenAI templates are immutable once seeded. Cannot correct or update content.",
+      "action": "Phase 2: ADD Update Template feature — PUT /api/v1/templates/{id}"
+    },
+    {
+      "l0_capability_id": "delete_template",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "MEDIUM",
+      "difference": "L0 deletes template and cascades to TemplateProfileMappings. GreenAI has no delete. What customer achieves: remove obsolete templates. State: row removed from MessageTemplates + mappings.",
+      "impact": "GreenAI users cannot remove obsolete templates. Moderate — templates are relatively stable.",
+      "action": "Phase 2: ADD Delete Template feature — DELETE /api/v1/templates/{id}"
+    },
+    {
+      "l0_capability_id": "template_profile_access",
+      "ga_capability_id": null,
+      "match": "INTENT_DRIFT",
+      "severity": "MEDIUM",
+      "difference": "L0 has admin-managed link/unlink (AdminController.LinkTemplateToProfiles / UnlinkTemplateFromProfiles — admin-only endpoints, NOT customer self-service). GreenAI enforces profile access at runtime (SQL JOIN on MessageTemplateProfileAccess) but has no management API. INTENT: L0 intent = admin configures which profiles see which templates. GreenAI = runtime enforcement exists, management absent. Evidence: L0 AdminController.cs:960, L0 AdminController.cs:976, L0 TemplateRepository.cs:497.",
+      "impact": "Template-profile mappings in GreenAI are set at DB seed time. No runtime management needed for Phase 1 MVP — admin-only operation in L0 does not translate to customer-facing feature. Runtime enforcement is Phase 1 sufficient.",
+      "action": "Phase 1: RESOLVED — runtime enforcement (SQL JOIN) is sufficient for MVP. Phase 2 optional: add admin API for mapping management if needed by operator workflow."
+    },
+    {
+      "l0_capability_id": "dynamic_mergefields_management",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "MEDIUM",
+      "difference": "L0 has full CRUD for customer-defined dynamic merge field definitions. GreenAI has no merge field management. What customer achieves: define custom personalization tokens (e.g. [CustomerName]) for message templates.",
+      "impact": "GreenAI cannot define or manage custom personalization tokens. Static tokens only for MVP.",
+      "action": "DEFER: Assess whether dynamic merge field management is in GreenAI MVP scope."
+    },
+    {
+      "l0_capability_id": "email_template_crud",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "LOW",
+      "difference": "L0 has dedicated EmailTemplates table and service for system emails (password reset, receipts). GreenAI has no equivalent. What customer achieves: system notification emails (not business SMS). This is system/internal functionality.",
+      "impact": "System notification emails in GreenAI presumably handled via external provider. Not a customer-facing gap.",
+      "action": "INVESTIGATE: How does GreenAI send system emails? If via external provider, gap is by design."
+    }
+  ],
+  "coverage_score": 0.25,
+  "critical_count": 0,
+  "high_count": 2,
+  "summary": "GreenAI Templates domain covers 2 of 8 L0 capabilities exactly/clean-rebuild (list_templates as CLEAN_REBUILD, get_template_by_id as EXACT). template_profile_access reclassified as INTENT_DRIFT MEDIUM: L0 mapping management is admin-only, not customer self-service — runtime enforcement in GreenAI is Phase 1 sufficient. 2 HIGH gaps remain: create and update (Phase 2 CRUD). delete is MEDIUM. DFEP gate FAILED on match score 25% — 5 missing capabilities. Phase 1 verdict for template access: runtime enforcement sufficient."
+}

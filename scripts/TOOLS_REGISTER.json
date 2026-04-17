@@ -54,6 +54,56 @@
       "triggers": ["lav ny zip", "lav zip til arkitekt", "generate chatgpt package", "ny pakke til chatgpt", "zip til ham", "architect zip"],
       "notes": "Run from c:\\Udvikling\\analysis-tool. Non-fatal: .dbmdl/.jfm files may be locked by SQL Server.",
       "last_verified": "2026-04-13"
+    },
+    {
+      "id": "dfep-v1",
+      "name": "run_dfep.py",
+      "path": "analysis-tool/run_dfep.py",
+      "full_path": "C:\\Udvikling\\analysis-tool\\run_dfep.py",
+      "type": "python",
+      "purpose": "DFEP v1 — Domain Functional Equivalence Protocol. Pure deterministic regex-based comparison of sms-service (Level 0) vs green-ai capabilities. Generates gap reports to analysis/dfep/{domain}.md.",
+      "usage": ".venv\\Scripts\\python.exe run_dfep.py --domain Templates",
+      "usage_all": ".venv\\Scripts\\python.exe run_dfep.py --all",
+      "output": "analysis/dfep/{domain}.md",
+      "triggers": ["dfep v1", "functional equivalence", "gap analyse", "mangler i greenai"],
+      "notes": "Pure regex — no LLM. Use dfep_v2 for AI-powered analysis.",
+      "last_verified": "2026-04-17"
+    },
+    {
+      "id": "dfep-v2",
+      "name": "dfep_v2.engine.dfep_runner",
+      "path": "analysis-tool/dfep_v2/engine/dfep_runner.py",
+      "full_path": "C:\\Udvikling\\analysis-tool\\dfep_v2\\engine\\dfep_runner.py",
+      "type": "python_module",
+      "purpose": "DFEP v2 — Hybrid Deterministic + LLM analysis engine. Layer 1: extracts code facts from sms-service + green-ai. Layer 2: LLM (gpt-4.1) converts facts to capabilities and compares by intent. Layer 3: anti-hallucination validation. Generates versioned reports to analysis/dfep/{domain}_{date}.md.",
+      "usage": ".venv\\Scripts\\python.exe -m dfep_v2.engine.dfep_runner --domain Templates",
+      "usage_all": ".venv\\Scripts\\python.exe -m dfep_v2.engine.dfep_runner --all",
+      "usage_stub": ".venv\\Scripts\\python.exe -m dfep_v2.engine.dfep_runner --domain Templates --stub",
+      "usage_write_temp": ".venv\\Scripts\\python.exe -m dfep_v2.engine.dfep_runner --domain Templates --write-temp",
+      "usage_multi_domain": ".venv\\Scripts\\python.exe -m dfep_v2.engine.dfep_runner --domain Templates --write-temp && .venv\\Scripts\\python.exe -m dfep_v2.engine.dfep_runner --domain Send --write-temp",
+      "output": "analysis/dfep/{domain}_{YYYY-MM-DD}.md",
+      "requires": "GITHUB_TOKEN env var (or --stub for no-LLM mode)",
+      "triggers": ["dfep v2", "ai gap analyse", "intelligent equivalence", "capability comparison", "hvad mangler i greenai"],
+      "notes": "Set GITHUB_TOKEN before running. --stub mode for structure testing without LLM.",
+      "last_verified": "2026-04-17"
+    },
+    {
+      "id": "dfep-v3",
+      "name": "dfep_v3.engine.dfep_runner",
+      "path": "analysis-tool/dfep_v3/engine/dfep_runner.py",
+      "full_path": "C:\\Udvikling\\analysis-tool\\dfep_v3\\engine\\dfep_runner.py",
+      "type": "python_module",
+      "purpose": "DFEP v3 — Copilot-Native two-phase pipeline (governance compliant). Phase 1: deterministic extractor generates structured prompt .md files with embedded code facts. Phase 2: Copilot reads prompts, writes JSON responses → DFEP parses + validates + reports. NO external LLM — Copilot is the only AI brain.",
+      "phase1_usage": ".venv\\Scripts\\python.exe -m dfep_v3.engine.dfep_runner --domain Templates --generate-prompts",
+      "phase1_all": ".venv\\Scripts\\python.exe -m dfep_v3.engine.dfep_runner --all --generate-prompts",
+      "phase2_usage": ".venv\\Scripts\\python.exe -m dfep_v3.engine.dfep_runner --domain Templates --parse-response --l0-response analysis/dfep/responses/templates_l0.json --ga-response analysis/dfep/responses/templates_ga.json --cmp-response analysis/dfep/responses/templates_cmp.json --write-temp",
+      "output_prompts": "analysis/dfep/prompts/{domain}_{date}_{l0|ga|comparison}_capability.md",
+      "output_responses": "analysis/dfep/responses/{domain}_{l0|ga|comparison}.json",
+      "output_report": "analysis/dfep/{domain}_{YYYY-MM-DD}.md",
+      "requires": "Nothing — no API keys, no tokens",
+      "triggers": ["dfep v3", "copilot native", "governance compliant dfep", "send prompt to copilot"],
+      "notes": "Two-mode workflow: 1) generate-prompts (Copilot reads + writes JSON), 2) parse-response (DFEP validates + reports). Replaces dfep-v2 as primary DFEP engine.",
+      "last_verified": "2026-04-17"
     }
   ]
 }
