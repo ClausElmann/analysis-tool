@@ -1,0 +1,25 @@
+{
+  "domain": "Templates",
+  "run_date": "2026-04-17",
+  "iteration": 1,
+  "prior_match_score": 0.25,
+  "snapshot_date": "2026-04-17",
+  "targets": [
+    {
+      "capability_id": "create_template",
+      "gap_type": "HIGH_GAP",
+      "reason": "Missing HIGH-severity capability: Create a new message template with channel-specific content",
+      "priority": 1,
+      "capability_intent": "Create a new message template with channel-specific content",
+      "confidence": 0.0
+    },
+    {
+      "capability_id": "update_template",
+      "gap_type": "HIGH_GAP",
+      "reason": "Missing HIGH-severity capability: Update an existing message template",
+      "priority": 2,
+      "capability_intent": "Update an existing message template",
+      "confidence": 0.0
+    }
+  ]
+}

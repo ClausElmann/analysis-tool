@@ -1477,3 +1477,91 @@ L0 evidence:
 4. **Strict mode:** Skal `--strict` aktiveres pr. domain, eller default (warning) mode indtil videre?
 
 **Full report:** `analysis/dfep/templates_2026-04-17.md`
+
+---
+
+## COPILOT → ARCHITECT — Idle Harvest v1 (2026-04-17)
+
+### Built
+
+| Fil | Ansvar |
+|-----|--------|
+| `analysis_tool/idle/__init__.py` | Package root |
+| `analysis_tool/idle/idle_harvest_runner.py` | Phase 1 (plan + prompts) + Phase 2 (process + re-run DFEP) + CLI |
+| `analysis_tool/idle/gap_prompt_generator.py` | Gap → targeted Copilot prompt (3 prompt types) |
+| `analysis_tool/idle/targeted_extractor.py` | Copilot response → HarvestedFact (append-only) |
+| `analysis_tool/idle/result_comparator.py` | Before/after match_score comparator + CONTINUE/STOP/STOP_REGRESSION |
+
+### Governance guards (alle implementerede)
+
+| Guard | Implementering |
+|-------|---------------|
+| MAX 3 targets per run | `MAX_TARGETS_PER_RUN = 3` i runner |
+| MAX 2 iterationer | `MAX_ITERATIONS = 2` i comparator |
+| STOP hvis ingen DFEP snapshot | FileNotFoundError med vejledning |
+| STOP hvis ingen targets | Plan returnerer tom liste → exit 1 |
+| Append-only facts | TargetedExtractor deduplicerer på (file, method) |
+| Afvis tomme responses | `os.path.getsize < 10` check |
+| Afvis `found=false` responses | Skip med log-besked |
+| STOP_REGRESSION hvis score falder | Comparator returnerer `STOP_REGRESSION` + escalation besked |
+| Min improvement threshold | 0.05 (5%) — under = STOP |
+
+### Verified
+
+```
+✅ Phase 1 kørsel: 2 targets fundet (create_template, update_template — begge HIGH_GAP)
+✅ Prompts genereret: templates_create_template_harvest.md + templates_update_template_harvest.md
+✅ Plan gemt: analysis/dfep/responses/idle/templates_harvest_plan.json
+✅ Imports valideret: alle 4 filer importerer korrekt
+```
+
+### Test run (Templates)
+
+```
+Targets selected: 2 (af MAX 3)
+  → [HIGH_GAP] create_template  (priority 1)
+  → [HIGH_GAP] update_template  (priority 2)
+
+Prior match score: 25%  (snapshot: 2026-04-17)
+```
+
+Prompts:
+- `analysis/dfep/prompts/idle/templates_create_template_harvest.md`
+- `analysis/dfep/prompts/idle/templates_update_template_harvest.md`
+
+### Observed improvement
+
+Phase 2 ikke kørt endnu (kræver Copilot responses). Baseline: 25%.
+
+### Prompt eksempel (create_template)
+
+Prompt type: `HIGH_GAP` — full code path discovery.
+Beder om: controller, request model, service, repository, SQL, validations, side effects, error paths.
+Output: struktureret JSON med file:line citations.
+Kan pastes direkte i Copilot chat.
+
+### Hvad idle harvest IKKE gør (governance)
+
+```
+❌ Kører IKKE uden DFEP snapshot (stopper med vejledning)
+❌ Overskriver IKKE eksisterende facts
+❌ Accepterer IKKE tomme / found=false responses
+❌ Kører IKKE mere end 2 iterationer uden arkitekt-review
+❌ Genererer IKKE generiske prompts (alle er capability-specifikke)
+```
+
+### CLI
+
+```powershell
+# Phase 1 — generer harvest prompts (kør når Copilot er idle)
+python -m analysis_tool.idle.idle_harvest_runner --domain Templates
+
+# Phase 2 — processér responses + re-kør DFEP (efter Copilot har svaret)
+python -m analysis_tool.idle.idle_harvest_runner --domain Templates --process-responses
+```
+
+### Spørgsmål til Architect
+
+1. **Phase 2 test:** Kan idle loop testes nu ved at sende `templates_create_template_harvest.md` til Copilot og gemme svaret? Eller venter vi til Templates CRUD er implementeret i GreenAI?
+2. **Prompt type dækning:** 3 typer implementeret (HIGH_GAP, LOW_CONFIDENCE, UNKNOWN_FLOW). Mangler der en 4. type?
+3. **Idle facts integration:** HarvestedFacts gemmes i `analysis/dfep/idle_facts/templates_idle_facts.json` — skal de også flettes ind i de primære GA facts (`templates_ga.json`) automatisk, eller manuelt?
