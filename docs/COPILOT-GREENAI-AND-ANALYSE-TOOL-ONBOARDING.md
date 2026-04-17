@@ -72,6 +72,31 @@ Architect ser ALDRIG Layer 0 direkte.
 
 ---
 
+## 2b. CORE REBUILD PRINCIPLE (MANDATORY)
+
+**GreenAI er et FULDT REBUILD — ikke en refactoring.**
+
+Vi genopbygger hele systemet (database + backend + logik) fra bunden.
+
+> **Preserve behavior — NOT structure**
+
+Hvis noget eksisterer i Layer 0:
+- Ekstraher HVAD det gør (forretningsadfærd)
+- IKKE HVORDAN det er implementeret (struktur, navngivning, schema)
+
+### FORBUDT
+- Kopiere tabeller 1:1 fra legacy
+- Genbruge navngivning blindt
+- Bevare teknisk gæld "fordi den eksisterer"
+- Designe fra Layer 1 uden Layer 0-evidens
+
+### PÅKRÆVET
+- Evidensbaseret design — Layer 0 citation kræves
+- Rent schema-design fra første principper
+- Eksplicitte beslutninger når vi afviger fra legacy
+
+---
+
 ## 3. STEP-Protokollen — Per-Domæne Model (STEP_NA_NB_GOVERNANCE_ACTIVE 🔒)
 
 **Hvert domæne har sin egen uafhængige state. Flere domæner kan være i forskellige states samtidig.**
@@ -141,23 +166,25 @@ Et flow er KUN gyldigt når ALLE fire felter er dokumenteret:
 
 ## 6. Dine Kommunikationsregler
 
-### temp.md — din eneste kommunikationskanal til Architect
+### temp.md — ENVEJS output fra Copilot til Architect
 
-> 🔴 **KERNEREGEL: Arkitekten ser KUN hvad der er i temp.md. Chat er usynlig.**
+> 🔴 **KERNEREGEL 1: Arkitekten ser KUN hvad der er i temp.md. Chat er usynlig.**
 > Ethvert fund, beslutning, forslag, stop-condition, åbent spørgsmål, audit-svar → skriv i temp.md ØJEBLIKKELIGT.
-> Før ZIP genereres: gennemgå temp.md og spørg "er alt det Arkitekten skal vide her?" — hvis nej, tilføj det.
 
-Opdatér `temp.md` efter ENHVER opgave. Brug denne fulde skabelon:
+> 🔴 **KERNEREGEL 2: temp.md er ENVEJS — Copilot → Architect.**
+> Copilot skriver KUN `COPILOT → ARCHITECT`-blokke.
+> Arkitekten skriver SELV sine svar direkte i temp.md (via brugeren).
+> Når brugeren paster Arkitektens svar i chat → Copilot læser det, implementerer — men skriver det **ALDRIG** ind i temp.md igen.
+
+> ❌ **FORBUDT: `ARCHITECT → COPILOT`-sektioner i temp.md skrevet af Copilot.**
+> Arkitektens svar eksisterer allerede i temp.md fra da brugeren indsatte det. Copilot må ikke duplikere det.
+
+Opdatér `temp.md` efter ENHVER opgave. Brug denne skabelon:
 
 ```markdown
-# SESSION STATUS — [YYYY-MM-DD HH:MM]
+## COPILOT → ARCHITECT — [EMNE] ([YYYY-MM-DD])
 
-## CURRENT TASK
-[Én linje: hvad Architect bad dig gøre]
-
----
-
-## COPILOT → ARCHITECT (Latest Report)
+**Status:** [Afventer Architect-direktiv / DONE ✅ / BLOCKED]
 
 ### 🎯 Completed
 - [Hvad du afsluttede + filstier]
@@ -173,20 +200,8 @@ Opdatér `temp.md` efter ENHVER opgave. Brug denne fulde skabelon:
 - [Spørgsmål til Architect]
 
 ### 📈 Metrics
-- Domæner ekstraherede: X/37
 - Completeness avg: 0.XX
 - UNKNOWN count: X
-
----
-
-## ARCHITECT → COPILOT (Latest Directive)
-[User indsætter Architects svar her]
-
----
-
-## NEXT ACTIONS (din fortolkning)
-- [ ] Trin 1
-- [ ] Trin 2
 ```
 
 **Format-regler:**
@@ -194,6 +209,7 @@ Opdatér `temp.md` efter ENHVER opgave. Brug denne fulde skabelon:
 - ✅ Bullet points, ikke prosa
 - ✅ Citér kilder inline: `[file.cs:42]`, `[WIKI/doc.md:§3]`
 - ✅ Timestamp ved ENHVER opdatering
+- ❌ Ingen `ARCHITECT → COPILOT`-sektioner skrevet af Copilot
 
 **temp.md er SESSION-STATE — ikke permanent. Arkivér til temp_history/ når du starter nyt emne.**
 
@@ -215,6 +231,7 @@ Opdatér `docs/GREEN_AI_BUILD_STATE.md` når et STEP AFSLUTTES:
 ⛔ Architect har IKKE godkendt STEP N-B → STOP, rapportér N-A kun
 ⛔ green-ai SSOT mangler pattern for task → STOP, dokumentér pattern først
 ⛔ Ser ud til at kræve kode-kopiering fra sms-service → STOP, refaktorer koncept
+⛔ green-ai SQL/kode bruger samme tabel/kolonne/constraint-navn som sms-service → STOP, rename
 ⛔ Strategisk beslutning kræves (scope, domænevalg) → ESKALÉR
 
 ⛔ BUILD MODE: Handler læser direkte fra Layer 0 → STOP

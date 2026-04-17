@@ -3,10 +3,10 @@
 > **Purpose:** Alt hvad jeg behøver at vide om green-ai — tech, build-state, locks, domain-states.  
 > **Opdatér** når et STEP afsluttes, migration applied, lock ændres, eller tech stack ændres.
 
-**Last Updated:** 2026-04-15 (Wave 11.1 + Wave 12 — enterprise cache hardening + AutoDecisionEngine)  
-**Migration level:** V050  
-**Tests:** 577 handler + 12 HTTP (server-required, always skipped in batch) + 996/996 Python (analysis-tool)  
-**Build:** 0 warnings  
+**Last Updated:** 2026-04-16 (Wave 2B complete — V059 + Dashboard + 639/639 tests)  
+**Migration level:** V059  
+**Tests:** 639/639 (all green, 0 skipped) + 996/996 Python (analysis-tool)  
+**Build:** 0 errors, 0 warnings  
 **DB:** `GreenAI_DEV` på `(localdb)\MSSQLLocalDB`  
 **App:** `http://localhost:5057` — start: `dotnet run --project src/GreenAi.Api`
 
@@ -120,6 +120,10 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 | `SMSLOG_CONFIRMED_REQUIRED_BUT_DEFERRED` 🔒 | SmsLog deferred til SMS-domænet |
 | `UI_SYSTEM_LOCKED` 🔒 | Ingen UI-ændringer uden failing test eller ny feature |
 | `EMAIL_RECIPIENT_NOT_SUPPORTED_IN_BROADCAST_MVP` 🔒 | Broadcast-domænet sender kun SMS. Email-kanal kræver separat email_delivery/-domæne |
+| `EXTERNAL_API_GATE` 🔒 | FORBIDDEN at kalde ekstern SMS provider API inden SMS execution loop er komplet (provider send + DLR + retry) |
+| `DASHBOARD_PHASE1_SCOPE` 🔒 | Kun 3 panels: SMS Queue, System Health, Dead Letter Queue — resten er FORBUDT til Phase 2+ |
+| `FAILED_LAST_HOUR_REPLACES_FAIL_RATE` 🔒 | `AlertRuleType.FailRate` er DEAD — erstattet af `FailedLastHour` (absolut count, ikke %). Genindføres ALDRIG. |
+| `SLA_THRESHOLDS_ARCHITECT_LOCKED` 🔒 | QueueDepth=1000/5000, FailedLastHour=10/50, OldestPending=2/5min, ProviderLatency=2000/5000ms — Se docs/SSOT/operations/sla-thresholds.md |
 
 ---
 

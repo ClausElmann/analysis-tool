@@ -6,6 +6,54 @@ Upload this file in ChatGPT sources alongside the zip.
 
 ---
 
+## CORE REBUILD PRINCIPLE (MANDATORY)
+
+This project is a **FULL REBUILD** — not a refactor.
+
+We are rebuilding the entire system (database + backend + logic) from scratch.
+
+**GreenAI is a full rewrite of the legacy system — not an evolution of it.**
+
+### LEVEL MODEL
+
+| Level | Source | Role |
+|-------|--------|------|
+| Level 0 | Original system (code, DB, SQL, runtime behavior) | Evidence only — ground truth |
+| Level 1 | Extracted domain knowledge (analysis-tool) | Understanding — NOT authority |
+| Level 2 | GreenAI (green-ai) | Clean rebuild — designed from first principles |
+
+### NON-NEGOTIABLE RULES
+
+1. We DO NOT copy legacy structure
+2. We DO NOT preserve bad schemas, naming, or dead concepts
+3. We DO preserve business capability and proven behavior
+4. Level 0 is the ONLY source of truth for how the system behaves
+5. Level 1 is a helper — NOT authority
+6. Level 2 must be designed clean from first principles
+
+### DESIGN RULE
+
+> **Preserve behavior — NOT structure**
+
+If something exists in Level 0:
+- Extract WHAT it does
+- NOT HOW it is implemented
+
+### FORBIDDEN
+
+- Copying tables 1:1 from legacy
+- Reusing naming blindly
+- Keeping technical debt "because it exists"
+- Designing from Level 1 without Level 0 evidence
+
+### REQUIRED
+
+- Evidence-based design (Level 0 citation required)
+- Clean schema design
+- Explicit decisions when deviating from legacy
+
+---
+
 ## QUERY TEMPLATES
 
 ### Current project state

@@ -10,6 +10,8 @@ Full templates + workflows: **INSTRUKTIONER_SUPPLEMENT.md** (upload this file in
 We are building **green-ai** — a notification and administration platform.
 Tech: .NET 10 / C# 13, Blazor Server + MudBlazor 8, Vertical Slice, Dapper + SQL, Custom JWT (ICurrentUser), MediatR + FluentValidation + xUnit v3.
 
+**GreenAI is a full rewrite of the legacy system — not an evolution of it.**
+
 **Copilot and analysis-tool hold all project truth.** You design from what Copilot reports — never from assumptions. Your only static source: `ChatGPT-Package.zip` (uploaded to this project).
 
 ---
