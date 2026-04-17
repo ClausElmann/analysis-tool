@@ -6,7 +6,7 @@ Compares before/after DFEP match_score to determine:
   - improvement delta
   - which gaps were resolved
   - which gaps remain
-  - recommendation: CONTINUE | STOP | STOP_REGRESSION
+  - recommendation: CONTINUE | STOP | STOP_REGRESSION | STOP_NO_NEW_FILES
 """
 
 from __future__ import annotations
@@ -18,8 +18,20 @@ from dataclasses import dataclass, field
 
 # Recommendation constants
 CONTINUE = "CONTINUE"
-STOP = "STOP"             # Normal stop: threshold not met or max iterations reached
-STOP_REGRESSION = "STOP_REGRESSION"  # Score went DOWN — must escalate
+STOP = "STOP"                       # Normal stop: threshold not met or max iterations reached
+STOP_REGRESSION = "STOP_REGRESSION" # Score went DOWN — must escalate
+STOP_NO_NEW_FILES = "STOP_NO_NEW_FILES"  # No new files discovered — harvesting stalled
+
+
+@dataclass
+class TargetMetric:
+    """Per-capability harvest metrics."""
+    capability_id: str
+    files_found: int
+    evidence_before: int
+    evidence_after: int
+    new_evidence: int
+    is_new_capability: bool
 
 
 @dataclass
@@ -29,9 +41,10 @@ class IdleHarvestResult:
 
     improvement: match_score delta (positive = better, negative = regression)
     recommendation:
-      CONTINUE       — improvement >= threshold AND iteration < max
-      STOP           — improvement < threshold OR max iterations reached
-      STOP_REGRESSION — score dropped (regression — must escalate to Architect)
+      CONTINUE            — improvement >= threshold AND iteration < max
+      STOP                — improvement < threshold OR max iterations reached
+      STOP_REGRESSION     — score dropped (regression — must escalate to Architect)
+      STOP_NO_NEW_FILES   — no new files discovered — harvesting stalled
     """
     domain: str
     iteration: int
@@ -40,6 +53,8 @@ class IdleHarvestResult:
     improvement: float
     resolved_gaps: list[str] = field(default_factory=list)
     remaining_gaps: list[str] = field(default_factory=list)
+    target_metrics: list[TargetMetric] = field(default_factory=list)
+    total_new_files: int = 0
     recommendation: str = STOP
     stop_reason: str = ""
 
@@ -64,8 +79,12 @@ class ResultComparator:
         before_score: float,
         after_score: float,
         iteration: int,
+        target_metrics: list["TargetMetric"] | None = None,
+        total_new_files: int = -1,
     ) -> IdleHarvestResult:
         improvement = after_score - before_score
+        tm = target_metrics or []
+        new_files = total_new_files if total_new_files >= 0 else sum(m.files_found for m in tm)
 
         resolved, remaining = self._load_gap_changes(domain)
 
@@ -76,6 +95,14 @@ class ResultComparator:
             stop_reason = (
                 f"REGRESSION — match score dropped {improvement:.1%}. "
                 "Must escalate to Architect before proceeding."
+            )
+        elif new_files == 0 and len(tm) > 0:
+            # No new files discovered — harvesting has stalled
+            recommendation = STOP_NO_NEW_FILES
+            stop_reason = (
+                "NO NEW FILES found in this iteration — harvesting stalled. "
+                "Same prompts would yield identical results. "
+                "Manual code review required or domain has no discoverable gaps."
             )
         elif improvement < self.MIN_IMPROVEMENT_THRESHOLD:
             recommendation = STOP
@@ -101,6 +128,8 @@ class ResultComparator:
             improvement=improvement,
             resolved_gaps=resolved,
             remaining_gaps=remaining,
+            target_metrics=tm,
+            total_new_files=new_files,
             recommendation=recommendation,
             stop_reason=stop_reason,
         )
@@ -114,6 +143,16 @@ class ResultComparator:
         print(f"  After:             {result.after_score:.0%}")
         delta_str = f"{result.improvement:+.1%}"
         print(f"  Improvement:       {delta_str}")
+        print(f"  New files found:   {result.total_new_files}")
+
+        if result.target_metrics:
+            print(f"\n  Per-target metrics:")
+            for m in result.target_metrics:
+                status = "NEW" if m.is_new_capability else "extended"
+                print(
+                    f"    {m.capability_id:<30} files: {m.files_found:>2}  "
+                    f"evidence: {m.evidence_before}→{m.evidence_after} (+{m.new_evidence})  [{status}]"
+                )
 
         if result.resolved_gaps:
             print(f"  Resolved gaps:     {', '.join(result.resolved_gaps)}")
@@ -133,6 +172,8 @@ class ResultComparator:
             print(f"\n  → Re-run: python -m analysis_tool.idle.idle_harvest_runner --domain {result.domain}")
         elif result.recommendation == STOP_REGRESSION:
             print(f"\n  !! STOP — Send DFEP report to Architect before any further work")
+        elif result.recommendation == STOP_NO_NEW_FILES:
+            print(f"\n  !! STOP — No new files discovered. Manual review required.")
         else:
             print(f"\n  → Review DFEP report for manual gap analysis")
 

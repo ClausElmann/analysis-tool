@@ -11,7 +11,11 @@ Rules:
   - Each prompt MUST request: methods, call chains, validations, SQL, side effects
   - Each prompt MUST specify the expected JSON output structure
   - Prompts are specific enough that LLM cannot "drift" into generic answers
-
+Prompt types:
+  HIGH_GAP      → full code path discovery (entry point → DB)
+  LOW_CONFIDENCE → evidence deepening (find more citations for partial knowledge)
+  UNKNOWN_FLOW  → flow reconstruction from entry to DB (all branches)
+  FLOW_STITCH   → connect existing fragments into a complete call chain
 Output format:
   Markdown file — paste directly into Copilot chat.
   Copilot must respond with structured JSON.
@@ -49,6 +53,8 @@ class GapPromptGenerator:
             content = self._build_low_confidence_prompt(target, domain)
         elif target.gap_type == "UNKNOWN_FLOW":
             content = self._build_unknown_flow_prompt(target, domain)
+        elif target.gap_type == "FLOW_STITCH":
+            content = self._build_flow_stitch_prompt(target, domain)
         else:
             content = self._build_high_gap_prompt(target, domain)  # safe fallback
 
@@ -251,4 +257,84 @@ Your goal is to trace the COMPLETE execution flow from entry point to database a
 ```
 
 If the flow truly cannot be reconstructed, set `"flow_reconstructed": false` and explain why in `"reconstruction_notes"`.
+"""
+
+    def _build_flow_stitch_prompt(self, target: "HarvestTarget", domain: str) -> str:
+        cap_id = target.capability_id
+        intent = target.capability_intent
+        known_fragments = getattr(target, "known_fragments", [])
+        date_str = datetime.now().strftime("%Y-%m-%d")
+
+        fragment_block = ""
+        if known_fragments:
+            fragment_block = "\n## Known fragments (already extracted)\n\n"
+            for frag in known_fragments:
+                fragment_block += f"- `{frag}`\n"
+            fragment_block += "\nThese fragments exist. **Do NOT re-discover them.** Focus on the GAPS between them.\n"
+
+        return f"""# Idle Harvest — Flow Stitch Prompt
+> Domain: {domain} | Capability: `{cap_id}` | Gap type: FLOW_STITCH | Date: {date_str}
+
+## Task
+
+The DFEP analysis has partial knowledge of `{cap_id}` — individual layers are known (controller, repository, SQL), but the **call chain connecting them is missing or fragmented**.
+
+**Intent:** {intent}
+
+Your goal is NOT to re-discover known files. Your goal is to **stitch the fragments into a complete, ordered call chain** — filling in any intermediate layers that are currently unknown.
+{fragment_block}
+## What is needed
+
+1. **Identify the missing links** — which layer calls which? (e.g., service method between controller and repository)
+2. **Verify the order** — confirm the exact call sequence from HTTP entry to DB commit
+3. **Find any hidden intermediaries** — event dispatchers, pipeline middleware, decorators that intercept calls
+4. **Confirm data transformations** — how is the request model mapped/transformed at each layer boundary?
+
+## Search strategy
+
+- Search for the controller method → find what service it calls
+- Search for the service method → find what repository or command it calls
+- Search for any pipeline/mediator registrations that process this capability
+- Search for interface implementations (not just concrete classes)
+
+## Required output format
+
+Respond ONLY with this JSON structure:
+
+```json
+{{
+  "capability_id": "{cap_id}",
+  "domain": "{domain}",
+  "stitched": true,
+  "execution_flow": [
+    {{
+      "step": 1,
+      "layer": "Controller | Mediator | Service | Repository | Database",
+      "description": "Exact description of what happens",
+      "file": "path/to/File.cs:line",
+      "calls_next": "ClassName::MethodName (or null if last step)",
+      "conditions": "Any branching condition at this step (or null)"
+    }}
+  ],
+  "missing_links": [
+    {{
+      "between": "LayerA → LayerB",
+      "description": "What is still unknown about this connection",
+      "search_hint": "Where to look for this link"
+    }}
+  ],
+  "data_transforms": [
+    {{
+      "at_step": 2,
+      "from_type": "InputClass",
+      "to_type": "OutputClass",
+      "file": "path/to/Mapper.cs:line"
+    }}
+  ],
+  "confidence": 0.85,
+  "stitching_notes": "Any caveats about completeness"
+}}
+```
+
+If the flow cannot be stitched (too many unknowns), set `"stitched": false` and populate `"missing_links"` with what still needs discovery.
 """

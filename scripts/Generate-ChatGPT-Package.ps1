@@ -1,5 +1,5 @@
 # Generate-ChatGPT-Package.ps1
-# Layer 1 (analysis-tool output) + Layer 2 (green-ai) — ekskl. binaere + Layer 0 kilder
+# Layer 1 (analysis-tool output) + Layer 2 (green-ai) + Layer 3 (governance tools: dfep_v3, dfep_v2, analysis_tool/idle)
 param([string]$OutputPath = $null)
 
 $timestamp   = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -41,6 +41,28 @@ $atExcludeExts = @('.py','.pyc','.log','.zip','.dll','.exe','.pdb','.suo','.user
 $atCount = Copy-Filtered $atRoot "$tmp\analysis-tool" $atExcludeDirs $atExcludeExts
 Write-Host "   -> $atCount filer"
 
+# --- Layer 3: governance tools (Python source — kun specifikke governance-moduler) ---
+Write-Host "Layer 3: governance tools (dfep_v3, dfep_v2, analysis_tool/idle)..."
+$govDirs = @('dfep_v3', 'dfep_v2', 'analysis_tool')
+$govExcludeExts = @('.pyc','.log','.zip')
+$govCount = 0
+foreach ($dir in $govDirs) {
+    $src = Join-Path $atRoot $dir
+    if (Test-Path $src) {
+        Get-ChildItem -Path $src -Recurse -File | Where-Object {
+            $govExcludeExts -notcontains $_.Extension.ToLower()
+        } | ForEach-Object {
+            $rel  = $_.FullName.Substring($atRoot.Length + 1)
+            $dest = Join-Path "$tmp\analysis-tool" $rel
+            $d    = Split-Path $dest -Parent
+            if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
+            Copy-Item $_.FullName $dest -Force
+            $govCount++
+        }
+    }
+}
+Write-Host "   -> $govCount filer"
+
 # --- Layer 2: green-ai ---
 Write-Host "Layer 2: green-ai..."
 $gaExcludeDirs = @('bin','obj','.vs','.git','TestResults','.venv','__pycache__','node_modules')
@@ -76,6 +98,7 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine("|-------|------|-------|")
 [void]$sb.AppendLine("| Layer 1 | analysis-tool (ekstraheret viden) | $atCount |")
 [void]$sb.AppendLine("| Layer 2 | green-ai (implementering) | $gaCount |")
+[void]$sb.AppendLine("| Layer 3 | governance tools (dfep_v3, dfep_v2, idle harvest) | $govCount |")
 [void]$sb.AppendLine("")
 [void]$sb.AppendLine("## DOMAIN ANALYSE STATUS")
 [void]$sb.AppendLine("")
@@ -148,13 +171,16 @@ $rm = [System.Text.StringBuilder]::new()
 [void]$rm.AppendLine("| green-ai/ai-governance/ | L2 | 13 governance-filer |")
 [void]$rm.AppendLine("| analysis-tool/docs/GREEN_AI_BUILD_STATE.md | L1/L2 | Build state, tech, locks, domain states |")
 [void]$rm.AppendLine("| green-ai/AI_WORK_CONTRACT.md | L2 | Trigger-tabel + absolutte regler |")
+[void]$rm.AppendLine("| analysis-tool/dfep_v3/ | L3 | DFEP v3 Copilot-native engine (Python source) |")
+[void]$rm.AppendLine("| analysis-tool/dfep_v2/ | L3 | DFEP v2 hybrid engine (Python source) |")
+[void]$rm.AppendLine("| analysis-tool/analysis_tool/idle/ | L3 | Idle Harvest v1 loop (Python source) |")
 [void]$rm.AppendLine("")
 [void]$rm.AppendLine("## HVAD ER EKSKLUDERET (Layer 0)")
 [void]$rm.AppendLine("")
 [void]$rm.AppendLine("- sms-service kildekode (C# + SQL + Razor)")
 [void]$rm.AppendLine("- WIKI dokumentation")
 [void]$rm.AppendLine("- raw/ data (PDF, CSV, labels.json)")
-[void]$rm.AppendLine("- Python implementering (*.py scripts)")
+[void]$rm.AppendLine("- Python implementering (*.py scripts) — UNDTAGEN governance-moduler (dfep_v3, dfep_v2, analysis_tool/idle)")
 [void]$rm.AppendLine("")
 [void]$rm.AppendLine("## WORKFLOW")
 [void]$rm.AppendLine("")
@@ -235,4 +261,4 @@ $sz = [math]::Round((Get-Item $zipPath).Length / 1MB, 1)
 Write-Host ""
 Write-Host "DONE" -ForegroundColor Green
 Write-Host $zipPath -ForegroundColor Cyan
-Write-Host "Stoerrelse: $sz MB | L1: $atCount filer | L2: $gaCount filer"
+Write-Host "Stoerrelse: $sz MB | L1: $atCount filer | L2: $gaCount filer | L3 (governance): $govCount filer"

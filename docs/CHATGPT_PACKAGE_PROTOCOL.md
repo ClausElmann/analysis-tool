@@ -1,7 +1,7 @@
 # ARCHITECT REVIEW PACKAGE PROTOCOL
 **For ChatGPT (Architect) — Analysis + Build Package**
 
-**Last Updated:** 2026-04-15
+**Last Updated:** 2026-04-17
 
 ## PURPOSE
 
@@ -18,7 +18,8 @@ Generate a ZIP package containing extracted analysis-tool knowledge (Layer 1) AN
 - ❌ Original sms-service codebase (Layer 0)
 - ❌ WIKI files directly
 - ❌ Raw PDFs, CSVs
-- ❌ Python scripts (implementation details)
+- ❌ Python domain-pipeline scripts (analyzers, core, run_*.py)
+- ❌ `.venv`, `__pycache__`, `output/`
 
 **Workflow:**
 ```
@@ -77,7 +78,18 @@ green-ai/
 
 **Architect: Start med `docs/SSOT/backend/reference/` for domæne-forståelse, derefter `Features/` for implementering.**
 
-### 4. Visual Intelligence (Layer 2.5)
+### 4. Governance Tools (Layer 3)
+```
+analysis-tool/dfep_v3/          (DFEP v3 Copilot-native engine — Python source)
+analysis-tool/dfep_v2/          (DFEP v2 hybrid engine — Python source)
+analysis-tool/analysis_tool/idle/  (Idle Harvest v1 loop — Python source)
+```
+
+**Formål:** Architect kan verificere DFEP-claims og idle-harvest logik direkte fra ZIP — match scores, stop-betingelser, merge-regler er ikke længere kun verificerbare via chat.
+
+**⚠️ Ekskluderet fra Layer 3:** `.pyc`, `.venv`, `analyzers/`, `core/`, `run_*.py` (domain-pipeline kode — ikke governance)
+
+### 5. Visual Intelligence (Layer 2.5)
 ```
 analysis-tool/visual-intelligence/
   cache_index.jsonl              (VisualCacheEntry historik — hashes + metadata)
@@ -108,9 +120,18 @@ analysis-tool/visual-intelligence/
 ❌ c:\Udvikling\sms-service\              (Original codebase - 467+ files)
 ❌ c:\Udvikling\SMS-service.wiki\         (Developer docs)
 ❌ c:\Udvikling\analysis-tool\raw\        (Raw PDFs, CSVs, JSON)
-❌ c:\Udvikling\analysis-tool\*.py       (Python implementation)
+❌ c:\Udvikling\analysis-tool\analyzers\ (Domain pipeline — ekskluderet)
+❌ c:\Udvikling\analysis-tool\core\       (Domain pipeline — ekskluderet)
+❌ c:\Udvikling\analysis-tool\run_*.py    (Pipeline scripts — ekskluderet)
 ❌ c:\Udvikling\analysis-tool\.venv\     (Virtual environment)
 ❌ c:\Udvikling\analysis-tool\output\    (Pipeline outputs)
+```
+
+**Inkluderet Python (Layer 3 — governance tools):**
+```
+✅ c:\Udvikling\analysis-tool\dfep_v3\        (DFEP v3 engine)
+✅ c:\Udvikling\analysis-tool\dfep_v2\        (DFEP v2 engine)
+✅ c:\Udvikling\analysis-tool\analysis_tool\idle\  (Idle Harvest)
 ```
 
 **WHY:** ChatGPT should design green-ai based on CONCEPTS (analysis-tool), NOT by copying sms-service implementation directly.
@@ -244,7 +265,8 @@ ChatGPT proposes: Green-ai Email schema with retry metadata table
 - ✅ Kun inkludere analysis-tool + green-ai data i pakken (ingen Layer 0)
 - ✅ NEVER include sms-service original code
 - ✅ NEVER include WIKI files directly
-- ✅ NEVER include Python implementation scripts
+- ✅ NEVER include domain-pipeline Python scripts (analyzers, core, run_*.py)
+- ✅ **Inkludér** governance-tool Python source (dfep_v3, dfep_v2, analysis_tool/idle)
 - ✅ **Tjek at denne protokol er opdateret FØR pakken genereres**
 
 **ChatGPT receives:**

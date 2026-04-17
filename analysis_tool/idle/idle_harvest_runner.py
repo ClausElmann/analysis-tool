@@ -533,22 +533,58 @@ class IdleHarvestRunner:
         for f in non_empty:
             print(f"      {f}")
 
-        # Import here to avoid circular issues at module level
         from analysis_tool.idle.targeted_extractor import TargetedExtractor
+        from analysis_tool.idle.result_comparator import TargetMetric
 
-        print(f"\n[2/4] Extracting facts from responses (append-only)...")
+        print(f"\n[2/4] Extracting facts → merging into GA file (append-only)...")
         extractor = TargetedExtractor(domain=self.domain)
-        extracted_count = 0
+        target_metrics: list[TargetMetric] = []
+        total_new_files = 0
+
         for resp_file in non_empty:
             cap_id = self._cap_id_from_filename(resp_file.name, self.domain)
-            n = extractor.process_response(
+            # Find intent from plan
+            intent = next(
+                (t.capability_intent for t in plan.targets if t.capability_id == cap_id),
+                cap_id,
+            )
+            result_ex = extractor.process_response(
                 response_path=str(resp_file),
                 capability_id=cap_id,
+                capability_intent=intent,
             )
-            extracted_count += n
-            print(f"      {resp_file.name}: {n} new facts extracted")
+            target_metrics.append(TargetMetric(
+                capability_id=cap_id,
+                files_found=result_ex.files_found,
+                evidence_before=result_ex.evidence_before,
+                evidence_after=result_ex.evidence_after,
+                new_evidence=result_ex.new_evidence,
+                is_new_capability=result_ex.is_new_capability,
+            ))
+            total_new_files += result_ex.files_found
+            status = "NEW capability" if result_ex.is_new_capability else "extended"
+            print(
+                f"      {resp_file.name}: {result_ex.new_evidence} new evidence items,"
+                f" {result_ex.files_found} new files [{status}]"
+            )
 
-        print(f"      Total new facts: {extracted_count}")
+        print(f"      Total new files: {total_new_files}")
+
+        # STOP_NO_NEW_FILES guard — before expensive re-run
+        if total_new_files == 0 and len(target_metrics) > 0:
+            print(f"\n  [STOP] No new files discovered — skipping DFEP re-run.")
+            from analysis_tool.idle.result_comparator import ResultComparator, STOP_NO_NEW_FILES
+            comparator = ResultComparator(snapshots_dir=self.snapshots_dir)
+            result = comparator.compare(
+                domain=self.domain,
+                before_score=plan.prior_match_score,
+                after_score=plan.prior_match_score,  # score unchanged
+                iteration=plan.iteration,
+                target_metrics=target_metrics,
+                total_new_files=0,
+            )
+            comparator.print_result(result)
+            return result
 
         print(f"\n[3/4] Re-running DFEP v3 comparison (using existing L0/GA responses)...")
         new_match_score = self._rerun_dfep()
@@ -561,6 +597,8 @@ class IdleHarvestRunner:
             before_score=plan.prior_match_score,
             after_score=new_match_score,
             iteration=plan.iteration,
+            target_metrics=target_metrics,
+            total_new_files=total_new_files,
         )
         comparator.print_result(result)
 

@@ -2,16 +2,19 @@
 
 Targeted Extractor Bridge — Idle Harvest v1
 
-Takes structured JSON responses from Copilot harvest prompts and maps
-them to CodeFact-compatible entries that can be merged into the domain's
-existing GA fact file.
+Takes structured JSON responses from Copilot harvest prompts and merges
+the extracted facts DIRECTLY into the domain GA facts file
+(analysis/dfep/responses/{domain}_ga.json).
+
+This is the ONLY correct storage target — idle facts in a separate file
+are invisible to DFEP v3, so the match score never changes.
 
 Governance rules:
-  - APPEND-ONLY — never overwrite existing facts
-  - Every extracted fact is tagged with:
-      source = "idle_harvest"
-      capability_id = <from which gap this came>
-  - Returns count of NEW facts added (0 means nothing new)
+  - APPEND-ONLY — never overwrite existing GA capabilities
+  - Every new capability entry is tagged: "source": "idle_harvest"
+  - Existing capabilities: evidence list is extended (no overwrite)
+  - Deduplication on evidence file:line strings
+  - Returns ExtractionResult with per-target metrics
   - Input validation: reject empty or invalid JSON responses
 """
 
@@ -19,36 +22,27 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
 
 # ---------------------------------------------------------------------------
-# Fact model — aligns with dfep_v3 CodeFact structure
+# Result model — per-target metrics
 # ---------------------------------------------------------------------------
 
 @dataclass
-class HarvestedFact:
+class ExtractionResult:
     """
-    A single code fact extracted from a Copilot harvest response.
-
-    Tagged with source="idle_harvest" + capability_id for traceability.
-    Compatible with CodeFact used by DFEP v3 extractors.
+    Metrics for a single capability extraction.
+    Used by the runner to detect STOP_NO_NEW_FILES and report per-target progress.
     """
-    file: str               # "path/to/File.cs:line" or "path/to/File.sql:1"
-    class_name: str         # controller, service, repository, SQL
-    method: str             # method name or SQL operation type
-    description: str        # what this fact proves
-    capability_id: str      # which gap this fact came from
-    source: str = "idle_harvest"
-    harvest_date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
-    params: list[str] = field(default_factory=list)
-    tables: list[str] = field(default_factory=list)
-    sql_ops: list[str] = field(default_factory=list)
-
-    def to_dict(self) -> dict:
-        return asdict(self)
+    capability_id: str
+    files_found: int            # unique files added/referenced in this extraction
+    evidence_before: int        # evidence items in GA before merge
+    evidence_after: int         # evidence items in GA after merge
+    new_evidence: int           # = evidence_after - evidence_before
+    is_new_capability: bool     # True if capability was added fresh to GA
 
 
 # ---------------------------------------------------------------------------
@@ -58,25 +52,31 @@ class HarvestedFact:
 
 class TargetedExtractor:
     """
-    Processes Copilot harvest JSON responses into HarvestedFact entries.
+    Processes Copilot harvest JSON responses and merges extracted facts
+    DIRECTLY into the domain's GA facts file:
 
-    Storage: appends to analysis/dfep/idle_facts/{domain_lower}_idle_facts.json
-    The file is a JSON array of HarvestedFact dicts.
+        analysis/dfep/responses/{domain_lower}_ga.json
 
-    Deduplication: a fact is skipped if an identical (file, method) pair
-    already exists in the stored facts.
+    This makes the facts immediately visible to DFEP v3 on the next run.
+
+    Merge rules:
+      - If capability_id already in GA → append new evidence (dedup)
+      - If capability_id missing from GA → add new capability entry
+      - Never remove or overwrite existing entries
+      - All new/modified entries tagged: "source": "idle_harvest"
     """
 
     def __init__(
         self,
         domain: str,
-        facts_dir: str | None = None,
+        responses_dir: str | None = None,
     ):
         self.domain = domain
         _tool_root = Path(__file__).parent.parent.parent
-        self.facts_dir = facts_dir or str(_tool_root / "analysis" / "dfep" / "idle_facts")
-        os.makedirs(self.facts_dir, exist_ok=True)
-        self._facts_path = os.path.join(self.facts_dir, f"{domain.lower()}_idle_facts.json")
+        _responses_dir = responses_dir or str(
+            _tool_root / "analysis" / "dfep" / "responses"
+        )
+        self._ga_path = os.path.join(_responses_dir, f"{domain.lower()}_ga.json")
 
     # ------------------------------------------------------------------
     # Public API
@@ -86,12 +86,12 @@ class TargetedExtractor:
         self,
         response_path: str,
         capability_id: str,
-    ) -> int:
+        capability_intent: str = "",
+    ) -> ExtractionResult:
         """
-        Parse a Copilot harvest response JSON file.
-        Extracts facts, deduplicates, and appends new ones to storage.
+        Parse a Copilot harvest response JSON file and merge facts into GA.
 
-        Returns the number of NEW facts added.
+        Returns ExtractionResult with per-target metrics.
         """
         # Safety: reject missing / empty files
         if not os.path.exists(response_path):
@@ -106,129 +106,209 @@ class TargetedExtractor:
         if not data:
             raise ValueError(f"Could not parse JSON from: {response_path}")
 
-        # Safety: reject responses where "found" is explicitly False
+        # Safety: reject responses where "found" / "flow_reconstructed" is explicitly False
         if data.get("found") is False:
-            print(f"      [SKIP] {capability_id}: capability not found in response (found=false)")
-            return 0
+            print(f"      [SKIP] {capability_id}: found=false in response")
+            ga = self._load_ga()
+            existing = self._find_capability(ga, capability_id)
+            ev_count = len(existing.get("evidence", [])) if existing else 0
+            return ExtractionResult(
+                capability_id=capability_id,
+                files_found=0,
+                evidence_before=ev_count,
+                evidence_after=ev_count,
+                new_evidence=0,
+                is_new_capability=False,
+            )
 
-        new_facts = self._extract_facts(data, capability_id)
-        if not new_facts:
-            return 0
-
-        return self._append_facts(new_facts)
-
-    def load_all_facts(self) -> list[HarvestedFact]:
-        """Load all previously harvested facts for this domain."""
-        if not os.path.exists(self._facts_path):
-            return []
-        with open(self._facts_path, encoding="utf-8") as f:
-            raw = json.load(f)
-        return [
-            HarvestedFact(**{k: v for k, v in item.items() if k in HarvestedFact.__dataclass_fields__})
-            for item in raw
-        ]
+        return self._merge_into_ga(data, capability_id, capability_intent)
 
     # ------------------------------------------------------------------
-    # Extraction logic
+    # GA merge logic
     # ------------------------------------------------------------------
 
-    def _extract_facts(self, data: dict, capability_id: str) -> list[HarvestedFact]:
-        facts: list[HarvestedFact] = []
+    def _merge_into_ga(
+        self, data: dict, capability_id: str, capability_intent: str
+    ) -> ExtractionResult:
+        ga = self._load_ga()
+        caps = ga.setdefault("capabilities", [])
+
+        existing = self._find_capability(ga, capability_id)
+        evidence_before = len(existing.get("evidence", [])) if existing else 0
+        is_new = existing is None
+
+        # Build evidence list from all response sections
+        new_evidence = self._extract_evidence(data, capability_id)
+        new_flow_steps = self._extract_flow_steps(data)
+        new_files = {self._file_only(e) for e in new_evidence}
+
+        if is_new:
+            # Create a fresh capability entry
+            intent = (
+                data.get("notes", "")[:120]
+                or capability_intent
+                or capability_id
+            )
+            entry = {
+                "id": capability_id,
+                "intent": capability_intent or intent,
+                "business_value": f"Discovered via idle harvest on {datetime.now().strftime('%Y-%m-%d')}",
+                "flow": new_flow_steps,
+                "constraints": [],
+                "rules": [],
+                "evidence": new_evidence,
+                "confidence": float(data.get("confidence", 0.6)),
+                "source": "idle_harvest",
+                "harvest_date": datetime.now().strftime("%Y-%m-%d"),
+            }
+            caps.append(entry)
+            existing_after = entry
+        else:
+            # Extend existing — append-only, deduplicate evidence strings
+            old_evidence = existing.get("evidence", [])
+            merged_evidence = old_evidence + [e for e in new_evidence if e not in old_evidence]
+            existing["evidence"] = merged_evidence
+
+            old_flow = existing.get("flow", [])
+            existing["flow"] = old_flow + [s for s in new_flow_steps if s not in old_flow]
+
+            # Only update source tag if not already set
+            if "source" not in existing:
+                existing["source"] = "idle_harvest"
+
+            existing_after = existing
+
+        evidence_after = len(existing_after.get("evidence", []))
+        self._write_ga(ga)
+
+        return ExtractionResult(
+            capability_id=capability_id,
+            files_found=len(new_files),
+            evidence_before=evidence_before,
+            evidence_after=evidence_after,
+            new_evidence=evidence_after - evidence_before,
+            is_new_capability=is_new,
+        )
+
+    # ------------------------------------------------------------------
+    # Evidence extraction — one flat list of "file:line" strings
+    # ------------------------------------------------------------------
+
+    def _extract_evidence(self, data: dict, capability_id: str) -> list[str]:
+        evidence: list[str] = []
+
+        def _add(file_str: str) -> None:
+            if file_str and file_str not in evidence:
+                evidence.append(file_str)
 
         # Entry point
-        ep = data.get("entry_point")
-        if ep and ep.get("file"):
-            facts.append(HarvestedFact(
-                file=ep["file"],
-                class_name=ep.get("controller", "Controller"),
-                method=ep.get("method", "unknown"),
-                description=f"Entry point: {ep.get('http_verb', 'HTTP')} {ep.get('route', '')}",
-                capability_id=capability_id,
-            ))
+        ep = data.get("entry_point", {})
+        if ep.get("file"):
+            _add(ep["file"])
 
-        # Service calls
-        for sc in data.get("service_calls", []):
-            if sc.get("file"):
-                facts.append(HarvestedFact(
-                    file=sc["file"],
-                    class_name=sc.get("class", "Service"),
-                    method=sc.get("method", "unknown"),
-                    description=f"Service call for {capability_id}",
-                    capability_id=capability_id,
-                ))
+        # Request model
+        rm = data.get("request_model", {})
+        if rm.get("file"):
+            _add(rm["file"])
 
-        # Repository calls
-        for rc in data.get("repository_calls", []):
-            if rc.get("file"):
-                facts.append(HarvestedFact(
-                    file=rc["file"],
-                    class_name=rc.get("class", "Repository"),
-                    method=rc.get("method", "unknown"),
-                    description=f"Repository call for {capability_id}",
-                    capability_id=capability_id,
-                ))
+        # Service, repository, additional_evidence
+        for section in ("service_calls", "repository_calls", "additional_evidence"):
+            for item in data.get(section, []):
+                if item.get("file"):
+                    _add(item["file"])
 
-        # SQL operations
+        # SQL
         for sql in data.get("sql_operations", []):
             if sql.get("file"):
-                facts.append(HarvestedFact(
-                    file=sql["file"],
-                    class_name="SQL",
-                    method=f"{sql.get('type', 'SQL')}_{sql.get('table', 'unknown')}",
-                    description=f"SQL {sql.get('type', '')} on {sql.get('table', '')}",
-                    capability_id=capability_id,
-                    sql_ops=[sql.get("type", "")],
-                    tables=[sql.get("table", "")],
-                ))
+                _add(sql["file"])
 
-        # Additional evidence (from LOW_CONFIDENCE prompts)
-        for ev in data.get("additional_evidence", []):
-            if ev.get("file"):
-                facts.append(HarvestedFact(
-                    file=ev["file"],
-                    class_name=ev.get("type", "evidence").title(),
-                    method=ev.get("description", "")[:60],
-                    description=ev.get("description", ""),
-                    capability_id=capability_id,
-                ))
-
-        # Execution flow (from UNKNOWN_FLOW prompts)
+        # Execution flow steps
         for step in data.get("execution_flow", []):
             if step.get("file"):
-                facts.append(HarvestedFact(
-                    file=step["file"],
-                    class_name=step.get("layer", "unknown"),
-                    method=step.get("description", "")[:60],
-                    description=step.get("description", ""),
-                    capability_id=capability_id,
-                ))
+                _add(step["file"])
 
-        return facts
+        # Validations / side effects / error paths — extract inline file:line
+        import re
+        file_ref = re.compile(r"[\w./\\-]+\.(cs|sql|razor|ts|js):\d+")
+        for section in ("validations", "side_effects", "error_paths"):
+            for item in data.get(section, []):
+                for match in file_ref.findall(str(item)):
+                    _add(match)
 
-    # ------------------------------------------------------------------
-    # Storage — append-only
-    # ------------------------------------------------------------------
+        return evidence
 
-    def _append_facts(self, new_facts: list[HarvestedFact]) -> int:
-        existing = self.load_all_facts()
-        existing_keys = {(f.file, f.method) for f in existing}
+    def _extract_flow_steps(self, data: dict) -> list[str]:
+        """Build human-readable flow strings (for the GA 'flow' list)."""
+        steps: list[str] = []
 
-        truly_new = [
-            f for f in new_facts
-            if (f.file, f.method) not in existing_keys
-        ]
+        ep = data.get("entry_point", {})
+        if ep.get("file"):
+            verb = ep.get("http_verb", "HTTP")
+            route = ep.get("route", "")
+            method = ep.get("method", "")
+            steps.append(
+                f"{verb} {route} → {ep.get('controller', '')}::{method}"
+                f" (evidence: {ep['file']})"
+            )
 
-        if truly_new:
-            combined = existing + truly_new
-            with open(self._facts_path, "w", encoding="utf-8") as out:
-                json.dump(
-                    [f.to_dict() for f in combined],
-                    out,
-                    indent=2,
-                    ensure_ascii=False,
+        for sc in data.get("service_calls", []):
+            if sc.get("file"):
+                steps.append(
+                    f"Service: {sc.get('class', '')}::{sc.get('method', '')}"
+                    f" (evidence: {sc['file']})"
                 )
 
-        return len(truly_new)
+        for rc in data.get("repository_calls", []):
+            if rc.get("file"):
+                steps.append(
+                    f"Repository: {rc.get('class', '')}::{rc.get('method', '')}"
+                    f" (evidence: {rc['file']})"
+                )
+
+        for sql in data.get("sql_operations", []):
+            if sql.get("file"):
+                steps.append(
+                    f"SQL {sql.get('type', '')} {sql.get('table', '')}"
+                    f" (evidence: {sql['file']})"
+                )
+
+        # FLOW_STITCH responses
+        for step in data.get("execution_flow", []):
+            if step.get("file"):
+                steps.append(
+                    f"[step {step.get('step', '?')}] {step.get('layer', '')}:"
+                    f" {step.get('description', '')} (evidence: {step['file']})"
+                )
+
+        return steps
+
+    # ------------------------------------------------------------------
+    # GA file I/O
+    # ------------------------------------------------------------------
+
+    def _load_ga(self) -> dict:
+        if not os.path.exists(self._ga_path):
+            raise FileNotFoundError(
+                f"GA facts file not found: {self._ga_path}\n"
+                "Run DFEP v3 phase2 for this domain first to create the GA response file."
+            )
+        with open(self._ga_path, encoding="utf-8") as f:
+            return json.load(f)
+
+    def _write_ga(self, ga: dict) -> None:
+        with open(self._ga_path, "w", encoding="utf-8") as f:
+            json.dump(ga, f, indent=2, ensure_ascii=False)
+
+    def _find_capability(self, ga: dict, capability_id: str) -> dict | None:
+        for cap in ga.get("capabilities", []):
+            if cap.get("id") == capability_id:
+                return cap
+        return None
+
+    @staticmethod
+    def _file_only(evidence_str: str) -> str:
+        """Strip :line number to get bare file path."""
+        return evidence_str.split(":")[0] if ":" in evidence_str else evidence_str
 
     # ------------------------------------------------------------------
     # JSON parsing helper

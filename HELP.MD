@@ -139,6 +139,92 @@ for k,v in d.items():
 ```
 
 ## ═══════════════════════════════════════
+## DFEP v3 — Gap Analyse
+## ═══════════════════════════════════════
+
+### Kør DFEP (fase 1 — generer prompts)
+```powershell
+python -m dfep_v3.engine.dfep_runner --domain Templates --generate-prompts
+```
+
+### Kør DFEP (fase 2 — parse responses + rapport)
+```powershell
+python -m dfep_v3.engine.dfep_runner --domain Templates --parse-response `
+  --l0-response analysis/dfep/responses/templates_l0.json `
+  --ga-response analysis/dfep/responses/templates_ga.json `
+  --cmp-response analysis/dfep/responses/templates_comparison.json `
+  --write-temp
+```
+
+### Alle domæner (fase 1)
+```powershell
+python -m dfep_v3.engine.dfep_runner --all --generate-prompts
+```
+
+---
+
+## ═══════════════════════════════════════
+## Idle Harvest Loop (gap-drevet, DFEP-styret)
+## ═══════════════════════════════════════
+
+> Kør når Copilot er idle. Finder selv det domæne der mangler mest — ingen manuel domæne-angivelse nødvendig.
+
+### Se status på alle domæner
+```powershell
+python -m analysis_tool.idle.idle_harvest_runner --status
+```
+
+Output: tabel med score, gate (PASSED/FAILED), antal HIGH gaps, antal missing, om der venter svar.
+
+### Start høst (auto-vælg domæne)
+```powershell
+python -m analysis_tool.idle.idle_harvest_runner --auto
+```
+
+Generér målrettede prompts til de 2–3 vigtigste gaps i det domæne der mangler mest.
+Prompts gemmes i: `analysis/dfep/prompts/idle/`
+
+### Processér Copilot-svar + re-kør DFEP
+```powershell
+python -m analysis_tool.idle.idle_harvest_runner --auto --process-responses
+```
+
+Læser svar fra `analysis/dfep/responses/idle/`, merger facts, kører DFEP og printer før/efter score.
+
+### Manuel domæne-angivelse (valgfrit)
+```powershell
+# Fase 1
+python -m analysis_tool.idle.idle_harvest_runner --domain Templates
+
+# Fase 2
+python -m analysis_tool.idle.idle_harvest_runner --domain Templates --process-responses
+```
+
+### Workflow (kør første gang)
+```
+1. --auto                          → genererer prompts
+2. send prompts til Copilot (manuel)
+3. gem svar i analysis/dfep/responses/idle/
+4. --auto --process-responses       → merger + re-kør DFEP + rapport
+```
+
+### Forventede filnavne på svar
+```
+analysis/dfep/responses/idle/{domain}_{capability_id}_harvest_response.json
+```
+
+### Sikkerhedsgrænser
+| Regel | Værdi |
+|-------|-------|
+| MAX targets per kørsel | 3 |
+| MAX iterationer | 2 |
+| Min. forbedring for CONTINUE | 5% (match_score) |
+| Regression (score falder) | STOP_REGRESSION — eskalér til Architect |
+| Ingen DFEP snapshot | STOP med vejledning |
+
+---
+
+## ═══════════════════════════════════════
 ## NØGLEFILER
 ## ═══════════════════════════════════════
 
