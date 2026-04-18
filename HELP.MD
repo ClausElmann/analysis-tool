@@ -1,5 +1,110 @@
 # HELP.MD — Prompts & kommandoer
 
+---
+
+## ═══════════════════════════════════════
+## AUTONOM KØRSEL — run_autonomous.py
+## ═══════════════════════════════════════
+
+### ARKITEKTUR
+
+```
+run_autonomous.py  = ORCHESTRATOR (tynd Python executor)
+Copilot LLM        = ANALYSIS ENGINE (det tunge arbejde)
+temp.md            = STATE LOG (sandhed for mennesker)
+domain_state.json  = MACHINE STATE (sandhed for runner)
+```
+
+Python gætter ALDRIG — den læser kun state og bygger strukturerede direktiver.
+Copilot er hjernen. Python er skallen.
+
+### KOMMANDOER
+
+| Kommando | Beskrivelse |
+|----------|-------------|
+| `NEXT` | Beregn næste LLM-step → direktiv skrevet til temp.md |
+| `RUN_FULL` | Start eller resume → genererer første NEXT direktiv |
+| `RESUME` | Eksplicit resume — fejl hvis ingen state |
+| `VALIDATE` | Tjek om seneste Copilot-step opdaterede state korrekt |
+| `STATUS` | Vis alle domæner: status, score, gaps-count (ingen ændringer) |
+| `STOP` | Vejledning om Ctrl+C (ingen effekt uden kørende process) |
+| `RESET` | Slet state — kræver bogstaveligt `RESET` som bekræftelse |
+
+### AGENTIC LOOP (normal kørsel)
+
+```powershell
+python run_autonomous.py RUN_FULL
+# → Copilot læser direktiv fra temp.md
+# → Copilot eksekverer ÉT atomisk step (ÉN fil ændret)
+# → Copilot kører: python run_autonomous.py VALIDATE
+# → Copilot kører: python run_autonomous.py NEXT
+# → Loop til STOP
+```
+
+### MANUELT (en step ad gangen)
+
+```powershell
+python run_autonomous.py NEXT       # generer direktiv
+# Copilot eksekverer step
+python run_autonomous.py VALIDATE   # tjek confidence
+python run_autonomous.py NEXT       # næste step
+```
+
+### STEP TYPES (udledt fra gap-format)
+
+Gap-format: `gap:{domain}:{gap_type}:{detail}`
+
+| gap_type | → STEP_TYPE |
+|----------|-------------|
+| `missing_entity` | ENTITY_EXTRACTION |
+| `missing_context` | CONTEXT_ANALYSIS |
+| `missing_flow` | FLOW_ANALYSIS |
+| `weak_rule` / `missing_rule` | RULE_VALIDATION |
+| `missing_behavior` | BEHAVIOR_ANALYSIS |
+| `missing_integration` / `incomplete_integration` | INTEGRATION_ANALYSIS |
+| `orphan_event` | EVENT_ANALYSIS |
+| ukendt | UNKNOWN_STEP → STOP |
+
+### STOP BETINGELSER
+
+```
+confidence < 0.90  → STOP (Copilot sætter last_step_confidence i state)
+Alle domæner terminal (complete/blocked/locked/saturated/stable) → STOP
+Ingen gaps tilbage → STOP
+UNKNOWN_STEP → STOP (aldrig gæt)
+```
+
+### STATE — hvad gemmes og hvor
+
+| Fil | Formål | Adfærd |
+|-----|--------|--------|
+| `domains/domain_state.json` | Per-domain progress + _global step tracking | Aldrig overskrevet — atomisk opdateret |
+| `data/run_log.jsonl` | Append-only command/step log | Aldrig automatisk slettet |
+
+`domain_state.json._global` tracking-felter (opdateres af Copilot efter hvert step):
+- `last_step_confidence` — Copilots confidence (0.0–1.0) → VALIDATE tjekker dette
+- `last_step_domain` — domæne der blev behandlet
+- `last_step_type` — ENTITY_EXTRACTION / FLOW_ANALYSIS / ...
+
+### RESUME-ADFÆRD VED CRASH
+
+```
+Crash under step N:
+  domain_state.json = state fra step N-1 (atomisk persist)
+  python run_autonomous.py RESUME
+  → NEXT genererer direktiv baseret på seneste state
+  → Ingen data tabt — medmindre Copilot fik skrevet halvt
+```
+
+### REGLER
+
+- Python GÆTTER ALDRIG — al logik er state-drevet
+- ÉN ændring per step — ÉN fil ændret pr. Copilot-eksekvering
+- RESET kræver bogstaveligt `RESET` som input
+- Ingen forfra uden RESET
+
+---
+
 ## ═══════════════════════════════════════
 ## PROMPTS (kopier direkte til Copilot)
 ## ═══════════════════════════════════════
