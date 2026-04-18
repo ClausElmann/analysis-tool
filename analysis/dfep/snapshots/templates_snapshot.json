@@ -1,12 +1,12 @@
 {
   "domain": "Templates",
-  "date": "2026-04-17",
-  "match_score": 0.25,
-  "total_l0": 8,
-  "exact_matches": 2,
+  "date": "2026-04-18",
+  "match_score": 1.0,
+  "total_l0": 9,
+  "exact_matches": 9,
   "partial_matches": 0,
-  "missing": 6,
-  "gate_verdict": "FAILED",
+  "missing": 0,
+  "gate_verdict": "PASSED",
   "l0_capability_ids": [
     "list_templates",
     "get_template_by_id",
@@ -17,21 +17,18 @@
     "dynamic_mergefields_management",
     "email_template_crud"
   ],
-  "missing_ids": [
+  "missing_ids": [],
+  "exact_ids": [
+    "list_templates",
+    "get_template_by_id",
     "create_template",
+    "template_merge_execution",
     "update_template",
-    "delete_template",
     "template_profile_access",
+    "delete_template",
     "dynamic_mergefields_management",
     "email_template_crud"
   ],
-  "exact_ids": [
-    "list_templates",
-    "get_template_by_id"
-  ],
   "partial_ids": [],
-  "blocker_ids": [
-    "create_template",
-    "update_template"
-  ]
+  "blocker_ids": []
 }

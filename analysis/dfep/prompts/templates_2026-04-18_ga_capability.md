@@ -1,5 +1,5 @@
 # DFEP v3 — Capability Extraction Prompt
-> Domain: **Templates** | Source: **GreenAI (green-ai/src)** | Generated: 2026-04-17 23:41
+> Domain: **Templates** | Source: **GreenAI (green-ai/src)** | Generated: 2026-04-18 00:39
 
 ---
 
@@ -16,7 +16,7 @@ You are analyzing source code facts to extract structured capabilities.
 
 ---
 
-## EXTRACTED FACTS (11 facts from GreenAI (green-ai/src))
+## EXTRACTED FACTS (12 facts from GreenAI (green-ai/src))
 
 | File:Line | Class.Method | DB Tables | SQL Ops | Filters/Scope |
 |-----------|-------------|-----------|---------|---------------|
@@ -25,6 +25,7 @@ You are analyzing source code facts to extract structured capabilities.
 | `GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:23` | `MessageTemplateRepository.GetForProfileAsync` | — | — | — |
 | `GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:30` | `MessageTemplateRepository.GetByIdAsync` | — | — | — |
 | `GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:37` | `MessageTemplateRepository.InsertAsync` | — | — | — |
+| `GreenAi.Api/Features/Templates/TemplateTokenMerger.cs:29` | `Unknown.Merge` | — | — | — |
 | `GreenAi.Api/Features/Templates/CreateTemplate/CreateTemplateEndpoint.cs:8` | `Unknown.Map` | — | — | — |
 | `GreenAi.Api/Features/Templates/CreateTemplate/CreateTemplateHandler.cs:21` | `CreateTemplateHandler.Handle` | — | — | ICurrentUser (JWT claims) |
 | `GreenAi.Api/Features/Templates/CreateTemplate/InsertTemplate.sql:1` | `SQL.InsertTemplate` | MessageTemplates | INSERT | @CustomerId | @Name |

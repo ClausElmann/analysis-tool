@@ -1,6 +1,6 @@
 # DFEP v3 Report — Templates
 
-> Generated: 2026-04-17 22:08  
+> Generated: 2026-04-17 23:46  
 > Engine: DFEP v3 — Copilot-Native (no external LLM)  
 > Intelligence: GitHub Copilot (VS Code)  
 
@@ -11,9 +11,9 @@
 | Metric | Value |
 |--------|-------|
 | L0 source facts | 132 |
-| GreenAI facts | 6 |
+| GreenAI facts | 11 |
 | L0 capabilities | 8 |
-| GreenAI capabilities | 2 |
+| GreenAI capabilities | 6 |
 | Total L0 (in comparison) | 8 |
 | Matched (exact) | 2 |
 | Matched (partial) | 0 |
@@ -21,7 +21,7 @@
 | **Match score** | **25%** |
 | CRITICAL gaps | 0 |
 | HIGH gaps | 2 |
-| Low-confidence capabilities | 0 |
+| Low-confidence capabilities | 2 |
 
 > **DFEP GATE: FAILED** — Match score 25% < 90% threshold. Missing: 6 L0 capabilities.
 
@@ -46,8 +46,12 @@
 
 | ID | Intent | Confidence |
 |----|--------|-----------|
-| `get_template_by_id` | Retrieve a single message template by ID, scoped to the authenticated customer A | ✅ 0.93 |
-| `list_templates` | List message templates for the authenticated user's customer and profile via JWT | ✅ 0.91 |
+| `list_templates` | Return all message templates accessible to the current profile | ✅ 0.95 |
+| `create_template` | Insert a new message template and grant access to specified profiles | ✅ 0.93 |
+| `get_template_by_id` | Return a single template by ID, scoped to the calling profile | ✅ 0.92 |
+| `template_profile_access` | Grant and enforce per-profile access to templates via M:M mapping | ✅ 0.88 |
+| `update_template` | Modify an existing message template | ⚠️ 0.00 |
+| `delete_template` | Remove a message template | ⚠️ 0.00 |
 
 ---
 
@@ -68,8 +72,8 @@
 
 ## Drift vs Prior Run
 
-[DRIFT] Prior run: 2026-04-17 | Score delta: +25%
-  Resolved gaps: get_template_by_id, list_templates
+[DRIFT] Prior run: 2026-04-17 | Score delta: +0%
+  No changes since prior run — domain state stable
 
 ---
 
@@ -96,5 +100,14 @@
 ## Summary
 
 GreenAI Templates domain covers 2 of 8 L0 capabilities exactly/clean-rebuild (list_templates as CLEAN_REBUILD, get_template_by_id as EXACT). template_profile_access reclassified as INTENT_DRIFT MEDIUM: L0 mapping management is admin-only, not customer self-service — runtime enforcement in GreenAI is Phase 1 sufficient. 2 HIGH gaps remain: create and update (Phase 2 CRUD). delete is MEDIUM. DFEP gate FAILED on match score 25% — 5 missing capabilities. Phase 1 verdict for template access: runtime enforcement sufficient.
+
+---
+
+## Low-Confidence Capabilities (require Architect review)
+
+| ID | Intent | Confidence |
+|----|--------|-----------|
+| `update_template` | Modify an existing message template | ⚠️ 0.00 |
+| `delete_template` | Remove a message template | ⚠️ 0.00 |
 
 ---

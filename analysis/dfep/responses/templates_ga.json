@@ -1,63 +1,156 @@
 {
   "domain": "Templates",
-  "source": "GreenAI (green-ai/src)",
   "capabilities": [
     {
       "id": "list_templates",
-      "intent": "List message templates for the authenticated user's customer and profile via JWT claims",
-      "business_value": "Users can retrieve pre-defined templates scoped to their profile before composing a message",
+      "intent": "Return all message templates accessible to the current profile",
+      "business_value": "User can browse available SMS/email templates before sending",
       "flow": [
-        "HTTP GET request received at /api/v1/templates (evidence: GreenAi.Api/Features/Templates/GetTemplates/GetTemplatesEndpoint.cs:8)",
-        "GetTemplatesHandler.Handle reads ProfileId + CustomerId from ICurrentUser JWT claims (evidence: GreenAi.Api/Features/Templates/GetTemplates/GetTemplatesHandler.cs:21)",
-        "Delegate to MessageTemplateRepository.GetForProfileAsync (evidence: GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:17)",
-        "Return list of MessageTemplateDto"
+        "JWT claims give CustomerId + ProfileId (GetTemplatesHandler.cs)",
+        "GetForProfileAsync filters by ProfileId via INNER JOIN MessageTemplateProfileAccess (GetTemplatesForProfile.sql)",
+        "Returns List<MessageTemplateDto> to caller"
       ],
-      "constraints": [
-        "ProfileId from JWT — immutable, no DB-based profile switching",
-        "CustomerId from JWT — tenant isolation"
-      ],
-      "rules": [
-        "RequireAuthorization — only authenticated users",
-        "ICurrentUser (JWT claims) — no DB identity lookup"
-      ],
-      "evidence": [
-        "GreenAi.Api/Features/Templates/GetTemplates/GetTemplatesEndpoint.cs:8",
-        "GreenAi.Api/Features/Templates/GetTemplates/GetTemplatesHandler.cs:21",
-        "GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:17"
-      ],
-      "confidence": 0.91
+      "constraints": ["Always profile-scoped — no customer-wide listing"],
+      "rules": ["INNER JOIN MessageTemplateProfileAccess enforces access gate"],
+      "evidence": ["GetTemplatesForProfile.sql", "MessageTemplateRepository.cs", "GetTemplatesHandler.cs"],
+      "confidence": 0.95
     },
     {
       "id": "get_template_by_id",
-      "intent": "Retrieve a single message template by ID, scoped to the authenticated customer AND profile (access guard)",
-      "business_value": "Allows fetching a specific template for use in SendDirect (TemplateId parameter) — profile access check prevents cross-profile template access",
+      "intent": "Return a single template by ID, scoped to the calling profile",
+      "business_value": "User can retrieve a specific template for preview or send",
       "flow": [
-        "MessageTemplateRepository.GetByIdAsync called with id, customerId, AND profileId (evidence: GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:24)",
-        "SQL JOIN MessageTemplateProfileAccess enforces profile ownership before returning (evidence: GreenAi.Api/Features/Templates/GetTemplateById.sql:1)",
-        "Returns MessageTemplateDto or null (null = template not found, wrong customer, or profile has no access)"
+        "JWT claims give CustomerId + ProfileId (SendDirectHandler.cs:ResolveContentAsync)",
+        "GetByIdAsync with customerId + profileId guards (GetTemplateById.sql)",
+        "Returns MessageTemplateDto or null if not found/accessible"
+      ],
+      "constraints": ["CustomerId tenant guard + ProfileId access guard both enforced"],
+      "rules": ["Template.Channel must match command.Channel — INVALID_TEMPLATE_CHANNEL if mismatch"],
+      "evidence": ["GetTemplateById.sql", "MessageTemplateRepository.cs", "SendDirectHandler.cs"],
+      "confidence": 0.92
+    },
+    {
+      "id": "create_template",
+      "intent": "Insert a new message template and grant access to specified profiles",
+      "business_value": "Customer admin can create reusable message templates for SMS or Email",
+      "flow": [
+        "POST /api/v1/templates with Name, Channel, Body, Subject?, ProfileIds (CreateTemplateEndpoint.cs)",
+        "FluentValidation: channel guard, subject rules, ProfileIds non-empty (CreateTemplateValidator.cs)",
+        "InsertAsync via ExecuteInTransactionAsync: InsertTemplate.sql + InsertTemplateProfileAccess.sql loop (MessageTemplateRepository.cs:InsertAsync)",
+        "Returns new TemplateId (CreateTemplateResponse.cs)"
+      ],
+      "constraints": ["Channel must be 1 (SMS) or 2 (Email)", "SMS: Subject MUST be null", "Email: Subject REQUIRED", "ProfileIds: min 1"],
+      "rules": ["Atomic transaction: template + profile access rows created together or not at all"],
+      "evidence": ["InsertTemplate.sql", "InsertTemplateProfileAccess.sql", "CreateTemplateHandler.cs", "CreateTemplateValidator.cs"],
+      "confidence": 0.93
+    },
+    {
+      "id": "resolve_content",
+      "intent": "Resolve template body and subject with [FieldName] token substitution before message insert",
+      "business_value": "Customer can send personalized messages using templates with tokens [Name], [Address], [Street], [PostalCode], [City], [Kvhx], [Number] — resolved at send time",
+      "flow": [
+        "ResolveContentAsync loads template body + subject from MessageTemplates by TemplateId (SendDirectHandler.cs:ResolveContentAsync)",
+        "BuildAddressTokens creates token dict from AddressLookupDto: Street, Number+Letter, PostalCode, City, Kvhx, composite Address (SendDirectHandler.cs:BuildAddressTokens)",
+        "[Name] token set per-owner in address mode send loop (SendDirectHandler.cs:HandleAddressMode)",
+        "TemplateTokenMerger.Merge replaces [FieldName] tokens — unknown tokens left unchanged fail-open (TemplateTokenMerger.cs:Merge)",
+        "Merged body + subject persisted to OutboundMessages.Payload and Subject column before OutboxWorker sees them"
       ],
       "constraints": [
-        "CustomerId isolation — WHERE Id=@Id AND CustomerId=@CustomerId",
-        "ProfileId access gate — INNER JOIN MessageTemplateProfileAccess"
+        "Merge happens before OutboundMessages insert — OutboxWorker receives raw merged payload",
+        "Direct mode: no address data available, tokens remain as-is",
+        "Unknown tokens left unchanged — no error thrown",
+        "Null owner name becomes empty string"
       ],
       "rules": [
-        "Channel consistency enforced by SendDirectHandler: template.Channel MUST match command.Channel — INVALID_TEMPLATE_CHANNEL if mismatch"
+        "Token format: [FieldName] square brackets letter-start identifier",
+        "Case-insensitive token matching",
+        "Address mode fully resolved; direct mode tokens remain unresolved in this slice"
       ],
-      "evidence": [
-        "GreenAi.Api/Features/Templates/MessageTemplateRepository.cs:24",
-        "GreenAi.Api/Features/Templates/GetTemplateById.sql:1",
-        "GreenAi.Api/Features/Api/V1/Messages/SendDirect/SendDirectHandler.cs:248"
+      "evidence": ["TemplateTokenMerger.cs", "SendDirectHandler.cs"],
+      "confidence": 0.88
+    },
+    {
+      "id": "template_profile_access",
+      "intent": "Grant and enforce per-profile access to templates via M:M mapping",
+      "business_value": "Only profiles with explicit access can view or use a template",
+      "flow": [
+        "Access seeded via InsertTemplateProfileAccess.sql at creation time",
+        "INNER JOIN MessageTemplateProfileAccess enforced in all read queries (GetTemplatesForProfile.sql, GetTemplateById.sql)"
       ],
-      "confidence": 0.93
+      "constraints": ["No standalone link/unlink API — access only set at template creation"],
+      "rules": ["ProfileId from JWT — caller cannot spoof profile access"],
+      "evidence": ["InsertTemplateProfileAccess.sql", "GetTemplatesForProfile.sql", "GetTemplateById.sql"],
+      "confidence": 0.88
+    },
+    {
+      "id": "update_template",
+      "intent": "Modify an existing message template's content and profile access set",
+      "business_value": "Customer can edit template name, channel, body, subject and associated profiles without recreating",
+      "flow": [
+        "PUT /api/v1/templates/{id} with Name, Channel, Body, Subject?, ProfileIds (UpdateTemplateEndpoint.cs)",
+        "ExistsForCustomerAsync checks template exists scoped to CustomerId — returns NOT_FOUND if missing or foreign tenant (MessageTemplateRepository.cs:ExistsForCustomerAsync)",
+        "UpdateAsync via ExecuteInTransactionAsync: UpdateTemplate.sql updates row, GetTemplateProfileMappings.sql reads existing set, diff computes adds/removes, DeleteTemplateProfileAccess.sql removes stale rows, InsertTemplateProfileAccess.sql adds new rows (MessageTemplateRepository.cs:UpdateAsync)",
+        "Returns updated TemplateId (UpdateTemplateResponse.cs)"
+      ],
+      "constraints": [
+        "Channel must be 1 (SMS) or 2 (Email)",
+        "SMS: Subject MUST be null",
+        "Email: Subject REQUIRED",
+        "ProfileIds: minimum 1 profile required",
+        "CustomerId tenant guard: cannot update template owned by different customer"
+      ],
+      "rules": [
+        "Atomic transaction: template row + profile mapping diff applied together or not at all",
+        "Profile replacement: incoming ProfileIds treated as desired set — missing added, stale removed",
+        "ExistsForCustomerAsync uses CustomerId from JWT — never from request body"
+      ],
+      "evidence": ["UpdateTemplate.sql", "GetTemplateForUpdate.sql", "GetTemplateProfileMappings.sql", "DeleteTemplateProfileAccess.sql", "UpdateTemplateHandler.cs", "MessageTemplateRepository.cs"],
+      "confidence": 0.92
+    },
+    {
+      "id": "delete_template",
+      "intent": "Hard-delete an existing message template and all its profile access entries",
+      "business_value": "Customer can remove obsolete templates, keeping the template list clean",
+      "flow": [
+        "DELETE /api/v1/templates/{id} (DeleteTemplateEndpoint.cs)",
+        "ExistsForCustomerAsync validates tenant ownership — returns NOT_FOUND if missing or foreign tenant (MessageTemplateRepository.cs:ExistsForCustomerAsync)",
+        "DeleteAsync via ExecuteInTransactionAsync: DeleteTemplateProfileAccess.sql removes all profile rows for template, DeleteTemplate.sql removes template row (MessageTemplateRepository.cs:DeleteAsync)",
+        "Returns deleted TemplateId (DeleteTemplateResponse.cs)"
+      ],
+      "constraints": [
+        "CustomerId tenant guard: cannot delete template owned by different customer",
+        "Hard delete — no soft-delete / IsDeleted flag",
+        "Profile access rows deleted before template row (no FK cascade in schema)"
+      ],
+      "rules": [
+        "Atomic transaction: profile access removal + template delete applied together or not at all",
+        "ExistsForCustomerAsync uses CustomerId from JWT — never from request body"
+      ],
+      "evidence": ["DeleteTemplate.sql", "DeleteTemplateProfileAccess.sql", "DeleteTemplateHandler.cs", "MessageTemplateRepository.cs"],
+      "confidence": 0.92
+    },
+    {
+      "id": "dynamic_mergefields_management",
+      "intent": "Allow callers to supply custom token values at send time for template body/subject resolution",
+      "business_value": "Customer can send personalized messages with arbitrary caller-supplied data without defining a custom merge field schema — e.g. order ID, product name, appointment time",
+      "flow": [
+        "Caller includes optional MergeFields dict in POST /api/v1/messages/send-direct request body (SendDirectCommand.cs)",
+        "In direct mode: after template body/subject resolved, TemplateTokenMerger.Merge applied with MergeFields dict (SendDirectHandler.cs:HandleDirectMode)",
+        "In address mode: MergeFields merged into address token dict after BuildAddressTokens — caller values override address tokens on key collision (SendDirectHandler.cs:HandleAddressMode)",
+        "MergeFields is optional — omit to use only address tokens or raw body"
+      ],
+      "constraints": [
+        "No server-side schema or CRUD for merge field definitions — caller-supplied only",
+        "Unknown tokens left unchanged (fail-open) — consistent with TemplateTokenMerger contract",
+        "Caller values override address-derived tokens when key names collide"
+      ],
+      "rules": [
+        "Token format: [FieldName] (square brackets, case-insensitive)",
+        "Nil MergeFields or empty dict: no merge applied — raw body/subject used"
+      ],
+      "evidence": ["SendDirectCommand.cs", "SendDirectHandler.cs", "TemplateTokenMerger.cs"],
+      "confidence": 0.85
     }
   ],
-  "unknown_hints": [
-    "create_template",
-    "update_template",
-    "delete_template",
-    "template_profile_access",
-    "dynamic_mergefields_management",
-    "email_template_crud",
-    "resolve_content"
-  ]
+  "unknown_hints": []
 }

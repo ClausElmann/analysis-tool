@@ -1,5 +1,5 @@
 # DFEP v3 — Capability Extraction Prompt
-> Domain: **Templates** | Source: **Level 0 (sms-service)** | Generated: 2026-04-17 23:41
+> Domain: **Templates** | Source: **Level 0 (sms-service)** | Generated: 2026-04-18 00:39
 
 ---
 

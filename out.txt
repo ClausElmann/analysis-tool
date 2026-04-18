@@ -1,0 +1,31 @@
+============================================================
+DFEP v3 ù Phase 2: Parse Responses
+============================================================
+
+[DFEP v3] Phase 2: Parsing responses for domain: Templates
+  [5/9] Reading L0 capability response...
+        Parsed 8 L0 capabilities
+  [6/9] Reading GreenAI capability response...
+        Parsed 6 GreenAI capabilities
+  [WARN] Low-confidence capabilities: update_template, delete_template
+  [V]  Validating capabilities against extracted facts...
+        L0: Validated 8 capabilities against 132 facts
+        L0:   Accepted: 8 | Rejected: 0
+        L0:   WARN: list_templates ù 1 uncited step(s)
+        L0:   WARN: get_template_by_id ù 1 uncited step(s)
+        L0:   WARN: create_template ù 1 uncited step(s)
+        L0:   WARN: update_template ù 1 uncited step(s)
+        L0:   WARN: delete_template ù 1 uncited step(s)
+        GA: Validated 6 capabilities against 11 facts
+        GA:   Accepted: 6 | Rejected: 0
+  [7/9] Generating comparison prompt...
+        Written: C:\Udvikling\analysis-tool\analysis\dfep\prompts\templates_2026-04-18_comparison.md
+
+  NEXT STEP: Send comparison prompt to Copilot:
+    File: C:\Udvikling\analysis-tool\analysis\dfep\prompts\templates_2026-04-18_comparison.md
+    Save Copilot's response to: C:\Udvikling\analysis-tool\analysis\dfep\responses\templates_comparison.json
+    Then run:
+      python -m dfep_v3.engine.dfep_runner --domain Templates --parse-response \
+        --l0-response analysis/dfep/responses/templates_l0.json \
+        --ga-response analysis/dfep/responses/templates_ga.json \
+        --cmp-response <comparison_response.json>
