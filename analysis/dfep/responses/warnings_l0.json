@@ -1,0 +1,276 @@
+{
+  "domain": "Warnings",
+  "source": "Level 0 (sms-service)",
+  "capabilities": [
+    {
+      "id": "create_warning",
+      "intent": "Create a new Warning from an external system, attaching typed fields and recipients",
+      "business_value": "Primary ingestion point — external sources (municipalities, utilities) push alerts into the system",
+      "flow": [
+        "Step 1: Validate Warning (type, profile, sourceRef deduplication) (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:159)",
+        "Step 2: Insert Warning row with Status=New (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:18)",
+        "Step 3: Attach WarningFields (key/value merge data) (evidence: ServiceAlert.Core/Domain/Warnings/Warning.cs:34)",
+        "Step 4: Attach WarningRecipients (KVHX / StdReceiver / explicit phone/email) (evidence: ServiceAlert.Core/Domain/Warnings/Warning.cs:39)"
+      ],
+      "constraints": [
+        "ProfileId scoping enforced (WarningTypeId restricted by ProfileRole)",
+        "SourceRef deduplication: WarningExists check before insert"
+      ],
+      "rules": [
+        "Warning.Status starts at New=0",
+        "WarningType may be restricted by ProfileRoleName"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:18",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:159",
+        "ServiceAlert.Services/Warnings/WarningService.cs:67",
+        "ServiceAlert.Core/Domain/Warnings/Warning.cs:34",
+        "ServiceAlert.Core/Domain/Warnings/Warning.cs:39"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "id": "list_warnings_by_profile",
+      "intent": "Retrieve historical Warning records for a profile within a date range",
+      "business_value": "Audit trail and status overview for customer operators",
+      "flow": [
+        "Step 1: Query Warnings filtered by ProfileId + date range (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:280)",
+        "Step 2: Return read models with Status (evidence: ServiceAlert.Services/Warnings/WarningService.cs:168)"
+      ],
+      "constraints": [
+        "ProfileId = @profileId — tenant isolation enforced"
+      ],
+      "rules": [
+        "fromDateUtc / toDateUtc boundaries required"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:280",
+        "ServiceAlert.Services/Warnings/WarningService.cs:168"
+      ],
+      "confidence": 0.88
+    },
+    {
+      "id": "warning_type_management",
+      "intent": "Read WarningTypes available to a profile, optionally filtered by ProfileRole",
+      "business_value": "Determines which alert categories a profile is authorized to send",
+      "flow": [
+        "Step 1: Join WarningTypes with ProfileRoleMappings on ProfileId (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:169)",
+        "Step 2: Filter by ProfileRoleName if specified (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:176)",
+        "Step 3: Return all types if no role restriction (evidence: ServiceAlert.Services/Warnings/WarningService.cs:173)"
+      ],
+      "constraints": [
+        "ProfileRoleName restriction is optional — omit to return all types for profile"
+      ],
+      "rules": [
+        "WarningType can be restricted to specific ProfileRole — access controlled"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:169",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:176",
+        "ServiceAlert.Services/Warnings/WarningService.cs:74"
+      ],
+      "confidence": 0.90
+    },
+    {
+      "id": "warning_template_management",
+      "intent": "CRUD for WarningTemplates — binds a (Profile + WarningType) pair to a MessageTemplate",
+      "business_value": "Defines which broadcast template is used when a warning of a given type is received by a profile",
+      "flow": [
+        "Step 1: Get templates by profile (optionally filtered by role) (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:188)",
+        "Step 2: Get single template by id or (profileId, warningTypeId) (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:215)",
+        "Step 3: Insert new template with Profile+WarningType binding (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:231)",
+        "Step 4: Update template (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:237)",
+        "Step 5: Delete template (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:248)"
+      ],
+      "constraints": [
+        "WarningTemplate is identified by (ProfileId, WarningTypeId) — unique per profile+type",
+        "GetWarningTemplatesByCustomer fetches across all profiles in customer scope (evidence: WarningRepository.cs:204)"
+      ],
+      "rules": [
+        "WarningTemplate must reference a valid MessageTemplate (Template domain)",
+        "TestMode flag controls whether broadcasts go to test gateway"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:188",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:204",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:215",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:225",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:231",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:237",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:248",
+        "ServiceAlert.Services/Warnings/WarningService.cs:79",
+        "ServiceAlert.Services/Warnings/WarningService.cs:100",
+        "ServiceAlert.Services/Warnings/WarningService.cs:116",
+        "ServiceAlert.Services/Warnings/WarningService.cs:132"
+      ],
+      "confidence": 0.93
+    },
+    {
+      "id": "warning_profile_settings",
+      "intent": "Read and write per-profile Warning configuration (night-time windows, default recipient strategy)",
+      "business_value": "Controls when and how broadcasts are sent for each profile's warnings",
+      "flow": [
+        "Step 1: Get WarningProfileSettings by ProfileId (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:262)",
+        "Step 2: Update settings (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:268)",
+        "Step 3: Create initial settings for new profile (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:274)",
+        "Step 4: DTO conversion to DB entity (evidence: ServiceAlert.Services/Warnings/Dto/WarningProfileSettingsDto.cs:27)"
+      ],
+      "constraints": [
+        "ProfileId = @profileId — per-profile scope"
+      ],
+      "rules": [
+        "Settings control postponement logic (night-time detection)",
+        "Default recipient strategy falls back here if Warning has none assigned"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:262",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:268",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:274",
+        "ServiceAlert.Services/Warnings/WarningService.cs:147",
+        "ServiceAlert.Services/Warnings/WarningService.cs:154",
+        "ServiceAlert.Services/Warnings/WarningService.cs:159",
+        "ServiceAlert.Services/Warnings/Dto/WarningProfileSettingsDto.cs:27"
+      ],
+      "confidence": 0.90
+    },
+    {
+      "id": "warning_recipient_resolution",
+      "intent": "Determine actual phone/email recipients from WarningRecipient entries (KVHX lookup, StdReceiver, explicit numbers)",
+      "business_value": "Bridges the gap between the external system's knowledge and actual contactable recipients",
+      "flow": [
+        "Step 1: Evaluate recipient strategy flags (ShouldSendToAddress, ShouldSendToOwner, ShouldSendToIncludedNumber) (evidence: ServiceAlert.Services/Warnings/Workload/WarningWorkloadProcessor.cs:33)",
+        "Step 2: Resolve KVHX recipients via address lookup (evidence: ServiceAlert.Services/Warnings/Workload/WarningWorkloadProcessor.cs:35)",
+        "Step 3: Build WarningMessageDto with resolved recipients (evidence: ServiceAlert.Services/Warnings/InjectionPoints/Dto/WarningMessageDto.cs:21)",
+        "Step 4: Grouped send — one broadcast per SmsGroup (evidence: ServiceAlert.Services/Messages/WarningMessageSender.cs:160)"
+      ],
+      "constraints": [
+        "Recipient can be: KVHX address, StandardReceiver/Group, or explicit phone/email (all three can coexist)"
+      ],
+      "rules": [
+        "Strategy flags from WarningProfileSettings if not set on Warning",
+        "Recipients enriched from WarningRecipients + WarningFields tables (evidence: WarningRepository.cs:110)"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Warnings/Workload/WarningWorkloadProcessor.cs:33",
+        "ServiceAlert.Services/Warnings/Workload/WarningWorkloadProcessor.cs:34",
+        "ServiceAlert.Services/Warnings/Workload/WarningWorkloadProcessor.cs:35",
+        "ServiceAlert.Services/Warnings/Workload/WarningWorkloadProcessor.cs:57",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:110",
+        "ServiceAlert.Services/Warnings/InjectionPoints/Dto/WarningMessageDto.cs:21",
+        "ServiceAlert.Services/Messages/WarningMessageSender.cs:67",
+        "ServiceAlert.Services/Messages/WarningMessageSender.cs:160"
+      ],
+      "confidence": 0.87
+    },
+    {
+      "id": "warning_field_merging",
+      "intent": "Merge Warning-specific key/value fields into the WarningTemplate body before broadcast",
+      "business_value": "Personalises alert text with incident-specific data (location, time, severity) from the external source",
+      "flow": [
+        "Step 1: Attach WarningFields to Warning (evidence: ServiceAlert.Core/Domain/Warnings/Warning.cs:34)",
+        "Step 2: Add fields to WarningMessageDto (evidence: ServiceAlert.Services/Warnings/InjectionPoints/Dto/WarningMessageDto.cs:25)",
+        "Step 3: Merge fields into template body during send (evidence: ServiceAlert.Services/Messages/WarningMessageSender.cs:67)"
+      ],
+      "constraints": [
+        "Fields are simple key/value pairs (WarningField entity)",
+        "Merge happens at send time, not at create time"
+      ],
+      "rules": [
+        "Field keys must match template tokens",
+        "Unknown tokens left unresolved (fail-open behavior)"
+      ],
+      "evidence": [
+        "ServiceAlert.Core/Domain/Warnings/Warning.cs:34",
+        "ServiceAlert.Services/Warnings/InjectionPoints/Dto/WarningMessageDto.cs:25",
+        "ServiceAlert.Services/Warnings/InjectionPoints/Dto/WarningNoRecipientDto.cs:17",
+        "ServiceAlert.Services/Messages/WarningMessageSender.cs:67"
+      ],
+      "confidence": 0.85
+    },
+    {
+      "id": "warning_state_machine",
+      "intent": "Manage the lifecycle state of a Warning through processing stages (New → InProgress → Retry → Done/Failed/Postponed)",
+      "business_value": "Ensures reliable delivery with retry logic and audit trail per warning",
+      "flow": [
+        "Step 1: Fetch unprocessed warnings (Status=New) and mark InProgress (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:75)",
+        "Step 2: Fetch and reset postponed warnings (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:43)",
+        "Step 3: Update Warning status after processing attempt (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:18)",
+        "Step 4: Write status transitions via WarningStatusWriter (evidence: ServiceAlert.Services/Warnings/Workload/WarningStatusWriter.cs:17)",
+        "Step 5: Classify failed status (evidence: ServiceAlert.Services/Warnings/Workload/WarningStatus.cs:30)"
+      ],
+      "constraints": [
+        "State transitions: New(0)→InProgress(4)→FirstRetry(1)→InProgressFirstRetry(5)→SecondRetry(2)→InProgressSecondRetry(6)→Failed(3)/Done(10)",
+        "Postponed(7) and PostponedAgain(9) are night-time hold states"
+      ],
+      "rules": [
+        "Max 3 processing attempts before Failed=3",
+        "Postponed warnings are re-queued at start of each processing run"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:18",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:43",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:55",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:75",
+        "ServiceAlert.Services/Warnings/Workload/WarningStatus.cs:30",
+        "ServiceAlert.Services/Warnings/Workload/WarningStatusWriter.cs:17"
+      ],
+      "confidence": 0.91
+    },
+    {
+      "id": "no_recipient_handling",
+      "intent": "Send admin notification email when a Warning has no resolvable recipients",
+      "business_value": "Prevents silent failure — operator is notified when an alert cannot be delivered to anyone",
+      "flow": [
+        "Step 1: Fetch warnings in no-recipient status (evidence: ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:127)",
+        "Step 2: Process via NoRecipientWarningWorkloadProcessor (evidence: ServiceAlert.Services/Warnings/Workload/NoRecipientWarningWorkloadProcessor.cs:27)",
+        "Step 3: Build NoRecipient DTO with fields (evidence: ServiceAlert.Services/Warnings/InjectionPoints/Dto/WarningNoRecipientDto.cs:17)",
+        "Step 4: Send admin email (evidence: ServiceAlert.Services/Messages/WarningMessageSender.cs:268)"
+      ],
+      "constraints": [
+        "Only warnings with no resolvable recipients trigger this path"
+      ],
+      "rules": [
+        "Admin email target comes from WarningProfileSettings"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:127",
+        "ServiceAlert.Services/Warnings/Workload/NoRecipientWarningWorkloadLoader.cs:24",
+        "ServiceAlert.Services/Warnings/Workload/NoRecipientWarningWorkloadProcessor.cs:27",
+        "ServiceAlert.Services/Warnings/InjectionPoints/Dto/WarningNoRecipientDto.cs:17",
+        "ServiceAlert.Services/Messages/WarningMessageSender.cs:268",
+        "ServiceAlert.Services/Warnings/WarningService.cs:56"
+      ],
+      "confidence": 0.85
+    },
+    {
+      "id": "warning_processing_pipeline",
+      "intent": "Batch-process pending Warnings through the full recipient resolution → field merge → broadcast creation cycle",
+      "business_value": "Core execution engine — transforms incoming alert events into delivered broadcasts",
+      "flow": [
+        "Step 1: Reset and re-queue postponed warnings (evidence: ServiceAlert.Services/Warnings/Workload/PostponedWarningWorkloadLoader.cs:21)",
+        "Step 2: Load unprocessed warnings in chunks (evidence: ServiceAlert.Services/Warnings/Workload/WarningWorkloadLoader.cs:22)",
+        "Step 3: Process each Warning — resolve recipients, merge fields, create broadcast (evidence: ServiceAlert.Services/Warnings/Workload/WarningWorkloadProcessor.cs:37)",
+        "Step 4: Write status transitions (evidence: ServiceAlert.Services/Warnings/Workload/WarningStatusWriter.cs:17)",
+        "Step 5: Handle no-recipient warnings separately (evidence: ServiceAlert.Services/Warnings/WarningService.cs:56)"
+      ],
+      "constraints": [
+        "Night-time detection may postpone processing (PostponedWarningProcessor.ProcessWorkAsync)"
+      ],
+      "rules": [
+        "Processing is transactional per Warning — failure in one does not block others",
+        "Postponed warnings re-enter queue at next run"
+      ],
+      "evidence": [
+        "ServiceAlert.Services/Warnings/WarningService.cs:37",
+        "ServiceAlert.Services/Warnings/Workload/WarningWorkloadLoader.cs:22",
+        "ServiceAlert.Services/Warnings/Workload/WarningWorkloadProcessor.cs:37",
+        "ServiceAlert.Services/Warnings/Workload/WarningWorkloadProcessor.cs:57",
+        "ServiceAlert.Services/Warnings/Workload/PostponedWarningWorkloadLoader.cs:21",
+        "ServiceAlert.Services/Warnings/Workload/PostponedWarningProcessor.cs:19",
+        "ServiceAlert.Services/Warnings/Workload/WarningStatusWriter.cs:17"
+      ],
+      "confidence": 0.90
+    }
+  ],
+  "unknown_hints": []
+}

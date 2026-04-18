@@ -1,0 +1,17 @@
+{
+  "domain": "Warnings",
+  "source": "GreenAI (green-ai/src)",
+  "capabilities": [],
+  "unknown_hints": [
+    "create_warning",
+    "list_warnings_by_profile",
+    "warning_type_management",
+    "warning_template_management",
+    "warning_profile_settings",
+    "warning_recipient_resolution",
+    "warning_field_merging",
+    "warning_state_machine",
+    "no_recipient_handling",
+    "warning_processing_pipeline"
+  ]
+}

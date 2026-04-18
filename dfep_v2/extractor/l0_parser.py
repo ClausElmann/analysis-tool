@@ -94,6 +94,7 @@ _HTTP_MAP_RE = re.compile(
 # Domain inference from path/content
 _DOMAIN_PATH_MAP = [
     (re.compile(r"template",   re.I), "Templates"),
+    (re.compile(r"warning",    re.I), "Warnings"),
     (re.compile(r"send|outbox|message|smsgroup|smslog", re.I), "Send"),
     (re.compile(r"lookup|address|owner|cvr|property", re.I), "Lookup"),
     (re.compile(r"auth|token|login|user", re.I), "Auth"),

@@ -1,0 +1,12 @@
+{
+  "_comment": "RIG whitelist — files matching these patterns are excluded from gate evaluation. Must be explicit and auditable.",
+  "whitelist": [
+    "PasswordHasher.cs",
+    "DapperPlusSetup.cs",
+    "*Hash*",
+    "*Crypto*"
+  ],
+  "schema_guard": {
+    "ignored_table_names": ["dbo"]
+  }
+}

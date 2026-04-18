@@ -63,7 +63,7 @@ _DEFAULT_RESPONSES = str(_TOOL_ROOT / "analysis" / "dfep" / "responses")
 _DEFAULT_SNAPSHOTS = str(_TOOL_ROOT / "analysis" / "dfep" / "snapshots")
 _DEFAULT_TEMP_MD = str(_TOOL_ROOT / "temp.md")
 
-_ALL_DOMAINS = ["Templates", "Send", "Lookup", "Auth", "Profiles"]
+_ALL_DOMAINS = ["Templates", "Send", "Lookup", "Auth", "Profiles", "Warnings"]
 
 
 # ---------------------------------------------------------------------------

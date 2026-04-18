@@ -1,0 +1,99 @@
+{
+  "domain": "Warnings",
+  "comparisons": [
+    {
+      "l0_capability_id": "create_warning",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "CRITICAL",
+      "difference": "L0 accepts Warning ingestion from external systems — validates SourceRef dedup, inserts Warning with Status=New, attaches typed WarningFields and WarningRecipients. GreenAI has no create endpoint, no Warning entity, no ingestion pipeline.",
+      "impact": "External systems (municipalities, utilities) cannot push alert events into GreenAI. The entire Warnings domain is inoperable.",
+      "action": "Implement CreateWarning slice: validate ProfileId + WarningTypeId scope, insert Warning row, attach fields and recipients"
+    },
+    {
+      "l0_capability_id": "list_warnings_by_profile",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "HIGH",
+      "difference": "L0 returns historical Warning records filtered by ProfileId + date range, including Status for audit trail. GreenAI has no Warning query endpoint.",
+      "impact": "Operators cannot view warning history or current processing status. No audit trail available.",
+      "action": "Implement ListWarnings slice filtered by ProfileId + date range"
+    },
+    {
+      "l0_capability_id": "warning_type_management",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "HIGH",
+      "difference": "L0 exposes WarningTypes scoped to a profile, optionally filtered by ProfileRoleName. GreenAI has no WarningType read endpoint.",
+      "impact": "UI cannot present available alert categories to operators. Profile-role access restrictions cannot be enforced.",
+      "action": "Implement GetWarningTypes slice — join WarningTypes with ProfileRoleMappings, filter by optional ProfileRoleName"
+    },
+    {
+      "l0_capability_id": "warning_template_management",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "CRITICAL",
+      "difference": "L0 binds (ProfileId + WarningTypeId) to a MessageTemplate via WarningTemplates — full CRUD. GreenAI has no WarningTemplate entity or management endpoints.",
+      "impact": "Without template binding, the processing pipeline cannot determine which broadcast template to use for each alert type. Warnings cannot be sent.",
+      "action": "Implement full CRUD for WarningTemplates: GetByProfile, GetByProfileAndType, Insert, Update, Delete"
+    },
+    {
+      "l0_capability_id": "warning_profile_settings",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "HIGH",
+      "difference": "L0 stores per-profile Warning configuration (night-time postponement windows, default recipient strategy) in WarningProfileSettings. GreenAI has no settings entity or management endpoints.",
+      "impact": "Postponement logic cannot be configured. Default recipient strategy is undefined. Processing pipeline lacks required configuration context.",
+      "action": "Implement GetWarningProfileSettings + UpdateWarningProfileSettings slices"
+    },
+    {
+      "l0_capability_id": "warning_recipient_resolution",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "CRITICAL",
+      "difference": "L0 resolves phone/email recipients via three strategies: KVHX address lookup, StandardReceiver/Group, and explicit numbers — driven by strategy flags per Warning. GreenAI has no recipient resolution logic.",
+      "impact": "Even if warnings are created, they cannot be delivered to anyone. Broadcasts cannot be created without resolved recipients.",
+      "action": "Implement recipient resolution service: evaluate ShouldSendToAddress/Owner/IncludedNumber flags, resolve via Lookup domain, enrich WarningMessageDto"
+    },
+    {
+      "l0_capability_id": "warning_field_merging",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "HIGH",
+      "difference": "L0 merges WarningFields (key/value pairs from external source) into the WarningTemplate body at send time. GreenAI has no field merge mechanism for Warnings.",
+      "impact": "Broadcast messages cannot be personalized with incident-specific data (location, time, severity). Recipients receive generic or incomplete messages.",
+      "action": "Implement WarningField attachment and template merge at broadcast creation time"
+    },
+    {
+      "l0_capability_id": "warning_state_machine",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "CRITICAL",
+      "difference": "L0 manages full Warning lifecycle: New(0)→InProgress(4)→FirstRetry(1)→InProgressFirstRetry(5)→SecondRetry(2)→Done(10)/Failed(3), plus Postponed(7/9) for night-time holds. GreenAI has no Warning entity or state transitions.",
+      "impact": "No retry logic. Failed deliveries are silently lost. No audit trail of processing attempts. Postponement (night-time hold) impossible.",
+      "action": "Implement WarningStatus enum and state transition logic in the processing pipeline"
+    },
+    {
+      "l0_capability_id": "no_recipient_handling",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "MEDIUM",
+      "difference": "L0 detects Warnings with no resolvable recipients and sends an admin notification email. GreenAI has no no-recipient detection or notification.",
+      "impact": "Silent failure when no recipients found — operators are not notified. Workaround: manual log inspection.",
+      "action": "Implement NoRecipient detection in processing pipeline and admin email notification"
+    },
+    {
+      "l0_capability_id": "warning_processing_pipeline",
+      "ga_capability_id": null,
+      "match": "MISSING",
+      "severity": "CRITICAL",
+      "difference": "L0 runs a batch processing engine: re-queues postponed warnings, loads unprocessed warnings in chunks, resolves recipients, merges fields, creates broadcasts, writes status transitions. GreenAI has no processing pipeline for Warnings.",
+      "impact": "Warnings are accepted but never processed or delivered. The domain is a dead end without the processing pipeline.",
+      "action": "Implement WarningWorkload processor as a background job: load→resolve→merge→broadcast→status-write cycle"
+    }
+  ],
+  "coverage_score": 0.0,
+  "critical_count": 5,
+  "high_count": 4,
+  "summary": "GreenAI has zero Warnings implementation. All 10 L0 capabilities are absent. The 5 CRITICAL gaps (create, template management, recipient resolution, state machine, processing pipeline) form the minimum viable core — without these, the domain cannot function at all. The 4 HIGH gaps (list history, type management, profile settings, field merging) are required for operator usability and correct broadcast personalisation."
+}
