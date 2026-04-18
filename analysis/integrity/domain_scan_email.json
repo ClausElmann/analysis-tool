@@ -1,0 +1,834 @@
+{
+  "gate_status": "PASS",
+  "failed_files": 0,
+  "total_files": 43,
+  "files": [
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\EmailAttachment.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Mails\\EmailAttachments.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.8,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'emailattachment' is identical in both codebases",
+        "Identifier 'filecontent' is identical in both codebases",
+        "Identifier 'filename' is identical in both codebases",
+        "Identifier 'messageid' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\EmailMessage.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Mails\\EmailMessage.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.68,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'bccemails' is identical in both codebases",
+        "Identifier 'body' is identical in both codebases",
+        "Identifier 'categoryenum' is identical in both codebases",
+        "Identifier 'datechangedutc' is identical in both codebases",
+        "Identifier 'emailmessage' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\EmailStatus.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Mails\\EmailStatus.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\CreateDraft\\CreateDraftCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Logging\\Commands\\CreateLogCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\CreateDraft\\CreateDraftEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\Websites\\sim.servicealert.no\\sim.servicealert.no\\sim.servicealert.no.ApiService\\Krr\\KrrEndpoints.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\CreateDraft\\CreateDraftHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Subscriptions\\EventHandlers\\EnrollmentCreatedEventHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.5,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'handle' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\CreateDraft\\CreateDraftRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Ready\\Repository\\ReadyRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.667,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\CreateDraft\\CreateDraftResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\VoiceGateways\\VoiceGatewayResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\CreateDraft\\CreateDraftValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Benchmark\\Validation\\BenchmarkMetadataDtoValidator.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\GatewayDispatch\\ISendGridBackgroundService.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\BackgrundServices\\Email\\SendGrid\\ISendGridBackgroundService.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'isendgridbackgroundservice' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\GatewayDispatch\\ISendGridGatewayRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\UserNudging\\Repository\\IUserNudgingRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\GatewayDispatch\\SendGridBackgroundService.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\BackgrundServices\\Email\\SendGrid\\SendGridBackgroundService.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.5,
+        "behavior": 0.615,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier '_logger' is identical in both codebases",
+        "Identifier 'doworkasync' is identical in both codebases",
+        "Identifier 'sendgridbackgroundservice' is identical in both codebases",
+        "Naming risk: method identifiers ['_logger', 'doworkasync', 'sendgridbackgroundservice'] AND parameter names ['stoppingtoken'] both overlap with legacy — verify these reflect GreenAI domain intent, not copy."
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "LOOP",
+        "NULL",
+        "IF",
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\GatewayDispatch\\SendGridGatewayProcessor.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\EmailGateways\\SendGridWorkloadProcessor.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.222,
+        "behavior": 0.678,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier '_logger' is identical in both codebases",
+        "Identifier 'getnextstatus' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "CALL",
+        "RET",
+        "IF",
+        "CALL",
+        "IF",
+        "CALL",
+        "RET",
+        "IF",
+        "CALL",
+        "RET",
+        "CALL",
+        "IF",
+        "RET",
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\GatewayDispatch\\SendGridGatewayRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\UserNudging\\Repository\\UserNudgingRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.611,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "RET",
+        "DB",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\List\\EmailMessageListItem.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Mails\\EmailMessage.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\List\\ListEmailsEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\EmailGateways\\IEmailSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.75
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\List\\ListEmailsHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\EmailGateways\\IEmailSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\List\\ListEmailsQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\EmailGateways\\IEmailSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\List\\ListEmailsRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\Repository\\IEmailRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.5,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Provider\\EmailMessageProvider.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Mails\\EmailMessage.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.617,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'buildmailmessage' has behavioral shape similarity 1.00 with legacy 'updatestatuscode'"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "RET",
+        "RET",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Provider\\RoutingMessageProvider.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\WarningMessageSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.125,
+        "behavior": 0.5,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier '_logger' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Provider\\SmtpOptions.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Infrastructure\\DataTransferObjects\\SCIM\\ScimOperation.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\EmailRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\Repository\\EmailRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.8,
+        "behavior": 0.756,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'emailrepository' is identical in both codebases",
+        "Method 'bulkinsertemailmessagesasync' has behavioral shape similarity 0.80 with legacy 'getemailmessagesfromstatusandids'",
+        "Method 'insertemailattachmentsasync' has behavioral shape similarity 0.80 with legacy 'updateemailmessagestatuses'"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy).",
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "LOOP",
+        "CALL",
+        "IF",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\IEmailRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\Repository\\IEmailRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'iemailrepository' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\IEmailSender.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\EmailGateways\\IEmailSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.5,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'iemailsender' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\ISingleProcessingChannel.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\BackgrundServices\\Shared\\ISingleProcessingChannel.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.5,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'isingleprocessingchannel' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\ISingleSendGridProcessingChannel.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\BackgrundServices\\Email\\SendGrid\\ISingleSendGridProcessingChannel.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'isinglesendgridprocessingchannel' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\SendEmailCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\SmsGroupSchedules\\Dto\\ScheduleCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\SendEmailEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\EmailGateways\\SendGridEmailSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.167,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\SendEmailHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\EmailGateways\\SendGridEmailSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.381,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "NULL",
+        "EARLY",
+        "LOOP",
+        "CALL",
+        "CALL",
+        "IF",
+        "LOOP",
+        "LOOP",
+        "CALL",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\SendEmailRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\Repository\\EmailRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.333,
+        "behavior": 0.5,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "NULL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\SendEmailResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\UserNudging\\UserNudgingResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\SendEmailValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Test.Shared\\Utilities\\Builders\\Scenarios\\SenderActivity.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\Send\\SingleSendGridProcessingChannel.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\BackgrundServices\\Email\\SendGrid\\SingleSendGridProcessingChannel.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.833,
+        "domain": 0.667
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier '_disposedvalue' is identical in both codebases",
+        "Identifier 'dispose' is identical in both codebases",
+        "Identifier 'getmessageid' is identical in both codebases",
+        "Identifier 'isthequeueempty' is identical in both codebases",
+        "Identifier 'queuemessage' is identical in both codebases",
+        "Method 'queuemessages' has behavioral shape similarity 1.00 with legacy 'queuemessages'",
+        "Legacy-risk pattern detected: void return on handler",
+        "Naming risk: method identifiers ['_disposedvalue', 'dispose', 'getmessageid'] AND parameter names ['emailmessageids'] both overlap with legacy — verify these reflect GreenAI domain intent, not copy."
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy).",
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape.",
+        "Fix: Legacy-risk pattern detected: void return on handler"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "LOOP"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\SendSystem\\SendSystemEmailCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\CodeLookup\\Commands\\AttachEmailCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\SendSystem\\SendSystemEmailHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\EmailGateways\\SendGridEmailSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.267,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "CALL",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\WebhookUpdate\\IWebhookEmailRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Webhooks\\Repository\\IWebhooksRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\WebhookUpdate\\ProcessWebhookEventsCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Webhooks\\RegisterWebhookCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\WebhookUpdate\\ProcessWebhookEventsHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Subscriptions\\EventHandlers\\EnrollmentCreatedEventHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.125,
+        "behavior": 0.444,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'handle' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "LOOP",
+        "LOOP",
+        "IF",
+        "IF",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\WebhookUpdate\\SendGridRootEvent.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\SendGrid\\Infrastructure\\SendGridRootEvent.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'attempt' is identical in both codebases",
+        "Identifier 'converteventtoemailstatus' is identical in both codebases",
+        "Identifier 'email' is identical in both codebases",
+        "Identifier 'emailid' is identical in both codebases",
+        "Identifier 'event' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\WebhookUpdate\\SendGridWebhookEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\SendGrid\\Infrastructure\\SendGridRootEvent.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.167,
+        "domain": 0.75
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\WebhookUpdate\\UpdateEmailMessageStatusCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\Commands\\UpdateEmailMessageStatusCommand.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'sgmessageid' is identical in both codebases",
+        "Identifier 'status' is identical in both codebases",
+        "Identifier 'updateemailmessagestatuscommand' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Email\\WebhookUpdate\\WebhookEmailRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Webhooks\\Repository\\WebhooksRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.333,
+        "behavior": 0.4,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "RET",
+        "IF",
+        "DB",
+        "RET",
+        "DB",
+        "RET"
+      ]
+    }
+  ]
+}

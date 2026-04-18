@@ -1,0 +1,1192 @@
+{
+  "gate_status": "PASS",
+  "failed_files": 0,
+  "total_files": 67,
+  "files": [
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\IWarningProfileSettingRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Dto\\WarningProfileSettingsDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\IWarningRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Repository\\IWarningRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'iwarningrepository' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\IWarningTemplateRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Templates\\Repository\\ITemplateRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\IWarningTypeRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Repository\\IWarningRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningDtos.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\Kamstrup\\Dto\\WarningDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettingRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Dto\\WarningProfileSettingsDto.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.143,
+        "behavior": 0.667,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Repository\\WarningRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.111,
+        "behavior": 0.811,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'warningrepository' is identical in both codebases",
+        "Method 'getbyprofileasync' has behavioral shape similarity 1.00 with legacy 'updateandfetchpostponedwarnings'",
+        "Method 'claimpendingasync' has behavioral shape similarity 1.00 with legacy 'updateandfetchpostponedwarnings'",
+        "Method 'getfieldsbyidsasync' has behavioral shape similarity 0.80 with legacy 'updateandfetchpostponedwarnings'",
+        "Method 'getrecipientsbyidsasync' has behavioral shape similarity 0.80 with legacy 'updateandfetchpostponedwarnings'",
+        "Naming risk: method identifiers ['warningrepository'] AND parameter names ['sourceref'] both overlap with legacy — verify these reflect GreenAI domain intent, not copy."
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "CALL",
+        "LOOP",
+        "DB",
+        "LOOP",
+        "DB",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplateRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Templates\\Repository\\ITemplateRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.056,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypeRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Repository\\WarningRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.071,
+        "behavior": 0.75,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'listallasync' has behavioral shape similarity 1.00 with legacy 'updateandfetchpostponedwarnings'"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\CreateWarning\\CreateWarningCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Logging\\Commands\\CreateLogCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\CreateWarning\\CreateWarningEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\WeatherWarningRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.4,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\CreateWarning\\CreateWarningHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\WeatherWarningWebReader.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.444,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\CreateWarning\\CreateWarningResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\VoiceGateways\\VoiceGatewayResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\CreateWarning\\CreateWarningValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\DataObjects\\WeatherWarningData.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\Domain\\DispatchMessage.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Test.Integration\\Utilities\\Builders\\CreatedMessage.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\Domain\\WarningChannel.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningField.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\Domain\\WarningStatusCode.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Workload\\WarningStatus.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.304,
+        "behavior": 0.0,
+        "domain": 0.5
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\ListWarnings\\ListWarningsEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Repository\\IWarningRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\ListWarnings\\ListWarningsHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\InjectionPoints\\IWarningMessageSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\ListWarnings\\ListWarningsQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\IWarningService.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\ProcessWarnings\\ProcessWarningsCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Caching\\CachingCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\ProcessWarnings\\ProcessWarningsEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Processes\\Repository\\ProcessRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.667,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\ProcessWarnings\\ProcessWarningsHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Test\\Services\\Gateways\\SocialMediaGateways\\MockHttpMessageHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.202,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "CALL",
+        "LOOP",
+        "CALL",
+        "CALL",
+        "IF",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\ProcessWarnings\\ProcessWarningsResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\UserNudging\\UserNudgingResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\ProcessWarnings\\WarningTemplateTokenValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Infrastructure\\DataTransferObjects\\WarningTemplate\\WarningTemplateDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.286,
+        "domain": 0.667
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "LOOP",
+        "IF",
+        "IF",
+        "LOOP",
+        "IF",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\CreateWarningProfileSetting\\CreateWarningProfileSettingCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\Commands\\FtpImport\\CreateOrUpdateProfileFtpSettingCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\CreateWarningProfileSetting\\CreateWarningProfileSettingEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Dto\\WarningProfileSettingsDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\CreateWarningProfileSetting\\CreateWarningProfileSettingHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningProfileSettings.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\CreateWarningProfileSetting\\CreateWarningProfileSettingResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningProfileSettings.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\CreateWarningProfileSetting\\CreateWarningProfileSettingValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Dto\\WarningProfileSettingsDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\ListWarningProfileSettings\\ListWarningProfileSettingsEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Dto\\WarningProfileSettingsDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\ListWarningProfileSettings\\ListWarningProfileSettingsHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningProfileSettings.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\ListWarningProfileSettings\\ListWarningProfileSettingsQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningProfileSettings.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\UpdateWarningProfileSetting\\UpdateWarningProfileSettingCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningProfileSettings.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\UpdateWarningProfileSetting\\UpdateWarningProfileSettingEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Dto\\WarningProfileSettingsDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\UpdateWarningProfileSetting\\UpdateWarningProfileSettingHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningProfileSettings.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "IF",
+        "EARLY",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\UpdateWarningProfileSetting\\UpdateWarningProfileSettingResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningProfileSettings.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningProfileSettings\\UpdateWarningProfileSetting\\UpdateWarningProfileSettingValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\Dto\\WarningProfileSettingsDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\CreateWarningTemplate\\CreateWarningTemplateCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\WeatherWarnings\\WeatherWarningTemplate.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\CreateWarningTemplate\\CreateWarningTemplateEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\DataObjects\\WeatherWarningTemplateData.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\CreateWarningTemplate\\CreateWarningTemplateHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\WeatherWarnings\\WeatherWarningTemplate.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\CreateWarningTemplate\\CreateWarningTemplateResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\WeatherWarnings\\WeatherWarningTemplate.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\CreateWarningTemplate\\CreateWarningTemplateValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\DataObjects\\WeatherWarningTemplateData.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\ListWarningTemplates\\ListWarningTemplatesEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Infrastructure\\DataTransferObjects\\WarningTemplate\\WarningTemplateDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\ListWarningTemplates\\ListWarningTemplatesHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\WarningTemplateController.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.571,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "DB",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\ListWarningTemplates\\ListWarningTemplatesQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningTemplate.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\UpdateWarningTemplate\\UpdateWarningTemplateCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\Map\\Dto\\UpdateMapLayerCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\UpdateWarningTemplate\\UpdateWarningTemplateEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\DataObjects\\WeatherWarningTemplateData.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\UpdateWarningTemplate\\UpdateWarningTemplateHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\WeatherWarnings\\WeatherWarningTemplate.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "IF",
+        "CALL",
+        "NULL",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\UpdateWarningTemplate\\UpdateWarningTemplateResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\ReadModels\\WarningTemplateReadModel.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTemplates\\UpdateWarningTemplate\\UpdateWarningTemplateValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\DataObjects\\WeatherWarningTemplateData.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\CreateWarningType\\CreateWarningTypeCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Messaging\\WebMessages\\CreateWebMessageCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\CreateWarningType\\CreateWarningTypeEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\Dto\\WeatherWarningTypeDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\CreateWarningType\\CreateWarningTypeHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\WeatherWarnings\\WeatherWarningType.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\CreateWarningType\\CreateWarningTypeResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\VoiceGateways\\VoiceGatewayResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\CreateWarningType\\CreateWarningTypeValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\Dto\\WeatherWarningTypeDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\GetWarningType\\GetWarningTypeEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Infrastructure\\DataTransferObjects\\WarningTemplate\\WarningTypeDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\GetWarningType\\GetWarningTypeHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Dapper\\DapperMappers\\UriTypeHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "DB",
+        "NULL",
+        "EARLY",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\GetWarningType\\GetWarningTypeQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningType.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\ListWarningTypes\\ListWarningTypesEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Infrastructure\\DataTransferObjects\\WarningTemplate\\WarningTypeDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\ListWarningTypes\\ListWarningTypesHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Warnings\\InjectionPoints\\IWarningMessageSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\ListWarningTypes\\ListWarningTypesQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Warnings\\WarningType.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\UpdateWarningType\\UpdateWarningTypeCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Messaging\\WebMessages\\UpdateWebMessageCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\UpdateWarningType\\UpdateWarningTypeEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\Dto\\WeatherWarningTypeDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\UpdateWarningType\\UpdateWarningTypeHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Dapper\\DapperMappers\\DateOnlyTypeHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\UpdateWarningType\\UpdateWarningTypeResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\UserNudging\\UserNudgingResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Warnings\\WarningTypes\\UpdateWarningType\\UpdateWarningTypeValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\WeatherWarnings\\Dto\\WeatherWarningTypeDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    }
+  ]
+}

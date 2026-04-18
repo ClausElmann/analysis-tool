@@ -20,6 +20,7 @@ function Copy-Filtered {
     Get-ChildItem -Path $SrcRoot -Recurse -File | Where-Object {
         $f = $_
         if ($ExcludeExts -contains $f.Extension.ToLower()) { return $false }
+        if ($f.Name -eq 'temp.md' -and $f.DirectoryName -eq $SrcRoot) { return $false }
         $parts = $f.FullName.Substring($SrcRoot.Length).Split([IO.Path]::DirectorySeparatorChar)
         foreach ($p in $parts) { if ($ExcludeDirs -contains $p) { return $false } }
         return $true

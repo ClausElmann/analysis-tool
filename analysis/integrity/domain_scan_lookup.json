@@ -1,0 +1,183 @@
+{
+  "gate_status": "PASS",
+  "failed_files": 0,
+  "total_files": 11,
+  "files": [
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\AddressLookupDto.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Addresses\\IntegrationPoints\\IAddressLookup.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\AddressLookupRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Addresses\\Repository\\AddressRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.167,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\AddressOwnerDto.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Addresses\\AddressOwner.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\AddressOwnershipResult.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\External\\NorwegianPublicContacts\\Dto\\AddressResult.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\AddressOwnershipService.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Addresses\\AddressService.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.667,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "NULL",
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\CvrDto.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\NorwegianPeople\\Krr\\Dto\\Dto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\CvrLookupRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\Repository\\LookupRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.167,
+        "behavior": 0.583,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "RET",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\IAddressLookupRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Addresses\\Repository\\IAddressRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\ICvrLookupRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\Repository\\ILookupRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\IOwnerLookupRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\Repository\\ILookupRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Lookup\\OwnerLookupRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\Repository\\LookupRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.25,
+        "behavior": 0.667,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB",
+        "RET"
+      ]
+    }
+  ]
+}

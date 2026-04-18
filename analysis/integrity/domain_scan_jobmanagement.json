@@ -1,0 +1,387 @@
+{
+  "gate_status": "PASS",
+  "failed_files": 0,
+  "total_files": 18,
+  "files": [
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\ActiveJobs\\ActiveJobsEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\Websites\\sim.servicealert.no\\sim.servicealert.no\\sim.servicealert.no.ApiService\\Api1881\\Api1881Endpoints.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "LOOP",
+        "CALL",
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\ActiveJobs\\ActiveJobsHub.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Caching\\CacheTimeout.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.667
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: void return on handler"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: void return on handler"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "LOOP"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\ActiveJobs\\ClientEventBackgroundService.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ClientEvents\\ClientEventSyncroBackgroundService.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.4,
+        "behavior": 0.619,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "CALL",
+        "LOOP"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\ActiveJobs\\ClientEventRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ClientEvents\\Repository\\ClientEventsRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.105,
+        "behavior": 0.767,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'clienteventrepository' is identical in both codebases",
+        "Method 'getjobtaskasync' has behavioral shape similarity 1.00 with legacy 'cleanupclienteventsasync'",
+        "Method 'createactivejobseventasync' has behavioral shape similarity 1.00 with legacy 'getclienteventsasync'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "DB",
+        "DB",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\ActiveJobs\\JobTaskStatusChangedEventHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Events\\JobTaskStatusChangedEvent.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.667,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "NULL",
+        "RET",
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\GetRecentAndOngoingTasks\\GetRecentAndOngoingTasksEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Test\\Services\\Warnings\\NoRecipientWarningServiceTests.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.5,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\GetRecentAndOngoingTasks\\GetRecentAndOngoingTasksHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Enrollments\\EventHandlers\\CustomerEventsHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.333,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'handle' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\GetRecentAndOngoingTasks\\GetRecentAndOngoingTasksQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Search\\QueryObjects\\GetSentMessagesQuery.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\GetRecentAndOngoingTasks\\RecentTasksRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Processes\\Repository\\ProcessRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.571,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB",
+        "IF",
+        "RET",
+        "DB",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\LogJobTaskStatus\\IJobLogRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Repository\\IJobRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\LogJobTaskStatus\\JobLogRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Repository\\JobRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.417,
+        "behavior": 0.762,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'createjobasync' is identical in both codebases",
+        "Method 'updatejobtaskstatusdurationasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Method 'createjobtaskstatusasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Naming risk: method identifiers ['createjobasync'] AND parameter names ['azuretaskid', 'jobtaskid'] both overlap with legacy — verify these reflect GreenAI domain intent, not copy."
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\LogJobTaskStatus\\LogJobTaskStatusCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Enums\\JobTaskStatusCode.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\LogJobTaskStatus\\LogJobTaskStatusEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Dto\\JobTaskStatusDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\LogJobTaskStatus\\LogJobTaskStatusHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Enums\\JobTaskStatusCode.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "CALL",
+        "IF",
+        "IF",
+        "CALL",
+        "CALL",
+        "CALL",
+        "NULL",
+        "CALL",
+        "CALL",
+        "CALL",
+        "IF",
+        "CALL",
+        "CALL",
+        "CALL",
+        "NULL",
+        "CALL",
+        "CALL",
+        "CALL",
+        "IF",
+        "CALL",
+        "CALL",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\Shared\\BatchJobAction.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Common\\BatchApp\\Enums\\ServiceAlertBatchAction.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\Shared\\JobTaskDto.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Dto\\JobTaskDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.667,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'azurejobid' is identical in both codebases",
+        "Identifier 'azuretaskid' is identical in both codebases",
+        "Identifier 'currentstatus' is identical in both codebases",
+        "Identifier 'datecreatedutc' is identical in both codebases",
+        "Identifier 'jobid' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\Shared\\JobTaskStatusChangedEvent.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Events\\JobTaskStatusChangedEvent.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'jobtaskstatuschangedevent' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\JobManagement\\Shared\\JobTaskStatusCode.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Enums\\JobTaskStatusCode.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'jobtaskstatuscode' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    }
+  ]
+}

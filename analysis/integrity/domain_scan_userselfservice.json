@@ -1,0 +1,314 @@
+{
+  "gate_status": "PASS",
+  "failed_files": 0,
+  "total_files": 17,
+  "files": [
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetConfirmCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Infrastructure\\DataTransferObjects\\QuickResponse\\SmsLogResponseCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetConfirmEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\Websites\\sim.servicealert.no\\sim.servicealert.no\\sim.servicealert.no.ApiService\\MaskinPorten\\MaskinPortenEndpoints.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.667,
+        "domain": 0.75
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetConfirmHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Contracts\\Models\\Users\\PasswordVerificationModel.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "NULL",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetConfirmRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\Repository\\StandardReceiverRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.8,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'confirmresetasync' has behavioral shape similarity 0.80 with legacy 'cleanupstandardreceiversnotingroupandnoprofileaccessasync'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "DB",
+        "DB"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetConfirmResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\Websites\\sim.servicealert.no\\sim.servicealert.no\\sim.servicealert.no.ApiService\\MaskinPorten\\Dto\\MaskinPortenResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetConfirmValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\StandardReceivers\\Validators\\StandardReceiverDtoValidator.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetRequestCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\Commands\\UpdateMessageAddressCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetRequestEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Infrastructure\\DataTransferObjects\\PinCodeRequestDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.75
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetRequestHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\SendGrid\\EventHandlers\\InboundParseEventHandlers\\InboundParseEventHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.125,
+        "behavior": 0.222,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'handle' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "RET",
+        "NULL",
+        "EARLY",
+        "CALL",
+        "CALL",
+        "CALL",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "CALL",
+        "CALL",
+        "IF",
+        "EARLY",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetRequestRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Addresses\\Repository\\AddressRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetRequestResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\Websites\\sim.servicealert.no\\sim.servicealert.no\\sim.servicealert.no.ApiService\\MaskinPorten\\Dto\\MaskinPortenResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\PasswordReset\\PasswordResetRequestValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Infrastructure\\DataTransferObjects\\PinCodeRequestDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\UpdateUser\\UpdateUserCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\User\\UpdateUserCommand.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'updateusercommand' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\UpdateUser\\UpdateUserEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\User\\UpdateUserCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\UpdateUser\\UpdateUserHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\User\\UpdateUserCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "DB",
+        "IF",
+        "DB",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\UpdateUser\\UpdateUserResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\User\\UpdateUserCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\UserSelfService\\UpdateUser\\UpdateUserValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Contracts\\Models\\Subscribe\\UpdateSubscriberDTO.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    }
+  ]
+}

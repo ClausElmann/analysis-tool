@@ -104,6 +104,34 @@
       "triggers": ["dfep v3", "copilot native", "governance compliant dfep", "send prompt to copilot"],
       "notes": "Two-mode workflow: 1) generate-prompts (Copilot reads + writes JSON), 2) parse-response (DFEP validates + reports). Replaces dfep-v2 as primary DFEP engine.",
       "last_verified": "2026-04-17"
+    },
+    {
+      "id": "rig-full-scan",
+      "name": "analysis_tool.integrity.run_rig (full)",
+      "path": "analysis-tool/analysis_tool/integrity/run_rig.py",
+      "full_path": "C:\\Udvikling\\analysis-tool\\analysis_tool\\integrity\\run_rig.py",
+      "type": "python_module",
+      "purpose": "Reverse Integrity Guard — verifies green-ai codebase matches sms-service (legacy). Full baseline scan across all domains.",
+      "usage": "$env:PYTHONIOENCODING=\"utf-8\"; .venv\\Scripts\\python.exe -m analysis_tool.integrity.run_rig --greenai c:/Udvikling/green-ai/src/GreenAi.Api --legacy c:/Udvikling/sms-service --output analysis/integrity/full_baseline_post_fix.json --no-llm 2>&1 | Select-String \"PASS|FAIL|Failed files|written\"",
+      "output": "analysis/integrity/full_baseline_post_fix.json",
+      "cwd": "C:\\Udvikling\\analysis-tool",
+      "triggers": ["RIG scan", "integrity check", "verify baseline", "kør RIG", "full RIG"],
+      "notes": "Run AFTER completing a Wave/build — not per slice. PASS = integrity maintained. FAIL = schema/contract drift detected.",
+      "last_verified": "2026-04-18"
+    },
+    {
+      "id": "rig-domain-scan",
+      "name": "analysis_tool.integrity.run_rig (domain)",
+      "path": "analysis-tool/analysis_tool/integrity/run_rig.py",
+      "full_path": "C:\\Udvikling\\analysis-tool\\analysis_tool\\integrity\\run_rig.py",
+      "type": "python_module",
+      "purpose": "Reverse Integrity Guard — scan a single green-ai domain against sms-service.",
+      "usage": "$env:PYTHONIOENCODING=\"utf-8\"; .venv\\Scripts\\python.exe -m analysis_tool.integrity.run_rig --greenai c:/Udvikling/green-ai/src/GreenAi.Api/Features/<Domain> --legacy c:/Udvikling/sms-service --output analysis/integrity/domain_scan_<domain>.json --no-llm 2>&1 | Select-String \"PASS|FAIL|Gate|files scanned\"",
+      "usage_all_domains": "$env:PYTHONIOENCODING=\"utf-8\"; $domains = @(\"ActivityLog\",\"AdminLight\",\"Api\",\"Auth\",\"CustomerAdmin\",\"Email\",\"Identity\",\"JobManagement\",\"Localization\",\"Lookup\",\"Operations\",\"Sms\",\"System\",\"Templates\",\"UserSelfService\",\"Warnings\"); foreach ($d in $domains) { $src = \"c:/Udvikling/green-ai/src/GreenAi.Api/Features/$d\"; $out = \"analysis/integrity/domain_scan_$($d.ToLower()).json\"; Write-Host \"--- $d ---\"; .venv\\Scripts\\python.exe -m analysis_tool.integrity.run_rig --greenai $src --legacy c:/Udvikling/sms-service --output $out --no-llm 2>&1 | Select-String \"PASS|FAIL|Failed files|Gate|files scanned\" }",
+      "output": "analysis/integrity/domain_scan_<domain>.json",
+      "cwd": "C:\\Udvikling\\analysis-tool",
+      "triggers": ["RIG scan Warnings", "RIG scan <domain>", "domæne RIG", "alle domæner RIG", "full domain scan"],
+      "last_verified": "2026-04-18"
     }
   ]
 }

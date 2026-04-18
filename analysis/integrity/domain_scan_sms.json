@@ -1,0 +1,1961 @@
+{
+  "gate_status": "PASS",
+  "failed_files": 0,
+  "total_files": 103,
+  "files": [
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ActivateBroadcast\\ActivateBroadcastCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\SuperAdmin\\Dto\\SetDisableAllBroadcastsCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ActivateBroadcast\\ActivateBroadcastEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\IBroadcastSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.857
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ActivateBroadcast\\ActivateBroadcastHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\IBroadcastSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "NULL",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ActivateBroadcast\\ActivateBroadcastRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Repository\\ActivityLogRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 1.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'getbroadcastactivationstateasync' has behavioral shape similarity 1.00 with legacy 'getactivitylogidasync'",
+        "Method 'activatebroadcastasync' has behavioral shape similarity 1.00 with legacy 'getactivitylogsasync'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ActivateBroadcast\\ActivateBroadcastResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\SocialMediaGateways\\Facebook\\FacebookPostResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ActivateBroadcast\\ActivateBroadcastValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Messaging\\Validation\\FacebookWebMessageDtoValidator.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ActivateBroadcast\\IActivateBroadcastRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Repository\\IActivityLogRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\AddRecipientCriterion\\AddRecipientCriterionCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Eboks\\RecipientCompanyRegistrationId.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\AddRecipientCriterion\\AddRecipientCriterionEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Eboks\\RecipientCompanyRegistrationId.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.857
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\AddRecipientCriterion\\AddRecipientCriterionHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Eboks\\RecipientCompanyRegistrationId.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "NULL",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\AddRecipientCriterion\\AddRecipientCriterionRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\AddressCorrections\\Repository\\AddressCorrectionRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\AddRecipientCriterion\\AddRecipientCriterionResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Eboks\\RecipientEboksAddress.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\AddRecipientCriterion\\AddRecipientCriterionValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\StandardReceivers\\Validators\\StandardReceiverDtoValidator.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\AddRecipientCriterion\\IAddRecipientCriterionRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\AddressCorrections\\Repository\\IAddressCorrectionRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ComposeBroadcast\\ComposeBroadcastCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\SuperAdmin\\Dto\\SetDisableAllBroadcastsCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ComposeBroadcast\\ComposeBroadcastEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\BroadcastSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.5,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ComposeBroadcast\\ComposeBroadcastHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\BroadcastSender.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.621,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "CALL",
+        "CALL",
+        "IF",
+        "CALL",
+        "IF",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ComposeBroadcast\\ComposeBroadcastRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Processes\\Repository\\ProcessRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 1.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'createbroadcastasync' has behavioral shape similarity 1.00 with legacy 'getprocesstaskbysubjectidandtranslationkey'",
+        "Method 'createsmscontentasync' has behavioral shape similarity 1.00 with legacy 'createprocesstask'",
+        "Method 'createemailcontentasync' has behavioral shape similarity 1.00 with legacy 'createprocesstask'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ComposeBroadcast\\ComposeBroadcastResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\SocialMediaGateways\\Facebook\\FacebookPostResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ComposeBroadcast\\ComposeBroadcastValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\DataImports\\Dtos\\Broadcast\\ZipCodeAddressBroadcastFIDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ComposeBroadcast\\IComposeBroadcastRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Processes\\Repository\\IProcessRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\DispatchBroadcast\\DispatchBroadcastCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\SuperAdmin\\Dto\\SetDisableAllBroadcastsCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\DispatchBroadcast\\DispatchBroadcastEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\IBroadcastSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.857
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\DispatchBroadcast\\DispatchBroadcastHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\IBroadcastSender.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "NULL",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "CALL",
+        "CALL",
+        "CALL",
+        "IF",
+        "EARLY",
+        "LOOP",
+        "NULL",
+        "IF",
+        "CALL",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\DispatchBroadcast\\DispatchBroadcastRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Processes\\Repository\\IProcessRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\DispatchBroadcast\\DispatchBroadcastResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Test.UI\\Utilities\\Pages\\MainApp\\ScheduledBroadcastsPage.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\DispatchBroadcast\\IDispatchBroadcastRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Processes\\Repository\\IProcessRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\EvaluateProfileGate\\EvaluateProfileGateEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Templates\\Entities\\TemplateProfileMapping.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.857
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\EvaluateProfileGate\\EvaluateProfileGateHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\SuperAdmin\\Dto\\UpdateProfileAccountCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB",
+        "NULL",
+        "EARLY",
+        "DB",
+        "DB",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\EvaluateProfileGate\\EvaluateProfileGateQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Customers\\Dto\\SuperAdminCustomer\\Profile\\DetailProfileUser.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\EvaluateProfileGate\\EvaluateProfileGateRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\Repository\\EmailTemplateRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.5,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'getprofilerolenamesasync' has behavioral shape similarity 1.00 with legacy 'getalltemplates'"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\EvaluateProfileGate\\EvaluateProfileGateResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\VoiceGateways\\VoiceGatewayResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\EvaluateProfileGate\\IEvaluateProfileGateRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Mails\\Repository\\IEmailTemplateRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ExecutionHealth\\ExecutionHealthRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Operational\\Repository\\OperationalRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 1.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'getbucketsasync' has behavioral shape similarity 1.00 with legacy 'delete'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ExecutionHealth\\ExecutionHealthResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\Architecture\\Extensions\\RelationshipExtensions.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ExecutionHealth\\GetExecutionHealthEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Operational\\Repository\\OperationalRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.333,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ExecutionHealth\\GetExecutionHealthHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Enrollments\\EventHandlers\\CustomerEventsHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.333,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'handle' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ExecutionHealth\\GetExecutionHealthQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\Address\\CommandsAndQueries\\GetAddressInfoQuery.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\IngestCanonicalAddress\\IIngestCanonicalAddressRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\CriticalAddresses\\Repository\\ICriticalAddressRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\IngestCanonicalAddress\\IngestCanonicalAddressCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Address\\SingleMessageAddressCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\IngestCanonicalAddress\\IngestCanonicalAddressEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\CriticalAddresses\\Repository\\CriticalAddressRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.667,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\IngestCanonicalAddress\\IngestCanonicalAddressHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\CriticalAddresses\\CriticalAddressesController.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.333,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "CALL",
+        "LOOP",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\IngestCanonicalAddress\\IngestCanonicalAddressRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\CriticalAddresses\\Repository\\CriticalAddressRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 1.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'upsertownerasync' has behavioral shape similarity 1.00 with legacy 'getcustomercriticaladdressbykvhxandcustomerid'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\IngestCanonicalAddress\\IngestCanonicalAddressResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\CriticalAddresses\\Repository\\CriticalAddressRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\IngestCanonicalAddress\\IngestCanonicalAddressValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Address\\Validation\\SingleMessageAddressModelValidator.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\IngestDlr\\GatewayApiDlrPayload.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Gateway\\GatewayApiClass.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\IngestDlr\\IngestGatewayApiDlrEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\SmsGateways\\GatewayApi\\ApiClient\\IGatewayApiClient.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.75
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "IF",
+        "RET",
+        "NULL",
+        "RET",
+        "RET",
+        "CALL",
+        "IF",
+        "RET",
+        "RET",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\LookupAddressOwnership\\LookupAddressOwnershipEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\CodeLookup\\Commands\\LookupNorwegianAddressOwnersCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\LookupAddressOwnership\\LookupAddressOwnershipHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\CodeLookup\\Commands\\LookupNorwegianAddressOwnersCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB",
+        "CALL",
+        "IF",
+        "EARLY",
+        "DB",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\LookupAddressOwnership\\LookupAddressOwnershipQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Address\\LookupAddressesQuery.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\LookupAddressOwnership\\LookupAddressOwnershipResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Address\\LookupAddressesAddressDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\LookupCanonicalAddress\\LookupCanonicalAddressEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\CriticalAddresses\\Repository\\CriticalAddressRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.667,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\LookupCanonicalAddress\\LookupCanonicalAddressHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Address\\LookupAddressQuery.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB",
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\LookupCanonicalAddress\\LookupCanonicalAddressQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Address\\LookupAddressQuery.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\LookupCanonicalAddress\\LookupCanonicalAddressResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Address\\LookupAddressesQuery.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageApiKeyAccess\\IManageApiKeyAccessRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Processes\\Repository\\IProcessRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageApiKeyAccess\\ManageApiKeyAccessCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\CodeLookup\\Commands\\AttachAddressCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageApiKeyAccess\\ManageApiKeyAccessEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\Websites\\sim.servicealert.no\\sim.servicealert.no\\sim.servicealert.no.ApiService\\Api1881\\Api1881Endpoints.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageApiKeyAccess\\ManageApiKeyAccessHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Authentication\\ManagedIdentityAuthenticationHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.25,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageApiKeyAccess\\ManageApiKeyAccessRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Processes\\Repository\\ProcessRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 1.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'createapikeyasync' has behavioral shape similarity 1.00 with legacy 'getprocesstaskbysubjectidandtranslationkey'",
+        "Method 'revokeapikeyasync' has behavioral shape similarity 1.00 with legacy 'createprocesstask'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageApiKeyAccess\\ManageApiKeyAccessResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\KeywordRegistration\\GatewayApi\\GatewayApiKeywordCheckResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageApiKeyAccess\\ManageApiKeyAccessValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\Messaging\\Validation\\WebMessageBaseValidator.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageCustomerHierarchy\\IManageCustomerHierarchyRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Customers\\Repository\\ICustomerRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageCustomerHierarchy\\ManageCustomerHierarchyCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Customers\\Dto\\SuperAdminCustomer\\Customer\\CustomerAccountDTO.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.333,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageCustomerHierarchy\\ManageCustomerHierarchyEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Maps\\MapLayerCustomerMapping.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageCustomerHierarchy\\ManageCustomerHierarchyHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Enrollments\\EventHandlers\\CustomerEventsHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.333,
+        "behavior": 0.214,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'handle' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "IF",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "IF",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageCustomerHierarchy\\ManageCustomerHierarchyRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Customers\\Repository\\CustomerRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.958,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'createcustomerasync' has behavioral shape similarity 1.00 with legacy 'updatesendasonsystemprofileasync'",
+        "Method 'updatecustomerasync' has behavioral shape similarity 1.00 with legacy 'getall'",
+        "Method 'deactivatecustomerasync' has behavioral shape similarity 1.00 with legacy 'getall'",
+        "Method 'createprofileasync' has behavioral shape similarity 1.00 with legacy 'updatesendasonsystemprofileasync'",
+        "Method 'updateprofileasync' has behavioral shape similarity 1.00 with legacy 'getall'",
+        "Method 'deactivateprofileasync' has behavioral shape similarity 1.00 with legacy 'getall'",
+        "Method 'upsertcustomeraccountasync' has behavioral shape similarity 1.00 with legacy 'getall'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageCustomerHierarchy\\ManageCustomerHierarchyResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Test\\Services\\Customers\\CustomerServiceTests.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageCustomerHierarchy\\ManageCustomerHierarchyValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\StandardReceivers\\Dto\\StandardReceiverHierarchicalGroupDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageReceiverPricing\\IManageReceiverPricingRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\Repository\\IStandardReceiverRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageReceiverPricing\\ManageReceiverPricingCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\StandardReceiver\\StandardReceiverProfileCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageReceiverPricing\\ManageReceiverPricingEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\StandardReceiver\\StandardReceiverProfileDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageReceiverPricing\\ManageReceiverPricingHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\StandardReceiver\\StandardReceiverProfileCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageReceiverPricing\\ManageReceiverPricingRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\Repository\\StandardReceiverRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.833,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'upsertasync' has behavioral shape similarity 1.00 with legacy 'deletestandardreceiversbycustomeridasync'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageReceiverPricing\\ManageReceiverPricingResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\ReadModels\\StandardReceiverProfileMappingReadModel.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageReceiverPricing\\ManageReceiverPricingValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\StandardReceivers\\Validators\\StandardReceiverDtoValidator.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageStandardReceiver\\IManageStandardReceiverRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\Repository\\IStandardReceiverRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageStandardReceiver\\ManageStandardReceiverCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Models\\StandardReceiver\\RegisterStandardReceiverCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageStandardReceiver\\ManageStandardReceiverEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\Repository\\StandardReceiverRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.667,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageStandardReceiver\\ManageStandardReceiverHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Api\\Controllers\\StandardReceiverController.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.246,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageStandardReceiver\\ManageStandardReceiverRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\Repository\\StandardReceiverRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.077,
+        "behavior": 0.879,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'createreceiverasync' has behavioral shape similarity 1.00 with legacy 'deletestandardreceiversbycustomeridasync'",
+        "Method 'updatereceiverasync' has behavioral shape similarity 1.00 with legacy 'deletestandardreceiversbycustomeridasync'",
+        "Method 'deactivatereceiverasync' has behavioral shape similarity 1.00 with legacy 'getstandardreceivergroupprofilemappings'",
+        "Method 'addgroupasync' has behavioral shape similarity 1.00 with legacy 'deletestandardreceiversbycustomeridasync'",
+        "Method 'addkeywordasync' has behavioral shape similarity 1.00 with legacy 'deletestandardreceiversbycustomeridasync'",
+        "Method 'adddistributionphoneasync' has behavioral shape similarity 1.00 with legacy 'deletestandardreceiversbycustomeridasync'",
+        "Method 'maptoprofileasync' has behavioral shape similarity 1.00 with legacy 'deletestandardreceiversbycustomeridasync'",
+        "Parameter names overlap with legacy: ['countryid', 'customerid', 'name', 'standardreceiverid'] — low risk alone, but monitor."
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageStandardReceiver\\ManageStandardReceiverResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\Repository\\StandardReceiverRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ManageStandardReceiver\\ManageStandardReceiverValidator.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\StandardReceivers\\Validators\\StandardReceiverDtoValidator.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\Outbox\\FakeGatewayMessageProvider.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\SmsGroups\\Entities\\GatewayProvider.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "RET",
+        "IF",
+        "RET",
+        "IF",
+        "RET",
+        "CALL",
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\Outbox\\GatewayApiMessageProvider.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\SmsGroups\\Entities\\GatewayProvider.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "RET",
+        "CALL",
+        "RET",
+        "RET",
+        "IF",
+        "CALL",
+        "RET",
+        "RET",
+        "CALL",
+        "TRY",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\Outbox\\GatewayApiOptions.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\GatewayFunctions.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\Outbox\\GatewayApiSendResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\StandardReceivers\\KeywordRegistration\\GatewayApi\\GatewayApiKeywordCheckResponse.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\Outbox\\IOutboxRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Repository\\IJobRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\Outbox\\NullMessageProvider.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\MessageService.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.333,
+        "behavior": 1.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier '_logger' is identical in both codebases",
+        "Method 'sendasync' has behavioral shape similarity 1.00 with legacy 'getsmsgroupstandardreceivers'",
+        "Naming risk: method identifiers ['_logger'] AND parameter names ['logger'] both overlap with legacy — verify these reflect GreenAI domain intent, not copy."
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\Outbox\\OutboxRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Jobs\\Repository\\JobRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 1.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'insertasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Method 'getexistingcountasync' has behavioral shape similarity 1.00 with legacy 'createjobasync'",
+        "Method 'getpendingbatchasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Method 'claimbatchasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Method 'marksentasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Method 'markfailedasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Method 'revertclaimasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Method 'recoverstaleasync' has behavioral shape similarity 1.00 with legacy 'createjobasync'",
+        "Method 'scheduleretryasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Method 'deadletterasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'",
+        "Method 'markdeliveredasync' has behavioral shape similarity 1.00 with legacy 'getrecentandongoingtasksasync'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\Outbox\\OutboxWorker.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Worker.Voice\\QueueProcessing\\QueueWorker.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.517,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "CALL",
+        "IF",
+        "RET",
+        "CALL",
+        "CALL",
+        "IF",
+        "CALL",
+        "LOOP",
+        "IF",
+        "CALL",
+        "IF",
+        "IF",
+        "CALL",
+        "IF",
+        "CALL",
+        "RET"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ResolveAddresses\\IResolveAddressesRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Addresses\\Repository\\IAddressRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ResolveAddresses\\ResolveAddressesCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\CodeLookup\\Commands\\RegisterPreloadedAddressCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ResolveAddresses\\ResolveAddressesEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\Enrollment\\Dto\\EnrolleeAddressDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.857
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ResolveAddresses\\ResolveAddressesHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\DataImports\\PostProcessors\\ProfileAddressesCacheCleaner.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.048,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "NULL",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "LOOP",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "CALL",
+        "LOOP",
+        "CALL",
+        "LOOP",
+        "CALL",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ResolveAddresses\\ResolveAddressesRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Addresses\\Repository\\AddressRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 1.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'getbroadcastresolvestateasync' has behavioral shape similarity 1.00 with legacy 'getcustomeraddress'",
+        "Method 'getcriteriaasync' has behavioral shape similarity 1.00 with legacy 'getbykvhx'",
+        "Method 'findcanonicaladdresskvhxasync' has behavioral shape similarity 1.00 with legacy 'getbykvhx'",
+        "Method 'getaddressownerphonesasync' has behavioral shape similarity 1.00 with legacy 'getbykvhx'",
+        "Method 'deleteresolveddataasync' has behavioral shape similarity 1.00 with legacy 'getbykvhx'",
+        "Method 'insertresolvedrecipientasync' has behavioral shape similarity 1.00 with legacy 'getbykvhx'",
+        "Method 'insertunresolvedcriterionasync' has behavioral shape similarity 1.00 with legacy 'getbykvhx'",
+        "Method 'setbroadcastlookedupasync' has behavioral shape similarity 1.00 with legacy 'getbykvhx'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\ResolveAddresses\\ResolveAddressesResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Enrollments\\ReadModels\\EnrolleeAddressReadModel.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\TrackDelivery\\ITrackDeliveryRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Ready\\Repository\\IReadyRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\TrackDelivery\\TrackDeliveryCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Lookup\\CodeLookup\\Commands\\LoadLevelFiltersCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\TrackDelivery\\TrackDeliveryEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\Dto\\StrexDeliveryReportDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\TrackDelivery\\TrackDeliveryHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Gateways\\SmsGateways\\Strex\\ApiClient\\Dto\\StrexDeliveryMode.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "CALL",
+        "NULL",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\TrackDelivery\\TrackDeliveryRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Ready\\Repository\\ReadyRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 1.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Method 'getoutboundbyprovidermessageidasync' has behavioral shape similarity 1.00 with legacy 'getreadyrawdata'",
+        "Method 'updatedeliverystatusasync' has behavioral shape similarity 1.00 with legacy 'getmetersbyprofileid'"
+      ],
+      "recommendations": [
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\Sms\\TrackDelivery\\TrackDeliveryResponse.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Messages\\Enums\\StrexDeliveryReportStatus.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    }
+  ]
+}

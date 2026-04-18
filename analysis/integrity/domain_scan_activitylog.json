@@ -1,0 +1,305 @@
+{
+  "gate_status": "PASS",
+  "failed_files": 0,
+  "total_files": 15,
+  "files": [
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\CreateActivityLogEntries\\CreateActivityLogEntriesCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Model\\ActivityLogEntrie.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\CreateActivityLogEntries\\CreateActivityLogEntriesEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Model\\ActivityLogEntrie.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\CreateActivityLogEntries\\CreateActivityLogEntriesHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Model\\ActivityLogEntrie.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "IF",
+        "EARLY",
+        "LOOP",
+        "IF",
+        "CALL",
+        "CALL",
+        "LOOP",
+        "IF",
+        "CALL",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\CreateActivityLogEntry\\CreateActivityLogEntryCommand.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Logging\\Commands\\CreateLogCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\CreateActivityLogEntry\\CreateActivityLogEntryEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Model\\ActivityLogEntrie.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.833
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\CreateActivityLogEntry\\CreateActivityLogEntryHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Model\\ActivityLogEntrie.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "CALL",
+        "CALL",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\GetActivityLogs\\GetActivityLogsEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Repository\\ActivityLogRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.667,
+        "domain": 0.8
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\GetActivityLogs\\GetActivityLogsHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\ActivityLogService.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.333,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "IF",
+        "EARLY",
+        "DB",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\GetActivityLogs\\GetActivityLogsQuery.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\ActivityLogService.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\Shared\\ActivityLogEntryDto.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Model\\ActivityLogEntryType.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.429,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'descriptiontranslationkey' is identical in both codebases"
+      ],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\Shared\\ActivityLogEntryReadModel.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\ReadModel\\ActivityLogReadModel.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.75,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'datecreatedutc' is identical in both codebases",
+        "Identifier 'descriptiontranslationkey' is identical in both codebases",
+        "Identifier 'descriptiontranslationparms' is identical in both codebases",
+        "Identifier 'username' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\Shared\\ActivityLogEntryRow.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Model\\ActivityLogEntrie.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\Shared\\ActivityLogRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Repository\\ActivityLogRepository.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 0.625,
+        "behavior": 0.806,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'activitylogrepository' is identical in both codebases",
+        "Identifier 'createactivitylogasync' is identical in both codebases",
+        "Identifier 'getactivitylogidasync' is identical in both codebases",
+        "Identifier 'getactivitylogsasync' is identical in both codebases",
+        "Method 'createactivitylogasync' has behavioral shape similarity 1.00 with legacy 'getactivitylogidasync'",
+        "Method 'getorcreateentrytypeasync' has behavioral shape similarity 1.00 with legacy 'getactivitylogidasync'",
+        "Method 'createentryasync' has behavioral shape similarity 1.00 with legacy 'getactivitylogsasync'",
+        "Naming risk: method identifiers ['activitylogrepository', 'createactivitylogasync', 'getactivitylogidasync'] AND parameter names ['descriptiontranslationkey', 'entries', 'objectid'] both overlap with legacy — verify these reflect GreenAI domain intent, not copy."
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy).",
+        "Refactor method flow: split into distinct steps (ingest / validate / persist) rather than a single sequential method matching legacy shape."
+      ],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "LOOP",
+        "DB"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\Shared\\ActivityLogType.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Enums\\ActivityLogType.cs",
+      "risk_level": "MEDIUM",
+      "scores": {
+        "structure": 1.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'activitylogtype' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ActivityLog\\Shared\\IActivityLogRepository.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ActivityLogs\\Repository\\IActivityLogRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.667,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [
+        "[scores: heuristic — LLM unavailable]",
+        "Identifier 'iactivitylogrepository' is identical in both codebases"
+      ],
+      "recommendations": [
+        "Rename classes/methods to use GreenAI-native vocabulary (e.g. 'IngestWarning' instead of 'CreateWarning' if it matches legacy)."
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    }
+  ]
+}

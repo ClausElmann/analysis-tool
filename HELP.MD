@@ -238,3 +238,65 @@ analysis/dfep/responses/idle/{domain}_{capability_id}_harvest_response.json
 | `protocol/domain_completion_protocol.md` | Operationelle regler (autoritativ) |
 | `core/domain/domain_quality_gate.py` | Fil-niveau kvalitetsgate — blokerer for tidlig completion |
 | `core/domain/domain_normalizer.py` | Noise-filter + alias-merge for domain-navne |
+
+---
+
+## ═══════════════════════════════════════
+## RIG — Reverse Integrity Guard
+## ═══════════════════════════════════════
+
+> Verificerer at green-ai kodebasen matcher sms-service (legacy). Bruges efter builds.
+
+### Fuld scan (alle domæner)
+```powershell
+$env:PYTHONIOENCODING="utf-8"
+.\.venv\Scripts\python.exe -m analysis_tool.integrity.run_rig `
+  --greenai c:/Udvikling/green-ai/src/GreenAi.Api `
+  --legacy  c:/Udvikling/sms-service `
+  --output  analysis/integrity/full_baseline_post_fix.json `
+  --no-llm 2>&1 | Select-String "PASS|FAIL|Failed files|written"
+```
+
+### Domain-specifik scan (enkelt domæne)
+```powershell
+$env:PYTHONIOENCODING="utf-8"
+.\.venv\Scripts\python.exe -m analysis_tool.integrity.run_rig `
+  --greenai c:/Udvikling/green-ai/src/GreenAi.Api/Features/Warnings `
+  --legacy  c:/Udvikling/sms-service `
+  --output  analysis/integrity/domain_scan_warnings.json `
+  --no-llm 2>&1 | Select-String "PASS|FAIL|Gate|files scanned"
+```
+
+### Alle 16 domæner på én gang
+```powershell
+$env:PYTHONIOENCODING="utf-8"
+$domains = @("ActivityLog","AdminLight","Api","Auth","CustomerAdmin","Email","Identity",
+             "JobManagement","Localization","Lookup","Operations","Sms","System",
+             "Templates","UserSelfService","Warnings")
+foreach ($d in $domains) {
+    $src = "c:/Udvikling/green-ai/src/GreenAi.Api/Features/$d"
+    $out = "analysis/integrity/domain_scan_$($d.ToLower()).json"
+    Write-Host "--- $d ---"
+    .\.venv\Scripts\python.exe -m analysis_tool.integrity.run_rig `
+      --greenai $src --legacy c:/Udvikling/sms-service --output $out --no-llm 2>&1 `
+      | Select-String "PASS|FAIL|Failed files|Gate|files scanned"
+}
+```
+
+Output-filer: `analysis/integrity/domain_scan_<domain>.json`
+
+---
+
+## ═══════════════════════════════════════
+## ZIP — Generate-ChatGPT-Package
+## ═══════════════════════════════════════
+
+> Pakker grøn-ai kode + SSOT + RIG-resultater til ZIP til Arkitekt (ChatGPT).
+> Kør KUN ved Wave-checkpoints — ikke ved hver slice.
+
+```powershell
+cd c:\Udvikling\analysis-tool
+.\scripts\Generate-ChatGPT-Package.ps1 2>&1 | Select-String -Pattern "PACKAGE_TOKEN|zip|MB|Token|Error|fail" -CaseSensitive:$false
+```
+
+Output: ZIP-fil sted + `PACKAGE_TOKEN` til brug i temp.md rapport.
