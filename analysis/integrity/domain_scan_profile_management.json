@@ -1,0 +1,167 @@
+{
+  "gate_status": "PASS",
+  "failed_files": 0,
+  "total_files": 8,
+  "files": [
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ProfileManagement\\CreateProfile\\CreateProfileEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Templates\\Entities\\TemplateProfileMapping.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.75
+      },
+      "flags": [
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ProfileManagement\\CreateProfile\\CreateProfileHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Dapper\\DapperMappers\\UriTypeHandler.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "CALL",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ProfileManagement\\DeleteProfile\\DeleteProfileEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\SuperAdmin\\Newsletters\\Dto\\NewsletterProfileRoleDto.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.75
+      },
+      "flags": [
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ProfileManagement\\DeleteProfile\\DeleteProfileHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\Customers\\Dto\\SuperAdminCustomer\\Profile\\DetailProfileRole.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "CALL",
+        "IF",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ProfileManagement\\ListProfilesForUser\\ListProfilesForUserEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ProfileStorage\\Repository\\IProfileStorageRepository.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.75
+      },
+      "flags": [
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ProfileManagement\\ListProfilesForUser\\ListProfilesForUserHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Services\\ProfileStorage\\IProfileStorageService.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "DB",
+        "EARLY"
+      ]
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ProfileManagement\\UpdateProfile\\UpdateProfileEndpoint.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Core\\Domain\\Templates\\Entities\\TemplateProfileMapping.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.0,
+        "behavior": 0.0,
+        "domain": 0.8
+      },
+      "flags": [
+        "Legacy-risk pattern detected: static helper class"
+      ],
+      "recommendations": [
+        "Fix: Legacy-risk pattern detected: static helper class"
+      ],
+      "gate_failed": false,
+      "behavior_signature": []
+    },
+    {
+      "greenai_file": "c:\\Udvikling\\green-ai\\src\\GreenAi.Api\\Features\\ProfileManagement\\UpdateProfile\\UpdateProfileHandler.cs",
+      "legacy_file": "c:\\Udvikling\\sms-service\\ServiceAlert.Web\\Controllers\\SuperAdmin\\Dto\\UpdateProfileAccountCommand.cs",
+      "risk_level": "LOW",
+      "scores": {
+        "structure": 0.143,
+        "behavior": 0.0,
+        "domain": 1.0
+      },
+      "flags": [],
+      "recommendations": [],
+      "gate_failed": false,
+      "behavior_signature": [
+        "CALL",
+        "CALL",
+        "IF",
+        "EARLY",
+        "IF",
+        "EARLY",
+        "CALL",
+        "IF",
+        "EARLY",
+        "EARLY"
+      ]
+    }
+  ]
+}

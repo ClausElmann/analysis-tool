@@ -1,5 +1,135 @@
 [
-  "CustomerEventsHandler",
-  "InfobipCustomerVoiceSettingsChangedEventHandler",
-  "ProspectCreatedInEconomicNotificationHandler"
+  {
+    "flow_id": "FLOW_001",
+    "name": "UserCreationFlow",
+    "verified": true,
+    "steps": [
+      {
+        "step": 1,
+        "description": "POST /api/User/CreateUser — ManageUsers OR SuperAdmin gate",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "CreateUser",
+        "line": 1629,
+        "detail": "ForbidWithMessage if neither ManageUsers nor SuperAdmin"
+      },
+      {
+        "step": 2,
+        "description": "Validate email format and uniqueness",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "CreateUser",
+        "line": 1636,
+        "detail": "_userService.UserExists(userModel.Email) → BadRequest if exists"
+      },
+      {
+        "step": 3,
+        "description": "Validate profile access cross-customer: current user must have access to all profiles' customers",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "CreateUser",
+        "line": 1668,
+        "detail": "_customerService.CheckUserAccessToCustomersOfProfileIds → ForbidWithMessage if any customer not accessible"
+      },
+      {
+        "step": 4,
+        "description": "Insert new User + add to customer",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "CreateUser",
+        "line": 1686,
+        "detail": "_userService.InsertUser(newUser) + _customerService.AddUserToCustomer"
+      },
+      {
+        "step": 5,
+        "description": "Send password email (or AD new user email)",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "CreateUser",
+        "line": 1692,
+        "detail": "SendUserNewPasswordEmail OR SendNewADUserEmail based on DefaultRoles"
+      },
+      {
+        "step": 6,
+        "description": "Assign default roles",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "CreateUser",
+        "line": 1697,
+        "detail": "_permissionService.UpdateUserRoleMapping(customerId, newUser.Id, userModel.DefaultRoles)"
+      },
+      {
+        "step": 7,
+        "description": "Add profile access + add user to additional customers (multi-customer)",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "CreateUser",
+        "line": 1701,
+        "detail": "_profileService.AddProfileAccessToUser + _customerService.AddUserToCustomer per distinct customer"
+      }
+    ]
+  },
+  {
+    "flow_id": "FLOW_002",
+    "name": "UserAccessManagementFlow",
+    "verified": true,
+    "steps": [
+      {
+        "step": 1,
+        "description": "ManageUsers role check",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "DeleteUser",
+        "line": 1440,
+        "detail": "CheckForUserRole(ManageUsers) → ForbidWithMessage if missing"
+      },
+      {
+        "step": 2,
+        "description": "CanUserAccessUser OR SuperAdmin check",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "DeleteUser",
+        "line": 1448,
+        "detail": "!_userService.CanUserAccessUser && !SuperAdmin → ForbidWithMessage"
+      },
+      {
+        "step": 3,
+        "description": "Protected user guard",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "DeleteUser",
+        "line": 1456,
+        "detail": "CheckForUserRole(Protected, userId) && !SuperAdmin → ForbidWithMessage"
+      },
+      {
+        "step": 4,
+        "description": "Execute: DeleteUser / ReactivateUser / SetUserRoleAccess",
+        "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+        "method": "DeleteUser",
+        "line": 1460,
+        "detail": "_userService.DeleteUser(userToDelete) → Ok"
+      }
+    ]
+  },
+  {
+    "flow_id": "FLOW_003",
+    "name": "CustomerUserRoleAccessFlow",
+    "verified": true,
+    "steps": [
+      {
+        "step": 1,
+        "description": "GET /api/Customer/GetCustomerUserRoleAccess — load all UserRoles",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "GetCustomerUserRoleAccess",
+        "line": 550,
+        "detail": "_permissionService.GetAllUserRoles() + GetCustomerUserRoleMappings(customerId)"
+      },
+      {
+        "step": 2,
+        "description": "Build UserRoleAccessModel list with HasAccess flag",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "GetCustomerUserRoleAccess",
+        "line": 553,
+        "detail": "_customerfactory.PrepareCustomerUserRoleAccessModels(...)"
+      },
+      {
+        "step": 3,
+        "description": "Optional filter: onlyHasAccess=true removes roles customer doesn't have",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "GetCustomerUserRoleAccess",
+        "line": 557,
+        "detail": "Filter where HasAccess == true → ordered by UserRole.NameLocalized"
+      }
+    ]
+  }
 ]

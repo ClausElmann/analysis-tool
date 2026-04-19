@@ -1,9 +1,12 @@
 {
-  "completeness_score": 0.88,
   "domain": "customer_administration",
-  "gaps_count": 2,
-  "iteration": 12,
-  "new_information_score": 0.0263,
-  "saved_utc": "2026-04-02T08:44:03.369426+00:00",
-  "status": "in_progress"
+  "status": "gate_ready",
+  "iteration": 1,
+  "score": 0.92,
+  "saved_utc": "2026-04-19T00:00:00Z",
+  "layer0_sources": [
+    "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+    "ServiceAlert.Web/Controllers/Users/UserController.cs"
+  ],
+  "note": "FULL REWRITE from Layer 0 — previous iteration was GOVERNANCE_REVERT (garbage class names)"
 }

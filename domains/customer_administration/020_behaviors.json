@@ -1,1 +1,82 @@
-[]
+[
+  {
+    "id": "BEH_001",
+    "name": "GetCustomerUsers",
+    "description": "Returns all users mapped to the current customer via CustomerService.GetUsers.",
+    "source": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs:259",
+    "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+    "line": 259,
+    "trigger": "GET /api/Customer/GetCustomerUsers",
+    "verified": true
+  },
+  {
+    "id": "BEH_002",
+    "name": "CreateUser",
+    "description": "Creates a new user under a customer. Validates email uniqueness, email format, profile access. Sends password email. Assigns default roles. Adds profile access.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1628",
+    "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+    "line": 1628,
+    "trigger": "POST /api/User/CreateUser?customerId={id}",
+    "verified": true
+  },
+  {
+    "id": "BEH_003",
+    "name": "DeleteUser",
+    "description": "Soft-deletes a user. Requires ManageUsers + CanUserAccessUser (or SuperAdmin). Protected users cannot be deleted without SuperAdmin.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1439",
+    "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+    "line": 1439,
+    "trigger": "POST /api/User/DeleteUser?id={id}",
+    "verified": true
+  },
+  {
+    "id": "BEH_004",
+    "name": "ReactivateUser",
+    "description": "Reactivates a soft-deleted user. Same access requirements as DeleteUser.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1467",
+    "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+    "line": 1467,
+    "trigger": "POST /api/User/ReactivateUser?id={id}",
+    "verified": true
+  },
+  {
+    "id": "BEH_005",
+    "name": "SetUserRoleAccess",
+    "description": "Sets role access (true/false) for a list of roleIds on a specific user. ManageUsers OR SuperAdmin required. Protected user guard.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1496",
+    "file": "ServiceAlert.Web/Controllers/Users/UserController.cs",
+    "line": 1496,
+    "trigger": "POST /api/User/SetUserRoleAccess?userId={id}&hasAccess={bool}",
+    "verified": true
+  },
+  {
+    "id": "BEH_006",
+    "name": "GetCustomerUserRoleAccess",
+    "description": "Returns all UserRoles with HasAccess flag per user for a given customer. Optionally filters to only roles the customer has access to.",
+    "source": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs:549",
+    "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+    "line": 549,
+    "trigger": "GET /api/Customer/GetCustomerUserRoleAccess?customerId={id}",
+    "verified": true
+  },
+  {
+    "id": "BEH_007",
+    "name": "GetAllProfileRoles",
+    "description": "Returns all distinct profile roles assigned across profiles of a customer. Returns IdAndValueGeneric<string> list.",
+    "source": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs:570",
+    "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+    "line": 570,
+    "trigger": "GET /api/Customer/GetAllProfileRoles?customerId={id}",
+    "verified": true
+  },
+  {
+    "id": "BEH_008",
+    "name": "ManageCustomerLog",
+    "description": "Get and update customer log/note entries (admin audit trail). GetCustomerLogs returns list; UpdateCustomerLog updates text while preserving DateInsertedUTC.",
+    "source": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs:580+589",
+    "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+    "line": 580,
+    "trigger": "GET /api/Customer/GetCustomerLogs + PUT /api/Customer/UpdateCustomerLog",
+    "verified": true
+  }
+]

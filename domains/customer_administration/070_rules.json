@@ -1,7 +1,68 @@
 [
-  "guard",
-  "guard.ts",
-  "if truly empty (use empty list, not null).",
-  "must be plain English or well-known identifiers.",
+  {
+    "rule_id": "RULE_001",
+    "name": "CreateUserRequiresManageUsers",
+    "description": "CreateUser requires ManageUsers role OR SuperAdmin. Missing both → ForbidWithMessage.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1629",
+    "code_verified": true,
+    "enforcement": "CheckForUserRole(ManageUsers) || IsUserSuperAdmin → Forbid if neither"
+  },
+  {
+    "rule_id": "RULE_002",
+    "name": "EmailMustBeUnique",
+    "description": "User email must not already exist in the system. _userService.UserExists(email) → BadRequest if true.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1636",
+    "code_verified": true,
+    "enforcement": "UserExists check before InsertUser"
+  },
+  {
+    "rule_id": "RULE_003",
+    "name": "DeleteUserRequiresAccessCheck",
+    "description": "DeleteUser requires ManageUsers + CanUserAccessUser (or SuperAdmin). Protected users cannot be deleted without SuperAdmin.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1440+1448+1456",
+    "code_verified": true,
+    "enforcement": "3-guard: ManageUsers → CanUserAccessUser/SuperAdmin → Protected/SuperAdmin"
+  },
+  {
+    "rule_id": "RULE_004",
+    "name": "SetUserRolesRequiresManageUsers",
+    "description": "SetUserRoleAccess requires ManageUsers OR SuperAdmin. Protected user guard applies.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1497",
+    "code_verified": true,
+    "enforcement": "!IsUserSuperAdmin && !CheckForUserRole(ManageUsers) → ForbidWithMessage"
+  },
+  {
+    "rule_id": "RULE_005",
+    "name": "CrossCustomerUserCreationRequiresProfileAccess",
+    "description": "When creating user with profiles from multiple customers, current user must have access to ALL those customers. CheckUserAccessToCustomersOfProfileIds → Forbid if any customer inaccessible.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1668",
+    "code_verified": true,
+    "enforcement": "_customerService.CheckUserAccessToCustomersOfProfileIds → ForbidWithMessage if any"
+  },
+  {
+    "rule_id": "RULE_006",
+    "name": "ProtectedUserRequiresSuperAdmin",
+    "description": "Users with Protected role cannot be modified (deleted, role-changed) by non-SuperAdmin users.",
+    "source": "ServiceAlert.Web/Controllers/Users/UserController.cs:1456",
+    "code_verified": true,
+    "enforcement": "CheckForUserRole(Protected, targetUserId) && !IsUserSuperAdmin → ForbidWithMessage"
+  },
+  {
+    "rule_id": "RULE_007",
+    "name": "UpdateCustomerLogPreservesCreatedDate",
+    "description": "UpdateCustomerLog must preserve the original DateInsertedUTC — loaded from DB before update.",
+    "source": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs:600",
+    "code_verified": true,
+    "enforcement": "log.DateInsertedUTC = customerLogResult.Value.DateInsertedUTC before UpdateCustomerLog call"
+  },
+  {
+    "rule_id": "RULE_008",
+    "name": "GetCustomerUsersCurrentCustomerOnly",
+    "description": "GetCustomerUsers returns users for CurrentCustomerId only — no customerId parameter accepted. Tenant isolation enforced by WorkContext.",
+    "source": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs:259",
+    "code_verified": true,
+    "enforcement": "_customerService.GetUsers(_workContext.CurrentCustomerId) — no override"
+  }
+]
   "should"
 ]
