@@ -1,128 +1,105 @@
 [
   {
-    "description": "Returns all profiles accessible to a user, optionally filtered by customer and name substring. Calls IProfileRepository which queries ProfileUserMappings JOIN Profiles. Used for profile selector UI.",
     "name": "GetProfilesForUser",
     "signature": "GetProfilesbyUserId(userId, customerId, filter, includeSystemProfile, includeCustomer) → IReadOnlyCollection<Profile>",
-    "trigger": "User selects profile context. Profile selector in UI.",
+    "trigger": "User selects profile context. Profile selector UI.",
+    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
+    "line": 96,
+    "verified": true,
     "data": [
       "Profiles",
       "ProfileUserMappings"
     ]
   },
   {
-    "description": "Checks ProfileUserMappings for a row with matching (ProfileId, UserId). Gate for all profile context switches and profile-scoped data access.",
     "name": "CanUserAccessProfile",
     "signature": "CanUserAccessProfile(profileId, userId) → bool",
-    "trigger": "Profile selection, API calls verifying profile access.",
+    "trigger": "Profile selection, any API call that requires profile-scoped access.",
+    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
+    "line": 49,
+    "verified": true,
     "data": [
       "ProfileUserMappings"
     ]
   },
   {
-    "description": "Creates a new Profile row. Sets DateCreatedUtc. Profile requires CustomerId, ProfileTypeId, Name, CountryId, LanguageId, TimeZoneId.",
     "name": "InsertProfile",
     "signature": "InsertProfile(Profile)",
     "trigger": "Admin creates new profile via UI or API.",
+    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
+    "line": 207,
+    "verified": true,
     "data": [
       "Profiles"
     ]
   },
   {
-    "description": "Updates one or multiple profiles. Sets DateLastUpdatedUtc. Cache invalidated for ProfileRolesByProfile key.",
     "name": "UpdateProfile",
     "signature": "UpdateProfile(Profile) / UpdateProfiles(IEnumerable<Profile>)",
     "trigger": "Admin edits profile settings.",
+    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
+    "line": 219,
+    "verified": true,
     "data": [
       "Profiles"
     ]
   },
   {
-    "description": "Sets Profile.Deleted=true, sets DateDeletedUtc. Soft delete. CleanupDeactivatedProfiles batch job later removes PII from profiles >120 days deleted.",
     "name": "DeleteProfile",
     "signature": "DeleteProfile(profileId)",
-    "trigger": "Admin deletes profile.",
+    "trigger": "Admin deletes profile — soft delete (Deleted=true, DateDeletedUtc=NOW).",
+    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
+    "line": 147,
+    "verified": true,
     "data": [
       "Profiles"
     ]
   },
   {
-    "description": "Insert/delete rows in ProfileRoleMappings. Cache invalidated immediately. Profile roles determine all operational capabilities.",
     "name": "AddRemoveProfileRoles",
-    "signature": "IPermissionService.AddProfileRoleMappings(profileId, roleIds) / DeleteProfileRoleMappings(profileId, roleIds)",
-    "trigger": "Admin configures profile capabilities.",
+    "signature": "AddProfileRoleMappings(profileId, roleIds) / DeleteProfileRoleMappings(profileId, roleIds)",
+    "trigger": "Admin configures profile capabilities (e.g. CanSendBySms, CanSendByEboks).",
+    "file": "ServiceAlert.Services/Permissions/PermissionService.cs",
+    "line": 256,
+    "verified": true,
     "data": [
       "ProfileRoleMappings",
       "ProfileRoles"
     ]
   },
   {
-    "description": "Insert/delete rows in ProfileUserMappings. Grants or revokes user access to profile. Customer membership does NOT auto-grant profile access.",
     "name": "ManageProfileUsers",
     "signature": "AddProfileAccessToUsers(profileId, userIds) / DeleteProfileUserMappings(profileId, userIds)",
-    "trigger": "Admin manages profile user access.",
+    "trigger": "Admin grants or revokes user access to a profile.",
+    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
+    "line": 54,
+    "verified": true,
     "data": [
       "ProfileUserMappings"
     ]
   },
   {
-    "description": "Returns Profile with full Customer object included. Optional userId adds ProfileUserMappings check. Primary method for loading active profile context.",
     "name": "GetProfileById",
     "signature": "GetProfileById(profileId, userId?) → Profile",
     "trigger": "Per-request context resolution, profile detail view.",
+    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
+    "line": 162,
+    "verified": true,
     "data": [
       "Profiles",
       "Customers"
     ]
   },
   {
-    "description": "GetApiKeys/CreateApiKey/UpdateApiKey/DeleteApiKey — manages ProfileApiKeys for external API access scoped to a profile.",
-    "name": "ManageApiKeys",
-    "trigger": "Admin manages profile's API keys.",
-    "data": [
-      "ProfileApiKeys"
-    ]
-  },
-  {
-    "description": "CreateLogo/UpsertLogo/DeleteLogo — stores ProfileLogo row (binary or storage reference). Used for profile-branded notifications.",
-    "name": "ManageLogo",
-    "trigger": "Admin uploads/changes profile logo.",
-    "data": [
-      "ProfileLogos"
-    ]
-  },
-  {
-    "description": "IProfileStorageService.AddToAzureBlobStorrage(), InsertFile(), GetAllProfileStorageFiles(), DeleteFile() — manages file uploads per profile. Files stored in Azure Blob, metadata in ProfileStorageFiles.",
     "name": "ManageProfileStorage",
-    "trigger": "User uploads file to profile storage.",
+    "signature": "UploadFile(files, profileId) / DownloadFile(profileId, fileId) / DeleteUploadedFile(profileId, fileId)",
+    "trigger": "User uploads or downloads a file scoped to a profile.",
+    "file": "ServiceAlert.Api/Controllers/ProfileController.cs",
+    "line": 200,
+    "verified": true,
     "data": [
       "ProfileStorageFiles",
-      "FileTypes",
-      "Azure Blob Storage"
-    ]
-  },
-  {
-    "description": "GetWebMessageModuleProfilesByCustomerId/Insert/Update/Delete WebMessageModuleProfile — configures which profiles are linked to web message modules.",
-    "name": "ManageWebMessageModuleProfile",
-    "trigger": "Admin configures web message module for profile.",
-    "data": [
-      "WebMessageModuleProfiles",
-      "WebMessageModuleProfileMappings"
-    ]
-  },
-  {
-    "description": "Batch job (ServiceAlertBatchAction.cleanup_deactivated_profiles) runs CleanupDeactivatedProfiles stored procedure. Nulls PII fields on profiles with DateDeletedUtc older than 120 days. Renames profile to 'Name (DELETED)'. Deletes all child records (EmailWhitelist, FtpSettings, RoleMappings, UserMappings, etc.)",
-    "name": "CleanupDeactivatedProfiles",
-    "trigger": "Batch job — daily.",
-    "data": [
-      "Profiles",
-      "ProfileRoleMappings",
-      "ProfileUserMappings",
-      "FtpSettings",
-      "Email2SmsWhitelistEntries",
-      "ConversationPhoneNumberProfileMappings",
-      "WarningProfileSettings",
-      "StandardReceiverGroupProfileMappings",
-      "TemplateProfileMappings"
+      "Azure Blob Storage (profilestorage container)"
     ]
   }
 ]

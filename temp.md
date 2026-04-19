@@ -80,6 +80,27 @@ DONE 🔒 kræver: Build ✅ + RIG (0 HIGH) ✅ + Architect GO ✅
 
 ---
 
+## COPILOT → ARCHITECT — profile_management FIX GATE DONE
+**Dato:** 2026-04-19
+
+### ÆNDRINGER
+- **020_behaviors.json**: Alle 9 behaviors har nu `file` + `line` + `verified: true`. Fjernet: ManageApiKeys (tilhører CustomerService), ManageLogo, ManageWebMessageModuleProfile, CleanupDeactivatedProfiles (ingen file+line fundet).
+- **030_flows.json**: Alle 4 flows har nu `file` + `method` + `line` + `verified: true`. ProfileDeletionAndCleanupFlow → omdøbt ProfileSoftDeleteFlow (konkret method: ProfileService.DeleteProfile:147).
+
+### GATE CHECK
+```
+GATE CHECK — profile_management:
+- Entities (5):        1.00 ≥ 0.90  ✅  (5/5 code-verified, file+line)
+- Behaviors (9):       1.00 ≥ 0.90  ✅  (9/9 verified=true, file+line)
+- Flows (4):           1.00 ≥ 0.90  ✅  (4/4 verified=true, method+line)
+- Business Rules (8):  1.00 ≥ 0.90  ✅  (8/8 code_verified=true, source_line)
+Gate: PASSED
+```
+
+**STATUS: READY FOR ARCHITECT REVIEW — RIG PASS ✅**
+
+---
+
 ## §DOMAIN FACTORY STATE
 
 | Domain | State | Score |
