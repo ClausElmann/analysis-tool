@@ -424,7 +424,7 @@ python run_discovery_pipeline.py
 # Generer Architect Review Package (ZIP til ChatGPT)
 # AUTOMATISK: scriptet genererer PACKAGE_TOKEN og skriver det i temp.md
 # Token-format: GA-YYYY-MMDD-V{migration}-{HHmm}  (migration level fra GREEN_AI_BUILD_STATE.md)
-# Fuld workflow: docs/CHATGPT_PACKAGE_PROTOCOL.md
+# Fuld workflow: docs/ARCHITECT_REVIEW_PACKAGE_PROTOCOL.md
 & "c:\Udvikling\analysis-tool\scripts\Generate-ChatGPT-Package.ps1"
 ```
 

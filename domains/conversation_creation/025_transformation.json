@@ -1,0 +1,152 @@
+{
+  "domain": "conversation_creation",
+  "slice": "CreateConversation",
+  "date": "2026-04-20",
+  "verdict": "REDESIGNED",
+
+  "before_model": {
+    "description": "Layer 0 — ConversationController.CreateConversation (ServiceAlert.Web)",
+    "pattern": "Fat controller: auth check + idempotency + INSERT Conversation + send first SMS — all in one method, no transaction boundary",
+    "atomicity": "NONE — INSERT Conversation (step 9) commits BEFORE CreateAndSendConversationMessage (step 10). Orphaned Conversation possible if SMS send fails.",
+    "tenant_tracking": "CustomerId NOT stored on Conversations table — only reachable via JOIN to ConversationPhoneNumbers.CustomerId",
+    "creator_tracking": "CreatedByUserId NOT persisted — workContext.CurrentUserId used at runtime only",
+    "participant_model": "No ConversationParticipants table — creator tracked via profileId passed to SendConversationMessage (no ownership record)",
+    "sms_coupling": "Conversation creation is COUPLED with first SMS send — cannot create conversation without sending a message",
+    "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:87"
+  },
+
+  "after_model": {
+    "description": "Green-ai vertical slice — CreateConversationHandler",
+    "pattern": "Vertical slice: CreateConversationCommand → CreateConversationHandler → atomic INSERT Conversation + INSERT ConversationParticipant(Owner)",
+    "atomicity": "IDbSession.ExecuteInTransactionAsync — commit on success, rollback on any step failure. INV_C04 enforced.",
+    "tenant_tracking": "CustomerId stored directly on Conversations table — sourced from ICurrentUser.CustomerId at creation time",
+    "creator_tracking": "CreatedByUserId stored on Conversations table — sourced from ICurrentUser.UserId",
+    "participant_model": "New ConversationParticipants table: {Id, ConversationId, UserId, Role}. Creator inserted as Owner atomically.",
+    "sms_coupling": "DECOUPLED — CreateConversation does NOT send SMS. Sending is a separate feature (future slice: SendConversationMessage).",
+    "auth_model": "ICurrentUser.CustomerId used for tenant scoping. UserId used for participant ownership. No profile-intersection check in handler — simplified to direct CustomerId check."
+  },
+
+  "new_tables": [
+    {
+      "table": "Conversations",
+      "action": "ALTER — add columns",
+      "new_columns": [
+        { "name": "CustomerId",      "type": "INT NOT NULL",                                "note": "Source: ICurrentUser.CustomerId. Enables direct tenant filtering without JOIN." },
+        { "name": "CreatedByUserId", "type": "INT NOT NULL",                                "note": "Source: ICurrentUser.UserId. Audit + ownership." },
+        { "name": "CreatedAt",       "type": "DATETIME2 NOT NULL DEFAULT GETUTCDATE()",     "note": "UTC creation timestamp." }
+      ],
+      "existing_columns_kept": ["Id", "ConversationPhoneNumberId", "PartnerPhoneCode", "PartnerPhoneNumber", "PartnerName", "Unread"]
+    },
+    {
+      "table": "ConversationParticipants",
+      "action": "CREATE — new table",
+      "columns": [
+        { "name": "Id",             "type": "INT IDENTITY(1,1) NOT NULL PRIMARY KEY" },
+        { "name": "ConversationId", "type": "INT NOT NULL" },
+        { "name": "UserId",         "type": "INT NOT NULL" },
+        { "name": "ProfileId",      "type": "INT NOT NULL",                             "note": "DD_C07: authorization is profile-based — binds participant to profile that has ConversationPhoneNumber access" },
+        { "name": "Role",           "type": "INT NOT NULL" }
+      ],
+      "role_enum": {
+        "Owner": 1,
+        "Participant": 2
+      },
+      "constraints": [
+        "FK ConversationParticipants.ConversationId → Conversations.Id",
+        "FK ConversationParticipants.UserId → Users.Id",
+        "FK ConversationParticipants.ProfileId → Profiles.Id",
+        "UNIQUE (ConversationId, UserId, ProfileId) — one row per user+profile per conversation"
+      ]
+    }
+  ],
+
+  "design_decisions": [
+    {
+      "id": "DD_C01",
+      "decision": "CustomerId stored directly on Conversations table",
+      "rationale": "Layer 0 requires JOIN to ConversationPhoneNumbers to resolve CustomerId — fragile, join-dependent. Direct column enables WHERE CustomerId = @CustomerId filtering on all queries without JOIN.",
+      "alternative_rejected": "Keep JOIN-based resolution — rejected because tenant queries become JOIN-dependent (violates green-ai tenant isolation pattern)"
+    },
+    {
+      "id": "DD_C02",
+      "decision": "CreatedByUserId stored on Conversations table",
+      "rationale": "Layer 0 does not persist creator — only passes profileId at message-send time. Storing UserId enables ownership checks, audit, and future participant management without runtime workContext.",
+      "alternative_rejected": "Runtime-only — rejected because state cannot be verified post-creation"
+    },
+    {
+      "id": "DD_C03",
+      "decision": "New ConversationParticipants table with Role enum",
+      "rationale": "Layer 0 has no participant model — creator is only implicitly linked via phone number profile mapping. Explicit participant table enforces INV_C02 (creator always Owner) and prepares for multi-participant conversations.",
+      "role_values": { "Owner": 1, "Participant": 2 }
+    },
+    {
+      "id": "DD_C04",
+      "decision": "IDbSession.ExecuteInTransactionAsync wraps INSERT Conversation + INSERT ConversationParticipant",
+      "rationale": "Layer 0 has no transaction — orphaned Conversation possible. Same pattern as user_onboarding INV_003. If participant INSERT fails → rollback Conversation INSERT.",
+      "invariant_enforced": "INV_C04 — no Conversation without at least one participant"
+    },
+    {
+      "id": "DD_C05",
+      "decision": "SMS send DECOUPLED from CreateConversation slice",
+      "rationale": "Layer 0 couples Conversation creation with first SMS send — makes handler non-atomic (external call inside transaction boundary). In green-ai: CreateConversation creates the DB record only. SMS send is a separate command (future slice).",
+      "scope_note": "This slice: CreateConversationHandler only. No SendConversationMessage in scope."
+    },
+    {
+      "id": "DD_C06",
+      "decision": "Idempotency returns CONVERSATION_EXISTS error code (not silent reuse)",
+      "rationale": "Layer 0 silently sends a reply to existing conversation — caller cannot distinguish create vs reuse. Green-ai: return Result.Failure(CONVERSATION_EXISTS) with existing ConversationId. Caller decides what to do.",
+      "error_code": "CONVERSATION_EXISTS"
+    },
+    {
+      "id": "DD_C07",
+      "decision": "ConversationParticipants must include ProfileId — not just UserId",
+      "rationale": "Layer 0 authorization is profile-based (via ConversationPhoneNumberProfileMappings). Binding participant only to UserId loses the profile→phone_number access context. ProfileId binds participant to the specific profile that holds phone number access — preventing cross-customer bugs and enforcing RULE_CC_002.",
+      "source": "Architect directive — 2026-04-20",
+      "invariant_enforced": "RULE_CC_002 — auth: profile must have phone number access",
+      "required_for_n_b_build": true
+    }
+  ],
+
+  "simplifications": [
+    {
+      "id": "S_C01",
+      "simplification": "No ConversationPhoneNumber dependency in CreateConversationHandler",
+      "note": "CustomerId comes from ICurrentUser directly — no need to resolve via phone number. ConversationPhoneNumberId still stored on Conversation for future message routing, but CustomerId is independent."
+    },
+    {
+      "id": "S_C02",
+      "simplification": "No partner name resolution in this slice",
+      "note": "Layer 0 calls _conversationPartnerFinder.GetPartnerName — external lookup. Excluded from CreateConversation scope. PartnerName passed by caller or defaulted to empty."
+    }
+  ],
+
+  "invariants_enforced": {
+    "INV_C01": "CustomerId stored on Conversations — WHERE CustomerId = @CustomerId enforced on all queries",
+    "INV_C02": "INSERT ConversationParticipants(Role=Owner, UserId=CreatedByUserId, ProfileId=CallerProfileId) in same transaction as INSERT Conversations",
+    "INV_C03": "Before INSERT: validate UserId (from ICurrentUser) belongs to Conversation.CustomerId — Users.CustomerId check",
+    "INV_C04": "IDbSession.ExecuteInTransactionAsync — rollback both INSERTs if participant INSERT fails",
+    "RULE_CC_002": "ProfileId stored on participant row — links participant to profile that has ConversationPhoneNumber access (enforced at participant INSERT)"
+  },
+
+  "target_handler": {
+    "name": "CreateConversationHandler",
+    "command": "CreateConversationCommand { ConversationPhoneNumberId, PartnerPhoneCode, PartnerPhoneNumber, PartnerName?, ProfileId }",
+    "response": "CreateConversationResponse { ConversationId }",
+    "steps": [
+      "1. Idempotency check: SELECT FROM Conversations WHERE ConversationPhoneNumberId=@id AND PartnerPhoneCode=@code AND PartnerPhoneNumber=@num AND CustomerId=@cid → if found: return Failure(CONVERSATION_EXISTS, ConversationId=existing.Id)",
+      "2. ICurrentUser.CustomerId + UserId injected",
+      "3. Validate ProfileId belongs to ICurrentUser via ProfileUserMappings — return Failure(INVALID_PROFILE) if not",
+      "4. ExecuteInTransactionAsync: INSERT Conversations(CustomerId, CreatedByUserId, CreatedAt, ...) → INSERT ConversationParticipants(ConversationId=new.Id, UserId=CreatedByUserId, ProfileId=@ProfileId, Role=Owner)",
+      "5. Return Success(ConversationId)"
+    ],
+    "sql_files": [
+      "CreateConversation.sql — INSERT INTO Conversations",
+      "CreateConversationParticipant.sql — INSERT INTO ConversationParticipants"
+    ]
+  },
+
+  "migration": {
+    "file": "V0XX_AddConversationParticipants.sql",
+    "note": "Version number to be assigned. Contains: ALTER TABLE Conversations ADD CustomerId/CreatedByUserId/CreatedAt + CREATE TABLE ConversationParticipants"
+  }
+}

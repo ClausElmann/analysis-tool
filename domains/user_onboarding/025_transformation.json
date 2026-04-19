@@ -1,0 +1,41 @@
+{
+  "domain": "user_onboarding",
+  "date": "2026-04-19",
+  "verdict": "REDESIGNED",
+
+  "before_model": {
+    "pattern": "No equivalent — legacy system had no orchestrated onboarding flow",
+    "user_creation": "Manual multi-step: create user → navigate to profile page → create profile → navigate to roles page → assign roles",
+    "profile_assignment": "Separate UI action — no atomic linkage to user creation",
+    "role_assignment": "Separate UI action — no atomic linkage to user or profile creation",
+    "transaction_semantics": "None — partial state possible (user created, profile not, roles not)",
+    "failure_model": "Undefined — partial DB state leaves orphaned users"
+  },
+
+  "after_model": {
+    "pattern": "Vertical slice — single SQL transaction wrapping 3 MediatR handler dispatches",
+    "user_creation": "Delegates to CreateCustomerUserCommand via IMediator — no logic duplication",
+    "profile_assignment": "Delegates to CreateProfileCommand via IMediator — within same transaction",
+    "role_assignment": "Delegates to SetUserRoleAccessCommand via IMediator — within same transaction",
+    "transaction_semantics": "IDbSession.ExecuteInTransactionAsync wraps all 3 steps — commit on full success, rollback on any step failure",
+    "failure_model": "StepFailedException thrown on any !IsSuccess → SQL ROLLBACK → no partial state committed"
+  },
+
+  "design_decisions": [
+    "DD_001: IDbSession.ExecuteInTransactionAsync as outer transaction boundary — all inner handler db.ExecuteAsync calls auto-enrolled (IDbSession is scoped/shared per request)",
+    "DD_002: StepFailedException — private signal exception carries Error out of transaction delegate and triggers SQL rollback without propagating as system exception",
+    "DD_003: Orchestration via IMediator — inner handlers own all permission checks, validation, SQL; zero logic duplication in orchestrator",
+    "DD_004: InitialRoleIds=null on CreateCustomerUserCommand — roles applied atomically in Step 3 (SetUserRoleAccess), not split across two handlers"
+  ],
+
+  "simplifications": [
+    "S_001: No saga/compensating transactions — IDbSession shared-scope transaction is sufficient (no distributed system)",
+    "S_002: No profile re-use — always creates a new profile for the onboarding user"
+  ],
+
+  "system_invariants": [
+    "INV_001: A user onboarded via this endpoint ALWAYS has exactly one profile (CreateProfile required)",
+    "INV_002: A user onboarded via this endpoint has exactly the requested roles (SetUserRoleAccess replace-semantics)",
+    "INV_003: Either all 3 steps committed, or none — no partial state observable in DB"
+  ]
+}

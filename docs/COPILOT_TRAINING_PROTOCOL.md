@@ -152,3 +152,128 @@ root_cause:   Rules baseret på generel forståelse — ikke tracet til konkret 
 fix_rule:     Rules skrives KUN efter read_file + grep på Layer 0. source_line = "FileName.cs:LINE" — ikke valgfrit.
 promoted:     false
 ```
+
+---
+
+## G. PROMOTED GLOBAL RULES
+
+### PROMOTED RULE — EXECUTION MODE (tilføjet 2026-04-19)
+
+```
+PROMOTED_RULE_001:
+name:         Execution mode output discipline
+scope:        Alle N-B BUILD opgaver
+rule:         Hvis opgaven er N-B BUILD, må Copilot IKKE returnere protokol/dokumentations-
+              opdateringer som primært output.
+              Primært output SKAL være:
+                - changed_files[] (oprettede/ændrede filer)
+                - build_output_raw (rå dotnet build output)
+                - RIG proof (rå rig output)
+              Sekundært output (temp.md rapport) skrives KUN EFTER ovenstående er komplet.
+failure:      Hvis primært output mangler → BUILD NOT EXECUTED — ERROR
+promoted:     true
+promotion_date: 2026-04-19
+origin:       Architect audit — separation af documentation-mode og execution-mode
+```
+
+### PRE-FLIGHT CHECK TILLÆG (gælder fra 2026-04-19)
+
+```
+□ Er opgaven N-B BUILD?
+    YES → er changed_files[], build_output_raw, RIG proof alle til stede?
+          NO → STOP — skriv BUILD NOT EXECUTED — ERROR
+          YES → fortsæt til temp.md rapport
+    NO  → fortsæt normal pre-flight
+```
+
+---
+
+## PROMOTED GLOBAL RULE — EXECUTION DOMINATES
+
+Hvis state = N-B BUILD:
+
+Copilot må IKKE:
+- opdatere protokoller
+- skrive analyser
+- skrive status
+
+Copilot SKAL:
+- ændre kode
+- køre build
+- køre RIG
+
+PRIMARY OUTPUT:
+- changed_files[]
+- build_output_raw
+- rig_output_raw
+
+Hvis dette ikke sker:
+→ TASK FAILED
+
+---
+
+## §QUALITY GATE (MANDATORY — POST RIG)
+
+Trigger:
+```
+State = READY FOR ARCHITECT REVIEW — RIG PASS
+```
+
+Output required in temp.md:
+
+```
+## QUALITY EVALUATION — {domain}
+
+Simplicity score: X/10
+UX clarity score: X/10
+Overengineering score: X/10
+Independence score: X/10
+
+Issues found:
+- [...]
+
+Improvements proposed:
+- [...]
+
+Decision:
+- ACCEPTABLE
+ELLER
+- REBUILD REQUIRED
+```
+
+### RULES
+
+Simplicity:
+```
+Hvis løsning kan simplificeres → score ≤ 6 → SKAL foreslå konkret ændring
+```
+
+UX clarity:
+```
+Hvis bruger skal tænke → score ≤ 6 → SKAL forbedres
+```
+
+Overengineering:
+```
+Hvis unødvendig kompleksitet → score ≤ 6 → SKAL reduceres
+```
+
+Independence:
+```
+Hvis afhængig af sms-service tankegang → score ≤ 6 → TRANSFORMATION utilstrækkelig
+```
+
+### HARD RULES
+
+```
+Hvis 1 score ≤ 5   → REBUILD REQUIRED
+Hvis 2+ scores ≤ 6 → REBUILD REQUIRED
+Hvis alle ≥ 7      → ACCEPTABLE
+```
+
+FORBUDT:
+- generiske formuleringer
+- manglende konkrete forslag
+- "det ser fint ud"
+
+**STATUS: ACTIVE — mandatory for alle domains efter RIG PASS**

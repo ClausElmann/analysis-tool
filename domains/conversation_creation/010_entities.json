@@ -1,0 +1,81 @@
+[
+  {
+    "entity_id": "ENT_CC_001",
+    "name": "Conversation",
+    "type": "aggregate_root",
+    "description": "SMS conversation thread between a ConversationPhoneNumber (sender) and a citizen (PartnerPhoneNumber). In Layer 0: no CustomerId or CreatedByUserId stored directly — CustomerId lives on ConversationPhoneNumbers, CreatedByUserId is workContext.CurrentUserId at runtime only.",
+    "fields": [
+      { "name": "Id",                        "type": "int",         "source_col": "Conversations.Id",                        "code_verified": true  },
+      { "name": "ConversationPhoneNumberId", "type": "int",         "source_col": "Conversations.ConversationPhoneNumberId", "code_verified": true  },
+      { "name": "PartnerPhoneCode",          "type": "int",         "source_col": "Conversations.PartnerPhoneCode",          "code_verified": true  },
+      { "name": "PartnerPhoneNumber",        "type": "bigint",      "source_col": "Conversations.PartnerPhoneNumber",        "code_verified": true  },
+      { "name": "PartnerName",               "type": "nvarchar",    "source_col": "Conversations.PartnerName",              "code_verified": true  },
+      { "name": "Unread",                    "type": "bit",         "source_col": "Conversations.Unread",                   "code_verified": true  },
+      { "name": "CustomerId",                "type": "UNKNOWN",     "source_col": "NOT ON Conversations — on ConversationPhoneNumbers.CustomerId", "code_verified": false, "note": "UNKNOWN: CustomerId not stored on Conversation in Layer 0. Only reachable via ConversationPhoneNumbers join or workContext." },
+      { "name": "CreatedByUserId",           "type": "UNKNOWN",     "source_col": "NOT IN DB — workContext.CurrentUserId used at runtime only",   "code_verified": false, "note": "UNKNOWN: CreatedByUserId not persisted in Layer 0 Conversations table." },
+      { "name": "CreatedAt",                 "type": "UNKNOWN",     "source_col": "NOT ON Conversations — ConversationMessages.DateCreatedUtc exists but not on Conversation", "code_verified": false, "note": "UNKNOWN: CreatedAt column does not exist on Conversations table in Layer 0." }
+    ],
+    "layer0_db_file":  "ServiceAlert.DB/Tables/Conversations.sql:1",
+    "layer0_entity":   "ServiceAlert.Core/Domain/Conversations/Entities/Conversation.cs:7",
+    "layer0_repo":     "ServiceAlert.Services/Conversations/Repository/ConversationRepository.cs:104",
+    "code_verified": true
+  },
+  {
+    "entity_id": "ENT_CC_002",
+    "name": "ConversationParticipant",
+    "type": "UNKNOWN",
+    "description": "UNKNOWN: No ConversationParticipants table exists in Layer 0. Closest equivalent is ConversationPhoneNumberProfileMappings (links profiles to phone numbers, not conversations to users). The Owner/Participant role concept does not exist in Layer 0.",
+    "fields": [
+      { "name": "ConversationId", "type": "UNKNOWN", "source_col": "NO ConversationParticipants table", "code_verified": false },
+      { "name": "UserId",         "type": "UNKNOWN", "source_col": "NO ConversationParticipants table", "code_verified": false },
+      { "name": "Role",           "type": "UNKNOWN", "source_col": "NO role enum on any participants table", "code_verified": false }
+    ],
+    "closest_layer0": "ServiceAlert.DB/Tables/ConversationPhoneNumberProfileMappings.sql:1",
+    "closest_note": "Layer 0 links ProfileId to ConversationPhoneNumberId — not UserId to ConversationId.",
+    "code_verified": false
+  },
+  {
+    "entity_id": "ENT_CC_003",
+    "name": "ConversationPhoneNumber",
+    "type": "supporting_entity",
+    "description": "Virtual sender phone number assigned to a customer. Carries CustomerId. Used by CreateConversation to determine customer scope and profile access.",
+    "fields": [
+      { "name": "Id",              "type": "int",    "source_col": "ConversationPhoneNumbers.Id",          "code_verified": true },
+      { "name": "CustomerId",      "type": "int",    "source_col": "ConversationPhoneNumbers.CustomerId",  "code_verified": true },
+      { "name": "PhoneCode",       "type": "int",    "source_col": "ConversationPhoneNumbers.PhoneCode",   "code_verified": true },
+      { "name": "PhoneNumber",     "type": "bigint", "source_col": "ConversationPhoneNumbers.PhoneNumber", "code_verified": true },
+      { "name": "Name",            "type": "nvarchar","source_col": "ConversationPhoneNumbers.Name",       "code_verified": true },
+      { "name": "GatewayProvider", "type": "int",    "source_col": "ConversationPhoneNumbers.GatewayProvider", "code_verified": true }
+    ],
+    "layer0_db_file": "ServiceAlert.DB/Tables/ConversationPhoneNumbers.sql:1",
+    "layer0_entity":  "ServiceAlert.Core/Domain/Conversations/Entities/ConversationPhoneNumber.cs:9",
+    "code_verified": true
+  },
+  {
+    "entity_id": "ENT_CC_004",
+    "name": "ConversationPhoneNumberProfileMapping",
+    "type": "access_control_join",
+    "description": "Maps which profiles have access to a ConversationPhoneNumber. Used in authorization check during CreateConversation to verify caller's profile is permitted.",
+    "fields": [
+      { "name": "Id",                        "type": "int", "source_col": "ConversationPhoneNumberProfileMappings.Id",                        "code_verified": true },
+      { "name": "ProfileId",                 "type": "int", "source_col": "ConversationPhoneNumberProfileMappings.ProfileId",                 "code_verified": true },
+      { "name": "ConversationPhoneNumberId", "type": "int", "source_col": "ConversationPhoneNumberProfileMappings.ConversationPhoneNumberId", "code_verified": true }
+    ],
+    "layer0_db_file": "ServiceAlert.DB/Tables/ConversationPhoneNumberProfileMappings.sql:1",
+    "code_verified": true
+  },
+  {
+    "entity_id": "ENT_CC_005",
+    "name": "CreateConversationCommand",
+    "type": "command",
+    "description": "Input command for creating a new SMS conversation. Issued by an authenticated user via HTTP POST. Contains sender phone number reference and partner (citizen) phone details plus the first message text.",
+    "fields": [
+      { "name": "ConversationPhoneNumberId", "type": "int",    "code_verified": true },
+      { "name": "PartnerPhoneCode",          "type": "int",    "code_verified": true },
+      { "name": "PartnerPhoneNumber",        "type": "long",   "code_verified": true },
+      { "name": "FirstMessage",              "type": "string", "code_verified": true }
+    ],
+    "layer0_file": "ServiceAlert.Web/Controllers/Conversations/DtoAndCommands/CreateConversationCommand.cs:1",
+    "code_verified": true
+  }
+]

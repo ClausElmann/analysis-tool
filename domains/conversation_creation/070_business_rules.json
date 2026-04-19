@@ -1,0 +1,85 @@
+[
+  {
+    "rule_id": "INV_C01",
+    "name": "Conversation tilhører præcis ét CustomerId",
+    "category": "tenant_isolation",
+    "description": "A Conversation belongs to exactly one Customer. In Layer 0, CustomerId is not on the Conversations table directly — it lives on ConversationPhoneNumbers.CustomerId and is passed via workContext.CurrentCustomerId at creation time.",
+    "layer0_evidence": {
+      "table": "ConversationPhoneNumbers.CustomerId (NOT NULL-ish — can be NULL in schema but enforced by business logic)",
+      "enforcement_point": "ConversationController.CreateConversation — only phone numbers matching the user's customer can be used",
+      "source": "ServiceAlert.DB/Tables/ConversationPhoneNumbers.sql:4",
+      "code_verified": true
+    },
+    "gap": "CustomerId is NOT stored on Conversations table in Layer 0 — requires JOIN via ConversationPhoneNumbers to resolve customer. Target model must store CustomerId directly on Conversation row.",
+    "target_invariant": "INSERT Conversations must include CustomerId from workContext.CurrentCustomerId — enforced at handler level.",
+    "verified": true
+  },
+  {
+    "rule_id": "INV_C02",
+    "name": "Creator er ALTID participant (Owner)",
+    "category": "participant_integrity",
+    "description": "The user who creates a conversation must always be linked to it. In Layer 0, the creator is CurrentProfileId passed explicitly to CreateAndSendConversationMessage — not stored as a participant record.",
+    "layer0_evidence": {
+      "code": "await _conversationService.CreateAndSendConversationMessage(WorkContext.CurrentProfileId, readModel, ...)",
+      "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:127",
+      "code_verified": true
+    },
+    "gap": "Layer 0 passes profileId at message-send time but does NOT insert a ConversationParticipants record. The Owner role concept does not exist in Layer 0.",
+    "target_invariant": "INSERT ConversationParticipants (ConversationId, UserId=CreatedByUserId, Role=Owner) atomically with Conversation INSERT.",
+    "verified": true
+  },
+  {
+    "rule_id": "INV_C03",
+    "name": "Participants må KUN være fra samme CustomerId",
+    "category": "tenant_isolation",
+    "description": "No cross-customer participant leak. In Layer 0, this is enforced by verifying the caller's profile IDs intersect with the phone number's allowed profile IDs — which is already scoped to a customer.",
+    "layer0_evidence": {
+      "code": "if (!numberAndProfilesIDs.ProfileIds.Any(id => userProfileIds.Any(uId => id == uId))) return ForbidWithMessage(...)",
+      "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:93-94",
+      "code_verified": true
+    },
+    "gap": "Layer 0 enforces via profile intersection (profile → customer scoped). Target model: participants must have CustomerId check at INSERT time — validate UserId belongs to Conversation.CustomerId.",
+    "target_invariant": "Before inserting ConversationParticipant: verify Users.CustomerId == Conversation.CustomerId for each participant.",
+    "verified": true
+  },
+  {
+    "rule_id": "INV_C04",
+    "name": "Conversation kan IKKE eksistere uden participants",
+    "category": "structural_integrity",
+    "description": "A conversation must have at least one participant (the creator). In Layer 0, there is no explicit check — the Conversation row CAN exist without a ConversationMessage in a failure scenario (partial state risk documented in FLOW_CC_001).",
+    "layer0_evidence": {
+      "risk": "INSERT Conversation (step 9) commits BEFORE CreateAndSendConversationMessage (step 10) — orphaned Conversation possible",
+      "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:115+127",
+      "code_verified": true
+    },
+    "gap": "Layer 0 does NOT guarantee atomicity. Target model: wrap INSERT Conversation + INSERT ConversationParticipants in single transaction — if any step fails, rollback ALL.",
+    "target_invariant": "IDbSession.ExecuteInTransactionAsync wraps all INSERTs — same pattern as user_onboarding INV_003.",
+    "verified": true
+  },
+  {
+    "rule_id": "RULE_CC_001",
+    "name": "Duplicate conversation guard (idempotency)",
+    "category": "idempotency",
+    "description": "If a conversation already exists between the same sender number and partner number, reuse it (send reply) rather than create a new one.",
+    "layer0_evidence": {
+      "code": "var existing = _conversationService.GetConversationReadModelBySourceAndPartner(...); if (existing is not null) { await SendConversationReply(...); return Ok(); }",
+      "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:96-101",
+      "code_verified": true
+    },
+    "target_invariant": "CreateConversationHandler: check for duplicate before INSERT. Return existing ConversationId with specific error code (CONVERSATION_EXISTS) — caller decides to reuse or handle.",
+    "verified": true
+  },
+  {
+    "rule_id": "RULE_CC_002",
+    "name": "Authorization — only profiles with phone number access can create",
+    "category": "authorization",
+    "description": "CreateConversation requires the caller's profile to be in the phone number's allowed profile list. Cross-customer creation is blocked.",
+    "layer0_evidence": {
+      "code": "var numberAndProfilesIDs = _conversationService.GetConversationPhoneNumberWithProfileIdsById(command.ConversationPhoneNumberId); ... if (!numberAndProfilesIDs.ProfileIds.Any(id => userProfileIds.Any(uId => id == uId))) return ForbidWithMessage(...)",
+      "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:91-94",
+      "code_verified": true
+    },
+    "target_invariant": "Handler validates: caller's UserId must have a profile scoped to Conversation.CustomerId. Role-based: require ManageConversations or equivalent role.",
+    "verified": true
+  }
+]

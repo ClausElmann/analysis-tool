@@ -1,0 +1,112 @@
+[
+  {
+    "flow_id": "FLOW_CC_001",
+    "name": "CreateConversation — full flow",
+    "trigger": "HTTP POST /api/conversations/create",
+    "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:86",
+    "code_verified": true,
+    "steps": [
+      {
+        "seq": 1,
+        "name": "RECEIVE command",
+        "type": "entry",
+        "actor": "ConversationController",
+        "input": "CreateConversationCommand {ConversationPhoneNumberId, PartnerPhoneCode, PartnerPhoneNumber, FirstMessage}",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:87",
+        "code_verified": true
+      },
+      {
+        "seq": 2,
+        "name": "GET phone number with profile IDs",
+        "type": "read",
+        "actor": "IConversationService.GetConversationPhoneNumberWithProfileIdsById",
+        "sql_pattern": "SELECT with JOIN ConversationPhoneNumberProfileMappings WHERE ConversationPhoneNumberId=@id",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:91",
+        "code_verified": true
+      },
+      {
+        "seq": 3,
+        "name": "GET caller's profile IDs",
+        "type": "read",
+        "actor": "IProfileService.GetProfilesbyUserId(_workContext.CurrentUserId)",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:92",
+        "code_verified": true
+      },
+      {
+        "seq": 4,
+        "name": "AUTH GUARD — profile intersection check",
+        "type": "guard",
+        "condition": "phone_number.ProfileIds ∩ caller.ProfileIds = ∅ → 403",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:93-94",
+        "code_verified": true
+      },
+      {
+        "seq": 5,
+        "name": "IDEMPOTENCY — check existing conversation",
+        "type": "read",
+        "actor": "IConversationService.GetConversationReadModelBySourceAndPartner",
+        "sql_pattern": "SELECT FROM Conversations WHERE ConversationPhoneNumberId=@id AND PartnerPhoneCode=@code AND PartnerPhoneNumber=@number",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:96",
+        "code_verified": true
+      },
+      {
+        "seq": 6,
+        "name": "IDEMPOTENCY BRANCH — if existing found",
+        "type": "branch",
+        "condition": "existing is not null → SendConversationReply → return 200",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:98-101",
+        "code_verified": true
+      },
+      {
+        "seq": 7,
+        "name": "GUARD — phone number existence",
+        "type": "guard",
+        "actor": "IConversationService.GetConversationPhoneNumber",
+        "condition": "conversationPhoneNumber is null → 404",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:103-104",
+        "code_verified": true
+      },
+      {
+        "seq": 8,
+        "name": "RESOLVE partner name",
+        "type": "read",
+        "actor": "_conversationPartnerFinder.GetPartnerName(currentCustomerId, partnerCode, partnerNumber)",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:112",
+        "code_verified": true
+      },
+      {
+        "seq": 9,
+        "name": "INSERT Conversation",
+        "type": "write",
+        "actor": "IConversationService.CreateConversation → ConversationRepository.CreateConversation → _baseRepository.Insert",
+        "sql_effect": "INSERT INTO [dbo].[Conversations] (ConversationPhoneNumberId, PartnerPhoneCode, PartnerPhoneNumber, PartnerName, Unread) VALUES (...)",
+        "source_controller": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:107-115",
+        "source_service":    "ServiceAlert.Services/Conversations/ConversationService.cs:126",
+        "source_repo":       "ServiceAlert.Services/Conversations/Repository/ConversationRepository.cs:104",
+        "code_verified": true,
+        "atomicity_note": "NO transaction in Layer 0 — INSERT commits immediately"
+      },
+      {
+        "seq": 10,
+        "name": "CREATE and SEND first message",
+        "type": "write+external",
+        "actor": "IConversationService.CreateAndSendConversationMessage",
+        "sql_effect": "INSERT INTO [dbo].[ConversationMessages] (...) — after SMS send via outbound gateway",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:127",
+        "code_verified": true,
+        "risk": "If SMS send fails after Conversation INSERT → partial state: Conversation exists, no first message"
+      },
+      {
+        "seq": 11,
+        "name": "RETURN result",
+        "type": "response",
+        "output": "200 OK ConversationDto",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:131",
+        "code_verified": true
+      }
+    ],
+    "partial_state_risk": true,
+    "partial_state_description": "Step 9 (INSERT Conversation) commits before step 10 (send message). If step 10 fails → orphaned Conversation with no messages.",
+    "transformation_note": "Green-ai target: wrap steps 9+10 in IDbSession.ExecuteInTransactionAsync — INV_C04 (no conversation without participants) enforced atomically."
+  }
+]

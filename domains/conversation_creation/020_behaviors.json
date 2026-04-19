@@ -1,0 +1,63 @@
+[
+  {
+    "behavior_id": "BEH_CC_001",
+    "name": "CreateConversation",
+    "handler": "ConversationController.CreateConversation",
+    "type": "command_handler",
+    "description": "Agent-initiated creation of a new SMS conversation with a citizen. Verifies authorization, checks idempotency (reuse if exists), inserts Conversation row, sends first message via SMS.",
+    "input": {
+      "command": "CreateConversationCommand",
+      "implicit_context": ["workContext.CurrentUserId", "workContext.CurrentCustomerId", "workContext.CurrentProfileId"],
+      "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:87"
+    },
+    "steps": [
+      {
+        "step": 1,
+        "name": "AUTH_CHECK",
+        "description": "Verify caller's profile IDs intersect with the phone number's allowed profile IDs.",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:91-94",
+        "code_verified": true,
+        "failure": "403 Forbidden — Cannot create conversation with conversation phone number"
+      },
+      {
+        "step": 2,
+        "name": "IDEMPOTENCY_CHECK",
+        "description": "Query for existing conversation with same ConversationPhoneNumberId + PartnerPhoneCode + PartnerPhoneNumber. If found: delegate to SendConversationReply and return 200.",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:96-101",
+        "code_verified": true,
+        "note": "Prevents duplicate conversations — reuses existing thread."
+      },
+      {
+        "step": 3,
+        "name": "PHONE_NUMBER_EXISTENCE_CHECK",
+        "description": "Verify ConversationPhoneNumber exists.",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:103-104",
+        "code_verified": true,
+        "failure": "404 Not Found — Conversation phone number was not found"
+      },
+      {
+        "step": 4,
+        "name": "INSERT_CONVERSATION",
+        "description": "Construct Conversation entity and insert. No transaction wrapper visible — INSERT is synchronous via _baseRepository.Insert().",
+        "source_controller": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:107-115",
+        "source_service":    "ServiceAlert.Services/Conversations/ConversationService.cs:126-131",
+        "source_repo":       "ServiceAlert.Services/Conversations/Repository/ConversationRepository.cs:104-110",
+        "code_verified": true,
+        "note": "Layer 0 does NOT use transaction. IDbSession.ExecuteInTransactionAsync pattern introduced in green-ai."
+      },
+      {
+        "step": 5,
+        "name": "CREATE_AND_SEND_FIRST_MESSAGE",
+        "description": "Build ConversationReadModel, call CreateAndSendConversationMessage with profileId + readModel + firstMessage text. Sends SMS outbound and inserts ConversationMessage row.",
+        "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:127-128",
+        "code_verified": true
+      }
+    ],
+    "output": {
+      "success": "200 OK — ConversationDto(conversation, phoneNumberName)",
+      "source": "ServiceAlert.Web/Controllers/Conversations/ConversationController.cs:131"
+    },
+    "atomicity": "NONE in Layer 0 — no transaction boundary around steps 4+5. PARTIAL STATE POSSIBLE if step 5 fails after step 4 commits.",
+    "code_verified": true
+  }
+]

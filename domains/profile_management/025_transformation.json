@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "domain": "profile_management",
+    "created_at": "2026-04-19",
+    "schema_version": "1.0"
+  },
+  "before_model": {
+    "pattern": "Service class — ProfileService with direct repository calls",
+    "profile_creation": "InsertProfile(Profile) — caller responsible for mapping + validation",
+    "profile_deletion": "no explicit delete — profiles marked inactive or removed via bulk ops",
+    "profile_listing": "GetProfilesbyUserId with filter params — complex signature, 5 params",
+    "authorization": "CanUserAccessProfile check scattered at call sites",
+    "tenant_isolation": "customerId passed as parameter to service methods"
+  },
+  "after_model": {
+    "pattern": "Vertical slice — Handler + Endpoint + SQL per behavior (4 behaviors)",
+    "profile_creation": "CreateProfile handler — validates name uniqueness, inserts, returns ProfileId",
+    "profile_deletion": "DeleteProfile handler — soft-delete via DeletedAt, explicit intent",
+    "profile_listing": "ListProfilesForUser handler — scoped to UserId + CustomerId from ICurrentUser",
+    "authorization": "ICurrentUser provides UserId + CustomerId — no scattered access checks",
+    "tenant_isolation": "CustomerId from ICurrentUser — not passed as param"
+  },
+  "design_decisions": [
+    {
+      "id": "DD_001",
+      "decision": "Split 5-param GetProfilesbyUserId into dedicated ListProfilesForUser handler",
+      "reason": "sms-service had overloaded filter signature — green-ai CQRS means one handler, one intent"
+    },
+    {
+      "id": "DD_002",
+      "decision": "Add explicit DeleteProfile as first-class behavior",
+      "reason": "sms-service had no explicit delete path — green-ai makes lifecycle explicit"
+    }
+  ],
+  "simplifications": [
+    {
+      "id": "S_001",
+      "removed": "includeSystemProfile + includeCustomer filter params",
+      "reason": "green-ai profile model does not have system-profile concept — scope reduced to user-owned profiles"
+    }
+  ],
+  "transformations": [
+    "InsertProfile → CreateProfile handler (validated, returns ProfileId)",
+    "UpdateProfile → UpdateProfile handler (explicit command, single SQL)",
+    "GetProfilesbyUserId → ListProfilesForUser handler (scoped to ICurrentUser)",
+    "no equivalent → DeleteProfile handler (new explicit behavior)"
+  ],
+  "removed_concepts": [
+    "includeSystemProfile filter param (no concept in green-ai)",
+    "includeCustomer filter param (tenant from ICurrentUser)",
+    "5-param overloaded service signature (split to CQRS handlers)"
+  ],
+  "verdict": "REDESIGNED — explicit lifecycle, CQRS split, ICurrentUser tenant isolation. Explainable without sms-service reference."
+}

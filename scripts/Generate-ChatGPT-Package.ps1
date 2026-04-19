@@ -20,7 +20,7 @@ function Copy-Filtered {
     Get-ChildItem -Path $SrcRoot -Recurse -File | Where-Object {
         $f = $_
         if ($ExcludeExts -contains $f.Extension.ToLower()) { return $false }
-        if ($f.Name -eq 'temp.md' -and $f.DirectoryName -eq $SrcRoot) { return $false }
+        if ($f.Name -eq 'analysetemp.md') { return $false }
         $parts = $f.FullName.Substring($SrcRoot.Length).Split([IO.Path]::DirectorySeparatorChar)
         foreach ($p in $parts) { if ($ExcludeDirs -contains $p) { return $false } }
         return $true
@@ -91,6 +91,10 @@ $low   = ($domainMeta | Where-Object Score -lt 0.75 | Measure-Object).Count
 $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine("# ARCHITECT PACKAGE - STATE SUMMARY")
 [void]$sb.AppendLine("")
+[void]$sb.AppendLine("> ⚠️ **SNAPSHOT ONLY** — Not operational truth.")
+[void]$sb.AppendLine("> For live operational state, use **GREEN_AI_BUILD_STATE.md** + **analysis-tool/temp.md**.")
+[void]$sb.AppendLine("> This file may be stale relative to the active session.")
+[void]$sb.AppendLine("")
 [void]$sb.AppendLine("**Generated:** $(Get-Date -Format 'yyyy-MM-dd HH:mm')")
 [void]$sb.AppendLine("")
 [void]$sb.AppendLine("## PACKAGE INDHOLD")
@@ -115,6 +119,13 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine("")
 $domainMeta | Where-Object Score -ge 0.85 | ForEach-Object {
     [void]$sb.AppendLine("- **$($_.Domain)**: $($_.Score) ($($_.Gaps) gaps)")
+}
+
+[void]$sb.AppendLine("")
+[void]$sb.AppendLine("## SCORES MANGLER (000_meta.json tom eller ingen score-felt)")
+[void]$sb.AppendLine("")
+$domainMeta | Where-Object { $null -eq $_.Score -or $_.Score -eq '' } | ForEach-Object {
+    [void]$sb.AppendLine("- **$($_.Domain)**: MANGLER SCORE — kør analyse igen")
 }
 [void]$sb.AppendLine("")
 [void]$sb.AppendLine("## MANGLER MERE OUTPUT FRA ANALYSIS-TOOL (<0.75)")
@@ -161,7 +172,7 @@ $rm = [System.Text.StringBuilder]::new()
 [void]$rm.AppendLine("")
 [void]$rm.AppendLine("| Mappe | Layer | Indhold |")
 [void]$rm.AppendLine("|-------|-------|---------|")
-[void]$rm.AppendLine("| analysis-tool/domains/ | L1 | 38 domaener x 10 artefakttyper |")
+[void]$rm.AppendLine("| analysis-tool/domains/ | L1 | $($domainMeta.Count) domaener x 10 artefakttyper |")
 [void]$rm.AppendLine("| analysis-tool/analysis/ | L1 | 22 LOCKED wave-filer |")
 [void]$rm.AppendLine("| analysis-tool/ai-slices/ | L1 | Slice-specs pr domae |")
 [void]$rm.AppendLine("| analysis-tool/data/ | L1 | Pipeline-output: db_schema, api_map, bg_services |")
@@ -236,11 +247,7 @@ if (Test-Path $readmePath) {
     (Get-Content $readmePath -Raw) -replace 'PLACEHOLDER_TOKEN', $packageToken | Set-Content $readmePath -Encoding UTF8 -NoNewline
 }
 
-# --- Compress ---
-if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-Compress-Archive -Path "$tmp\*" -DestinationPath $zipPath -CompressionLevel Optimal
-Remove-Item $tmp -Recurse -Force
-
+# --- Opdater temp.md på disk med token OG kopier ind i $tmp FØR compress ---
 $tempMdPath = Join-Path $atRoot "temp.md"
 if (Test-Path $tempMdPath) {
     $tempContent = Get-Content $tempMdPath -Raw
@@ -256,7 +263,18 @@ if (Test-Path $tempMdPath) {
     $tempContent = $rxSep.Replace($tempContent, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Value + $tokenBlock }, 1)
     Set-Content -Path $tempMdPath -Value $tempContent -Encoding UTF8 -NoNewline
     Write-Host "PACKAGE_TOKEN: $packageToken  →  temp.md opdateret" -ForegroundColor Yellow
+
+    # Kopier opdateret temp.md ind i ZIP-arbejdsmappen (INDEN compress)
+    $tempMdDest = "$tmp\analysis-tool\temp.md"
+    $tempMdDestDir = Split-Path $tempMdDest -Parent
+    if (-not (Test-Path $tempMdDestDir)) { New-Item -ItemType Directory -Path $tempMdDestDir -Force | Out-Null }
+    Copy-Item $tempMdPath $tempMdDest -Force
 }
+
+# --- Compress ---
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+Compress-Archive -Path "$tmp\*" -DestinationPath $zipPath -CompressionLevel Optimal
+Remove-Item $tmp -Recurse -Force
 
 $sz = [math]::Round((Get-Item $zipPath).Length / 1MB, 1)
 Write-Host ""

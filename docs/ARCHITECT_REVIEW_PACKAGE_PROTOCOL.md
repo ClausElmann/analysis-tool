@@ -79,6 +79,49 @@ green-ai/
 
 **Architect: Start med `docs/SSOT/backend/reference/` for domæne-forståelse, derefter `Features/` for implementering.**
 
+---
+
+## EXECUTION EVIDENCE IN PACKAGE
+
+**Tilføjet efter Architect audit 2026-04-19**
+
+Hvis et domain i pakken har state:
+- `BUILD DONE`
+- `RIG VERIFIED`
+- `DONE 🔒`
+
+…så **SKAL** pakken indeholde tilsvarende evidence i `analysis-tool/temp.md`:
+
+| State | Påkrævet evidence |
+|-------|-------------------|
+| BUILD DONE | `changed_files[]` + `build_output_raw` + `build_exit_code=0` |
+| RIG VERIFIED | `rig_command` + `rig_output_raw` + `files=` + `HIGH=` + `gate_failed=` |
+| DONE 🔒 | Ovenstående + eksplicit `ARCHITECT VERDICT: GO — DONE 🔒 [domain]` |
+
+**Mangler evidence → pakken er inkonsistent.**
+
+ChatGPT bør afvise GO på et domain, hvis den tilsvarende evidence-blok mangler i temp.md.
+
+---
+
+## SNAPSHOT-ONLY FILER
+
+Disse filer er **auto-genererede snapshots** — IKKE operational truth:
+
+```
+STATE_SUMMARY.md     ← snapshot — kan være stale
+DOMAIN_OVERVIEW.md   ← snapshot — kan være stale
+```
+
+**Operational truth er:**
+```
+GREEN_AI_BUILD_STATE.md   (live feature inventory)
+analysis-tool/temp.md     (aktiv session state + evidence)
+domain artifacts          (010/020/030/070/025_*.json)
+```
+
+ChatGPT skal ALTID foretrække temp.md og GREEN_AI_BUILD_STATE.md over snapshot-filer ved modstridende information.
+
 ### 4. Governance Tools (Layer 3)
 ```
 analysis-tool/dfep_v3/          (DFEP v3 Copilot-native engine — Python source)
