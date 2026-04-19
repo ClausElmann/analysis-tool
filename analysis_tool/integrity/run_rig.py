@@ -30,6 +30,64 @@ import sys
 from pathlib import Path
 
 from .checker import run_integrity_check
+from .analyzers.llm_layer import generate_copilot_prompt
+
+
+def _generate_copilot_batch(report, output_path: str) -> None:
+    """
+    Skriv en Copilot Chat batch-prompt fil med alle fil-par der har HIGH/MEDIUM risk.
+
+    Workflow:
+      1. Kør: python -m analysis_tool.integrity.run_rig ... --copilot-batch batch.md
+      2. Åbn batch.md i VS Code
+      3. Indsæt indholdet i Copilot Chat
+      4. Copilot analyserer hvert fil-par og returnerer JSON-scores
+    """
+    lines = [
+        "# RIG Copilot Batch Analyse\n",
+        "Analysér hvert fil-par nedenfor og returner JSON-scores for hvert.\n",
+        "**ENESTE TILGÆNGELIGE LLM: VS Code Copilot (built-in)**\n",
+        "Ingen ekstern API er tilgængelig — denne batch-fil er den manuelle Copilot-workflow.\n\n",
+        "---\n\n",
+    ]
+
+    high_medium = [
+        fr for fr in report.files
+        if fr.risk_level.value in ("HIGH", "MEDIUM")
+    ]
+
+    if not high_medium:
+        lines.append("*Ingen HIGH/MEDIUM-risk filer fundet — ingen Copilot-analyse nødvendig.*\n")
+    else:
+        for i, fr in enumerate(high_medium, 1):
+            name = Path(fr.greenai_file).name
+            lines.append(f"## Fil {i}: {name}\n\n")
+            try:
+                greenai_src = Path(fr.greenai_file).read_text(encoding="utf-8", errors="replace")
+                legacy_src  = Path(fr.legacy_file).read_text(encoding="utf-8", errors="replace")
+                prompt = generate_copilot_prompt(
+                    fr.greenai_file, greenai_src,
+                    fr.legacy_file,  legacy_src,
+                )
+                lines.append(f"```\n{prompt}\n```\n\n")
+            except Exception as exc:
+                lines.append(f"*Kunne ikke læse filer: {exc}*\n\n")
+
+            # JSON svar-schema — Copilot skal returnere dette format
+            lines.append(f"**Forventet JSON-svar fra Copilot (kopier, udfyld og gem):**\n\n")
+            lines.append(f"```json\n")
+            lines.append(f'{{"{name}": {{\n')
+            lines.append(f'  "structural_similarity": 0.0,\n')
+            lines.append(f'  "behavioral_similarity": 0.0,\n')
+            lines.append(f'  "domain_similarity": 0.0,\n')
+            lines.append(f'  "flags": [],\n')
+            lines.append(f'  "recommendations": []\n')
+            lines.append(f'}}}}\n```\n\n')
+            lines.append(f"Gem hele JSON-objektet i: `analysis/integrity/llm_scores_<domain>.json`\n")
+            lines.append(f"Kør derefter RIG igen — override anvendes automatisk.\n\n")
+            lines.append("---\n\n")
+
+    Path(output_path).write_text("".join(lines), encoding="utf-8")
 
 
 def _print_summary(report) -> None:
@@ -65,17 +123,31 @@ def main() -> int:
     parser.add_argument("--legacy",   required=True, help="Legacy codebase root folder")
     parser.add_argument("--output",   default=None,  help="Write JSON report to this path")
     parser.add_argument("--sql",      action="store_true", help="Also analyse .sql files")
-    parser.add_argument("--no-llm",   action="store_true", help="Skip LLM — use heuristics only")
+    parser.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="[DEPRECATED — ignoreres. Heuristik er nu altid default. "
+             "LLM-analyse sker KUN via VS Code Copilot — se --copilot-batch]",
+    )
+    parser.add_argument(
+        "--copilot-batch",
+        default=None,
+        metavar="OUTPUT.md",
+        help="Generer en Copilot Chat batch-prompt fil med alle fil-par. "
+             "Indsæt den genererede .md-fil i VS Code Copilot Chat for manuel LLM-analyse.",
+    )
 
     args = parser.parse_args()
 
     print(f"\n🔍 Rebuild Integrity Gate")
     print(f"   GreenAI: {args.greenai}")
     print(f"   Legacy:  {args.legacy}")
-    print(f"   LLM:     {'disabled (--no-llm)' if args.no_llm else 'enabled (gpt-4.1)'}")
+    print(f"   LLM:     heuristic (VS Code Copilot er eneste LLM — brug --copilot-batch for manuel analyse)")
     print(f"   SQL:     {'yes' if args.sql else 'no'}")
     if args.output:
         print(f"   Output:  {args.output}")
+    if args.copilot_batch:
+        print(f"   Copilot: {args.copilot_batch}")
 
     try:
         report = run_integrity_check(
@@ -83,8 +155,13 @@ def main() -> int:
             legacy_folder  = args.legacy,
             include_sql    = args.sql,
             output_json    = args.output,
-            use_llm        = not args.no_llm,
+            use_llm        = False,  # Ekstern LLM ikke tilgængelig — kun VS Code Copilot (built-in)
         )
+
+        if args.copilot_batch:
+            _generate_copilot_batch(report, args.copilot_batch)
+            print(f"\n📝 Copilot batch-prompt skrevet til: {args.copilot_batch}")
+            print(f"   → Åbn filen i VS Code og indsæt indholdet i Copilot Chat for manuel LLM-analyse.")
     except FileNotFoundError as exc:
         print(f"\n❌ Error: {exc}", file=sys.stderr)
         return 1

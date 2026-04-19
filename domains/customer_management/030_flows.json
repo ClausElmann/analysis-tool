@@ -1,5 +1,151 @@
 [
-  "CustomerEventsHandler",
-  "InfobipCustomerVoiceSettingsChangedEventHandler",
-  "ProspectCreatedInEconomicNotificationHandler"
+  {
+    "flow_id": "FLOW_001",
+    "name": "CustomerCreationFlow",
+    "verified": true,
+    "steps": [
+      {
+        "step": 1,
+        "description": "POST /api/Customer/CreateCustomer — SuperAdmin auth required",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "CreateCustomer",
+        "line": 460,
+        "detail": "Guard: model null → BadRequest. Name blank → BadRequest."
+      },
+      {
+        "step": 2,
+        "description": "Name uniqueness check — GetByName returns OK if name exists → reject",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "CreateCustomer",
+        "line": 471,
+        "detail": "customerResult.IsFailure = name does NOT exist → safe to proceed"
+      },
+      {
+        "step": 3,
+        "description": "SMSSendAs length guard: must be >= SmsSendAsMinLength AND <= SmsSendAsMaxLength",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "CreateCustomer",
+        "line": 466,
+        "detail": "Returns localized error message on violation"
+      },
+      {
+        "step": 4,
+        "description": "Insert Customer + publish CustomerCreatedEvent",
+        "file": "ServiceAlert.Services/Customers/CustomerService.cs",
+        "method": "Insert",
+        "line": 57,
+        "detail": "_customerRepository.Insert(customer) → _mediator.Publish(CustomerCreatedEvent)"
+      },
+      {
+        "step": 5,
+        "description": "Create default SubscriptionSetting for new customer with localized texts",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "CreateCustomer",
+        "line": 489,
+        "detail": "_subscriptionRepository.CreateSubscriptionSetting(...) with localized defaults"
+      },
+      {
+        "step": 6,
+        "description": "Map user roles to customer",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "CreateCustomer",
+        "line": 505,
+        "detail": "_customerService.InsertCustomerUserRoleMapping(customerUserRoles) → OK(customer.Id)"
+      }
+    ]
+  },
+  {
+    "flow_id": "FLOW_002",
+    "name": "CustomerUpdateFlow",
+    "verified": true,
+    "steps": [
+      {
+        "step": 1,
+        "description": "POST /api/Customer/UpdateCustomer — role check (ManageCustomer OR SubscriptionModule OR SuperAdmin)",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "UpdateCustomer",
+        "line": 278,
+        "detail": "Returns Forbid if none of the 3 roles match"
+      },
+      {
+        "step": 2,
+        "description": "VoiceNumberId uniqueness check — reject if occupied by different customer",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "UpdateCustomer",
+        "line": 284,
+        "detail": "_customerService.GetAll().Any(c => c.VoiceNumberId == ... && c.Id != ...) → BadRequest"
+      },
+      {
+        "step": 3,
+        "description": "Load customer from DB — reject if null",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "UpdateCustomer",
+        "line": 287,
+        "detail": "_customerService.GetById(customerUpdateModel.Id)"
+      },
+      {
+        "step": 4,
+        "description": "Clamp DaysBeforeSMSdraftDeletion to [1, 9]; null → default 3",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "UpdateCustomer",
+        "line": 353,
+        "detail": "if < 1 → 1; if > 9 → 9; null → 3"
+      },
+      {
+        "step": 5,
+        "description": "SuperAdmin-only fields: Name, Segment, KvhxAddress, EconomicId, MaxLicenses, MonthToDeleteBroadcast, MonthToDeleteMessages",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "UpdateCustomer",
+        "line": 369,
+        "detail": "MonthToDeleteBroadcast clamp [6,60]; MonthToDeleteMessages clamp [1,60]"
+      },
+      {
+        "step": 6,
+        "description": "Persist update + publish CustomerUpdatedEvent",
+        "file": "ServiceAlert.Services/Customers/CustomerService.cs",
+        "method": "UpdateAsync",
+        "line": 69,
+        "detail": "customer.DateLastUpdatedUtc = UtcNow → _customerRepository.Update → _mediator.Publish(CustomerUpdatedEvent)"
+      },
+      {
+        "step": 7,
+        "description": "If SMSSendAs or VoiceSendAs changed → propagate to system profile SendAs",
+        "file": "ServiceAlert.Services/Customers/CustomerService.cs",
+        "method": "UpdateAsync",
+        "line": 76,
+        "detail": "_customerRepository.UpdateSendAsOnSystemProfileAsync(SMSSendAs, Name, VoiceSendAs, Id)"
+      }
+    ]
+  },
+  {
+    "flow_id": "FLOW_003",
+    "name": "CustomerLogoUpsertFlow",
+    "verified": true,
+    "steps": [
+      {
+        "step": 1,
+        "description": "Called from UpdateCustomer — accepts base64 logo string",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "UpdateLogo",
+        "line": 418,
+        "detail": "If logo string null/empty → return immediately (no-op)"
+      },
+      {
+        "step": 2,
+        "description": "Convert base64 → byte[]",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "UpdateLogo",
+        "line": 421,
+        "detail": "HelperExtensions.StringExtensions.ConvertBase64ToImageBytes(logo)"
+      },
+      {
+        "step": 3,
+        "description": "Upsert: if existing logo → update blob/Width/Height; else → create new CustomerLogo",
+        "file": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs",
+        "method": "UpdateLogo",
+        "line": 423,
+        "detail": "_customerService.GetCustomerLogoByCustomerId → Update or CreateCustomerLogo"
+      }
+    ]
+  }
 ]

@@ -1,9 +1,16 @@
 {
-  "gaps_count": 2,
-  "iteration": 29,
+  "gaps_count": 0,
+  "iteration": 30,
   "domain": "profile_management",
-  "completeness_score": 0.91,
-  "saved_utc": "2026-04-03T10:00:00+02:00",
-  "status": "stable_candidate",
-  "new_information_score": 0.47
+  "completeness_score": 0.93,
+  "saved_utc": "2026-04-20T00:00:00+02:00",
+  "status": "gate_ready",
+  "new_information_score": 0.82,
+  "layer0_sources": [
+    "ServiceAlert.Core/Domain/Profiles/Profile.cs",
+    "ServiceAlert.Core/Domain/Profiles/ProfileType.cs",
+    "ServiceAlert.Core/Domain/Profiles/Mappings/ProfileRoleMapping.cs",
+    "ServiceAlert.Services/Profiles/ProfileService.cs",
+    "ServiceAlert.Api/Controllers/ProfileController.cs"
+  ]
 }

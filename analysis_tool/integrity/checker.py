@@ -57,6 +57,42 @@ def _is_whitelisted(file_path: Path, patterns: list[str]) -> bool:
     return any(fnmatch(name, p) for p in patterns)
 
 
+def _load_llm_overrides(greenai_folder: Path) -> dict:
+    """
+    Indlæs llm_scores_<domain>.json override-fil hvis den eksisterer.
+
+    Workflow (Copilot Chat som officiel LLM):
+      1. Kør heuristik: python -m analysis_tool.integrity.run_rig ... --copilot-batch batch.md
+      2. Indsæt batch.md i VS Code Copilot Chat
+      3. Gem Copilot-svar som: analysis/integrity/llm_scores_<domain>.json
+      4. Kør RIG igen — override anvendes automatisk på matchende filer
+
+    Format af llm_scores_<domain>.json:
+      {
+        "<Filename.cs>": {
+          "structural_similarity": 0.0,
+          "behavioral_similarity": 0.0,
+          "domain_similarity": 0.0,
+          "flags": [...],
+          "recommendations": [...]
+        }
+      }
+
+    Domain-hint: lowercase af greenai_folder.name (e.g. CustomerAdmin -> customeradmin).
+    """
+    domain_hint = greenai_folder.name.lower()
+    # Look in analysis/integrity/ relative to tool root:
+    # analysis_tool/integrity/checker.py -> analysis_tool/integrity/ -> analysis_tool/ -> root
+    tool_root  = Path(__file__).parent.parent.parent
+    score_file = tool_root / "analysis" / "integrity" / f"llm_scores_{domain_hint}.json"
+    if score_file.exists():
+        try:
+            return json.loads(score_file.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+    return {}
+
+
 # RIG scope: backend/API only.
 # .razor / .html / .ts EXCLUDED — GreenAI uses Blazor, legacy uses Angular → no frontend duplication risk.
 # Test files EXCLUDED — if SQL/API/backend is GreenAI-native, tests are non-duplicate by definition.
@@ -137,7 +173,8 @@ def _recommendations(
 def _analyze_file(
     greenai_path: Path,
     legacy_files: list[Path],
-    use_llm: bool = True,
+    use_llm: bool = False,  # Ignoreres — ekstern LLM ikke tilgængelig. Brug --copilot-batch for manuel analyse.
+    overrides: dict | None = None,  # llm_scores_<domain>.json override — Copilot Chat scores
 ) -> FileIntegrityReport | None:
     try:
         greenai_source = greenai_path.read_text(encoding="utf-8", errors="replace")
@@ -187,15 +224,17 @@ def _analyze_file(
         struct_flags, behav_flags, dom_flags,
     )
 
-    # --- LLM layer (primary — supersedes heuristics when available) ---
+    # --- LLM override (Copilot Chat — officiel LLM metode) ---
+    # Indlæs llm_scores_<domain>.json hvis den eksisterer (Copilot Chat resultater).
+    # Workflow: --copilot-batch → Copilot Chat → gem JSON → kør RIG igen → override aktiv.
     llm_result = None
     source_label = "heuristic"
-    if use_llm:
-        print(f"  [LLM] Analysing {greenai_path.name} ↔ {legacy_path.name} ...")
-        llm_result = llm_analyze(
-            str(greenai_path), greenai_source,
-            str(legacy_path),  legacy_source,
-        )
+
+    if overrides:
+        file_key = greenai_path.name
+        if file_key in overrides:
+            llm_result = overrides[file_key]
+            source_label = "copilot"
 
     if llm_result:
         struct_score = llm_result["structural_similarity"]
@@ -210,9 +249,6 @@ def _analyze_file(
     scores      = IntegrityScores(struct_score, behav_score, dom_score)
     gate_failed = (behav_score > _BEHAVIORAL_FAIL_THRESHOLD) and (dom_score < _DOMAIN_FAIL_THRESHOLD)
     risk        = _risk_level(scores, gate_failed)
-
-    if source_label == "heuristic" and all_flags:
-        all_flags.insert(0, "[scores: heuristic — LLM unavailable]")
 
     return FileIntegrityReport(
         greenai_file       = str(greenai_path),
@@ -231,7 +267,7 @@ def run_integrity_check(
     legacy_folder:  str | Path,
     include_sql:    bool = True,
     output_json:    str | Path | None = None,
-    use_llm:        bool = True,
+    use_llm:        bool = False,
 ) -> IntegrityReport:
     """
     Run the full 3-layer integrity check.
@@ -247,7 +283,8 @@ def run_integrity_check(
         legacy_folder:  Root of the legacy codebase.
         include_sql:    Include .sql files — PRIMARY (equal weight to .cs). Default: True.
         output_json:    If given, write the report to this path as JSON.
-        use_llm:        Use LLM as primary scorer (falls back to heuristics if unavailable).
+        use_llm:        Ignoreres — ekstern LLM er ikke tilgængelig.
+                        Brug run_rig.py --copilot-batch for manuel Copilot-analyse.
 
     Returns:
         IntegrityReport with gate_status PASS or FAIL.
@@ -266,10 +303,12 @@ def run_integrity_check(
     whitelist = _load_whitelist()
 
     file_reports: list[FileIntegrityReport] = []
+    overrides = _load_llm_overrides(Path(greenai_folder))
+
     for gf in greenai_files:
         if _is_whitelisted(gf, whitelist):
             continue  # Explicitly whitelisted — skip gate evaluation
-        report = _analyze_file(gf, legacy_files, use_llm=use_llm)
+        report = _analyze_file(gf, legacy_files, use_llm=use_llm, overrides=overrides)
         if report:
             file_reports.append(report)
 

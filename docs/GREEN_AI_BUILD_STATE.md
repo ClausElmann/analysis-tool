@@ -3,7 +3,7 @@
 > **Purpose:** Alt hvad jeg behøver at vide om green-ai — tech, build-state, locks, domain-states.  
 > **Opdatér** når et STEP afsluttes, migration applied, lock ændres, eller tech stack ændres.
 
-**Last Updated:** 2026-04-16 (Wave 2B complete — V059 + Dashboard + 639/639 tests)  
+**Last Updated:** 2026-04-19 (system_configuration DONE — V076 + GetSetting + FileTypeValidationService)  
 **Migration level:** V059  
 **Tests:** 639/639 (all green, 0 skipped) + 996/996 Python (analysis-tool)  
 **Build:** 0 errors, 0 warnings  
@@ -65,7 +65,7 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 
 | Domain | Features | Bemærkning |
 |--------|----------|------------|
-| AdminLight | AssignProfile, AssignRole, CreateUser, ListSettings, SaveSetting | ✅ |
+| AdminLight | AssignProfile, AssignRole, CreateUser, ListSettings, **GetSetting**, SaveSetting | ✅ |
 | ActivityLog | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs | ✅ DONE 🔒 |
 | Auth | ChangePassword, GetProfileContext, Login, Logout, Me, RefreshToken, SelectCustomer, SelectProfile | ✅ |
 | CustomerAdmin | GetCustomerSettings, GetProfiles, GetUsers | ⚠️ Stubs — gap-assessment mangler |
@@ -73,6 +73,7 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 | Identity | ChangeUserEmail | ✅ |
 | JobManagement | LogJobTaskStatus, GetRecentAndOngoingTasks, ActiveJobs (SSE) — **unified monitoring** (Azure Batch + in-process) | ✅ DONE 🔒 |
 | Localization | BatchUpsertLabels, GetLabels | ⚠️ Stubs — gap-assessment mangler |
+| SharedKernel/FileValidation | **IFileTypeValidationService** + FileTypeValidationService | ✅ DONE 🔒 (system_configuration) |
 | System | Health, Ping | ✅ |
 | UserSelfService | PasswordReset, UpdateUser | ✅ |
 
@@ -168,7 +169,7 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | identity_access | DONE 🔒 | V034 | Auth + AdminLight |
 | UserSelfService | DONE 🔒 | V034 | PasswordReset, UpdateUser |
 | localization | DONE 🔒 | 2026-04-13 | AllowAnonymous fix + invariants dokumenteret |
-| customer_administration | N-B APPROVED | 2026-04-12 | Gap-fill — stubs eksisterer |
+| customer_administration | N-A ⚠️ GOVERNANCE_REVERT | 2026-04-19 | Gate invalid: behaviors=0, flows=0, rules=0. NEEDS_FULL_REANALYSIS. |
 | job_management | DONE 🔒 | V035 | LogJobTaskStatus, GetRecentAndOngoingTasks, SSE (ActiveJobsHub + ClientEventBackgroundService) |
 | activity_log | DONE 🔒 | V037 | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs — FAIL-OPEN invariant |
 | sms | IN PROGRESS | 2026-04-15 | Wave 8 done (F1-F4+RULE-EXEC-01..06). Wave 10: F5 (STD_RECEIVER phone-normalized) + F6 (real payload) fixed. OutboundMessages = canonical truth. |
@@ -217,12 +218,10 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 
 | Priority | Domain | Score | Rationale |
 |----------|--------|-------|-----------|
-| 1 | `customer_administration` | 0.88 | GetCustomerSettings/Profiles/Users stubs exist — N-B APPROVED |
-| 2 | `customer_management` | 0.88 | High completeness, 0 green-ai code |
-| 3 | `eboks_integration` | 0.88 | High completeness, 0 green-ai code |
-| 4 | `logging` | 0.88 | High completeness, 0 green-ai code |
-| 5 | `Delivery` | 0.84 | Needs gap check first |
-
+| 1 | `system_configuration` | 0.94 | READY_FOR_GATE — WAVE_A foundation, no deps |
+| 2 | `logging` | 0.88 | High completeness, 0 green-ai code |
+| 3 | `customer_management` | 0.88 | High completeness, 0 green-ai code |
+| 4 | `eboks_integration` | 0.88 | High completeness, 0 green-ai code |
 **Architect must decide** — Copilot does NOT choose the next domain autonomously.
 
 **Analysis-tool next candidates:**

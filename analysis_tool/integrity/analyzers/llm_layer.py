@@ -1,22 +1,35 @@
 """
-LLM-based integrity analysis layer.
+LLM integrity analysis layer — VS Code Copilot (built-in) ONLY.
 
-Sends GreenAI + legacy code to the LLM and asks for:
-  - structural_similarity  (0.0–1.0)
-  - behavioral_similarity  (0.0–1.0)
-  - domain_similarity      (0.0–1.0, higher = more GreenAI-native)
-  - flags                  (list of concrete risk observations)
-  - recommendations        (list of actionable fix suggestions)
+IMPORTANT — ADGANGSBEGRÆNSNING:
+  Den eneste LLM vi har adgang til er VS Code Copilot (built-in chat).
+  Eksterne LLM API'er (api.githubcopilot.com, OpenAI, Azure OpenAI) er IKKE
+  tilgængelige fra Python-kode — OAuth tokens (gh auth token) giver ikke
+  API-adgang til disse endpoints og returnerer PermissionDeniedError.
 
-The LLM layer supersedes heuristic scores when available.
-Falls back to heuristic-only if LLM is unavailable (no token, quota exceeded, etc.).
+HVORDAN MAN BRUGER LLM-ANALYSE:
+
+  Automatisk (heuristik) — kør altid:
+    python -m analysis_tool.integrity.run_rig --greenai <mappe> --legacy <mappe>
+    Heuristics scaner alle filer uden LLM.
+
+  Manuel LLM (Copilot) — for HIGH/MEDIUM-risk filer:
+    1. Brug generate_copilot_prompt(greenai_path, greenai_src, legacy_path, legacy_src)
+       til at generere en analyse-prompt.
+    2. Indsæt prompten i VS Code Copilot Chat.
+    3. Copilot returnerer JSON-scores som kan valideres manuelt.
+
+  Batch Copilot — ved Wave-checkpoints:
+    python -m analysis_tool.integrity.run_rig --greenai <mappe> --legacy <mappe>
+           --copilot-batch <output.md>
+    Genererer en .md-fil med alle fil-par og prompts klar til Copilot Chat.
+
+DERAF FØLGER: --no-llm-flaget er fjernet. Heuristik er DEFAULT.
+LLM-analyse sker KUN via VS Code Copilot (manuel eller batch-prompt).
 """
 from __future__ import annotations
 
 import json
-import os
-import re
-import subprocess
 
 _SYSTEM_PROMPT = """\
 You are a code architecture integrity auditor.
@@ -62,62 +75,31 @@ Do NOT copy source code in your response.
 """
 
 
-def _build_prompt(greenai_path: str, greenai_source: str, legacy_path: str, legacy_source: str) -> str:
-    # Truncate to avoid context overflow — keep first 150 lines of each file
-    def _truncate(text: str, max_lines: int = 150) -> str:
-        lines = text.splitlines()
-        if len(lines) > max_lines:
-            return "\n".join(lines[:max_lines]) + f"\n... [{len(lines) - max_lines} lines truncated]"
-        return text
+def _truncate(text: str, max_lines: int = 150) -> str:
+    lines = text.splitlines()
+    if len(lines) > max_lines:
+        return "\n".join(lines[:max_lines]) + f"\n... [{len(lines) - max_lines} lines truncated]"
+    return text
 
+
+def generate_copilot_prompt(greenai_path: str, greenai_source: str, legacy_path: str, legacy_source: str) -> str:
+    """
+    Generer en analyse-prompt klar til at indsætte i VS Code Copilot Chat.
+
+    Workflow:
+      1. Kald denne funktion for det fil-par du vil analysere.
+      2. Indsæt outputtet i Copilot Chat.
+      3. Copilot svarer med et JSON-objekt med scores.
+
+    Returnerer den fulde prompt som string.
+    """
     return (
+        f"{_SYSTEM_PROMPT}\n\n"
         f"=== GreenAI file: {greenai_path} ===\n"
         f"{_truncate(greenai_source)}\n\n"
         f"=== Legacy file: {legacy_path} ===\n"
         f"{_truncate(legacy_source)}\n"
     )
-
-
-def _get_token() -> str | None:
-    token = os.environ.get("GITHUB_TOKEN")
-    if token:
-        return token
-    try:
-        result = subprocess.run(
-            ["gh", "auth", "token"], capture_output=True, text=True, timeout=5
-        )
-        t = result.stdout.strip()
-        if t and result.returncode == 0:
-            return t
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
-    return None
-
-
-def _call_llm(prompt: str) -> dict:
-    from openai import OpenAI
-
-    token = _get_token()
-    if not token:
-        raise RuntimeError("No GitHub token available for LLM call.")
-
-    client = OpenAI(base_url="https://api.githubcopilot.com", api_key=token)
-    response = client.chat.completions.create(
-        model="gpt-4.1",
-        temperature=0.1,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
-            {"role": "user",   "content": prompt},
-        ],
-    )
-    raw = response.choices[0].message.content or "{}"
-    raw = raw.strip()
-    # Strip markdown fences if present
-    match = re.search(r"```(?:json)?\s*(\{.*\})\s*```", raw, re.DOTALL)
-    if match:
-        raw = match.group(1)
-    return json.loads(raw)
 
 
 def llm_analyze(
@@ -127,24 +109,16 @@ def llm_analyze(
     legacy_source: str,
 ) -> dict | None:
     """
-    Call the LLM to assess architectural integrity.
+    LLM-analyse er KUN tilgængelig via VS Code Copilot (built-in chat).
 
-    Returns a dict with keys:
-      structural_similarity, behavioral_similarity, domain_similarity, flags, recommendations
-    Or None if LLM is unavailable (caller falls back to heuristics).
+    Denne funktion returnerer altid None — heuristik bruges som fallback.
+    For manuel LLM-analyse: brug generate_copilot_prompt() og indsæt i Copilot Chat.
+    For batch-analyse: brug run_rig.py --copilot-batch <output.md>.
+
+    BAGGRUND: api.githubcopilot.com og andre eksterne LLM endpoints er ikke
+    tilgængelige fra Python via OAuth tokens. VS Code Copilot (built-in) er
+    den eneste LLM vi har adgang til i dette projekt.
     """
-    try:
-        prompt = _build_prompt(greenai_path, greenai_source, legacy_path, legacy_source)
-        result = _call_llm(prompt)
-
-        # Validate and sanitise response
-        return {
-            "structural_similarity": float(result.get("structural_similarity", 0.5)),
-            "behavioral_similarity": float(result.get("behavioral_similarity", 0.5)),
-            "domain_similarity":     float(result.get("domain_similarity", 0.5)),
-            "flags":                 list(result.get("flags", [])),
-            "recommendations":       list(result.get("recommendations", [])),
-        }
-    except Exception as exc:
-        print(f"  [WARN] LLM analysis unavailable ({type(exc).__name__}: {exc}) — using heuristics only.")
-        return None
+    # Ekstern LLM ikke tilgængelig — returner None → checker falder tilbage til heuristik.
+    # Se generate_copilot_prompt() for manuel Copilot-analyse.
+    return None

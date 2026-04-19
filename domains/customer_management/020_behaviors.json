@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "id": "BEH_001",
+    "name": "CreateCustomer",
+    "description": "SuperAdmin creates a new customer with name uniqueness check and SMSSendAs length validation. Creates default SubscriptionSetting and maps user roles.",
+    "source": "CustomerController.cs:CreateCustomer + CustomerService.cs:Insert",
+    "trigger": "POST /api/Customer/CreateCustomer (SuperAdmin only)",
+    "verified": true
+  },
+  {
+    "id": "BEH_002",
+    "name": "UpdateCustomer",
+    "description": "Updates Customer settings. Role-gated: ManageCustomer/SubscriptionModule for basic fields; SuperAdmin for Name, Segment, MaxLicenses, EconomicId. Publishes CustomerUpdatedEvent. Propagates SMSSendAs/VoiceSendAs change to system profile.",
+    "source": "CustomerController.cs:UpdateCustomer + CustomerService.cs:UpdateAsync",
+    "trigger": "POST /api/Customer/UpdateCustomer",
+    "verified": true
+  },
+  {
+    "id": "BEH_003",
+    "name": "GetCustomer",
+    "description": "Resolves customer by Id, PublicGuid, or current WorkContext. Returns CustomerModel with SubscriptionSetting, WebMessageSetting, StandardReceiverSetting.",
+    "source": "CustomerController.cs:GetCustomer",
+    "trigger": "GET /api/Customer/GetCustomer",
+    "verified": true
+  },
+  {
+    "id": "BEH_004",
+    "name": "ManageCustomerLogo",
+    "description": "Upsert customer logo: if existing blob exists → update; else → create new CustomerLogo. Accepts base64 string + Width/Height. SuperAdmin can delete logo.",
+    "source": "CustomerController.cs:UpdateLogo (private) + DeleteCustomerLogo",
+    "trigger": "Called from UpdateCustomer flow / DELETE /api/Customer/DeleteCustomerLogo",
+    "verified": true
+  },
+  {
+    "id": "BEH_005",
+    "name": "ManageCustomerUsers",
+    "description": "Add or remove User↔Customer mappings. AddUser creates CustomerUserMapping; RemoveUser deletes mapping and clears user-access cache entry.",
+    "source": "CustomerService.cs:AddUser (line 172) + RemoveUser (line 184)",
+    "trigger": "Internal service call",
+    "verified": true
+  },
+  {
+    "id": "BEH_006",
+    "name": "ManageApiKeys",
+    "description": "CRUD operations on CustomerApiKey entities. Create, Delete, Update, GetByType, GetByCustomer.",
+    "source": "CustomerService.cs:CreateCustomerApiKey/DeleteCustomerApiKey/UpdateCustomerApiKey",
+    "trigger": "Internal or admin endpoints",
+    "verified": true
+  }
+]

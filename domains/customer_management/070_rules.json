@@ -1,6 +1,66 @@
 [
-  "if truly empty (use empty list, not null).",
-  "must",
-  "must be plain English or well-known identifiers.",
-  "should"
+  {
+    "rule_id": "RULE_001",
+    "name": "CustomerNameUniqueness",
+    "description": "Customer name must be unique. If GetByName returns OK (customer exists), creation is rejected.",
+    "source": "CustomerController.cs:CreateCustomer line 471",
+    "code_verified": true,
+    "enforcement": "GetByName check before Insert; BadRequest('There is already another customer with the given name')"
+  },
+  {
+    "rule_id": "RULE_002",
+    "name": "SmsSendAsLengthBounds",
+    "description": "SMSSendAs must be between SmsSendAsMinLength and SmsSendAsMaxLength (GeneralConstants). Violation returns localized error.",
+    "source": "CustomerController.cs:CreateCustomer line 466",
+    "code_verified": true,
+    "enforcement": "Length guard before Insert; returns localized message"
+  },
+  {
+    "rule_id": "RULE_003",
+    "name": "DaysBeforeSMSDraftDeletionClamp",
+    "description": "DaysBeforeSMSdraftDeletion is clamped to [1, 9]. If null → default 3. Values outside range are silently clamped (no error).",
+    "source": "CustomerController.cs:UpdateCustomer line 353",
+    "code_verified": true,
+    "enforcement": "Clamp before UpdateAsync call"
+  },
+  {
+    "rule_id": "RULE_004",
+    "name": "MonthToDeleteBroadcastClamp",
+    "description": "MonthToDeleteBroadcast clamped to [6, 60]. MonthToDeleteMessages clamped to [1, 60]. SuperAdmin-only fields.",
+    "source": "CustomerController.cs:UpdateCustomer line 377",
+    "code_verified": true,
+    "enforcement": "Silent clamp in SuperAdmin block"
+  },
+  {
+    "rule_id": "RULE_005",
+    "name": "SuperAdminOnlyFields",
+    "description": "Name, Segment, KvhxAddress, EconomicId, MaxNumberOfLicenses, OneFlowDocumentId, MonthToDelete* can only be updated by SuperAdmin.",
+    "source": "CustomerController.cs:UpdateCustomer line 369",
+    "code_verified": true,
+    "enforcement": "isSuperAdmin guard before setting fields"
+  },
+  {
+    "rule_id": "RULE_006",
+    "name": "VoiceNumberIdUniqueness",
+    "description": "VoiceNumberId (if set and not shared) must not be occupied by a different customer. Shared voice numbers bypass this check.",
+    "source": "CustomerController.cs:UpdateCustomer line 284",
+    "code_verified": true,
+    "enforcement": "GetAll().Any(c => c.VoiceNumberId == ... && c.Id != ...) → BadRequest"
+  },
+  {
+    "rule_id": "RULE_007",
+    "name": "VoiceSendAsSuperAdminOnly",
+    "description": "VoiceSendAs can only be changed by SuperAdmin when Infobip is in use. Non-admin attempt returns Forbid.",
+    "source": "CustomerController.cs:UpdateCustomer line 337",
+    "code_verified": true,
+    "enforcement": "!isSuperAdmin && voiceSendAsUpdated → return Forbid"
+  },
+  {
+    "rule_id": "RULE_008",
+    "name": "DateLastUpdatedUtcOnUpdate",
+    "description": "Every customer update sets DateLastUpdatedUtc = UtcNow before persisting.",
+    "source": "CustomerService.cs:UpdateAsync line 70",
+    "code_verified": true,
+    "enforcement": "customer.DateLastUpdatedUtc = DateTime.UtcNow before _customerRepository.Update"
+  }
 ]

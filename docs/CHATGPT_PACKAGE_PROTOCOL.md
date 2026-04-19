@@ -39,6 +39,7 @@ STATE_SUMMARY.md                     (Domain scores, build state, gaps)
 DOMAIN_OVERVIEW.md                   (All domains at a glance)
 analysis-tool/temp.md                (Current session: decisions, audit, blockers)
 analysis-tool/docs/ARCHITECT_ONBOARDING.md
+analysis-tool/docs/DOMAIN_FACTORY_PROTOCOL.md  (N-A/GATE/N-B/RIG/DONE rules)
 analysis-tool/BUILDER_ARCHITECT_CHEAT_SHEET.md
 ```
 

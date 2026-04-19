@@ -1,17 +1,57 @@
 [
-  "RULE: All credentials (API keys, batch account info, SMTP) stored in ApplicationSettings ONLY. Never hardcoded.",
-  "RULE: CreateDefault() is idempotent — safe to run multiple times. Does NOT overwrite existing values.",
-  "RULE: Cache key 'Sms.applicationsettings' loads ALL settings at once (not per-key). Cache invalidation is full-clear on Save().",
-  "RULE: GetUncached() must be used in Admin UI to avoid showing stale values.",
-  "RULE: FileTypeIdFromExtension() returning null = file rejected. FileTypes table is the allowlist for uploads.",
-  "RULE: IdentifierTypes are country-specific. Norway uses org-nr, Denmark uses CVR, Finland uses y-number.",
-  "RULE: AppSetting enum values are defined in code — the enum numeric Id IS the row ID in ApplicationSettings. Never insert free-text keys.",
-  "RULE: DisableAllBroadcasts(184) and DisableAllSystemMessages(206) are emergency kill-switches. Checked before any delivery. If true: no messages sent.",
-  "RULE[wiki:DB-Design-Guidelines]: Table names plural, CamelCase, no underscores. Column names camelCase, no underscores. No FK constraints (by convention). No cascading deletes. All timestamps are UTC.",
-  "RULE[wiki:DB-Design-Guidelines]: Indexes named IX_<tablename>_<columns>. Create indexes on FK columns unless justified not to. Use stored procedures for complex data operations.",
-  "RULE[wiki:Code-standard]: Layer separation: Repository (data access) → Service (business logic) → Controller (HTTP). ReadModel = read-only domain data. DataModel = Dapper transition class. DTO = controller layer only.",
-  "RULE[wiki:Blob-storage]: errorlogs container receives 3 types: (1) Dapper DB connection failure, (2) Dapper license invalid, (3) SendGrid email send error response.",
-  "RULE[wiki:Blob-storage]: profilestorage container = user file uploads (managed by IProfileStorageService). profileimports/customerimports/importedfiles = DataImporter input routing.",
-  "RULE[wiki:Azure-AD-Setup]: Azure AD app requires admin consent once per customer organization. Configured via Azure AD portal → Enterprise Applications → Permissions.",
-  "RULE[wiki+git]: Strex gateway enable/disable controlled by dedicated AppSetting (#12049 git). Gateway-specific settings also stored as AppSettings (e.g. new Strex settings added in #12119)."
+  {
+    "rule": "CreateDefault() is idempotent — safe to run multiple times. Does NOT overwrite existing values.",
+    "verified": true,
+    "file": "ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs",
+    "method": "Save",
+    "line": "57-79",
+    "note": "Save() checks dbSetting == null → Insert if missing, Update if exists. Get() only creates default if setting is null AND defaultSetting provided."
+  },
+  {
+    "rule": "Cache key 'Sms.applicationsettings' loads ALL settings at once (not per-key). Cache invalidation is full-clear on Save().",
+    "verified": true,
+    "file": "ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs",
+    "method": "AllSettings",
+    "line": "83-96",
+    "cache_key_line": "14",
+    "invalidation_method": "Save",
+    "invalidation_line": "77"
+  },
+  {
+    "rule": "GetUncached() must be used in Admin UI to avoid showing stale values.",
+    "verified": true,
+    "file": "ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs",
+    "method": "GetUncached",
+    "line": "25-35",
+    "note": "GetUncached() reads directly from repository, bypassing _cacheManager."
+  },
+  {
+    "rule": "FileTypeIdFromExtension() returning 0 = file rejected. Known extensions mapped to IDs 1-10; default case returns 0.",
+    "verified": true,
+    "file": "ServiceAlert.Services/ProfileStorage/ProfileStorageService.cs",
+    "method": "FileTypeIdFromExtension",
+    "line": "64-95",
+    "rejection_file": "ServiceAlert.Api/Controllers/ProfileController.cs",
+    "rejection_line": "221-226",
+    "note": "Returns 0 (not null) for unknown extension. ProfileController rejects with BadRequest if fileTypeId == 0."
+  },
+  {
+    "rule": "AppSetting enum values are defined in code — the enum numeric Id IS the row ID in ApplicationSettings. Never insert free-text keys.",
+    "verified": true,
+    "file": "ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs",
+    "method": "AppSetting (enum)",
+    "line": "1-end",
+    "note": "Enum numeric values (e.g. DisableAllBroadcasts=184) are the ApplicationSettingTypeId used in DB rows. AllSettings() uses Enum.IsDefined() check on line 88."
+  },
+  {
+    "rule": "DisableAllBroadcasts(184) and DisableAllSystemMessages(206) are emergency kill-switches. Checked before any delivery. If '1': no messages sent.",
+    "verified": true,
+    "file": "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
+    "method": "ExecuteAsync",
+    "line": "77",
+    "system_messages_file": "ServiceAlert.Services/Monitoring/MonitoringService.cs",
+    "system_messages_line": "206",
+    "enum_file": "ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs",
+    "enum_line": "57 (DisableAllBroadcasts=184), 75 (DisableAllSystemMessages=206)"
+  }
 ]

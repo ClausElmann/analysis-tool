@@ -1,5 +1,41 @@
 [
-  "CloneProspectProductsToCustomerCommand",
+  {
+    "entity": "Customer",
+    "type": "aggregate_root",
+    "source": "ServiceAlert.Core/Domain/Customers/Customer.cs:16",
+    "key_fields": ["Id", "PublicId (Guid)", "Name", "SMSSendAs", "VoiceSendAs", "CountryId", "LanguageId", "TimeZoneId", "Active", "Deleted", "MaxNumberOfLicenses", "TerminationFlowStarted", "MonthToDeleteBroadcast", "MonthToDeleteMessages", "DaysBeforeSMSdraftDeletion"],
+    "collections": ["Profiles", "ApiKeys", "Users", "Logs"],
+    "notes": "Tenant root — all other data hangs off CustomerId"
+  },
+  {
+    "entity": "CustomerAccount",
+    "type": "value_object_with_id",
+    "source": "ServiceAlert.Core/Domain/Customers/Entities/CustomerAccount.cs:7",
+    "key_fields": ["CustomerId", "PricePerSms", "PricePerVoice", "PricePerEmail", "PricePerEboks", "InvoiceCycle", "DetailedInvoice", "InvoiceContact", "InvoiceReference"],
+    "notes": "Financial / invoicing settings — 1:1 with Customer"
+  },
+  {
+    "entity": "CustomerUserMapping",
+    "type": "join_entity",
+    "source": "ServiceAlert.Services/Customers/CustomerService.cs:185",
+    "key_fields": ["CustomerId", "UserId", "DateCreatedUtc"],
+    "notes": "Grants a User access to a Customer tenant"
+  },
+  {
+    "entity": "CustomerLogo",
+    "type": "blob_entity",
+    "source": "ServiceAlert.Web/Controllers/Customers/CustomerController.cs:418",
+    "key_fields": ["CustomerId", "Blob", "Width", "Height"],
+    "notes": "Binary image blob — stored in DB, returned as base64"
+  },
+  {
+    "entity": "CustomerApiKey",
+    "type": "child_entity",
+    "source": "ServiceAlert.Services/Customers/CustomerService.cs:256",
+    "key_fields": ["Id", "CustomerId", "ApiKeyType"],
+    "notes": "API key for external integrations — CRUD on Customer"
+  }
+]
   "ContactPersonCustomerDto",
   "ContactPersonWithCustomerReadModel",
   "ConversationPhoneNumberWithCustomerInfoReadModel",
