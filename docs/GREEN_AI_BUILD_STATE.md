@@ -184,7 +184,7 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | conversation_creation | DONE 🔒 | 2026-04-20 | 7 DD (DD_C01–DD_C07) + tenant isolation Test_05. Architect GO ✅ |
 | conversation_messaging | DONE 🔒 | 2026-04-20 | DD_CM_01–DD_CM_06, RIG_CONDITIONAL_ENFORCED_V2. Architect GO ✅ |
 | conversation_dispatch | DONE 🔒 | 2026-04-20 | D1-D5 hardening, 10/10 PASS, worker loop + tenant isolation + DLR fail-closed. Architect GO ✅ |
-| job_management | DONE 🔒 | V035 | LogJobTaskStatus, GetRecentAndOngoingTasks, SSE (ActiveJobsHub + ClientEventBackgroundService) |
+| job_management | **DONE 🔒** | 2026-04-20 | Gen2 hardened: 4/4 runtime proof ✅ + transaction wrapper ✅ + V082 index ✅ + Architect GO ✅ |
 | activity_log | DONE 🔒 | V037 | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs — FAIL-OPEN invariant |
 | sms | IN PROGRESS | 2026-04-15 | Wave 8 done (F1-F4+RULE-EXEC-01..06). Wave 10: F5 (STD_RECEIVER phone-normalized) + F6 (real payload) fixed. OutboundMessages = canonical truth. |
 | customer_management | N-A | — | Score 0.88 — analyse pågår |
