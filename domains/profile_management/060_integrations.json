@@ -1,13 +1,4 @@
 [
-  {
-    "description": "ProfileStorageFiles: metadata in DB, actual file binary in Azure Blob Storage container. AddToAzureBlobStorrage() returns StorageId (blob path).",
-    "name": "AzureBlobStorage",
-    "direction": "outbound",
-    "type": "FileStorage"
-  },
-  {
-    "description": "CleanupDeactivatedProfiles: triggered by job_management batch scheduler (ServiceAlertBatchAction.cleanup_deactivated_profiles).",
-    "name": "IJobService",
-    "type": "InternalDependency"
-  }
+  "{'description': 'CleanupDeactivatedProfiles: triggered by job_management batch scheduler (ServiceAlertBatchAction.cleanup_deactivated_profiles).', 'name': 'IJobService', 'type': 'InternalDependency'}",
+  "{'description': 'ProfileStorageFiles: metadata in DB, actual file binary in Azure Blob Storage container. AddToAzureBlobStorrage() returns StorageId (blob path).', 'name': 'AzureBlobStorage', 'direction': 'outbound', 'type': 'FileStorage'}"
 ]

@@ -1,6 +1,7 @@
 [
   "// ServiceAlert.Api/Models/GatewayApi/GatewayApiMobileOriginatedMessageDto.cs",
   "// ServiceAlert.Api/Models/Infobip/InfobipDeliveryReportDto.cs",
+  "// ServiceAlert.Core/Domain/AddressCorrection/AddressCorrection.cs",
   "// ServiceAlert.Core/Domain/Eboks/EboksMessage.cs",
   "// ServiceAlert.Core/Domain/Eboks/EboksMessageStatistic.cs",
   "// ServiceAlert.Core/Domain/Eboks/RecipientCompanyRegistrationId.cs",
@@ -92,6 +93,9 @@
   "// ServiceAlert.Web/Controllers/Eboks/EboksController.cs",
   "// labels:ns:eboks",
   "// labels:ns:sendgrid",
+  "// wiki:Master-Plan.md:24",
+  "// wiki:Master-Plan.md:5",
+  "// wiki:ServiceAlert.md:0",
   "GUARD: if truly empty (use empty list, not null).",
   "GUARD: must be plain English or well-known identifiers."
 ]

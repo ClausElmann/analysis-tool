@@ -1,4 +1,5 @@
 [
+  "2DService",
   "AttachEboksAddressCommand",
   "AttachEboksCvrCommand",
   "BenchmarkFinishedNotificationHandler",
@@ -40,6 +41,9 @@
   "eboksDocumentPreviewDto",
   "eboksExampleDto",
   "eboksMessageDto",
+  "in",
   "names",
-  "templateEboksDto"
+  "should",
+  "templateEboksDto",
+  "to"
 ]

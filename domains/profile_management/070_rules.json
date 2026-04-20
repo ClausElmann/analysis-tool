@@ -1,69 +1,8 @@
 [
-  {
-    "id": "RULE_001",
-    "rule": "CanUserAccessProfile gate: ProfileUserMapping row must exist for (profileId, userId). GetProfileUserMapping returns null → access denied.",
-    "source_file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "source_line": 49,
-    "code_verified": true
-  },
-  {
-    "id": "RULE_002",
-    "rule": "UpdateProfile requires SuperAdmin OR role CustomerSetup OR role ManageProfiles. All three checked before update proceeds.",
-    "source_file": "ServiceAlert.Api/Controllers/ProfileController.cs",
-    "source_line": 401,
-    "code_verified": true
-  },
-  {
-    "id": "RULE_003",
-    "rule": "Cross-customer profile edit: only SuperAdmin can edit a profile belonging to a different customer (CurrentCustomerId != command.CustomerId). Non-admin gets ForbidWithMessage.",
-    "source_file": "ServiceAlert.Api/Controllers/ProfileController.cs",
-    "source_line": 411,
-    "code_verified": true
-  },
-  {
-    "id": "RULE_004",
-    "rule": "Field truncation on save: SMSSendAs.Truncate(100), EmailSendAs.Truncate(200), BenchmarkDisplayName.Truncate(50), Sms2InternalDisplayName.Truncate(50). Enforced in ValidateProfile before every insert/update.",
-    "source_file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "source_line": 193,
-    "code_verified": true
-  },
-  {
-    "id": "RULE_005",
-    "rule": "File upload size limit: sizeKb >= 15360 (15 MB) → BadRequest. Checked before blob storage write.",
-    "source_file": "ServiceAlert.Api/Controllers/ProfileController.cs",
-    "source_line": 229,
-    "code_verified": true
-  },
-  {
-    "id": "RULE_006",
-    "rule": "File type validation: FileTypeIdFromExtension returns 0 for unknown extension → BadRequest. ContentType must be non-empty. Enforced before any storage operation.",
-    "source_file": "ServiceAlert.Api/Controllers/ProfileController.cs",
-    "source_line": 225,
-    "code_verified": true
-  },
-  {
-    "id": "RULE_007",
-    "rule": "DateLastUpdatedUtc = DateTime.UtcNow set on every UpdateProfile call. Set in ProfileService.UpdateProfile, not in controller.",
-    "source_file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "source_line": 237,
-    "code_verified": true
-  },
-  {
-    "id": "RULE_008",
-    "rule": "File access guard: SuperAdmin OR CanUserAccessProfile check before download/delete of ProfileStorageFile. ForbidWithMessage on failure.",
-    "source_file": "ServiceAlert.Api/Controllers/ProfileController.cs",
-    "source_line": 168,
-    "code_verified": true
-  }
-],
+  "guard",
   "guard.ts",
   "if truly empty (use empty list, not null).",
   "must",
   "must be plain English or well-known identifiers.",
-  "RULE[pdf:Brugervejledning-administration.pdf]: User licenses are purchased separately. Each extra user login costs 50 DKK/month. Customer has a fixed number of user licenses tied to their subscription package.",
-  "RULE[pdf:Brugervejledning-administration.pdf]: Admin-managed user roles (visible in UI) include: 'Admin menu - Kundeopsætning', 'Admin menu - Søgning', 'Admin menu - Standardmodtager', 'Admin menu - Tekstskabeloner', 'Admin menu - Tilmeld/afmeld', 'Admin menu - Web-beskeder', 'Menu - Kan se statusrapporter', 'Opsætning - Kan redigere og oprette brugere', 'Opsætning - Kan redigere og slette udsendelser (kladde og planlagte beskeder)'.",
-  "RULE[wiki:Domain-Description/Profiles.md]: ProfileRoleGroup (package) = TEMPLATE only. Assigning a group to a profile at creation time applies those roles. CHANGING the group later does NOT update already-assigned profiles.",
-  "RULE[wiki:Domain-Description/Profiles.md]: ProfileType options: Water, Waste water (Spildevand), Electricity (El), Heating (Fjernvarme), Renovation, + blank/general purpose.",
-  "RULE[wiki:Domain-Description/Profiles.md]: ProfileRolePrices table — each ProfileRole has associated pricing. Capability model directly links to subscription billing.",
-  "RULE[wiki:Domain-Description/Customers.md]: Customer has child entities: CustomerAccount, CustomerFtpSettings, CustomerSamlSettings, CustomerSubscriptionSettings, CustomerApiKey (multiple), CustomerGdprResponsible (multiple), CustomerLog."
+  "should"
 ]

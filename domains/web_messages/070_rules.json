@@ -1,8 +1,12 @@
 [
-  "guard",
-  "guard.ts",
+  "BulkInsertWebMessages is separate from single InsertWebMessage — used for batch wizard operations.",
+  "GetActiveWebMessages when fromUtc > now: uses GetPlannedAfter — returns scheduled-future messages.",
+  "GetActiveWebMessages when fromUtc is null or before now: uses (now, now) as active window — returns only currently active.",
+  "MergeWebMessagesBySmsGroupIdAndTypeIdAsync: upsert merge (not replace) — keyed on SmsGroupId + TypeId pair.",
+  "WebMessage read uses DateTimeOffset (not DateTime) to preserve UTC — prevents server local-time conversion errors.",
+  "Webhook action strings: 'created', 'updated', 'deleted' — sent to external webhook subscribers.",
+  "completedAsActive=true flag causes SetWebMessageCompleted messages to appear in active reads.",
   "if truly empty (use empty list, not null).",
-  "must be plain English or well-known identifiers.",
-  "require",
-  "require-roles.directive.ts"
+  "includeDrafts=false by default — drafts are WebMessages created during wizard where wizard was not completed.",
+  "must be plain English or well-known identifiers."
 ]

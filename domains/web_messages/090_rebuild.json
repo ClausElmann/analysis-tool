@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-04-02T08:45:55.855948Z",
+    "generated_at": "2026-04-20T18:52:44.222928Z",
     "generated_by": "HeuristicAIProvider",
     "schema_version": "2.0",
     "target_stack": "Blazor Server"
@@ -29,12 +29,44 @@
     {
       "method": "WebClient",
       "source": "integration"
+    },
+    {
+      "method": "GET /{'id': 'behavior_1', 'name': 'getactivewebmessages', 'description': 'returns currently active webmessages. if toutc provided: getwebmessagesactivebetween(from, to). if fromutc is null or before now: getwebmessagesactivebetween(now, now). supports optional profileid filter, messagetype filter, includedrafts flag.', 'trigger': 'api read via webmessagecontroller or driftsstatusmodule', 'source_file': 'servicealert.services/webmessages/webmessageservice.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "GET /{'id': 'behavior_2', 'name': 'getplannedwebmessages', 'description': 'returns webmessages planned for future: called when fromutc > now. uses getwebmessagesplannedafter(customerid, fromutc). supports same filters as getactivewebmessages.', 'trigger': 'api read when fromutc is in future', 'source_file': 'servicealert.services/webmessages/webmessageservice.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "GET /{'id': 'behavior_3', 'name': 'getexpiredwebmessages', 'description': 'returns expired webmessages when onlyexpired=true. calls getwebmessagesexpiredbetween(customerid, fromutc, toutc ?? now). preserves datetimeoffset to avoid server-side utc conversion errors.', 'trigger': 'api read with onlyexpired=true', 'source_file': 'servicealert.services/webmessages/webmessageservice.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "POST /{'id': 'behavior_4', 'name': 'createwebmessage', 'description': 'inserts a single webmessage via insertwebmessage. supports smsgroup-linked draft messages via marksmsgroupwebmessagesasdraft. bulk insert supported via bulkinsertwebmessages.', 'trigger': 'message wizard step or api post', 'source_file': 'servicealert.services/webmessages/webmessageservice.cs'}",
+      "source": "inferred"
     }
   ],
-  "authorization_hints": [
-    "require-roles.directive.ts"
-  ],
+  "authorization_hints": [],
   "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_1', 'name': 'GetActiveWebMessages', 'description': 'Returns currently active WebMessages. If toUtc provided: GetWebMessagesActiveBetween(from, to). If fromUtc is null or before now: GetWebMessagesActiveBetween(now, now). Supports optional profileId filter, messageType filter, includeDrafts flag.', 'trigger': 'API read via WebMessageController or DriftsstatusModule', 'source_file': 'ServiceAlert.Services/WebMessages/WebMessageService.cs'}",
+      "route": "/{'id':'behavior_1','name':'getactivewebmessages','description':'returnscurrentlyactivewebmessages.iftoutcprovided:getwebmessagesactivebetween(from,to).iffromutcisnullorbeforenow:getwebmessagesactivebetween(now,now).supportsoptionalprofileidfilter,messagetypefilter,includedraftsflag.','trigger':'apireadviawebmessageordriftsstatusmodule','source_file':'servicealert.services/webmessages/webmessageservice.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_7', 'name': 'GetWebMessagesForMapModule', 'description': 'Returns WebMessages enriched with geo data for DriftsstatusModule map display. Calls GetWebMessagesForMapModule with mapModuleCustomerSetting, onlyProfileIds, internalOnly, showArchiveDays. Also returns GetProfileMapSettings for per-profile map configuration.', 'trigger': 'DriftsstatusModule map load', 'source_file': 'ServiceAlert.Services/WebMessages/WebMessageService.cs'}",
+      "route": "/{'id':'behavior_7','name':'getwebmessagesformapmodule','description':'returnswebmessagesenrichedwithgeodatafordriftsstatusmodulemapdisplay.callsgetwebmessagesformapmodulewithmapmodulecustomersetting,onlyprofileids,internalonly,showarchivedays.alsoreturnsgetprofilemapsettingsforper-profilemapconfiguration.','trigger':'driftsstatusmodulemapload','source_file':'servicealert.services/webmessages/webmessageservice.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_9', 'name': 'MergeFieldsForWebMessage', 'description': 'Detects and replaces merge fields in web message text. DetectAndMergeMergefieldsForWeb(text, languageId, profileId, countryId, smsGroupId). Returns processed text. Used during preview or publish.', 'trigger': 'Web message text processing at publish/preview', 'source_file': 'ServiceAlert.Services/WebMessages/WebMessageService.cs'}",
+      "route": "/{'id':'behavior_9','name':'mergefieldsforwebmessage','description':'detectsandreplacesmergefieldsinwebmessagetext.detectandmergemergefieldsforweb(text,languageid,profileid,countryid,smsgroupid).returnsprocessedtext.usedduringprevieworpublish.','trigger':'webmessagetextprocessingatpublish/preview','source_file':'servicealert.services/webmessages/webmessageservice.cs'}",
+      "source": "inferred"
+    },
     {
       "auth_required": false,
       "component": "ActivityLogController",
@@ -658,6 +690,9 @@
       "WebhookMessage",
       "assignConversationPhoneNumberCommand",
       "assignStandardReceiverGroupDistributionPhoneNumberCommand",
+      "citizenDialogueSearchCommand",
+      "citizenDialogueSmsGroupCommand",
+      "citizenDialogueStdReceiverGroupCommand",
       "cloneProspectProductsToCustomerCommand",
       "conversationPartnerNameUpdateCommand",
       "createConversationCommand",
@@ -682,6 +717,7 @@
       "smsgroupScheduleCalendarEvent",
       "standardReceiverGroupCreateCommand",
       "standardReceiverGroupProfileMappingCommand",
+      "standardReceiversQuery",
       "subscribeAddressCommand",
       "subscribeSupplyNumberCommand",
       "unsubscribeAddressCommand",
@@ -700,12 +736,16 @@
       "webMessage"
     ],
     "rules": [
-      "guard",
-      "guard.ts",
+      "BulkInsertWebMessages is separate from single InsertWebMessage — used for batch wizard operations.",
+      "GetActiveWebMessages when fromUtc > now: uses GetPlannedAfter — returns scheduled-future messages.",
+      "GetActiveWebMessages when fromUtc is null or before now: uses (now, now) as active window — returns only currently active.",
+      "MergeWebMessagesBySmsGroupIdAndTypeIdAsync: upsert merge (not replace) — keyed on SmsGroupId + TypeId pair.",
+      "WebMessage read uses DateTimeOffset (not DateTime) to preserve UTC — prevents server local-time conversion errors.",
+      "Webhook action strings: 'created', 'updated', 'deleted' — sent to external webhook subscribers.",
+      "completedAsActive=true flag causes SetWebMessageCompleted messages to appear in active reads.",
       "if truly empty (use empty list, not null).",
-      "must be plain English or well-known identifiers.",
-      "require",
-      "require-roles.directive.ts"
+      "includeDrafts=false by default — drafts are WebMessages created during wizard where wizard was not completed.",
+      "must be plain English or well-known identifiers."
     ],
     "type": "stateful"
   },
@@ -1333,6 +1373,18 @@
       "table": "assignstandardreceivergroupdistributionphonenumbercommands"
     },
     {
+      "entity": "citizenDialogueSearchCommand",
+      "table": "citizendialoguesearchcommands"
+    },
+    {
+      "entity": "citizenDialogueSmsGroupCommand",
+      "table": "citizendialoguesmsgroupcommands"
+    },
+    {
+      "entity": "citizenDialogueStdReceiverGroupCommand",
+      "table": "citizendialoguestdreceivergroupcommands"
+    },
+    {
       "entity": "cloneProspectProductsToCustomerCommand",
       "table": "cloneprospectproductstocustomercommands"
     },
@@ -1417,6 +1469,10 @@
       "table": "standardreceivergroupprofilemappingcommands"
     },
     {
+      "entity": "standardReceiversQuery",
+      "table": "standardreceiversquerys"
+    },
+    {
       "entity": "subscribeAddressCommand",
       "table": "subscribeaddresscommands"
     },
@@ -1486,11 +1542,15 @@
     "WebClient"
   ],
   "validation_rules": [
-    "guard",
-    "guard.ts",
+    "BulkInsertWebMessages is separate from single InsertWebMessage — used for batch wizard operations.",
+    "GetActiveWebMessages when fromUtc > now: uses GetPlannedAfter — returns scheduled-future messages.",
+    "GetActiveWebMessages when fromUtc is null or before now: uses (now, now) as active window — returns only currently active.",
+    "MergeWebMessagesBySmsGroupIdAndTypeIdAsync: upsert merge (not replace) — keyed on SmsGroupId + TypeId pair.",
+    "WebMessage read uses DateTimeOffset (not DateTime) to preserve UTC — prevents server local-time conversion errors.",
+    "Webhook action strings: 'created', 'updated', 'deleted' — sent to external webhook subscribers.",
+    "completedAsActive=true flag causes SetWebMessageCompleted messages to appear in active reads.",
     "if truly empty (use empty list, not null).",
-    "must be plain English or well-known identifiers.",
-    "require",
-    "require-roles.directive.ts"
+    "includeDrafts=false by default — drafts are WebMessages created during wizard where wizard was not completed.",
+    "must be plain English or well-known identifiers."
   ]
 }

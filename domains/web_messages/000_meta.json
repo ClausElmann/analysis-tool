@@ -1,9 +1,9 @@
 {
-  "completeness_score": 0.88,
+  "completeness_score": 1.0,
   "domain": "web_messages",
-  "gaps_count": 2,
-  "iteration": 12,
-  "new_information_score": 0.0084,
-  "saved_utc": "2026-04-02T08:45:55.853951+00:00",
+  "gaps_count": 1,
+  "iteration": 6,
+  "new_information_score": 0.0083,
+  "saved_utc": "2026-04-20T18:52:44.217080+00:00",
   "status": "stable"
 }

@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-04-02T08:40:37.620514Z",
+    "generated_at": "2026-04-20T18:53:24.319709Z",
     "generated_by": "HeuristicAIProvider",
     "schema_version": "2.0",
     "target_stack": "Blazor Server"
@@ -25,6 +25,18 @@
   ],
   "authorization_hints": [],
   "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_2', 'name': 'SmsGroupApprovalWorkflow', 'description': 'NotifyApproversByEmail + NotifyApproversByPhone: sends approval request to profile approvers when broadcast requires approval. GetUnApprovedRequests / GetUnApprovedRequestDtos: returns pending approval items for a profile. ApprovalRequest lifecycle: Create → Update (approve/reject) → Delete.', 'trigger': 'Broadcast creation when profile has approvers configured', 'source_file': 'ServiceAlert.Services/SmsGroupApprovers/ISmsGroupApproverService.cs'}",
+      "route": "/{'id':'behavior_2','name':'smsgroupapprovalworkflow','description':'notifyapproversbyemail+notifyapproversbyphone:sendsapprovalrequesttoprofileapproverswhenbroadcastrequiresapproval.getunapprovedrequests/getunapprovedrequestdtos:returnspendingapprovalitemsforaprofile.approvalrequestlifecycle:create→update(approve/reject)→delete.','trigger':'broadcastcreationwhenprofilehasapproversconfigured','source_file':'servicealert.services/smsgroupapprovers/ismsgroupapproverservice.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_4', 'name': 'SmsGroupDeletedCleanup', 'description': 'SmsGroupDeletedHandler handles SmsGroupDeletedNotification (MediatR). Performs cascading cleanup when an SmsGroup is deleted.', 'trigger': 'SmsGroup delete event via MediatR', 'source_file': 'ServiceAlert.Services/Messages/Notifications/SmsGroupDeleted/SmsGroupDeletedHandler.cs'}",
+      "route": "/{'id':'behavior_4','name':'smsgroupdeletedcleanup','description':'smsgroupdeletedhandlerhandlessmsgroupdeletednotification(mediatr).performscascadingcleanupwhenansmsgroupisdeleted.','trigger':'smsgroupdeleteeventviamediatr','source_file':'servicealert.services/messages/notifications/smsgroupdeleted/smsgroupdeletedhandler.cs'}",
+      "source": "inferred"
+    },
     {
       "auth_required": false,
       "component": "Email2SmsWhitelistController",
@@ -153,6 +165,13 @@
       "updateStandardReceiverGroupDistributionPhoneNumberCommand"
     ],
     "rules": [
+      "Approval workflow: ApprovalRequest is keyed per SmsGroupId (GetApprovalRequestBySmsGroupId). Only one request per group.",
+      "Email2SmsWhitelist: controls which email addresses are allowed to trigger SMS via email gateway — per-customer whitelist.",
+      "GetUnApprovedRequests(profileId) returns all; GetUnApprovedRequests(profileId, userId) filters by assignee.",
+      "RunSmsGroupStatisticsAsync whatIf=true: dry run, no persistence — used for admin preview.",
+      "ScheduleBroadcastsFromFileAsync: strategy is a named string, not an enum — resolved by DI/strategy pattern.",
+      "SmsGroupDeletedNotification is MediatR INotification — handled async by SmsGroupDeletedHandler.",
+      "SmsGroupSchedule supports exceptions: individual date overrides on a recurring schedule.",
       "if truly empty (use empty list, not null).",
       "must be plain English or well-known identifiers."
     ],
@@ -418,6 +437,13 @@
     "SMS Gateway"
   ],
   "validation_rules": [
+    "Approval workflow: ApprovalRequest is keyed per SmsGroupId (GetApprovalRequestBySmsGroupId). Only one request per group.",
+    "Email2SmsWhitelist: controls which email addresses are allowed to trigger SMS via email gateway — per-customer whitelist.",
+    "GetUnApprovedRequests(profileId) returns all; GetUnApprovedRequests(profileId, userId) filters by assignee.",
+    "RunSmsGroupStatisticsAsync whatIf=true: dry run, no persistence — used for admin preview.",
+    "ScheduleBroadcastsFromFileAsync: strategy is a named string, not an enum — resolved by DI/strategy pattern.",
+    "SmsGroupDeletedNotification is MediatR INotification — handled async by SmsGroupDeletedHandler.",
+    "SmsGroupSchedule supports exceptions: individual date overrides on a recurring schedule.",
     "if truly empty (use empty list, not null).",
     "must be plain English or well-known identifiers."
   ]

@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-04-02T08:45:16.875845Z",
+    "generated_at": "2026-04-20T18:35:44.587921Z",
     "generated_by": "HeuristicAIProvider",
     "schema_version": "2.0",
     "target_stack": "Blazor Server"
@@ -13,10 +13,50 @@
     {
       "method": "SCIM 2.0",
       "source": "integration"
+    },
+    {
+      "method": "PUT /{'id': 'behavior_1', 'name': 'sendeboksamplify', 'description': 'sends eboks message to private person via kvhx address lookup (amplify strategy). generates html document (iso-8859-1), base64-encodes it, builds xml envelope (urn:eboks:en:3.0.0), and puts to e-boks rest api. recipient type kp (no first name) or kfp (with first name derived from owner name). on success sets status 752/753.', 'trigger': 'smsstatuscode.eboksamplifyafventer750 batch job', 'source_file': 'servicealert.services/gateways/eboksgateway/eboksamplifyworkloadprocessor.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "PATCH /{'id': 'behavior_2', 'name': 'sendebokscvr', 'description': 'sends eboks message to company via cvr number (v type recipient). same html/base64/xml envelope pattern as amplify. url: https://api.e-boks.com/int/rest/srv.svc/3/dispatchsystem/{sysid}/dispatches/{paddedsysid}{guid}. on success sets status 802 (ebokscvrafsendt802).', 'trigger': 'smsstatuscode.ebokscvrafventer batch job', 'source_file': 'servicealert.services/gateways/eboksgateway/ebokscvrworkloadprocessor.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "POST /{'id': 'behavior_4', 'name': 'createorupdateeboksmessage', 'description': 'persists eboksmessage (smslogid, headline, text, guid, datesentutc, numberofreceivers) via merge/upsert in repository before and after sending. pre-send: without datesentutc. post-send: with datesentutc set to utcnow.', 'trigger': 'before and after http dispatch', 'source_file': 'servicealert.services/eboks/eboksservice.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "PATCH /{'id': 'behavior_6', 'name': 'testmodedispatch', 'description': 'in test mode, no http call is made. nextstatus is set from a shuffled result array: cvr uses {802, 803}, amplify uses weighted array {0,0,0,0,0,1,1,2}. statistic record is not created in test mode.', 'trigger': 'item.data.testmode == true', 'source_file': 'servicealert.services/gateways/eboksgateway/ebokscvrworkloadprocessor.cs, eboksamplifyworkloadprocessor.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "POST /{'id': 'behavior_8', 'name': 'recordeboksstatistic', 'description': 'after successful (non-test) send, creates eboksmessagestatistic with smslogid and byte size of the html document.', 'trigger': 'post-http-success, non-test mode', 'source_file': 'servicealert.services/gateways/eboksgateway/ebokscvrworkloadprocessor.cs'}",
+      "source": "inferred"
     }
   ],
-  "authorization_hints": [],
+  "authorization_hints": [
+    "{'id': 'behavior_5', 'name': 'HasEboksCheck', 'description': 'Checks whether a customer/profile is permitted to send via eBoks. Profile-scoped: checks ProfileRoleNames.CanSendByEboks on specific profile and validates profile belongs to customer. Customer-scoped: any profile with CanSendByEboks role.', 'trigger': 'Pre-dispatch permission check', 'source_file': 'ServiceAlert.Services/Eboks/EboksService.cs'}"
+  ],
   "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_1', 'name': 'SendEboksAmplify', 'description': 'Sends eBoks message to private person via KVHX address lookup (Amplify strategy). Generates HTML document (ISO-8859-1), base64-encodes it, builds XML envelope (urn:eboks:en:3.0.0), and PUTs to e-boks REST API. Recipient type KP (no first name) or KFP (with first name derived from owner name). On success sets status 752/753.', 'trigger': 'SmsStatusCode.EboksAmplifyAfventer750 batch job', 'source_file': 'ServiceAlert.Services/Gateways/EboksGateway/EboksAmplifyWorkloadProcessor.cs'}",
+      "route": "/{'id':'behavior_1','name':'sendeboksamplify','description':'sendseboksmessagetoprivatepersonviakvhxaddresslookup(amplifystrategy).generateshtmldocument(iso-8859-1),base64-encodesit,buildsxmlenvelope(urn:eboks:en:3.0.0),andputstoe-boksrestapi.recipienttypekp(nofirstname)orkfp(withfirstnamederivedfromownername).onsuccesssetsstatus752/753.','trigger':'smsstatuscode.eboksamplifyafventer750batchjob','source_file':'servicealert.services/gateways/eboksgateway/eboksamplifyworkloadprocessor.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_2', 'name': 'SendEboksCvr', 'description': 'Sends eBoks message to company via CVR number (V type recipient). Same HTML/base64/XML envelope pattern as Amplify. URL: https://api.e-boks.com/int/rest/srv.svc/3/dispatchsystem/{sysId}/dispatches/{paddedSysId}{guid}. On success sets status 802 (EboksCvrAfsendt802).', 'trigger': 'SmsStatusCode.EboksCvrAfventer batch job', 'source_file': 'ServiceAlert.Services/Gateways/EboksGateway/EboksCvrWorkloadProcessor.cs'}",
+      "route": "/{'id':'behavior_2','name':'sendebokscvr','description':'sendseboksmessagetocompanyviacvrnumber(vtyperecipient).samehtml/base64/xmlenvelopepatternasamplify.url:https://api.e-boks.com/int/rest/srv.svc/3/dispatchsystem/{sysid}/dispatches/{paddedsysid}{guid}.onsuccesssetsstatus802(ebokscvrafsendt802).','trigger':'smsstatuscode.ebokscvrafventerbatchjob','source_file':'servicealert.services/gateways/eboksgateway/ebokscvrworkloadprocessor.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_4', 'name': 'CreateOrUpdateEboksMessage', 'description': 'Persists EboksMessage (SmsLogId, Headline, Text, Guid, DateSentUtc, NumberOfReceivers) via MERGE/upsert in repository before and after sending. Pre-send: without DateSentUtc. Post-send: with DateSentUtc set to UtcNow.', 'trigger': 'Before and after HTTP dispatch', 'source_file': 'ServiceAlert.Services/Eboks/EboksService.cs'}",
+      "route": "/{'id':'behavior_4','name':'createorupdateeboksmessage','description':'persistseboksmessage(smslogid,headline,text,guid,datesentutc,numberofreceivers)viamerge/upsertinrepositorybeforeandaftersending.pre-send:withoutdatesentutc.post-send:withdatesentutcsettoutcnow.','trigger':'beforeandafterhttpdispatch','source_file':'servicealert.services/eboks/eboksservice.cs'}",
+      "source": "inferred"
+    },
     {
       "auth_required": false,
       "component": "EboksController",
@@ -61,9 +101,22 @@
       "StartLookupBatchNotification"
     ],
     "rules": [
+      "API URL pattern (CVR): https://api.e-boks.com/int/rest/srv.svc/3/dispatchsystem/{sysId}/dispatches/{paddedSysId}{guid}",
+      "Amplify chunk sizes: normal=2000, firstRetry=1000, secondRetry=200.",
+      "Amplify retry order: secondRetry (762→772) before firstRetry (761→771) before normal (750→751). RoundRobin with priority.",
+      "Amplify strategy selection: EboksStrategies enum — NoEboks=0, EboksAll=1, SmsFirst=2, EboksFirst=3.",
+      "CVR recipients use Type=V (company). Amplify recipients use Type=KP (no first name) or KFP (with first name from owner name stripping ' (Ejer)' suffix and taking everything before last space).",
+      "Document encoding MUST be ISO-8859-1 (Latin1). HTML is base64-encoded before transmission.",
+      "EboksMessage GUID is item.Data.Guid if present, else Guid.NewGuid(). GUID is stable across retry — used as idempotency key in URL.",
+      "In test mode: no HTTP call, no statistic creation, NextStatus from shuffled result array.",
+      "MarkSmsGroupsSentAsync is called after batch completes — only for workloads where NextStatus is terminal (802/803 for CVR, 752/753 for Amplify).",
+      "Parallel dispatch: MaxDegreeOfParallelism=15 (both CVR and Amplify processors).",
+      "Status updates are written via IWorkloadStatusWriter after batch — not per-message.",
+      "XML namespace MUST be urn:eboks:en:3.0.0. Declaration: <?xml version=\"1.0\" encoding=\"UTF-8\"?>.",
       "if truly empty (use empty list, not null).",
       "must",
-      "must be plain English or well-known identifiers."
+      "must be plain English or well-known identifiers.",
+      "should"
     ],
     "type": "stateful"
   },
@@ -196,8 +249,20 @@
       "table": "ands"
     },
     {
+      "entity": "in",
+      "table": "ins"
+    },
+    {
       "entity": "names",
       "table": "namess"
+    },
+    {
+      "entity": "should",
+      "table": "shoulds"
+    },
+    {
+      "entity": "to",
+      "table": "tos"
     }
   ],
   "known_integrations": [
@@ -205,8 +270,21 @@
     "SCIM 2.0"
   ],
   "validation_rules": [
+    "API URL pattern (CVR): https://api.e-boks.com/int/rest/srv.svc/3/dispatchsystem/{sysId}/dispatches/{paddedSysId}{guid}",
+    "Amplify chunk sizes: normal=2000, firstRetry=1000, secondRetry=200.",
+    "Amplify retry order: secondRetry (762→772) before firstRetry (761→771) before normal (750→751). RoundRobin with priority.",
+    "Amplify strategy selection: EboksStrategies enum — NoEboks=0, EboksAll=1, SmsFirst=2, EboksFirst=3.",
+    "CVR recipients use Type=V (company). Amplify recipients use Type=KP (no first name) or KFP (with first name from owner name stripping ' (Ejer)' suffix and taking everything before last space).",
+    "Document encoding MUST be ISO-8859-1 (Latin1). HTML is base64-encoded before transmission.",
+    "EboksMessage GUID is item.Data.Guid if present, else Guid.NewGuid(). GUID is stable across retry — used as idempotency key in URL.",
+    "In test mode: no HTTP call, no statistic creation, NextStatus from shuffled result array.",
+    "MarkSmsGroupsSentAsync is called after batch completes — only for workloads where NextStatus is terminal (802/803 for CVR, 752/753 for Amplify).",
+    "Parallel dispatch: MaxDegreeOfParallelism=15 (both CVR and Amplify processors).",
+    "Status updates are written via IWorkloadStatusWriter after batch — not per-message.",
+    "XML namespace MUST be urn:eboks:en:3.0.0. Declaration: <?xml version=\"1.0\" encoding=\"UTF-8\"?>.",
     "if truly empty (use empty list, not null).",
     "must",
-    "must be plain English or well-known identifiers."
+    "must be plain English or well-known identifiers.",
+    "should"
   ]
 }

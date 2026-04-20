@@ -1,8 +1,8 @@
 {
-  "business_value": "medium",
-  "complexity": "medium",
+  "business_value": "high",
+  "complexity": "high",
   "coupling": "low",
   "domain": "job_management",
-  "rebuild_priority": 4,
-  "saved_utc": "2026-04-02T01:22:46.366803+00:00"
+  "rebuild_priority": 7,
+  "saved_utc": "2026-04-20T18:18:26.214587+00:00"
 }

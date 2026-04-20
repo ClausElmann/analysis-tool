@@ -1,9 +1,9 @@
 {
-  "completeness_score": 0.84,
+  "completeness_score": 1.0,
   "domain": "standard_receivers",
-  "gaps_count": 3,
-  "iteration": 22,
-  "new_information_score": 0.0295,
-  "saved_utc": "2026-04-02T08:43:27.360884+00:00",
+  "gaps_count": 1,
+  "iteration": 6,
+  "new_information_score": 0.0681,
+  "saved_utc": "2026-04-20T18:53:05.932479+00:00",
   "status": "in_progress"
 }

@@ -1,61 +1,9 @@
 [
-  {
-    "description": "Creates a Log row. ShortMessage truncated to 1500 chars. dataObject serialized to JSON. IP address and page URL captured from HttpContext if logLevel > Information. Three implementations: DB (DefaultLogger), ApplicationInsights, Email (FinalEmailLogger on Fatal).",
-    "name": "InsertLog",
-    "signature": "ISystemLogger.InsertLog(logLevel, shortMessage, fullMessage, user, module, dataObject)",
-    "trigger": "Exception handling, service operations, error boundaries throughout codebase.",
-    "data": [
-      "Logs"
-    ]
-  },
-  {
-    "description": "Middleware intercepts every HTTP request. Captures path, method, query, payload body, response body, status code, duration. Controlled by AppSetting RequestLogLevel(160). Only writes if 'All' (everything) or 'Error' (only non-2xx responses).",
-    "name": "RequestResponseLogging",
-    "trigger": "Every HTTP request. Gated by AppSetting.",
-    "data": [
-      "RequestLogs",
-      "ApplicationSettings(RequestLogLevel=160)"
-    ]
-  },
-  {
-    "description": "DelegatingHandler injected into all HttpClient instances. Captures URL, method, request body, response body, status code, duration ms for every outbound call. Writes OutgoingRequestLog rows.",
-    "name": "OutgoingHttpLogging",
-    "trigger": "Any external HTTP call (SendGrid, GatewayAPI, Infobip, KRR, KoFuVi, Datafordeler, etc.)",
-    "data": [
-      "OutgoingRequestLogs"
-    ]
-  },
-  {
-    "description": "Specialized outbound log for Norwegian API calls. Captures per-request identifier (CPR/address key) for billing compliance. Written separately from OutgoingRequestLogs.",
-    "name": "NorwegianApiLogging",
-    "trigger": "KRR lookup, KoFuVi lookup, Maskinporten-authenticated calls.",
-    "data": [
-      "NorwegianOutgoingRequestLogs"
-    ]
-  },
-  {
-    "description": "Records map tile render requests per profile. Used by billing system to quantify map API usage.",
-    "name": "MapRequestLogging",
-    "trigger": "Map tile served to frontend.",
-    "data": [
-      "MapRequestLogs"
-    ]
-  },
-  {
-    "description": "Writes ImpersonationLog row when SuperAdmin begins impersonating a user. Records both admin (impersonating) and target (impersonated) user IDs.",
-    "name": "ImpersonationAudit",
-    "trigger": "Impersonation start.",
-    "data": [
-      "ImpersonationLogs"
-    ]
-  },
-  {
-    "description": "FinalEmailLogger detects Fatal-level log entry and sends email to configured admin address via IEmailService.",
-    "name": "FatalErrorEmailAlert",
-    "trigger": "InsertLog(LogLevel.Fatal, ...) called.",
-    "data": [
-      "Logs",
-      "EmailMessages (via IEmailService)"
-    ]
-  }
+  "{'description': \"Middleware intercepts every HTTP request. Captures path, method, query, payload body, response body, status code, duration. Controlled by AppSetting RequestLogLevel(160). Only writes if 'All' (everything) or 'Error' (only non-2xx responses).\", 'name': 'RequestResponseLogging', 'trigger': 'Every HTTP request. Gated by AppSetting.', 'data': ['RequestLogs', 'ApplicationSettings(RequestLogLevel=160)']}",
+  "{'description': 'Creates a Log row. ShortMessage truncated to 1500 chars. dataObject serialized to JSON. IP address and page URL captured from HttpContext if logLevel > Information. Three implementations: DB (DefaultLogger), ApplicationInsights, Email (FinalEmailLogger on Fatal).', 'name': 'InsertLog', 'signature': 'ISystemLogger.InsertLog(logLevel, shortMessage, fullMessage, user, module, dataObject)', 'trigger': 'Exception handling, service operations, error boundaries throughout codebase.', 'data': ['Logs']}",
+  "{'description': 'DelegatingHandler injected into all HttpClient instances. Captures URL, method, request body, response body, status code, duration ms for every outbound call. Writes OutgoingRequestLog rows.', 'name': 'OutgoingHttpLogging', 'trigger': 'Any external HTTP call (SendGrid, GatewayAPI, Infobip, KRR, KoFuVi, Datafordeler, etc.)', 'data': ['OutgoingRequestLogs']}",
+  "{'description': 'FinalEmailLogger detects Fatal-level log entry and sends email to configured admin address via IEmailService.', 'name': 'FatalErrorEmailAlert', 'trigger': 'InsertLog(LogLevel.Fatal, ...) called.', 'data': ['Logs', 'EmailMessages (via IEmailService)']}",
+  "{'description': 'Records map tile render requests per profile. Used by billing system to quantify map API usage.', 'name': 'MapRequestLogging', 'trigger': 'Map tile served to frontend.', 'data': ['MapRequestLogs']}",
+  "{'description': 'Specialized outbound log for Norwegian API calls. Captures per-request identifier (CPR/address key) for billing compliance. Written separately from OutgoingRequestLogs.', 'name': 'NorwegianApiLogging', 'trigger': 'KRR lookup, KoFuVi lookup, Maskinporten-authenticated calls.', 'data': ['NorwegianOutgoingRequestLogs']}",
+  "{'description': 'Writes ImpersonationLog row when SuperAdmin begins impersonating a user. Records both admin (impersonating) and target (impersonated) user IDs.', 'name': 'ImpersonationAudit', 'trigger': 'Impersonation start.', 'data': ['ImpersonationLogs']}"
 ]

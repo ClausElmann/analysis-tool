@@ -1,28 +1,12 @@
 [
-  {
-    "detail": "DefaultLogger (DB), ApplicationInsightsLogger (Azure Monitor), FinalEmailLogger (email on Fatal). All registered in DI. System resolves all three via CompositeLogger pattern.",
-    "rule": "Three logger implementations — all injected via ISystemLogger"
-  },
-  {
-    "detail": "AppSetting(RequestLogLevel=160). Values: off (null), 'Error' (only >=400), 'All' (every request). Never log in production at 'All' — performance impact.",
-    "rule": "RequestLogLevel controls HTTP logging verbosity"
-  },
-  {
-    "detail": "ISystemLogger.InsertLog() truncates ShortMessage to 1500 chars. FullMessage (stack trace) is NVARCHAR(MAX) — no truncation.",
-    "rule": "ShortMessage is bounded — FullMessage is unbounded"
-  },
-  {
-    "detail": "Any HttpClient registered in DI gets OutgoingHttpClientLoggingHandler automatically. Services do NOT call log methods for external calls — the handler does it transparently.",
-    "rule": "Outbound HTTP logging is automatic via DelegatingHandler"
-  },
-  {
-    "detail": "KRR/KoFuVi calls write to NorwegianOutgoingRequestLogs — separate table for billing/compliance separation.",
-    "rule": "Norwegian request logs are separate from general outbound logs"
-  },
-  {
-    "detail": "cleanup_systemlogs, cleanup_requestlogs batch jobs delete rows older than retention threshold. Prevents unbounded growth.",
-    "rule": "Cleanup jobs purge old logs"
-  },
+  "RULE[wiki:Blob-storage]: Azure Blob '' container = Azure App Service platform logs (separate from application logs).",
   "RULE[wiki:Blob-storage]: Azure Blob 'errorlogs' container used for 3 specific critical failures: (1) Dapper cannot connect to DB, (2) Dapper license invalid, (3) Email send failure (raw SendGrid response). These are NOT routed through ISystemLogger but written directly to blob.",
-  "RULE[wiki:Blob-storage]: Azure Blob '' container = Azure App Service platform logs (separate from application logs)."
+  "if truly empty (use empty list, not null).",
+  "must be plain English or well-known identifiers.",
+  "{'detail': \"AppSetting(RequestLogLevel=160). Values: off (null), 'Error' (only >=400), 'All' (every request). Never log in production at 'All' — performance impact.\", 'rule': 'RequestLogLevel controls HTTP logging verbosity'}",
+  "{'detail': 'Any HttpClient registered in DI gets OutgoingHttpClientLoggingHandler automatically. Services do NOT call log methods for external calls — the handler does it transparently.', 'rule': 'Outbound HTTP logging is automatic via DelegatingHandler'}",
+  "{'detail': 'DefaultLogger (DB), ApplicationInsightsLogger (Azure Monitor), FinalEmailLogger (email on Fatal). All registered in DI. System resolves all three via CompositeLogger pattern.', 'rule': 'Three logger implementations — all injected via ISystemLogger'}",
+  "{'detail': 'ISystemLogger.InsertLog() truncates ShortMessage to 1500 chars. FullMessage (stack trace) is NVARCHAR(MAX) — no truncation.', 'rule': 'ShortMessage is bounded — FullMessage is unbounded'}",
+  "{'detail': 'KRR/KoFuVi calls write to NorwegianOutgoingRequestLogs — separate table for billing/compliance separation.', 'rule': 'Norwegian request logs are separate from general outbound logs'}",
+  "{'detail': 'cleanup_systemlogs, cleanup_requestlogs batch jobs delete rows older than retention threshold. Prevents unbounded growth.', 'rule': 'Cleanup jobs purge old logs'}"
 ]

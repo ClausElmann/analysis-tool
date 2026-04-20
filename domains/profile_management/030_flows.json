@@ -1,60 +1,6 @@
 [
-  {
-    "name": "ProfileContextSwitchFlow",
-    "file": "ServiceAlert.Api/Controllers/ProfileController.cs",
-    "method": "SetActiveProfile",
-    "line": 94,
-    "verified": true,
-    "steps": [
-      "1. User selects profile in UI → calls POST /api/profile/setactiveprofile?profileId=X",
-      "2. ProfileController.SetActiveProfile(): IProfileService.CanUserAccessProfile(profileId, userId) checked",
-      "3. If false → HTTP 403 ForbidWithMessage",
-      "4. If true → Profile loaded via GetProfileById(profileId)",
-      "5. _workContext.CurrentProfile = profile (sets User.CurrentProfileId in DB)",
-      "6. Next RefreshAccessToken call propagates new ProfileId into JWT",
-      "7. All subsequent requests use new ProfileId"
-    ]
-  },
-  {
-    "name": "ProfileCreationFlow",
-    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "method": "InsertProfile",
-    "line": 207,
-    "verified": true,
-    "steps": [
-      "1. Admin POSTs profile creation form",
-      "2. Validate required fields: Name, ProfileTypeId, CustomerId, CountryId",
-      "3. InsertProfile(profile) → INSERT into Profiles",
-      "4. If initial roles provided: AddProfileRoleMappings(profileId, roleIds)",
-      "5. If initial users provided: AddProfileAccessToUsers(profileId, userIds)",
-      "6. Optionally assign to ProfileRoleGroup: AddRoleGroupToProfile(groupId, profileId)"
-    ]
-  },
-  {
-    "name": "ProfileRoleCapabilityCheckFlow",
-    "file": "ServiceAlert.Services/Permissions/PermissionService.cs",
-    "method": "DoesProfileHaveRole",
-    "line": 206,
-    "verified": true,
-    "steps": [
-      "1. Feature service called (e.g. send SMS, use eBoks, access maps)",
-      "2. DoesProfileHaveRole(currentUser.ProfileId, ProfileRoleNames.CanSendByEboks) called",
-      "3. IPermissionService checks ProfileRoleMappings JOIN ProfileRoles (cached)",
-      "4. If false → throw NotAllowedException or return HTTP 403",
-      "5. If true → proceed with feature operation"
-    ],
-    "notes": "DoesProfileHaveRole is the PRIMARY feature gate across the entire system."
-  },
-  {
-    "name": "ProfileSoftDeleteFlow",
-    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "method": "DeleteProfile",
-    "line": 147,
-    "verified": true,
-    "steps": [
-      "1. Admin deletes profile → DeleteProfile(profileId) → _profileRepository.DeleteProfile(profileId)",
-      "2. Sets Profiles.Deleted=true, DateDeletedUtc=NOW() in repository",
-      "3. Profile hidden from user selectors immediately (Deleted flag)"
-    ]
-  }
+  "{'name': 'ProfileContextSwitchFlow', 'file': 'ServiceAlert.Api/Controllers/ProfileController.cs', 'method': 'SetActiveProfile', 'line': 94, 'verified': True, 'steps': ['1. User selects profile in UI → calls POST /api/profile/setactiveprofile?profileId=X', '2. ProfileController.SetActiveProfile(): IProfileService.CanUserAccessProfile(profileId, userId) checked', '3. If false → HTTP 403 ForbidWithMessage', '4. If true → Profile loaded via GetProfileById(profileId)', '5. _workContext.CurrentProfile = profile (sets User.CurrentProfileId in DB)', '6. Next RefreshAccessToken call propagates new ProfileId into JWT', '7. All subsequent requests use new ProfileId']}",
+  "{'name': 'ProfileCreationFlow', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'method': 'InsertProfile', 'line': 207, 'verified': True, 'steps': ['1. Admin POSTs profile creation form', '2. Validate required fields: Name, ProfileTypeId, CustomerId, CountryId', '3. InsertProfile(profile) → INSERT into Profiles', '4. If initial roles provided: AddProfileRoleMappings(profileId, roleIds)', '5. If initial users provided: AddProfileAccessToUsers(profileId, userIds)', '6. Optionally assign to ProfileRoleGroup: AddRoleGroupToProfile(groupId, profileId)']}",
+  "{'name': 'ProfileRoleCapabilityCheckFlow', 'file': 'ServiceAlert.Services/Permissions/PermissionService.cs', 'method': 'DoesProfileHaveRole', 'line': 206, 'verified': True, 'steps': ['1. Feature service called (e.g. send SMS, use eBoks, access maps)', '2. DoesProfileHaveRole(currentUser.ProfileId, ProfileRoleNames.CanSendByEboks) called', '3. IPermissionService checks ProfileRoleMappings JOIN ProfileRoles (cached)', '4. If false → throw NotAllowedException or return HTTP 403', '5. If true → proceed with feature operation'], 'notes': 'DoesProfileHaveRole is the PRIMARY feature gate across the entire system.'}",
+  "{'name': 'ProfileSoftDeleteFlow', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'method': 'DeleteProfile', 'line': 147, 'verified': True, 'steps': ['1. Admin deletes profile → DeleteProfile(profileId) → _profileRepository.DeleteProfile(profileId)', '2. Sets Profiles.Deleted=true, DateDeletedUtc=NOW() in repository', '3. Profile hidden from user selectors immediately (Deleted flag)']}"
 ]

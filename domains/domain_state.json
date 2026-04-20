@@ -1,8 +1,10 @@
 {
   "_global": {
-    "active_domain": "system_configuration",
+    "active_domain": null,
     "iteration_counter": 1558,
-    "reference_artifacts": ["product_scope"],
+    "reference_artifacts": [
+      "product_scope"
+    ],
     "note": "product_scope is a LOCKED reference artifact — engine must not enrich it against source code"
   },
   "product_scope": {
@@ -6468,9 +6470,9 @@
     "status": "blocked"
   },
   "delivery": {
-    "completeness_score": 0.84,
+    "completeness_score": 1.0,
     "consecutive_stable_iterations": 0,
-    "consistency_score": 0.6667,
+    "consistency_score": 1.0,
     "current_focus": "",
     "evidence_balance": {},
     "gaps": [
@@ -6678,12 +6680,12 @@
     ],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "blocked"
+    "status": "complete"
   },
   "eboks_integration": {
-    "completeness_score": 0.88,
+    "completeness_score": 1.0,
     "consecutive_stable_iterations": 0,
-    "consistency_score": 0.8333,
+    "consistency_score": 1.0,
     "current_focus": "",
     "evidence_balance": {},
     "gaps": [
@@ -8604,9 +8606,9 @@
     "status": "stable"
   },
   "logging": {
-    "completeness_score": 0.88,
+    "completeness_score": 1.0,
     "consecutive_stable_iterations": 0,
-    "consistency_score": 0.1667,
+    "consistency_score": 1.0,
     "current_focus": "priority_4",
     "evidence_balance": {},
     "gaps": [
@@ -8667,7 +8669,7 @@
     "processed_asset_ids": [],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "stable_candidate"
+    "status": "complete"
   },
   "lookup": {
     "completeness_score": 0.54,
@@ -12650,9 +12652,9 @@
     "status": "blocked"
   },
   "sms_group": {
-    "completeness_score": 0.84,
+    "completeness_score": 1.0,
     "consecutive_stable_iterations": 0,
-    "consistency_score": 0.6667,
+    "consistency_score": 1.0,
     "current_focus": "",
     "evidence_balance": {},
     "gaps": [
@@ -13766,12 +13768,12 @@
     ],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "blocked"
+    "status": "complete"
   },
   "standard_receivers": {
-    "completeness_score": 0.84,
+    "completeness_score": 1.0,
     "consecutive_stable_iterations": 0,
-    "consistency_score": 0.6667,
+    "consistency_score": 1.0,
     "current_focus": "",
     "evidence_balance": {},
     "gaps": [
@@ -14415,7 +14417,7 @@
     ],
     "saturation_score": 1.0,
     "stable_iterations": 0,
-    "status": "blocked"
+    "status": "complete"
   },
   "statistics": {
     "completeness_score": 0.35,
@@ -16412,9 +16414,9 @@
     "status": "blocked"
   },
   "web_messages": {
-    "completeness_score": 0.88,
+    "completeness_score": 1.0,
     "consecutive_stable_iterations": 6,
-    "consistency_score": 0.8333,
+    "consistency_score": 1.0,
     "current_focus": "",
     "evidence_balance": {},
     "gaps": [

@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-04-02T08:37:52.851746Z",
+    "generated_at": "2026-04-20T18:33:49.638899Z",
     "generated_by": "HeuristicAIProvider",
     "schema_version": "2.0",
     "target_stack": "Blazor Server"
@@ -17,6 +17,12 @@
   ],
   "authorization_hints": [],
   "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "{'description': 'Returns activity log entries for a specific object (e.g. all activity for FtpSetting Id=42). Optional maxRecords limits response. Used by admin UI to show change history per entity.', 'name': 'GetActivityLogs', 'signature': 'GetActivityLogsAsync(type, objectId, maxRecordsToReturn) → IReadOnlyCollection<ActivityLogReadModel>', 'trigger': 'Admin UI requests history for a data object.', 'data': ['ActivityLogs', 'ActivityLogEntries', 'ActivityLogEntryTypes']}",
+      "route": "/{'description':'returnsactivitylogentriesforaspecificobject(e.g.allactivityforftpsettingid=42).optionalmaxrecordslimitsresponse.usedbyadminuitoshowchangehistoryperentity.','name':'getactivitylogs','signature':'getactivitylogsasync(type,objectid,maxrecordstoreturn)→ireadonlycollection<activitylogreadmodel>','trigger':'adminuirequestshistoryforadataobject.','data':['activitylogs','activitylogentries','activitylogentrytypes']}",
+      "source": "inferred"
+    },
     {
       "auth_required": false,
       "component": "ActivityLogController",
@@ -45,6 +51,8 @@
   "blazor_state_model": {
     "events": [
       "CitizenDialogueSearchCommand",
+      "CitizenDialogueSmsGroupCommand",
+      "CitizenDialogueStdReceiverGroupCommand",
       "CreateLogCommand",
       "CreateSmsLogCommand",
       "CreateSmsLogResponseCommand",
@@ -53,12 +61,19 @@
       "LookupSmsLogsQuery",
       "SmsLogResponseCommand",
       "SmsLogResponseEvent",
+      "citizenDialogueSearchCommand",
+      "citizenDialogueSmsGroupCommand",
+      "citizenDialogueStdReceiverGroupCommand",
       "createLogCommand",
       "smsLogResponseCommand"
     ],
     "rules": [
       "if truly empty (use empty list, not null).",
-      "must be plain English or well-known identifiers."
+      "must be plain English or well-known identifiers.",
+      "{'detail': 'All activity tracked belongs to customer-owned objects. objectId references the entity primary key (e.g. FtpSettingId, DataImportFileId).', 'rule': 'Activity log is customer-scoped'}",
+      "{'detail': 'Enum: None, Broadcast, SubscriptionsImport, PositiveListsImport, StandardReceiversImport. Only these four (+ None) are valid activity types. Not extensible without code change.', 'rule': 'ActivityLogType is a bounded enum'}",
+      "{'detail': 'One ActivityLog parent row per (type, objectId). Multiple ActivityLogEntry children per event. Parent is created on first entry.', 'rule': 'ActivityLog is per-object — ActivityLogEntries are per-event'}",
+      "{'detail': 'The description stored is a locale resource KEY — not a pre-translated string. The admin UI calls ILocalizationService.GetLocalizedResource(key, languageId) at display time.', 'rule': 'descriptionTranslationKey is displayed via localization'}"
     ],
     "type": "stateful"
   },
@@ -89,6 +104,14 @@
     {
       "entity": "CitizenDialogueSearchCommand",
       "table": "citizendialoguesearchcommands"
+    },
+    {
+      "entity": "CitizenDialogueSmsGroupCommand",
+      "table": "citizendialoguesmsgroupcommands"
+    },
+    {
+      "entity": "CitizenDialogueStdReceiverGroupCommand",
+      "table": "citizendialoguestdreceivergroupcommands"
     },
     {
       "entity": "CreateLogCommand",
@@ -171,6 +194,18 @@
       "table": "ands"
     },
     {
+      "entity": "citizenDialogueSearchCommand",
+      "table": "citizendialoguesearchcommands"
+    },
+    {
+      "entity": "citizenDialogueSmsGroupCommand",
+      "table": "citizendialoguesmsgroupcommands"
+    },
+    {
+      "entity": "citizenDialogueStdReceiverGroupCommand",
+      "table": "citizendialoguestdreceivergroupcommands"
+    },
+    {
       "entity": "createLogCommand",
       "table": "createlogcommands"
     },
@@ -189,6 +224,10 @@
   ],
   "validation_rules": [
     "if truly empty (use empty list, not null).",
-    "must be plain English or well-known identifiers."
+    "must be plain English or well-known identifiers.",
+    "{'detail': 'All activity tracked belongs to customer-owned objects. objectId references the entity primary key (e.g. FtpSettingId, DataImportFileId).', 'rule': 'Activity log is customer-scoped'}",
+    "{'detail': 'Enum: None, Broadcast, SubscriptionsImport, PositiveListsImport, StandardReceiversImport. Only these four (+ None) are valid activity types. Not extensible without code change.', 'rule': 'ActivityLogType is a bounded enum'}",
+    "{'detail': 'One ActivityLog parent row per (type, objectId). Multiple ActivityLogEntry children per event. Parent is created on first entry.', 'rule': 'ActivityLog is per-object — ActivityLogEntries are per-event'}",
+    "{'detail': 'The description stored is a locale resource KEY — not a pre-translated string. The admin UI calls ILocalizationService.GetLocalizedResource(key, languageId) at display time.', 'rule': 'descriptionTranslationKey is displayed via localization'}"
   ]
 }

@@ -1,22 +1,11 @@
 [
-  {
-    "detail": "ServiceAlertBatchAction.ToString() stored as Jobs.Name. Service resolves Job by name string match.",
-    "rule": "Job name is the enum string value"
-  },
-  {
-    "detail": "Each batch run creates a new JobTask. History preserved. Job = named registry, JobTask = execution log.",
-    "rule": "JobTask is append-only — one row per execution"
-  },
-  {
-    "detail": "BatchAccountName(101), BatchAccountKey(102), BatchAccountUrl(103), BatchPoolName(104) — never hardcoded.",
-    "rule": "Azure Batch credentials always from ApplicationSettings"
-  },
-  {
-    "detail": "Most cleanup jobs select WHERE DateDeletedUtc < NOW()-threshold. Thresholds typically 30-120 days, often hardcoded in job class.",
-    "rule": "Cleanup jobs use age-based thresholds"
-  },
-  {
-    "detail": "Batch jobs needing ICurrentUser context must use JobCurrentUser (reads ProfileId/CustomerId from job parameters), not JWT.",
-    "rule": "JobCurrentUser required for profile-scoped batch operations"
-  }
+  "if truly empty (use empty list, not null).",
+  "must",
+  "must be plain English or well-known identifiers.",
+  "should",
+  "{'detail': 'Batch jobs needing ICurrentUser context must use JobCurrentUser (reads ProfileId/CustomerId from job parameters), not JWT.', 'rule': 'JobCurrentUser required for profile-scoped batch operations'}",
+  "{'detail': 'BatchAccountName(101), BatchAccountKey(102), BatchAccountUrl(103), BatchPoolName(104) — never hardcoded.', 'rule': 'Azure Batch credentials always from ApplicationSettings'}",
+  "{'detail': 'Each batch run creates a new JobTask. History preserved. Job = named registry, JobTask = execution log.', 'rule': 'JobTask is append-only — one row per execution'}",
+  "{'detail': 'Most cleanup jobs select WHERE DateDeletedUtc < NOW()-threshold. Thresholds typically 30-120 days, often hardcoded in job class.', 'rule': 'Cleanup jobs use age-based thresholds'}",
+  "{'detail': 'ServiceAlertBatchAction.ToString() stored as Jobs.Name. Service resolves Job by name string match.', 'rule': 'Job name is the enum string value'}"
 ]

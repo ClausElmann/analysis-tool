@@ -1,1 +1,132 @@
-{}
+{
+  "_meta": {
+    "generated_at": "2026-04-20T18:34:29.051441Z",
+    "generated_by": "HeuristicAIProvider",
+    "schema_version": "2.0",
+    "target_stack": "Blazor Server"
+  },
+  "api_contracts": [
+    {
+      "method": "SAML2 SSO",
+      "source": "integration"
+    },
+    {
+      "method": "{'description': \"'Sms.applicationsettings' cache key. IApplicationSettingService.Get() returns cached copy. Save() invalidates. No distributed cache — per-instance.\", 'name': 'MemoryCache', 'type': 'InProcessCache'}",
+      "source": "integration"
+    },
+    {
+      "method": "{'description': 'No direct integration. RequestLogLevel(160) AppSetting gates whether HTTP request/response logs are forwarded to App Insights via RequestResponseLoggingMiddleware.', 'name': 'ApplicationInsights', 'type': 'Monitoring'}",
+      "source": "integration"
+    }
+  ],
+  "authorization_hints": [],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "{'description': \"UPSERTs the setting value in ApplicationSettings table. Sets DateLastUpdatedUtc. Invalidates the entire 'Sms.applicationsettings' cache entry after save.\", 'name': 'SaveSetting', 'signature': 'IApplicationSettingService.Save(AppSetting, value)', 'trigger': 'Admin saves new value in Settings UI.'}",
+      "route": "/{'description':\"upsertsthesettingvalueinapplicationsettingstable.setsdatelastupdatedutc.invalidatestheentire'sms.applicationsettings'cacheentryaftersave.\",'name':'savesetting','signature':'iapplicationsettingservice.save(appsetting,value)','trigger':'adminsavesnewvalueinsettingsui.'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'description': 'Bypasses cache, reads directly from DB. Used in Admin UI to show current live value without stale data.', 'name': 'ReadUncachedSetting', 'signature': 'IApplicationSettingService.GetUncached(AppSetting) → string', 'trigger': 'Admin reads current setting in Settings UI.'}",
+      "route": "/{'description':'bypassescache,readsdirectlyfromdb.usedinadminuitoshowcurrentlivevaluewithoutstaledata.','name':'readuncachedsetting','signature':'iapplicationsettingservice.getuncached(appsetting)→string','trigger':'adminreadscurrentsettinginsettingsui.'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": true,
+      "component": "{'description': 'Master enum of all configuration keys. Each value has a primary numeric Id used as FK in ApplicationSettings.Id.', 'name': 'AppSetting', 'notable_keys': ['GatewayAPISingleToken(33)', 'BatchAccountName(101)', 'BatchAccountKey(102)', 'BatchAccountUrl(103)', 'BatchPoolName(104)', 'BatchAppCommandLine(105)', 'SendGridAPIKey(130)', 'SendGridHost(229)', 'InfobipApiKey(143)', 'InfobipBaseUrl(144)', 'InfobipSender(145)', 'RequestLogLevel(160)', 'DisableAllBroadcasts(184)', 'DisableAllSystemMessages(206)', 'QuickResponseRandomChars(210)', 'IsTestMode(25)', 'DefaultFromEmail(40)', 'DefaultFromName(41)', 'MaxSmsSendoutSize(50)', 'FtpServerPath(60)', 'DefaultSmsLanguage(80)', 'DefaultEmailLanguage(81)'], 'type': 'enum'}",
+      "route": "/{'description':'masterenumofallconfigurationkeys.eachvaluehasaprimarynumericidusedasfkinapplicationsettings.id.','name':'appsetting','notable_keys':['gatewayapisingletoken(33)','batchaccountname(101)','batchaccountkey(102)','batchaccounturl(103)','batchpoolname(104)','batchappcommandline(105)','sendgridapikey(130)','sendgridhost(229)','infobipapikey(143)','infobipbaseurl(144)','infobipsender(145)','requestloglevel(160)','disableallbroadcasts(184)','disableallsystemmessages(206)','quickresponserandomchars(210)','istestmode(25)','defaultfromemail(40)','defaultfromname(41)','maxsmssendoutsize(50)','ftpserverpath(60)','defaultsmslanguage(80)','defaultemaillanguage(81)'],'type':'enum'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'description': 'New field: Customers.MonthToDeleteMessages (int NOT NULL DEFAULT 60). Controls how many months before messages are deleted by cleanup_messages batch job. Configurable per customer via admin UI. Default 60 months = 5 years.', 'name': 'MonthToDeleteMessages', 'source': 'devops:#12085,12086,12087', 'type': 'column on Customers', 'related': ['SmsGroups.DateMessagesDeletedUtc (datetime null) — set by cleanup_messages after deleting']}",
+      "route": "/{'description':'newfield:customers.monthtodeletemessages(intnotnulldefault60).controlshowmanymonthsbeforemessagesaredeletedbycleanup_messagesbatchjob.configurablepercustomerviaadminui.default60months=5years.','name':'monthtodeletemessages','source':'devops:#12085,12086,12087','type':'columnoncustomers','related':['smsgroups.datemessagesdeletedutc(datetimenull)—setbycleanup_messagesafterdeleting']}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'name': 'AzureBlobStorageContainers', 'source': 'wiki:ServiceAlert/Infrastructure/Blob-storage.md', 'containers': [{'name': '$logs', 'purpose': 'App service logging (Application Logging feature in Azure)'}, {'name': 'app-servicealert-0723c9a7a4cc4a039c52458f72fe24c7', 'purpose': 'Azure Batch executable (batch app binary)'}, {'name': 'certificates', 'purpose': 'Certificates not in Azure Key Vault (e.g. Ejerfortegnelse)'}, {'name': 'importedfiles', 'purpose': 'DataImporter files without ProfileId or CustomerId'}, {'name': 'customerimports', 'purpose': 'DataImporter files with CustomerId only (no ProfileId)'}, {'name': 'profileimports', 'purpose': 'DataImporter files with both ProfileId and CustomerId'}, {'name': 'profileaddresscache', 'purpose': 'Cached profile addresses for broadcast page (production)'}, {'name': 'profileaddresscachedev', 'purpose': 'Cached profile addresses for broadcast page (dev/staging)'}, {'name': 'profilestorage', 'purpose': 'User-uploaded files per profile (profile storage feature)'}, {'name': 'errorlogs', 'purpose': 'Error logs: Dapper DB connection failures, Dapper license issues, SendGrid email error responses'}], 'type': 'infrastructure'}",
+      "route": "/{'name':'azureblobstoragecontainers','source':'wiki:servicealert/infrastructure/blob-storage.md','containers':[{'name':'$logs','purpose':'appservicelogging(applicationloggingfeatureinazure)'},{'name':'app-servicealert-0723c9a7a4cc4a039c52458f72fe24c7','purpose':'azurebatchexecutable(batchappbinary)'},{'name':'certificates','purpose':'certificatesnotinazurekeyvault(e.g.ejerfortegnelse)'},{'name':'importedfiles','purpose':'dataimporterfileswithoutprofileidorcustomerid'},{'name':'customerimports','purpose':'dataimporterfileswithcustomeridonly(noprofileid)'},{'name':'profileimports','purpose':'dataimporterfileswithbothprofileidandcustomerid'},{'name':'profileaddresscache','purpose':'cachedprofileaddressesforbroadcastpage(production)'},{'name':'profileaddresscachedev','purpose':'cachedprofileaddressesforbroadcastpage(dev/staging)'},{'name':'profilestorage','purpose':'user-uploadedfilesperprofile(profilestoragefeature)'},{'name':'errorlogs','purpose':'errorlogs:dapperdbconnectionfailures,dapperlicenseissues,sendgridemailerrorresponses'}],'type':'infrastructure'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'table': 'Icons', 'name': 'Icon', 'description': 'System icon registry. Icons used throughout UI for consistent iconography. Name matches IconName in FileTypes table.', 'columns': ['Id', 'Name', 'CssClass']}",
+      "route": "/{'table':'icons','name':'icon','description':'systemiconregistry.iconsusedthroughoutuiforconsistenticonography.namematchesiconnameinfiletypestable.','columns':['id','name','cssclass']}",
+      "source": "inferred"
+    }
+  ],
+  "blazor_state_model": {
+    "events": [
+      "ClientEventServiceConnectEvent",
+      "ConversationUnreadStatusChangedEvent"
+    ],
+    "rules": [
+      "if truly empty (use empty list, not null).",
+      "must be plain English or well-known identifiers.",
+      "{'rule': \"Cache key 'Sms.applicationsettings' loads ALL settings at once (not per-key). Cache invalidation is full-clear on Save().\", 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'AllSettings', 'line': '83-96', 'cache_key_line': '14', 'invalidation_method': 'Save', 'invalidation_line': '77'}",
+      "{'rule': \"DisableAllBroadcasts(184) and DisableAllSystemMessages(206) are emergency kill-switches. Checked before any delivery. If '1': no messages sent.\", 'verified': True, 'file': 'ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs', 'method': 'ExecuteAsync', 'line': '77', 'system_messages_file': 'ServiceAlert.Services/Monitoring/MonitoringService.cs', 'system_messages_line': '206', 'enum_file': 'ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs', 'enum_line': '57 (DisableAllBroadcasts=184), 75 (DisableAllSystemMessages=206)'}",
+      "{'rule': 'AppSetting enum values are defined in code — the enum numeric Id IS the row ID in ApplicationSettings. Never insert free-text keys.', 'verified': True, 'file': 'ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs', 'method': 'AppSetting (enum)', 'line': '1-end', 'note': 'Enum numeric values (e.g. DisableAllBroadcasts=184) are the ApplicationSettingTypeId used in DB rows. AllSettings() uses Enum.IsDefined() check on line 88.'}",
+      "{'rule': 'CreateDefault() is idempotent — safe to run multiple times. Does NOT overwrite existing values.', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'Save', 'line': '57-79', 'note': 'Save() checks dbSetting == null → Insert if missing, Update if exists. Get() only creates default if setting is null AND defaultSetting provided.'}",
+      "{'rule': 'FileTypeIdFromExtension() returning 0 = file rejected. Known extensions mapped to IDs 1-10; default case returns 0.', 'verified': True, 'file': 'ServiceAlert.Services/ProfileStorage/ProfileStorageService.cs', 'method': 'FileTypeIdFromExtension', 'line': '64-95', 'rejection_file': 'ServiceAlert.Api/Controllers/ProfileController.cs', 'rejection_line': '221-226', 'note': 'Returns 0 (not null) for unknown extension. ProfileController rejects with BadRequest if fileTypeId == 0.'}",
+      "{'rule': 'GetUncached() must be used in Admin UI to avoid showing stale values.', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'GetUncached', 'line': '25-35', 'note': 'GetUncached() reads directly from repository, bypassing _cacheManager.'}"
+    ],
+    "type": "stateful"
+  },
+  "domain_flows": [
+    "{'name': 'AdminSettingEditFlow', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'GetUncached', 'line': '25-35', 'save_file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'save_method': 'Save', 'save_line': '57-79', 'steps': ['1. Admin navigates to Settings UI', '2. GetUncached() called for each AppSetting to show live values', '3. Admin edits value and POSTs', '4. Save(setting, newValue) called → DB upsert + cache invalidated', '5. All subsequent Get() calls see new value']}",
+    "{'name': 'FileUploadValidationFlow', 'verified': True, 'file': 'ServiceAlert.Services/ProfileStorage/ProfileStorageService.cs', 'method': 'FileTypeIdFromExtension', 'line': '64-95', 'rejection_file': 'ServiceAlert.Api/Controllers/ProfileController.cs', 'rejection_method': 'UploadFile', 'rejection_line': '221-226', 'steps': ['1. File upload received (profile storage or import)', '2. Extract file extension from filename', '3. FileTypeIdFromExtension(ext) → must return non-zero (returns 0 for unknown)', '4. If 0: reject with BadRequest — file type not supported', '5. If found: FileTypeId stored with file metadata in ProfileStorageFiles']}",
+    "{'name': 'LazySettingResolutionFlow', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'Get', 'line': '37-47', 'fallback_method': 'CreateDefault', 'fallback_line': '49-57', 'steps': ['1. Caller requests setting via Get(settingType, defaultSetting)', '2. AllSettings() loads all settings from cache (or DB on cache miss)', '3. If setting missing from cache AND defaultSetting != null: CreateDefault() called (private, line 49-57)', '4. Save() persists new default → cache invalidated (RemoveByPattern on applicationSettingsKey)', '5. Setting returned (new default or existing)']}"
+  ],
+  "ef_core_entities": [
+    {
+      "entity": "and",
+      "table": "ands"
+    },
+    {
+      "entity": "names",
+      "table": "namess"
+    },
+    {
+      "entity": "{'description': 'Master enum of all configuration keys. Each value has a primary numeric Id used as FK in ApplicationSettings.Id.', 'name': 'AppSetting', 'notable_keys': ['GatewayAPISingleToken(33)', 'BatchAccountName(101)', 'BatchAccountKey(102)', 'BatchAccountUrl(103)', 'BatchPoolName(104)', 'BatchAppCommandLine(105)', 'SendGridAPIKey(130)', 'SendGridHost(229)', 'InfobipApiKey(143)', 'InfobipBaseUrl(144)', 'InfobipSender(145)', 'RequestLogLevel(160)', 'DisableAllBroadcasts(184)', 'DisableAllSystemMessages(206)', 'QuickResponseRandomChars(210)', 'IsTestMode(25)', 'DefaultFromEmail(40)', 'DefaultFromName(41)', 'MaxSmsSendoutSize(50)', 'FtpServerPath(60)', 'DefaultSmsLanguage(80)', 'DefaultEmailLanguage(81)'], 'type': 'enum'}",
+      "table": "{'description': 'master enum of all configuration keys. each value has a primary numeric id used as fk in applicationsettings.id.', 'name': 'appsetting', 'notable_keys': ['gatewayapisingletoken(33)', 'batchaccountname(101)', 'batchaccountkey(102)', 'batchaccounturl(103)', 'batchpoolname(104)', 'batchappcommandline(105)', 'sendgridapikey(130)', 'sendgridhost(229)', 'infobipapikey(143)', 'infobipbaseurl(144)', 'infobipsender(145)', 'requestloglevel(160)', 'disableallbroadcasts(184)', 'disableallsystemmessages(206)', 'quickresponserandomchars(210)', 'istestmode(25)', 'defaultfromemail(40)', 'defaultfromname(41)', 'maxsmssendoutsize(50)', 'ftpserverpath(60)', 'defaultsmslanguage(80)', 'defaultemaillanguage(81)'], 'type': 'enum'}s"
+    },
+    {
+      "entity": "{'description': 'New field: Customers.MonthToDeleteMessages (int NOT NULL DEFAULT 60). Controls how many months before messages are deleted by cleanup_messages batch job. Configurable per customer via admin UI. Default 60 months = 5 years.', 'name': 'MonthToDeleteMessages', 'source': 'devops:#12085,12086,12087', 'type': 'column on Customers', 'related': ['SmsGroups.DateMessagesDeletedUtc (datetime null) — set by cleanup_messages after deleting']}",
+      "table": "{'description': 'new field: customers.monthtodeletemessages (int not null default 60). controls how many months before messages are deleted by cleanup_messages batch job. configurable per customer via admin ui. default 60 months = 5 years.', 'name': 'monthtodeletemessages', 'source': 'devops:#12085,12086,12087', 'type': 'column on customers', 'related': ['smsgroups.datemessagesdeletedutc (datetime null) — set by cleanup_messages after deleting']}s"
+    },
+    {
+      "entity": "{'description': 'Two deployment slots: production and staging. Cert renewal and other config changes staged on staging slot, then swapped. Environment variables WEBSITE_LOAD_CERTIFICATES and Saml2:CertificateThumbprint are per-slot config settings.', 'name': 'DeploymentSlots', 'rules': ['Config changes applied to staging, verified, then swapped to production', 'Post-swap: staging slot config must be updated again to prevent next swap from reverting'], 'source': 'wiki:Authentication/SSO.md', 'type': 'infrastructure'}",
+      "table": "{'description': 'two deployment slots: production and staging. cert renewal and other config changes staged on staging slot, then swapped. environment variables website_load_certificates and saml2:certificatethumbprint are per-slot config settings.', 'name': 'deploymentslots', 'rules': ['config changes applied to staging, verified, then swapped to production', 'post-swap: staging slot config must be updated again to prevent next swap from reverting'], 'source': 'wiki:authentication/sso.md', 'type': 'infrastructure'}s"
+    },
+    {
+      "entity": "{'table': 'ApplicationSettings', 'name': 'ApplicationSetting', 'description': 'Stores one row per AppSetting enum key. Value is serialized as string. DefaultValue auto-populated by CreateDefault(). DateLastUpdatedUtc set on Save().', 'columns': ['Id', 'Value', 'DefaultValue', 'DateLastUpdatedUtc']}",
+      "table": "{'table': 'applicationsettings', 'name': 'applicationsetting', 'description': 'stores one row per appsetting enum key. value is serialized as string. defaultvalue auto-populated by createdefault(). datelastupdatedutc set on save().', 'columns': ['id', 'value', 'defaultvalue', 'datelastupdatedutc']}s"
+    },
+    {
+      "entity": "{'table': 'Icons', 'name': 'Icon', 'description': 'System icon registry. Icons used throughout UI for consistent iconography. Name matches IconName in FileTypes table.', 'columns': ['Id', 'Name', 'CssClass']}",
+      "table": "{'table': 'icons', 'name': 'icon', 'description': 'system icon registry. icons used throughout ui for consistent iconography. name matches iconname in filetypes table.', 'columns': ['id', 'name', 'cssclass']}s"
+    },
+    {
+      "entity": "{'table': 'IdentifierTypes', 'name': 'IdentifierType', 'description': 'Defines the types of owner identifiers per country (e.g. Norwegian org number, Danish CVR, Finnish y-number). Used in address/owner lookup flows.', 'columns': ['Id', 'Name', 'Description', 'CountryId']}",
+      "table": "{'table': 'identifiertypes', 'name': 'identifiertype', 'description': 'defines the types of owner identifiers per country (e.g. norwegian org number, danish cvr, finnish y-number). used in address/owner lookup flows.', 'columns': ['id', 'name', 'description', 'countryid']}s"
+    }
+  ],
+  "known_integrations": [
+    "SAML2 SSO",
+    "{'description': \"'Sms.applicationsettings' cache key. IApplicationSettingService.Get() returns cached copy. Save() invalidates. No distributed cache — per-instance.\", 'name': 'MemoryCache', 'type': 'InProcessCache'}",
+    "{'description': 'No direct integration. RequestLogLevel(160) AppSetting gates whether HTTP request/response logs are forwarded to App Insights via RequestResponseLoggingMiddleware.', 'name': 'ApplicationInsights', 'type': 'Monitoring'}"
+  ],
+  "validation_rules": [
+    "if truly empty (use empty list, not null).",
+    "must be plain English or well-known identifiers.",
+    "{'rule': \"Cache key 'Sms.applicationsettings' loads ALL settings at once (not per-key). Cache invalidation is full-clear on Save().\", 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'AllSettings', 'line': '83-96', 'cache_key_line': '14', 'invalidation_method': 'Save', 'invalidation_line': '77'}",
+    "{'rule': \"DisableAllBroadcasts(184) and DisableAllSystemMessages(206) are emergency kill-switches. Checked before any delivery. If '1': no messages sent.\", 'verified': True, 'file': 'ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs', 'method': 'ExecuteAsync', 'line': '77', 'system_messages_file': 'ServiceAlert.Services/Monitoring/MonitoringService.cs', 'system_messages_line': '206', 'enum_file': 'ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs', 'enum_line': '57 (DisableAllBroadcasts=184), 75 (DisableAllSystemMessages=206)'}",
+    "{'rule': 'AppSetting enum values are defined in code — the enum numeric Id IS the row ID in ApplicationSettings. Never insert free-text keys.', 'verified': True, 'file': 'ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs', 'method': 'AppSetting (enum)', 'line': '1-end', 'note': 'Enum numeric values (e.g. DisableAllBroadcasts=184) are the ApplicationSettingTypeId used in DB rows. AllSettings() uses Enum.IsDefined() check on line 88.'}",
+    "{'rule': 'CreateDefault() is idempotent — safe to run multiple times. Does NOT overwrite existing values.', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'Save', 'line': '57-79', 'note': 'Save() checks dbSetting == null → Insert if missing, Update if exists. Get() only creates default if setting is null AND defaultSetting provided.'}",
+    "{'rule': 'FileTypeIdFromExtension() returning 0 = file rejected. Known extensions mapped to IDs 1-10; default case returns 0.', 'verified': True, 'file': 'ServiceAlert.Services/ProfileStorage/ProfileStorageService.cs', 'method': 'FileTypeIdFromExtension', 'line': '64-95', 'rejection_file': 'ServiceAlert.Api/Controllers/ProfileController.cs', 'rejection_line': '221-226', 'note': 'Returns 0 (not null) for unknown extension. ProfileController rejects with BadRequest if fileTypeId == 0.'}",
+    "{'rule': 'GetUncached() must be used in Admin UI to avoid showing stale values.', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'GetUncached', 'line': '25-35', 'note': 'GetUncached() reads directly from repository, bypassing _cacheManager.'}"
+  ]
+}

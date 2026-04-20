@@ -1,105 +1,11 @@
 [
-  {
-    "name": "GetProfilesForUser",
-    "signature": "GetProfilesbyUserId(userId, customerId, filter, includeSystemProfile, includeCustomer) → IReadOnlyCollection<Profile>",
-    "trigger": "User selects profile context. Profile selector UI.",
-    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "line": 96,
-    "verified": true,
-    "data": [
-      "Profiles",
-      "ProfileUserMappings"
-    ]
-  },
-  {
-    "name": "CanUserAccessProfile",
-    "signature": "CanUserAccessProfile(profileId, userId) → bool",
-    "trigger": "Profile selection, any API call that requires profile-scoped access.",
-    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "line": 49,
-    "verified": true,
-    "data": [
-      "ProfileUserMappings"
-    ]
-  },
-  {
-    "name": "InsertProfile",
-    "signature": "InsertProfile(Profile)",
-    "trigger": "Admin creates new profile via UI or API.",
-    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "line": 207,
-    "verified": true,
-    "data": [
-      "Profiles"
-    ]
-  },
-  {
-    "name": "UpdateProfile",
-    "signature": "UpdateProfile(Profile) / UpdateProfiles(IEnumerable<Profile>)",
-    "trigger": "Admin edits profile settings.",
-    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "line": 219,
-    "verified": true,
-    "data": [
-      "Profiles"
-    ]
-  },
-  {
-    "name": "DeleteProfile",
-    "signature": "DeleteProfile(profileId)",
-    "trigger": "Admin deletes profile — soft delete (Deleted=true, DateDeletedUtc=NOW).",
-    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "line": 147,
-    "verified": true,
-    "data": [
-      "Profiles"
-    ]
-  },
-  {
-    "name": "AddRemoveProfileRoles",
-    "signature": "AddProfileRoleMappings(profileId, roleIds) / DeleteProfileRoleMappings(profileId, roleIds)",
-    "trigger": "Admin configures profile capabilities (e.g. CanSendBySms, CanSendByEboks).",
-    "file": "ServiceAlert.Services/Permissions/PermissionService.cs",
-    "line": 256,
-    "verified": true,
-    "data": [
-      "ProfileRoleMappings",
-      "ProfileRoles"
-    ]
-  },
-  {
-    "name": "ManageProfileUsers",
-    "signature": "AddProfileAccessToUsers(profileId, userIds) / DeleteProfileUserMappings(profileId, userIds)",
-    "trigger": "Admin grants or revokes user access to a profile.",
-    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "line": 54,
-    "verified": true,
-    "data": [
-      "ProfileUserMappings"
-    ]
-  },
-  {
-    "name": "GetProfileById",
-    "signature": "GetProfileById(profileId, userId?) → Profile",
-    "trigger": "Per-request context resolution, profile detail view.",
-    "file": "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "line": 162,
-    "verified": true,
-    "data": [
-      "Profiles",
-      "Customers"
-    ]
-  },
-  {
-    "name": "ManageProfileStorage",
-    "signature": "UploadFile(files, profileId) / DownloadFile(profileId, fileId) / DeleteUploadedFile(profileId, fileId)",
-    "trigger": "User uploads or downloads a file scoped to a profile.",
-    "file": "ServiceAlert.Api/Controllers/ProfileController.cs",
-    "line": 200,
-    "verified": true,
-    "data": [
-      "ProfileStorageFiles",
-      "Azure Blob Storage (profilestorage container)"
-    ]
-  }
+  "{'name': 'AddRemoveProfileRoles', 'signature': 'AddProfileRoleMappings(profileId, roleIds) / DeleteProfileRoleMappings(profileId, roleIds)', 'trigger': 'Admin configures profile capabilities (e.g. CanSendBySms, CanSendByEboks).', 'file': 'ServiceAlert.Services/Permissions/PermissionService.cs', 'line': 256, 'verified': True, 'data': ['ProfileRoleMappings', 'ProfileRoles']}",
+  "{'name': 'CanUserAccessProfile', 'signature': 'CanUserAccessProfile(profileId, userId) → bool', 'trigger': 'Profile selection, any API call that requires profile-scoped access.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 49, 'verified': True, 'data': ['ProfileUserMappings']}",
+  "{'name': 'DeleteProfile', 'signature': 'DeleteProfile(profileId)', 'trigger': 'Admin deletes profile — soft delete (Deleted=true, DateDeletedUtc=NOW).', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 147, 'verified': True, 'data': ['Profiles']}",
+  "{'name': 'GetProfileById', 'signature': 'GetProfileById(profileId, userId?) → Profile', 'trigger': 'Per-request context resolution, profile detail view.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 162, 'verified': True, 'data': ['Profiles', 'Customers']}",
+  "{'name': 'GetProfilesForUser', 'signature': 'GetProfilesbyUserId(userId, customerId, filter, includeSystemProfile, includeCustomer) → IReadOnlyCollection<Profile>', 'trigger': 'User selects profile context. Profile selector UI.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 96, 'verified': True, 'data': ['Profiles', 'ProfileUserMappings']}",
+  "{'name': 'InsertProfile', 'signature': 'InsertProfile(Profile)', 'trigger': 'Admin creates new profile via UI or API.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 207, 'verified': True, 'data': ['Profiles']}",
+  "{'name': 'ManageProfileStorage', 'signature': 'UploadFile(files, profileId) / DownloadFile(profileId, fileId) / DeleteUploadedFile(profileId, fileId)', 'trigger': 'User uploads or downloads a file scoped to a profile.', 'file': 'ServiceAlert.Api/Controllers/ProfileController.cs', 'line': 200, 'verified': True, 'data': ['ProfileStorageFiles', 'Azure Blob Storage (profilestorage container)']}",
+  "{'name': 'ManageProfileUsers', 'signature': 'AddProfileAccessToUsers(profileId, userIds) / DeleteProfileUserMappings(profileId, userIds)', 'trigger': 'Admin grants or revokes user access to a profile.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 54, 'verified': True, 'data': ['ProfileUserMappings']}",
+  "{'name': 'UpdateProfile', 'signature': 'UpdateProfile(Profile) / UpdateProfiles(IEnumerable<Profile>)', 'trigger': 'Admin edits profile settings.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 219, 'verified': True, 'data': ['Profiles']}"
 ]

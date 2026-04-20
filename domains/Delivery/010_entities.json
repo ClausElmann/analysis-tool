@@ -1,4 +1,5 @@
 [
+  "2DService",
   "DeliveryDto",
   "EboksController",
   "EboksRepository",
@@ -22,5 +23,8 @@
   "SmsMessageDto",
   "StrexDeliveryReportDto",
   "and",
-  "names"
+  "in",
+  "names",
+  "should",
+  "to"
 ]

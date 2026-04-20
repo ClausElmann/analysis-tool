@@ -1,172 +1,21 @@
 [
-  {
-    "table": "ApplicationSettings",
-    "name": "ApplicationSetting",
-    "description": "Stores one row per AppSetting enum key. Value is serialized as string. DefaultValue auto-populated by CreateDefault(). DateLastUpdatedUtc set on Save().",
-    "columns": [
-      "Id",
-      "Value",
-      "DefaultValue",
-      "DateLastUpdatedUtc"
-    ]
-  },
-  {
-    "description": "Master enum of all configuration keys. Each value has a primary numeric Id used as FK in ApplicationSettings.Id.",
-    "name": "AppSetting",
-    "notable_keys": [
-      "GatewayAPISingleToken(33)",
-      "BatchAccountName(101)",
-      "BatchAccountKey(102)",
-      "BatchAccountUrl(103)",
-      "BatchPoolName(104)",
-      "BatchAppCommandLine(105)",
-      "SendGridAPIKey(130)",
-      "SendGridHost(229)",
-      "InfobipApiKey(143)",
-      "InfobipBaseUrl(144)",
-      "InfobipSender(145)",
-      "RequestLogLevel(160)",
-      "DisableAllBroadcasts(184)",
-      "DisableAllSystemMessages(206)",
-      "QuickResponseRandomChars(210)",
-      "IsTestMode(25)",
-      "DefaultFromEmail(40)",
-      "DefaultFromName(41)",
-      "MaxSmsSendoutSize(50)",
-      "FtpServerPath(60)",
-      "DefaultSmsLanguage(80)",
-      "DefaultEmailLanguage(81)"
-    ],
-    "type": "enum"
-  },
-  {
-    "methods": [
-      "Get(AppSetting setting, string defaultSetting) → string (cached)",
-      "GetUncached(AppSetting setting) → string",
-      "GetBool(AppSetting setting) → bool",
-      "GetList(AppSetting setting) → IList<string>",
-      "Save(AppSetting setting, string value)",
-      "CreateDefault() → creates missing AppSetting rows with default values"
-    ],
-    "name": "IApplicationSettingService",
-    "cache_key": "Sms.applicationsettings",
-    "description": "Single entry point for ALL application configuration. Cache is invalidated on Save(). All credentials and feature flags accessed via this service.",
-    "type": "interface"
-  },
-  {
-    "table": "FileTypes",
-    "name": "FileType",
-    "description": "Registry of allowed file types in the system. Used by IProfileStorageService.FileTypeIdFromExtension() when validating uploads.",
-    "columns": [
-      "Id",
-      "Extension",
-      "MimeType",
-      "DescriptionTranslationKey",
-      "IconName",
-      "IsImage"
-    ]
-  },
-  {
-    "methods": [
-      "GetAll() → IReadOnlyCollection<FileType>",
-      "GetFileTypeById(id) → FileType",
-      "FileTypeIdFromExtension(extension) → int?"
-    ],
-    "name": "IFileTypeService",
-    "description": "File type registry lookups. FileTypeIdFromExtension returns null if extension is not registered = upload rejected.",
-    "type": "interface"
-  },
-  {
-    "table": "Icons",
-    "name": "Icon",
-    "description": "System icon registry. Icons used throughout UI for consistent iconography. Name matches IconName in FileTypes table.",
-    "columns": [
-      "Id",
-      "Name",
-      "CssClass"
-    ]
-  },
-  {
-    "table": "IdentifierTypes",
-    "name": "IdentifierType",
-    "description": "Defines the types of owner identifiers per country (e.g. Norwegian org number, Danish CVR, Finnish y-number). Used in address/owner lookup flows.",
-    "columns": [
-      "Id",
-      "Name",
-      "Description",
-      "CountryId"
-    ]
-  },
-  {
-    "name": "AzureBlobStorageContainers",
-    "source": "wiki:ServiceAlert/Infrastructure/Blob-storage.md",
-    "containers": [
-      {
-        "name": "$logs",
-        "purpose": "App service logging (Application Logging feature in Azure)"
-      },
-      {
-        "name": "app-servicealert-0723c9a7a4cc4a039c52458f72fe24c7",
-        "purpose": "Azure Batch executable (batch app binary)"
-      },
-      {
-        "name": "certificates",
-        "purpose": "Certificates not in Azure Key Vault (e.g. Ejerfortegnelse)"
-      },
-      {
-        "name": "importedfiles",
-        "purpose": "DataImporter files without ProfileId or CustomerId"
-      },
-      {
-        "name": "customerimports",
-        "purpose": "DataImporter files with CustomerId only (no ProfileId)"
-      },
-      {
-        "name": "profileimports",
-        "purpose": "DataImporter files with both ProfileId and CustomerId"
-      },
-      {
-        "name": "profileaddresscache",
-        "purpose": "Cached profile addresses for broadcast page (production)"
-      },
-      {
-        "name": "profileaddresscachedev",
-        "purpose": "Cached profile addresses for broadcast page (dev/staging)"
-      },
-      {
-        "name": "profilestorage",
-        "purpose": "User-uploaded files per profile (profile storage feature)"
-      },
-      {
-        "name": "errorlogs",
-        "purpose": "Error logs: Dapper DB connection failures, Dapper license issues, SendGrid email error responses"
-      }
-    ],
-    "type": "infrastructure"
-  },
-  {
-    "name": "AzureKeyVault",
-    "source": "wiki:Authentication/SSO.md",
-    "type": "infrastructure",
-    "purpose": "Stores SAML2 certificate for SSO. Certificate thumbprint referenced via WEBSITE_LOAD_CERTIFICATES and Saml2:CertificateThumbprint app settings in Azure App Service."
-  },
-  {
-    "description": "Two deployment slots: production and staging. Cert renewal and other config changes staged on staging slot, then swapped. Environment variables WEBSITE_LOAD_CERTIFICATES and Saml2:CertificateThumbprint are per-slot config settings.",
-    "name": "DeploymentSlots",
-    "rules": [
-      "Config changes applied to staging, verified, then swapped to production",
-      "Post-swap: staging slot config must be updated again to prevent next swap from reverting"
-    ],
-    "source": "wiki:Authentication/SSO.md",
-    "type": "infrastructure"
-  },
-  {
-    "description": "New field: Customers.MonthToDeleteMessages (int NOT NULL DEFAULT 60). Controls how many months before messages are deleted by cleanup_messages batch job. Configurable per customer via admin UI. Default 60 months = 5 years.",
-    "name": "MonthToDeleteMessages",
-    "source": "devops:#12085,12086,12087",
-    "type": "column on Customers",
-    "related": [
-      "SmsGroups.DateMessagesDeletedUtc (datetime null) — set by cleanup_messages after deleting"
-    ]
-  }
+  "DataImportSavedConfigurationAdminDto",
+  "DataImportSavedConfigurationAdminReadModel",
+  "DataImportSavedConfigurationColumnMappingDto",
+  "DataImportSavedConfigurationColumnMappingReadModel",
+  "and",
+  "dataImportSavedConfigurationAdminDto",
+  "dataImportSavedConfigurationColumnMappingDto",
+  "names",
+  "{'description': 'Master enum of all configuration keys. Each value has a primary numeric Id used as FK in ApplicationSettings.Id.', 'name': 'AppSetting', 'notable_keys': ['GatewayAPISingleToken(33)', 'BatchAccountName(101)', 'BatchAccountKey(102)', 'BatchAccountUrl(103)', 'BatchPoolName(104)', 'BatchAppCommandLine(105)', 'SendGridAPIKey(130)', 'SendGridHost(229)', 'InfobipApiKey(143)', 'InfobipBaseUrl(144)', 'InfobipSender(145)', 'RequestLogLevel(160)', 'DisableAllBroadcasts(184)', 'DisableAllSystemMessages(206)', 'QuickResponseRandomChars(210)', 'IsTestMode(25)', 'DefaultFromEmail(40)', 'DefaultFromName(41)', 'MaxSmsSendoutSize(50)', 'FtpServerPath(60)', 'DefaultSmsLanguage(80)', 'DefaultEmailLanguage(81)'], 'type': 'enum'}",
+  "{'description': 'New field: Customers.MonthToDeleteMessages (int NOT NULL DEFAULT 60). Controls how many months before messages are deleted by cleanup_messages batch job. Configurable per customer via admin UI. Default 60 months = 5 years.', 'name': 'MonthToDeleteMessages', 'source': 'devops:#12085,12086,12087', 'type': 'column on Customers', 'related': ['SmsGroups.DateMessagesDeletedUtc (datetime null) — set by cleanup_messages after deleting']}",
+  "{'description': 'Two deployment slots: production and staging. Cert renewal and other config changes staged on staging slot, then swapped. Environment variables WEBSITE_LOAD_CERTIFICATES and Saml2:CertificateThumbprint are per-slot config settings.', 'name': 'DeploymentSlots', 'rules': ['Config changes applied to staging, verified, then swapped to production', 'Post-swap: staging slot config must be updated again to prevent next swap from reverting'], 'source': 'wiki:Authentication/SSO.md', 'type': 'infrastructure'}",
+  "{'methods': ['Get(AppSetting setting, string defaultSetting) → string (cached)', 'GetUncached(AppSetting setting) → string', 'GetBool(AppSetting setting) → bool', 'GetList(AppSetting setting) → IList<string>', 'Save(AppSetting setting, string value)', 'CreateDefault() → creates missing AppSetting rows with default values'], 'name': 'IApplicationSettingService', 'cache_key': 'Sms.applicationsettings', 'description': 'Single entry point for ALL application configuration. Cache is invalidated on Save(). All credentials and feature flags accessed via this service.', 'type': 'interface'}",
+  "{'methods': ['GetAll() → IReadOnlyCollection<FileType>', 'GetFileTypeById(id) → FileType', 'FileTypeIdFromExtension(extension) → int?'], 'name': 'IFileTypeService', 'description': 'File type registry lookups. FileTypeIdFromExtension returns null if extension is not registered = upload rejected.', 'type': 'interface'}",
+  "{'name': 'AzureBlobStorageContainers', 'source': 'wiki:ServiceAlert/Infrastructure/Blob-storage.md', 'containers': [{'name': '$logs', 'purpose': 'App service logging (Application Logging feature in Azure)'}, {'name': 'app-servicealert-0723c9a7a4cc4a039c52458f72fe24c7', 'purpose': 'Azure Batch executable (batch app binary)'}, {'name': 'certificates', 'purpose': 'Certificates not in Azure Key Vault (e.g. Ejerfortegnelse)'}, {'name': 'importedfiles', 'purpose': 'DataImporter files without ProfileId or CustomerId'}, {'name': 'customerimports', 'purpose': 'DataImporter files with CustomerId only (no ProfileId)'}, {'name': 'profileimports', 'purpose': 'DataImporter files with both ProfileId and CustomerId'}, {'name': 'profileaddresscache', 'purpose': 'Cached profile addresses for broadcast page (production)'}, {'name': 'profileaddresscachedev', 'purpose': 'Cached profile addresses for broadcast page (dev/staging)'}, {'name': 'profilestorage', 'purpose': 'User-uploaded files per profile (profile storage feature)'}, {'name': 'errorlogs', 'purpose': 'Error logs: Dapper DB connection failures, Dapper license issues, SendGrid email error responses'}], 'type': 'infrastructure'}",
+  "{'name': 'AzureKeyVault', 'source': 'wiki:Authentication/SSO.md', 'type': 'infrastructure', 'purpose': 'Stores SAML2 certificate for SSO. Certificate thumbprint referenced via WEBSITE_LOAD_CERTIFICATES and Saml2:CertificateThumbprint app settings in Azure App Service.'}",
+  "{'table': 'ApplicationSettings', 'name': 'ApplicationSetting', 'description': 'Stores one row per AppSetting enum key. Value is serialized as string. DefaultValue auto-populated by CreateDefault(). DateLastUpdatedUtc set on Save().', 'columns': ['Id', 'Value', 'DefaultValue', 'DateLastUpdatedUtc']}",
+  "{'table': 'FileTypes', 'name': 'FileType', 'description': 'Registry of allowed file types in the system. Used by IProfileStorageService.FileTypeIdFromExtension() when validating uploads.', 'columns': ['Id', 'Extension', 'MimeType', 'DescriptionTranslationKey', 'IconName', 'IsImage']}",
+  "{'table': 'Icons', 'name': 'Icon', 'description': 'System icon registry. Icons used throughout UI for consistent iconography. Name matches IconName in FileTypes table.', 'columns': ['Id', 'Name', 'CssClass']}",
+  "{'table': 'IdentifierTypes', 'name': 'IdentifierType', 'description': 'Defines the types of owner identifiers per country (e.g. Norwegian org number, Danish CVR, Finnish y-number). Used in address/owner lookup flows.', 'columns': ['Id', 'Name', 'Description', 'CountryId']}"
 ]

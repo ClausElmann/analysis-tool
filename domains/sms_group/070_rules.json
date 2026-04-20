@@ -1,4 +1,11 @@
 [
+  "Approval workflow: ApprovalRequest is keyed per SmsGroupId (GetApprovalRequestBySmsGroupId). Only one request per group.",
+  "Email2SmsWhitelist: controls which email addresses are allowed to trigger SMS via email gateway — per-customer whitelist.",
+  "GetUnApprovedRequests(profileId) returns all; GetUnApprovedRequests(profileId, userId) filters by assignee.",
+  "RunSmsGroupStatisticsAsync whatIf=true: dry run, no persistence — used for admin preview.",
+  "ScheduleBroadcastsFromFileAsync: strategy is a named string, not an enum — resolved by DI/strategy pattern.",
+  "SmsGroupDeletedNotification is MediatR INotification — handled async by SmsGroupDeletedHandler.",
+  "SmsGroupSchedule supports exceptions: individual date overrides on a recurring schedule.",
   "if truly empty (use empty list, not null).",
   "must be plain English or well-known identifiers."
 ]

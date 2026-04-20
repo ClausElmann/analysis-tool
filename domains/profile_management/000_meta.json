@@ -1,16 +1,9 @@
 {
-  "gaps_count": 0,
-  "iteration": 30,
+  "completeness_score": 1.0,
   "domain": "profile_management",
-  "completeness_score": 0.93,
-  "saved_utc": "2026-04-20T00:00:00+02:00",
-  "status": "gate_ready",
-  "new_information_score": 0.82,
-  "layer0_sources": [
-    "ServiceAlert.Core/Domain/Profiles/Profile.cs",
-    "ServiceAlert.Core/Domain/Profiles/ProfileType.cs",
-    "ServiceAlert.Core/Domain/Profiles/Mappings/ProfileRoleMapping.cs",
-    "ServiceAlert.Services/Profiles/ProfileService.cs",
-    "ServiceAlert.Api/Controllers/ProfileController.cs"
-  ]
+  "gaps_count": 1,
+  "iteration": 39,
+  "new_information_score": 0.0,
+  "saved_utc": "2026-04-20T18:14:47.678507+00:00",
+  "status": "in_progress"
 }

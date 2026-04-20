@@ -1,5 +1,18 @@
 [
+  "API URL pattern (CVR): https://api.e-boks.com/int/rest/srv.svc/3/dispatchsystem/{sysId}/dispatches/{paddedSysId}{guid}",
+  "Amplify chunk sizes: normal=2000, firstRetry=1000, secondRetry=200.",
+  "Amplify retry order: secondRetry (762→772) before firstRetry (761→771) before normal (750→751). RoundRobin with priority.",
+  "Amplify strategy selection: EboksStrategies enum — NoEboks=0, EboksAll=1, SmsFirst=2, EboksFirst=3.",
+  "CVR recipients use Type=V (company). Amplify recipients use Type=KP (no first name) or KFP (with first name from owner name stripping ' (Ejer)' suffix and taking everything before last space).",
+  "Document encoding MUST be ISO-8859-1 (Latin1). HTML is base64-encoded before transmission.",
+  "EboksMessage GUID is item.Data.Guid if present, else Guid.NewGuid(). GUID is stable across retry — used as idempotency key in URL.",
+  "In test mode: no HTTP call, no statistic creation, NextStatus from shuffled result array.",
+  "MarkSmsGroupsSentAsync is called after batch completes — only for workloads where NextStatus is terminal (802/803 for CVR, 752/753 for Amplify).",
+  "Parallel dispatch: MaxDegreeOfParallelism=15 (both CVR and Amplify processors).",
+  "Status updates are written via IWorkloadStatusWriter after batch — not per-message.",
+  "XML namespace MUST be urn:eboks:en:3.0.0. Declaration: <?xml version=\"1.0\" encoding=\"UTF-8\"?>.",
   "if truly empty (use empty list, not null).",
   "must",
-  "must be plain English or well-known identifiers."
+  "must be plain English or well-known identifiers.",
+  "should"
 ]

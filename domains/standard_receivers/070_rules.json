@@ -1,4 +1,12 @@
 [
+  "AddStandardReceiver* / Remove* methods return string (error message or null) not bool.",
+  "AvailableToAllProfilesOfCustomer: if true on creation, receiver is added to ALL profiles of customer at creation time.",
+  "DeleteGroup deleteMembers=false by default — must explicitly pass true to remove orphaned members.",
+  "InboundMessageEventListener uses PhoneNumberTools.PhoneGetParts with '+' prefix on receiver number and DanishCountryId as default.",
+  "KeywordRegistrator is injected into StandardReceiverService — keyword registration triggered on receiver create/update.",
+  "OverruleBlocked=true: inbound distribution messages bypass blocked status on receiver.",
+  "SCIM group lookup is by name + customerId (not by external ID alone).",
+  "TestMode=false always for distribution sends — live sends only.",
   "if truly empty (use empty list, not null).",
   "must be plain English or well-known identifiers."
 ]

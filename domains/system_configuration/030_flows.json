@@ -1,52 +1,5 @@
 [
-  {
-    "name": "LazySettingResolutionFlow",
-    "verified": true,
-    "file": "ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs",
-    "method": "Get",
-    "line": "37-47",
-    "fallback_method": "CreateDefault",
-    "fallback_line": "49-57",
-    "steps": [
-      "1. Caller requests setting via Get(settingType, defaultSetting)",
-      "2. AllSettings() loads all settings from cache (or DB on cache miss)",
-      "3. If setting missing from cache AND defaultSetting != null: CreateDefault() called (private, line 49-57)",
-      "4. Save() persists new default → cache invalidated (RemoveByPattern on applicationSettingsKey)",
-      "5. Setting returned (new default or existing)"
-    ]
-  },
-  {
-    "name": "AdminSettingEditFlow",
-    "verified": true,
-    "file": "ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs",
-    "method": "GetUncached",
-    "line": "25-35",
-    "save_file": "ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs",
-    "save_method": "Save",
-    "save_line": "57-79",
-    "steps": [
-      "1. Admin navigates to Settings UI",
-      "2. GetUncached() called for each AppSetting to show live values",
-      "3. Admin edits value and POSTs",
-      "4. Save(setting, newValue) called → DB upsert + cache invalidated",
-      "5. All subsequent Get() calls see new value"
-    ]
-  },
-  {
-    "name": "FileUploadValidationFlow",
-    "verified": true,
-    "file": "ServiceAlert.Services/ProfileStorage/ProfileStorageService.cs",
-    "method": "FileTypeIdFromExtension",
-    "line": "64-95",
-    "rejection_file": "ServiceAlert.Api/Controllers/ProfileController.cs",
-    "rejection_method": "UploadFile",
-    "rejection_line": "221-226",
-    "steps": [
-      "1. File upload received (profile storage or import)",
-      "2. Extract file extension from filename",
-      "3. FileTypeIdFromExtension(ext) → must return non-zero (returns 0 for unknown)",
-      "4. If 0: reject with BadRequest — file type not supported",
-      "5. If found: FileTypeId stored with file metadata in ProfileStorageFiles"
-    ]
-  }
+  "{'name': 'AdminSettingEditFlow', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'GetUncached', 'line': '25-35', 'save_file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'save_method': 'Save', 'save_line': '57-79', 'steps': ['1. Admin navigates to Settings UI', '2. GetUncached() called for each AppSetting to show live values', '3. Admin edits value and POSTs', '4. Save(setting, newValue) called → DB upsert + cache invalidated', '5. All subsequent Get() calls see new value']}",
+  "{'name': 'FileUploadValidationFlow', 'verified': True, 'file': 'ServiceAlert.Services/ProfileStorage/ProfileStorageService.cs', 'method': 'FileTypeIdFromExtension', 'line': '64-95', 'rejection_file': 'ServiceAlert.Api/Controllers/ProfileController.cs', 'rejection_method': 'UploadFile', 'rejection_line': '221-226', 'steps': ['1. File upload received (profile storage or import)', '2. Extract file extension from filename', '3. FileTypeIdFromExtension(ext) → must return non-zero (returns 0 for unknown)', '4. If 0: reject with BadRequest — file type not supported', '5. If found: FileTypeId stored with file metadata in ProfileStorageFiles']}",
+  "{'name': 'LazySettingResolutionFlow', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'Get', 'line': '37-47', 'fallback_method': 'CreateDefault', 'fallback_line': '49-57', 'steps': ['1. Caller requests setting via Get(settingType, defaultSetting)', '2. AllSettings() loads all settings from cache (or DB on cache miss)', '3. If setting missing from cache AND defaultSetting != null: CreateDefault() called (private, line 49-57)', '4. Save() persists new default → cache invalidated (RemoveByPattern on applicationSettingsKey)', '5. Setting returned (new default or existing)']}"
 ]

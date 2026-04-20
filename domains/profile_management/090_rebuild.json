@@ -1,29 +1,64 @@
 {
   "_meta": {
-    "generated_at": "2026-04-02T01:30:09.941147Z",
+    "generated_at": "2026-04-20T18:14:47.680506Z",
     "generated_by": "HeuristicAIProvider",
     "schema_version": "2.0",
     "target_stack": "Blazor Server"
   },
-  "api_contracts": [],
-  "authorization_hints": [],
+  "api_contracts": [
+    {
+      "method": "{'description': 'CleanupDeactivatedProfiles: triggered by job_management batch scheduler (ServiceAlertBatchAction.cleanup_deactivated_profiles).', 'name': 'IJobService', 'type': 'InternalDependency'}",
+      "source": "integration"
+    },
+    {
+      "method": "{'description': 'ProfileStorageFiles: metadata in DB, actual file binary in Azure Blob Storage container. AddToAzureBlobStorrage() returns StorageId (blob path).', 'name': 'AzureBlobStorage', 'direction': 'outbound', 'type': 'FileStorage'}",
+      "source": "integration"
+    },
+    {
+      "method": "GET /{'name': 'canuseraccessprofile', 'signature': 'canuseraccessprofile(profileid, userid) → bool', 'trigger': 'profile selection, any api call that requires profile-scoped access.', 'file': 'servicealert.services/profiles/profileservice.cs', 'line': 49, 'verified': true, 'data': ['profileusermappings']}",
+      "source": "inferred"
+    },
+    {
+      "method": "GET /{'name': 'insertprofile', 'signature': 'insertprofile(profile)', 'trigger': 'admin creates new profile via ui or api.', 'file': 'servicealert.services/profiles/profileservice.cs', 'line': 207, 'verified': true, 'data': ['profiles']}",
+      "source": "inferred"
+    },
+    {
+      "method": "DELETE /{'name': 'manageprofilestorage', 'signature': 'uploadfile(files, profileid) / downloadfile(profileid, fileid) / deleteuploadedfile(profileid, fileid)', 'trigger': 'user uploads or downloads a file scoped to a profile.', 'file': 'servicealert.api/controllers/profilecontroller.cs', 'line': 200, 'verified': true, 'data': ['profilestoragefiles', 'azure blob storage (profilestorage container)']}",
+      "source": "inferred"
+    }
+  ],
+  "authorization_hints": [
+    "{'name': 'AddRemoveProfileRoles', 'signature': 'AddProfileRoleMappings(profileId, roleIds) / DeleteProfileRoleMappings(profileId, roleIds)', 'trigger': 'Admin configures profile capabilities (e.g. CanSendBySms, CanSendByEboks).', 'file': 'ServiceAlert.Services/Permissions/PermissionService.cs', 'line': 256, 'verified': True, 'data': ['ProfileRoleMappings', 'ProfileRoles']}"
+  ],
   "blazor_pages": [
     {
       "auth_required": false,
-      "component": "CustomerProfileUsageOverviewDto",
-      "route": "/customerprofileusageoverviewdto",
+      "component": "{'name': 'CanUserAccessProfile', 'signature': 'CanUserAccessProfile(profileId, userId) → bool', 'trigger': 'Profile selection, any API call that requires profile-scoped access.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 49, 'verified': True, 'data': ['ProfileUserMappings']}",
+      "route": "/{'name':'canuseraccessprofile','signature':'canuseraccessprofile(profileid,userid)→bool','trigger':'profileselection,anyapicallthatrequiresprofile-scopedaccess.','file':'servicealert.services/profiles/profileservice.cs','line':49,'verified':true,'data':['profileusermappings']}",
       "source": "inferred"
     },
     {
       "auth_required": false,
-      "component": "ProfileController",
-      "route": "/profile",
+      "component": "{'name': 'GetProfileById', 'signature': 'GetProfileById(profileId, userId?) → Profile', 'trigger': 'Per-request context resolution, profile detail view.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 162, 'verified': True, 'data': ['Profiles', 'Customers']}",
+      "route": "/{'name':'getprofilebyid','signature':'getprofilebyid(profileid,userid?)→profile','trigger':'per-requestcontextresolution,profiledetailview.','file':'servicealert.services/profiles/profileservice.cs','line':162,'verified':true,'data':['profiles','customers']}",
       "source": "inferred"
     },
     {
       "auth_required": false,
-      "component": "customerProfileUsageOverviewDto",
-      "route": "/customerprofileusageoverviewdto",
+      "component": "{'name': 'GetProfilesForUser', 'signature': 'GetProfilesbyUserId(userId, customerId, filter, includeSystemProfile, includeCustomer) → IReadOnlyCollection<Profile>', 'trigger': 'User selects profile context. Profile selector UI.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 96, 'verified': True, 'data': ['Profiles', 'ProfileUserMappings']}",
+      "route": "/{'name':'getprofilesforuser','signature':'getprofilesbyuserid(userid,customerid,filter,includesystemprofile,includecustomer)→ireadonlycollection<profile>','trigger':'userselectsprofilecontext.profileselectorui.','file':'servicealert.services/profiles/profileservice.cs','line':96,'verified':true,'data':['profiles','profileusermappings']}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'name': 'InsertProfile', 'signature': 'InsertProfile(Profile)', 'trigger': 'Admin creates new profile via UI or API.', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'line': 207, 'verified': True, 'data': ['Profiles']}",
+      "route": "/{'name':'insertprofile','signature':'insertprofile(profile)','trigger':'admincreatesnewprofileviauiorapi.','file':'servicealert.services/profiles/profileservice.cs','line':207,'verified':true,'data':['profiles']}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'name': 'ManageProfileStorage', 'signature': 'UploadFile(files, profileId) / DownloadFile(profileId, fileId) / DeleteUploadedFile(profileId, fileId)', 'trigger': 'User uploads or downloads a file scoped to a profile.', 'file': 'ServiceAlert.Api/Controllers/ProfileController.cs', 'line': 200, 'verified': True, 'data': ['ProfileStorageFiles', 'Azure Blob Storage (profilestorage container)']}",
+      "route": "/{'name':'manageprofilestorage','signature':'uploadfile(files,profileid)/downloadfile(profileid,fileid)/deleteuploadedfile(profileid,fileid)','trigger':'useruploadsordownloadsafilescopedtoaprofile.','file':'servicealert.api/s/profile.cs','line':200,'verified':true,'data':['profilestoragefiles','azureblobstorage(profilestoragecontainer)']}",
       "source": "inferred"
     }
   ],
@@ -54,135 +89,49 @@
       "guard.ts",
       "if truly empty (use empty list, not null).",
       "must",
-      "must be plain English or well-known identifiers."
+      "must be plain English or well-known identifiers.",
+      "should"
     ],
     "type": "stateful"
   },
-  "domain_flows": [],
+  "domain_flows": [
+    "{'name': 'ProfileContextSwitchFlow', 'file': 'ServiceAlert.Api/Controllers/ProfileController.cs', 'method': 'SetActiveProfile', 'line': 94, 'verified': True, 'steps': ['1. User selects profile in UI → calls POST /api/profile/setactiveprofile?profileId=X', '2. ProfileController.SetActiveProfile(): IProfileService.CanUserAccessProfile(profileId, userId) checked', '3. If false → HTTP 403 ForbidWithMessage', '4. If true → Profile loaded via GetProfileById(profileId)', '5. _workContext.CurrentProfile = profile (sets User.CurrentProfileId in DB)', '6. Next RefreshAccessToken call propagates new ProfileId into JWT', '7. All subsequent requests use new ProfileId']}",
+    "{'name': 'ProfileCreationFlow', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'method': 'InsertProfile', 'line': 207, 'verified': True, 'steps': ['1. Admin POSTs profile creation form', '2. Validate required fields: Name, ProfileTypeId, CustomerId, CountryId', '3. InsertProfile(profile) → INSERT into Profiles', '4. If initial roles provided: AddProfileRoleMappings(profileId, roleIds)', '5. If initial users provided: AddProfileAccessToUsers(profileId, userIds)', '6. Optionally assign to ProfileRoleGroup: AddRoleGroupToProfile(groupId, profileId)']}",
+    "{'name': 'ProfileRoleCapabilityCheckFlow', 'file': 'ServiceAlert.Services/Permissions/PermissionService.cs', 'method': 'DoesProfileHaveRole', 'line': 206, 'verified': True, 'steps': ['1. Feature service called (e.g. send SMS, use eBoks, access maps)', '2. DoesProfileHaveRole(currentUser.ProfileId, ProfileRoleNames.CanSendByEboks) called', '3. IPermissionService checks ProfileRoleMappings JOIN ProfileRoles (cached)', '4. If false → throw NotAllowedException or return HTTP 403', '5. If true → proceed with feature operation'], 'notes': 'DoesProfileHaveRole is the PRIMARY feature gate across the entire system.'}",
+    "{'name': 'ProfileSoftDeleteFlow', 'file': 'ServiceAlert.Services/Profiles/ProfileService.cs', 'method': 'DeleteProfile', 'line': 147, 'verified': True, 'steps': ['1. Admin deletes profile → DeleteProfile(profileId) → _profileRepository.DeleteProfile(profileId)', '2. Sets Profiles.Deleted=true, DateDeletedUtc=NOW() in repository', '3. Profile hidden from user selectors immediately (Deleted flag)']}"
+  ],
   "ef_core_entities": [
-    {
-      "entity": "CreateOrUpdateProfileFtpSettingCommand",
-      "table": "createorupdateprofileftpsettingcommands"
-    },
-    {
-      "entity": "Email2SmsWhitelistRepository",
-      "table": "email2smswhitelistrepositorys"
-    },
-    {
-      "entity": "IEmail2SmsWhitelistRepository",
-      "table": "iemail2smswhitelistrepositorys"
-    },
-    {
-      "entity": "IProfileRepository",
-      "table": "iprofilerepositorys"
-    },
-    {
-      "entity": "IProfileRoleRepository",
-      "table": "iprofilerolerepositorys"
-    },
-    {
-      "entity": "IProfileStorageRepository",
-      "table": "iprofilestoragerepositorys"
-    },
     {
       "entity": "ProfileCommand",
       "table": "profilecommands"
-    },
-    {
-      "entity": "ProfileController",
-      "table": "profilecontrollers"
-    },
-    {
-      "entity": "ProfilePositiveListCopyLevelFiltersCommand",
-      "table": "profilepositivelistcopylevelfilterscommands"
-    },
-    {
-      "entity": "ProfilePositiveListLevelFilterQuery",
-      "table": "profilepositivelistlevelfilterquerys"
-    },
-    {
-      "entity": "ProfilePositiveListSelectLevelFiltersCommand",
-      "table": "profilepositivelistselectlevelfilterscommands"
-    },
-    {
-      "entity": "ProfilePositiveListSelectedLevelFilterQuery",
-      "table": "profilepositivelistselectedlevelfilterquerys"
     },
     {
       "entity": "ProfileRepository",
       "table": "profilerepositorys"
     },
     {
-      "entity": "ProfileRoleRepository",
-      "table": "profilerolerepositorys"
-    },
-    {
-      "entity": "ProfileStorageRepository",
-      "table": "profilestoragerepositorys"
-    },
-    {
-      "entity": "StandardReceiverGroupProfileCommand",
-      "table": "standardreceivergroupprofilecommands"
-    },
-    {
-      "entity": "StandardReceiverGroupProfileMappingCommand",
-      "table": "standardreceivergroupprofilemappingcommands"
-    },
-    {
-      "entity": "StandardReceiverProfileCommand",
-      "table": "standardreceiverprofilecommands"
-    },
-    {
-      "entity": "UpdateProfileAccountCommand",
-      "table": "updateprofileaccountcommands"
-    },
-    {
-      "entity": "UpdateProfileToGroupMappingsCommand",
-      "table": "updateprofiletogroupmappingscommands"
-    },
-    {
-      "entity": "UpdateStdReceiverMappingsForProfileCommand",
-      "table": "updatestdreceivermappingsforprofilecommands"
-    },
-    {
       "entity": "and",
       "table": "ands"
     },
     {
-      "entity": "createOrUpdateProfileFtpSettingCommand",
-      "table": "createorupdateprofileftpsettingcommands"
+      "entity": "in",
+      "table": "ins"
     },
     {
       "entity": "names",
       "table": "namess"
-    },
-    {
-      "entity": "standardReceiverGroupProfileMappingCommand",
-      "table": "standardreceivergroupprofilemappingcommands"
-    },
-    {
-      "entity": "updateProfileAccountCommand",
-      "table": "updateprofileaccountcommands"
-    },
-    {
-      "entity": "updateProfileToGroupMappingCommand",
-      "table": "updateprofiletogroupmappingcommands"
-    },
-    {
-      "entity": "updateProfileToGroupMappingsCommand",
-      "table": "updateprofiletogroupmappingscommands"
-    },
-    {
-      "entity": "updateStdReceiverMappingsForProfileCommand",
-      "table": "updatestdreceivermappingsforprofilecommands"
     }
   ],
-  "known_integrations": [],
+  "known_integrations": [
+    "{'description': 'CleanupDeactivatedProfiles: triggered by job_management batch scheduler (ServiceAlertBatchAction.cleanup_deactivated_profiles).', 'name': 'IJobService', 'type': 'InternalDependency'}",
+    "{'description': 'ProfileStorageFiles: metadata in DB, actual file binary in Azure Blob Storage container. AddToAzureBlobStorrage() returns StorageId (blob path).', 'name': 'AzureBlobStorage', 'direction': 'outbound', 'type': 'FileStorage'}"
+  ],
   "validation_rules": [
     "guard",
     "guard.ts",
     "if truly empty (use empty list, not null).",
     "must",
-    "must be plain English or well-known identifiers."
+    "must be plain English or well-known identifiers.",
+    "should"
   ]
 }

@@ -1,92 +1,12 @@
 [
-  {
-    "description": "Creates or updates a JobTask row. Resolves Job by name (ServiceAlertBatchAction). Appends JobTaskStatus row. Called by Azure Batch app and background services to report state.",
-    "name": "LogJobTaskStatus",
-    "signature": "LogJobTaskStatusAsync(jobName, statusCode, azureJobId, azureTaskId, parameters)",
-    "trigger": "Batch job transitions: Queued, Running, Finished",
-    "data": [
-      "Jobs",
-      "JobTasks",
-      "JobTaskStatuses"
-    ]
-  },
-  {
-    "description": "Returns recent JobTask rows with status history for admin monitoring UI.",
-    "name": "GetRecentAndOngoingTasks",
-    "signature": "GetRecentAndOngoingTasksAsync() → IReadOnlyCollection<JobTaskDto>",
-    "trigger": "Admin polling or SSE stream refresh.",
-    "data": [
-      "Jobs",
-      "JobTasks",
-      "JobTaskStatuses"
-    ]
-  },
-  {
-    "description": "When job task status changes, fires JobTaskStatusChangedEvent → SSE push to connected admin clients.",
-    "name": "ActiveJobsClientEventPush",
-    "trigger": "JobTaskStatusChangedEvent raised by LogJobTaskStatusAsync.",
-    "data": [
-      "JobTasks",
-      "ClientEvents"
-    ]
-  },
-  {
-    "description": "At app startup, all recurring jobs registered in Quartz.NET with cron expressions. Each IJob invokes Azure Batch SDK or in-process background service.",
-    "name": "QuartzSchedulerRegistration",
-    "trigger": "Application startup.",
-    "data": [
-      "Quartz.NET"
-    ]
-  },
-  {
-    "description": "In-process background service on each web server. Dequeues SmsLog items and sends to SMS gateway (GatewayAPI). Per-server queue — web server 1 CANNOT enqueue to web server 2's queue. Only time-sensitive messages are queued here (not bulk broadcast jobs which go via Azure Batch).",
-    "name": "SmsBackgroundService",
-    "rules": [
-      "Each web server has its own independent queue",
-      "Only enqueue time-sensitive messages (pin codes, single sends)",
-      "Bulk/scheduled broadcasts go via Azure Batch, not this service"
-    ],
-    "source": "wiki:DEVELOPMENT/Background-services.md",
-    "type": "IHostedService"
-  },
-  {
-    "description": "In-process background service. Dequeues voice messages and sends to voice gateway (Infobip). Same per-server queue isolation as SmsBackgroundService.",
-    "name": "VoiceBackgroundService",
-    "source": "wiki:DEVELOPMENT/Background-services.md",
-    "type": "IHostedService"
-  },
-  {
-    "description": "In-process background service. Converts SmsLog items to EmailMessage records, then queues EmailMessages for SendGridBackgroundService.",
-    "name": "EmailBackgroundService",
-    "source": "wiki:DEVELOPMENT/Background-services.md",
-    "type": "IHostedService"
-  },
-  {
-    "description": "Sends queued EmailMessages to SendGrid gateway. Split from EmailBackgroundService so non-SmsLog emails (e.g. password reset, welcome emails) can also be queued directly as EmailMessages without needing a SmsLogId.",
-    "name": "SendGridBackgroundService",
-    "rules": [
-      "EmailMessages can be queued without SmsLogId to support system emails (password reset, account notifications)"
-    ],
-    "source": "wiki:DEVELOPMENT/Background-services.md",
-    "type": "IHostedService"
-  },
-  {
-    "integrations": [
-      "Lib.AspNetCore.ServerSentEvents NuGet package",
-      "IEventSourceSubscriber — implemented per module to subscribe clients to relevant groups"
-    ],
-    "source": "wiki:ServiceAlert/Domain-Description/Server-Sent-Event-Stream.md",
-    "name": "ClientEventBackgroundService",
-    "type": "IHostedService",
-    "entities": [
-      "ClientEvents(Id, Key, DateCreatedUtc, Payload)"
-    ],
-    "description": "Polls ClientEvents table for new events (by tracking last-seen Id per server). Sends each event to the matching subscription group via Lib.AspNetCore.ServerSentEvents. Used to push real-time updates to browser (e.g. lookup status, unread conversation count, CitizenDialogue search results)."
-  },
-  {
-    "description": "DESIGN RATIONALE: Pin code SMS and other time-sensitive messages need near-instant delivery. Azure Batch startup latency made it unsuitable (deduplication check caused delay: 100 pin requests → 1 delayed batch task). Background services eliminate that latency by sending directly from the web server.",
-    "name": "WhyBackgroundServiceForMessages",
-    "source": "wiki:DEVELOPMENT/Background-services.md",
-    "key_insight": "Background services exist specifically because Azure Batch was too slow for pin codes and time-sensitive single sends."
-  }
+  "{'description': \"In-process background service on each web server. Dequeues SmsLog items and sends to SMS gateway (GatewayAPI). Per-server queue — web server 1 CANNOT enqueue to web server 2's queue. Only time-sensitive messages are queued here (not bulk broadcast jobs which go via Azure Batch).\", 'name': 'SmsBackgroundService', 'rules': ['Each web server has its own independent queue', 'Only enqueue time-sensitive messages (pin codes, single sends)', 'Bulk/scheduled broadcasts go via Azure Batch, not this service'], 'source': 'wiki:DEVELOPMENT/Background-services.md', 'type': 'IHostedService'}",
+  "{'description': 'At app startup, all recurring jobs registered in Quartz.NET with cron expressions. Each IJob invokes Azure Batch SDK or in-process background service.', 'name': 'QuartzSchedulerRegistration', 'trigger': 'Application startup.', 'data': ['Quartz.NET']}",
+  "{'description': 'Creates or updates a JobTask row. Resolves Job by name (ServiceAlertBatchAction). Appends JobTaskStatus row. Called by Azure Batch app and background services to report state.', 'name': 'LogJobTaskStatus', 'signature': 'LogJobTaskStatusAsync(jobName, statusCode, azureJobId, azureTaskId, parameters)', 'trigger': 'Batch job transitions: Queued, Running, Finished', 'data': ['Jobs', 'JobTasks', 'JobTaskStatuses']}",
+  "{'description': 'DESIGN RATIONALE: Pin code SMS and other time-sensitive messages need near-instant delivery. Azure Batch startup latency made it unsuitable (deduplication check caused delay: 100 pin requests → 1 delayed batch task). Background services eliminate that latency by sending directly from the web server.', 'name': 'WhyBackgroundServiceForMessages', 'source': 'wiki:DEVELOPMENT/Background-services.md', 'key_insight': 'Background services exist specifically because Azure Batch was too slow for pin codes and time-sensitive single sends.'}",
+  "{'description': 'In-process background service. Converts SmsLog items to EmailMessage records, then queues EmailMessages for SendGridBackgroundService.', 'name': 'EmailBackgroundService', 'source': 'wiki:DEVELOPMENT/Background-services.md', 'type': 'IHostedService'}",
+  "{'description': 'In-process background service. Dequeues voice messages and sends to voice gateway (Infobip). Same per-server queue isolation as SmsBackgroundService.', 'name': 'VoiceBackgroundService', 'source': 'wiki:DEVELOPMENT/Background-services.md', 'type': 'IHostedService'}",
+  "{'description': 'Returns recent JobTask rows with status history for admin monitoring UI.', 'name': 'GetRecentAndOngoingTasks', 'signature': 'GetRecentAndOngoingTasksAsync() → IReadOnlyCollection<JobTaskDto>', 'trigger': 'Admin polling or SSE stream refresh.', 'data': ['Jobs', 'JobTasks', 'JobTaskStatuses']}",
+  "{'description': 'Sends queued EmailMessages to SendGrid gateway. Split from EmailBackgroundService so non-SmsLog emails (e.g. password reset, welcome emails) can also be queued directly as EmailMessages without needing a SmsLogId.', 'name': 'SendGridBackgroundService', 'rules': ['EmailMessages can be queued without SmsLogId to support system emails (password reset, account notifications)'], 'source': 'wiki:DEVELOPMENT/Background-services.md', 'type': 'IHostedService'}",
+  "{'description': 'When job task status changes, fires JobTaskStatusChangedEvent → SSE push to connected admin clients.', 'name': 'ActiveJobsClientEventPush', 'trigger': 'JobTaskStatusChangedEvent raised by LogJobTaskStatusAsync.', 'data': ['JobTasks', 'ClientEvents']}",
+  "{'integrations': ['Lib.AspNetCore.ServerSentEvents NuGet package', 'IEventSourceSubscriber — implemented per module to subscribe clients to relevant groups'], 'source': 'wiki:ServiceAlert/Domain-Description/Server-Sent-Event-Stream.md', 'name': 'ClientEventBackgroundService', 'type': 'IHostedService', 'entities': ['ClientEvents(Id, Key, DateCreatedUtc, Payload)'], 'description': 'Polls ClientEvents table for new events (by tracking last-seen Id per server). Sends each event to the matching subscription group via Lib.AspNetCore.ServerSentEvents. Used to push real-time updates to browser (e.g. lookup status, unread conversation count, CitizenDialogue search results).'}"
 ]

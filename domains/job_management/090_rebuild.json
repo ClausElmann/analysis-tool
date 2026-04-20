@@ -1,68 +1,121 @@
 {
   "_meta": {
-    "generated_at": "2026-04-02T01:22:46.364805Z",
+    "generated_at": "2026-04-20T18:18:26.214587Z",
     "generated_by": "HeuristicAIProvider",
     "schema_version": "2.0",
     "target_stack": "Blazor Server"
   },
-  "api_contracts": [],
+  "api_contracts": [
+    {
+      "method": "GET /{'description': \"in-process background service on each web server. dequeues smslog items and sends to sms gateway (gatewayapi). per-server queue — web server 1 cannot enqueue to web server 2's queue. only time-sensitive messages are queued here (not bulk broadcast jobs which go via azure batch).\", 'name': 'smsbackgroundservice', 'rules': ['each web server has its own independent queue', 'only enqueue time-sensitive messages (pin codes, single sends)', 'bulk/scheduled broadcasts go via azure batch, not this service'], 'source': 'wiki:development/background-services.md', 'type': 'ihostedservice'}",
+      "source": "inferred"
+    }
+  ],
   "authorization_hints": [],
   "blazor_pages": [
     {
       "auth_required": false,
-      "component": "JobsController",
-      "route": "/jobs",
+      "component": "{'description': 'DESIGN RATIONALE: Pin code SMS and other time-sensitive messages need near-instant delivery. Azure Batch startup latency made it unsuitable (deduplication check caused delay: 100 pin requests → 1 delayed batch task). Background services eliminate that latency by sending directly from the web server.', 'name': 'WhyBackgroundServiceForMessages', 'source': 'wiki:DEVELOPMENT/Background-services.md', 'key_insight': 'Background services exist specifically because Azure Batch was too slow for pin codes and time-sensitive single sends.'}",
+      "route": "/{'description':'designrationale:pincodesmsandothertime-sensitivemessagesneednear-instantdelivery.azurebatchstartuplatencymadeitunsuitable(deduplicationcheckcauseddelay:100pinrequests→1delayedbatchtask).backgroundserviceseliminatethatlatencybysendingdirectlyfromthewebserver.','name':'whybackgroundserviceformessages','source':'wiki:development/background-services.md','key_insight':'backgroundservicesexistspecificallybecauseazurebatchwastooslowforpincodesandtime-sensitivesinglesends.'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'description': 'Returns recent JobTask rows with status history for admin monitoring UI.', 'name': 'GetRecentAndOngoingTasks', 'signature': 'GetRecentAndOngoingTasksAsync() → IReadOnlyCollection<JobTaskDto>', 'trigger': 'Admin polling or SSE stream refresh.', 'data': ['Jobs', 'JobTasks', 'JobTaskStatuses']}",
+      "route": "/{'description':'returnsrecentjobtaskrowswithstatushistoryforadminmonitoringui.','name':'getrecentandongoingtasks','signature':'getrecentandongoingtasksasync()→ireadonlycollection<jobtaskdto>','trigger':'adminpollingorssestreamrefresh.','data':['jobs','jobtasks','jobtaskstatuses']}",
       "source": "inferred"
     }
   ],
   "blazor_state_model": {
     "events": [
-      "JobTaskStatusChangedEvent"
+      "ClientEventServiceConnectEvent"
     ],
     "rules": [
       "if truly empty (use empty list, not null).",
       "must",
-      "must be plain English or well-known identifiers."
+      "must be plain English or well-known identifiers.",
+      "should",
+      "{'detail': 'Batch jobs needing ICurrentUser context must use JobCurrentUser (reads ProfileId/CustomerId from job parameters), not JWT.', 'rule': 'JobCurrentUser required for profile-scoped batch operations'}",
+      "{'detail': 'BatchAccountName(101), BatchAccountKey(102), BatchAccountUrl(103), BatchPoolName(104) — never hardcoded.', 'rule': 'Azure Batch credentials always from ApplicationSettings'}",
+      "{'detail': 'Each batch run creates a new JobTask. History preserved. Job = named registry, JobTask = execution log.', 'rule': 'JobTask is append-only — one row per execution'}",
+      "{'detail': 'Most cleanup jobs select WHERE DateDeletedUtc < NOW()-threshold. Thresholds typically 30-120 days, often hardcoded in job class.', 'rule': 'Cleanup jobs use age-based thresholds'}",
+      "{'detail': 'ServiceAlertBatchAction.ToString() stored as Jobs.Name. Service resolves Job by name string match.', 'rule': 'Job name is the enum string value'}"
     ],
     "type": "stateful"
   },
   "domain_flows": [
-    "ActiveJobsHandler"
+    "{'steps': ['1. IHostedService.ExecuteAsync() runs on timer or continuously', '2. Service performs work (email dispatch, SMS gateway, cleanup, statistics)', '3. LogJobTaskStatusAsync called for named operations', '4. No Azure Batch — runs inside API process'], 'name': 'InProcessBackgroundServiceExecution', 'used_for': ['send_emails_sendgrid', 'gateway_api_bulk', 'cleanup_emailmessages', 'cleanup_requestlogs', 'cleanup_deactivated_profiles', 'statistics_write_emailMessages', 'watchdog_version']}",
+    "{'steps': ['1. Quartz fires cron trigger', '2. IJob.Execute() called', '3. LogJobTaskStatusAsync(jobName, Queued) → inserts JobTask', '4. Azure Batch SDK submits job+task to BatchPool', '5. Batch app (separate process) executes ServiceAlertBatchAction', '6. Batch app calls back: LogJobTaskStatusAsync(jobName, Running, azureJobId, azureTaskId)', '7. Batch app completes: LogJobTaskStatusAsync(jobName, Finished)', '8. JobTaskStatusChangedEvent → SSE push to admin UI'], 'name': 'AzureBatchJobExecution', 'used_for': ['import_dk_addresses', 'import_no_addresses', 'import_se_addresses', 'import_dk_owner_addresses', 'import_robinsons', 'prelookup', 'lookup', 'poslist_ftp_import', 'subscription_notifications', 'archive_messages']}",
+    "{'steps': ['1. Quartz fires daily or weekly', '2. SELECT rows WHERE DateDeletedUtc < NOW()-threshold OR DateCreatedUtc < NOW()-retention', '3. DELETE in batches', '4. Log count to JobTaskStatuses'], 'name': 'CleanupJobPattern', 'used_for': ['cleanup_emailmessages', 'cleanup_requestlogs', 'cleanup_smslogsstatuses', 'cleanup_enrollees', 'cleanup_iframerequests', 'cleanup_dataimportrows', 'cleanup_deactivated_profiles', 'cleanup_deactivated_users', 'cleanup_deactivated_customers']}"
   ],
   "ef_core_entities": [
-    {
-      "entity": "ActiveJobsHandler",
-      "table": "activejobshandlers"
-    },
-    {
-      "entity": "IJobRepository",
-      "table": "ijobrepositorys"
-    },
-    {
-      "entity": "JobReportEntity",
-      "table": "jobreportentitys"
-    },
-    {
-      "entity": "JobRepository",
-      "table": "jobrepositorys"
-    },
-    {
-      "entity": "JobsController",
-      "table": "jobscontrollers"
-    },
     {
       "entity": "and",
       "table": "ands"
     },
     {
+      "entity": "in",
+      "table": "ins"
+    },
+    {
       "entity": "names",
       "table": "namess"
+    },
+    {
+      "entity": "should",
+      "table": "shoulds"
+    },
+    {
+      "entity": "to",
+      "table": "tos"
+    },
+    {
+      "entity": "{'name': 'ActiveJobsClientEventConnectEventListener', 'action': 'Push update to SSE clients', 'type': 'EventHandler', 'handles': 'JobTaskStatusChangedEvent'}",
+      "table": "{'name': 'activejobsclienteventconnecteventlistener', 'action': 'push update to sse clients', 'type': 'eventhandler', 'handles': 'jobtaskstatuschangedevent'}s"
+    },
+    {
+      "entity": "{'name': 'IJobRepository', 'table_access': ['Jobs', 'JobTasks', 'JobTaskStatuses'], 'type': 'Interface'}",
+      "table": "{'name': 'ijobrepository', 'table_access': ['jobs', 'jobtasks', 'jobtaskstatuses'], 'type': 'interface'}s"
+    },
+    {
+      "entity": "{'name': 'JobTaskStatusCode', 'values': ['Queued=0', 'Running=100', 'Finished=200'], 'type': 'Enum'}",
+      "table": "{'name': 'jobtaskstatuscode', 'values': ['queued=0', 'running=100', 'finished=200'], 'type': 'enum'}s"
+    },
+    {
+      "entity": "{'payload': ['JobTaskId', 'JobName', 'NewStatusCode'], 'name': 'JobTaskStatusChangedEvent', 'type': 'MediatRNotification'}",
+      "table": "{'payload': ['jobtaskid', 'jobname', 'newstatuscode'], 'name': 'jobtaskstatuschangedevent', 'type': 'mediatrnotification'}s"
+    },
+    {
+      "entity": "{'table': 'JobTaskStatuses', 'name': 'JobTaskStatus', 'notes': 'Append-only status history per JobTask. StatusCode: Queued=0, Running=100, Finished=200.', 'type': 'ValueObject', 'fields': ['Id', 'JobTaskId FK', 'StatusCode INT', 'Message NVARCHAR', 'DateCreatedUtc DATETIME']}",
+      "table": "{'table': 'jobtaskstatuses', 'name': 'jobtaskstatus', 'notes': 'append-only status history per jobtask. statuscode: queued=0, running=100, finished=200.', 'type': 'valueobject', 'fields': ['id', 'jobtaskid fk', 'statuscode int', 'message nvarchar', 'datecreatedutc datetime']}s"
+    },
+    {
+      "entity": "{'table': 'JobTasks', 'name': 'JobTask', 'notes': 'One execution instance of a Job. Tracks Azure Batch job/task IDs. Created per run.', 'type': 'Entity', 'fields': ['Id BIGINT IDENTITY', 'JobId INT FK->Jobs', 'AzureJobId NVARCHAR', 'AzureTaskId NVARCHAR', 'StatusCode INT', 'Parameters NVARCHAR', 'DateCreatedUtc DATETIME', 'DateUpdatedUtc DATETIME']}",
+      "table": "{'table': 'jobtasks', 'name': 'jobtask', 'notes': 'one execution instance of a job. tracks azure batch job/task ids. created per run.', 'type': 'entity', 'fields': ['id bigint identity', 'jobid int fk->jobs', 'azurejobid nvarchar', 'azuretaskid nvarchar', 'statuscode int', 'parameters nvarchar', 'datecreatedutc datetime', 'dateupdatedutc datetime']}s"
+    },
+    {
+      "entity": "{'table': 'ProcessTaskTemplates', 'name': 'ProcessTaskTemplate', 'notes': 'Template definitions for ProcessTasks. Full schema UNKNOWN.', 'type': 'Entity'}",
+      "table": "{'table': 'processtasktemplates', 'name': 'processtasktemplate', 'notes': 'template definitions for processtasks. full schema unknown.', 'type': 'entity'}s"
+    },
+    {
+      "entity": "{'table': 'ProcessTasks', 'name': 'ProcessTask', 'notes': 'CRM/workflow manual task assignment. Separate from Azure Batch Jobs.', 'type': 'Entity', 'fields': ['Id INT', 'SubjectId INT (FK type UNKNOWN)', 'ProcessTaskTemplatesId INT FK', 'ResponsibleUserId INT nullable', 'DateDeadlineUtc DATE', 'DateCompletedUtc DATETIME nullable', 'Comment NVARCHAR']}",
+      "table": "{'table': 'processtasks', 'name': 'processtask', 'notes': 'crm/workflow manual task assignment. separate from azure batch jobs.', 'type': 'entity', 'fields': ['id int', 'subjectid int (fk type unknown)', 'processtasktemplatesid int fk', 'responsibleuserid int nullable', 'datedeadlineutc date', 'datecompletedutc datetime nullable', 'comment nvarchar']}s"
+    },
+    {
+      "entity": "{'table': 'Quartz.NET', 'name': 'QuartzNET', 'notes': 'Quartz.NET scheduler state. Cron trigger definitions and fire-time tracking.', 'type': 'InfrastructureTable'}",
+      "table": "{'table': 'quartz.net', 'name': 'quartznet', 'notes': 'quartz.net scheduler state. cron trigger definitions and fire-time tracking.', 'type': 'infrastructuretable'}s"
     }
   ],
   "known_integrations": [],
   "validation_rules": [
     "if truly empty (use empty list, not null).",
     "must",
-    "must be plain English or well-known identifiers."
+    "must be plain English or well-known identifiers.",
+    "should",
+    "{'detail': 'Batch jobs needing ICurrentUser context must use JobCurrentUser (reads ProfileId/CustomerId from job parameters), not JWT.', 'rule': 'JobCurrentUser required for profile-scoped batch operations'}",
+    "{'detail': 'BatchAccountName(101), BatchAccountKey(102), BatchAccountUrl(103), BatchPoolName(104) — never hardcoded.', 'rule': 'Azure Batch credentials always from ApplicationSettings'}",
+    "{'detail': 'Each batch run creates a new JobTask. History preserved. Job = named registry, JobTask = execution log.', 'rule': 'JobTask is append-only — one row per execution'}",
+    "{'detail': 'Most cleanup jobs select WHERE DateDeletedUtc < NOW()-threshold. Thresholds typically 30-120 days, often hardcoded in job class.', 'rule': 'Cleanup jobs use age-based thresholds'}",
+    "{'detail': 'ServiceAlertBatchAction.ToString() stored as Jobs.Name. Service resolves Job by name string match.', 'rule': 'Job name is the enum string value'}"
   ]
 }

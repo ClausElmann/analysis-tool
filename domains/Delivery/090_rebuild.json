@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-04-02T08:38:19.345421Z",
+    "generated_at": "2026-04-20T18:52:13.869766Z",
     "generated_by": "HeuristicAIProvider",
     "schema_version": "2.0",
     "target_stack": "Blazor Server"
@@ -13,10 +13,78 @@
     {
       "method": "HTTP REST Client",
       "source": "integration"
+    },
+    {
+      "method": "GET /{'id': 'behavior_1', 'name': 'sendsmsbulkviagatewayapi', 'description': 'sends sms in bulk via gatewayapi for dk, se, fi, no. builds multismsmessagedto with per-message sender/message/recipient/reference/encoding (ucs2 or gsm7). calls igatewayapiclient.sendmultiasync. on success: sets status 1211 (smsafsendtstatusafventergwapibulk), calls marksmsgroupssentasync, publishes smssentnotification per item. on failure: sets gatewayprovider on logs.', 'trigger': 'batch job via gatewayapibulk.rungatewayapibulkasync', 'source_file': 'servicealert.services/gateways/smsgateways/gatewayapi/gatewayapibulkapiworkloadprocessor.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "GET /{'id': 'behavior_2', 'name': 'smsbulkpriorityrouting', 'description': 'priority sms executor runs before each country executor. countries served: dk, se, fi, no. roundrobin loader per country + priority. separate test-mode executor (countryid=0, testmode=true). smsgatewaystatuswriter handles status updates.', 'trigger': 'gatewayapibulk.rungatewayapibulkasync loop', 'source_file': 'servicealert.services/gateways/smsgateways/gatewayapibulk.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "POST /{'id': 'behavior_3', 'name': 'gatewayapideliverywebhookcallback', 'description': 'receives delivery status callbacks from gatewayapi via post /gatewayapi/callback. payload: gatewayapimobileoriginatedmessagedto. publishes standardreceivergroupmessagereceivednotification. allowanonymous. no auth required.', 'trigger': 'inbound webhook post from gatewayapi', 'source_file': 'servicealert.api/controllers/webhooks/gatewayapicontroller.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "POST /{'id': 'behavior_4', 'name': 'gatewayapiinboundreplywebhook', 'description': 'receives mo (mobile-originated) sms replies via post /gatewayapi/reply. publishes inboundmessageevent (fire-and-forget, not awaited). allowanonymous.', 'trigger': 'inbound mo sms from gatewayapi', 'source_file': 'servicealert.api/controllers/webhooks/gatewayapicontroller.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "POST /{'id': 'behavior_5', 'name': 'infobipdeliverystatuswebhook', 'description': 'receives infobip delivery reports via post /infobip/callback. maps infobip error codes to internal status codes: 3/7/26=501(pending), 4/9=523(undeliverable), 5/10000=522(delivered), 15/29=525(expired), 6/8/10/11/14/21/34/53/54=523(rejected). reads raw body via streamreader.', 'trigger': 'inbound webhook post from infobip', 'source_file': 'servicealert.api/controllers/webhooks/infobipwebhookcontroller.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "POST /{'id': 'behavior_6', 'name': 'sendgridemailstatuswebhook', 'description': 'receives sendgrid event webhooks via post /sendgrid/setemailstatus. requires bearer + superadmin auth. deserialises sendgridrootevent array, calls updateemailmessagestatusesasync with updateemailmessagestatuscommand per event (id, smslogid, sgmessageid, status converted from event type).', 'trigger': 'inbound webhook post from sendgrid', 'source_file': 'servicealert.api/controllers/webhooks/sendgridcontroller.cs'}",
+      "source": "inferred"
+    },
+    {
+      "method": "POST /{'id': 'behavior_7', 'name': 'sendgridinboundemailparse', 'description': 'receives inbound emails via post /sendgrid/inboundparse. uses stronggrid webhookparser to parse multipart email. extracts text body. allowanonymous. publishes inbound parse event.', 'trigger': 'inbound email forwarded from sendgrid', 'source_file': 'servicealert.api/controllers/webhooks/sendgridcontroller.cs'}",
+      "source": "inferred"
     }
   ],
-  "authorization_hints": [],
+  "authorization_hints": [
+    "SendGrid webhook requires Bearer + SuperAdmin auth. GatewayApi and Infobip webhooks are AllowAnonymous.",
+    "{'id': 'behavior_3', 'name': 'GatewayApiDeliveryWebhookCallback', 'description': 'Receives delivery status callbacks from GatewayApi via POST /GatewayApi/Callback. Payload: GatewayApiMobileOriginatedMessageDto. Publishes StandardReceiverGroupMessageReceivedNotification. AllowAnonymous. No auth required.', 'trigger': 'Inbound webhook POST from GatewayApi', 'source_file': 'ServiceAlert.Api/Controllers/Webhooks/GatewayApiController.cs'}",
+    "{'id': 'behavior_6', 'name': 'SendGridEmailStatusWebhook', 'description': 'Receives SendGrid event webhooks via POST /Sendgrid/SetEmailStatus. Requires Bearer + SuperAdmin auth. Deserialises SendGridRootEvent array, calls UpdateEmailMessageStatusesAsync with UpdateEmailMessageStatusCommand per event (Id, SmsLogId, SgMessageId, Status converted from event type).', 'trigger': 'Inbound webhook POST from SendGrid', 'source_file': 'ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs'}"
+  ],
   "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_1', 'name': 'SendSmsBulkViaGatewayApi', 'description': 'Sends SMS in bulk via GatewayApi for DK, SE, FI, NO. Builds MultiSmsMessageDto with per-message Sender/Message/Recipient/Reference/Encoding (UCS2 or GSM7). Calls IGatewayApiClient.SendMultiAsync. On success: sets status 1211 (SMSafsendtStatusafventerGWapiBulk), calls MarkSmsGroupsSentAsync, publishes SmsSentNotification per item. On failure: sets GatewayProvider on logs.', 'trigger': 'Batch job via GatewayApiBulk.RunGatewayApiBulkAsync', 'source_file': 'ServiceAlert.Services/Gateways/SmsGateways/GatewayApi/GatewayApiBulkApiWorkloadProcessor.cs'}",
+      "route": "/{'id':'behavior_1','name':'sendsmsbulkviagatewayapi','description':'sendssmsinbulkviagatewayapifordk,se,fi,no.buildsmultismsmessagedtowithper-messagesender/message/recipient/reference/encoding(ucs2orgsm7).callsigatewayapiclient.sendmultiasync.onsuccess:setsstatus1211(smsafsendtstatusafventergwapibulk),callsmarksmsgroupssentasync,publishessmssentnotificationperitem.onfailure:setsgatewayprovideronlogs.','trigger':'batchjobviagatewayapibulk.rungatewayapibulkasync','source_file':'servicealert.services/gateways/smsgateways/gatewayapi/gatewayapibulkapiworkloadprocessor.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": true,
+      "component": "{'id': 'behavior_3', 'name': 'GatewayApiDeliveryWebhookCallback', 'description': 'Receives delivery status callbacks from GatewayApi via POST /GatewayApi/Callback. Payload: GatewayApiMobileOriginatedMessageDto. Publishes StandardReceiverGroupMessageReceivedNotification. AllowAnonymous. No auth required.', 'trigger': 'Inbound webhook POST from GatewayApi', 'source_file': 'ServiceAlert.Api/Controllers/Webhooks/GatewayApiController.cs'}",
+      "route": "/{'id':'behavior_3','name':'gatewayapideliverywebhookcallback','description':'receivesdeliverystatuscallbacksfromgatewayapiviapost/gatewayapi/callback.payload:gatewayapimobileoriginatedmessagedto.publishesstandardreceivergroupmessagereceivednotification.allowanonymous.noauthrequired.','trigger':'inboundwebhookpostfromgatewayapi','source_file':'servicealert.api/s/webhooks/gatewayapi.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_4', 'name': 'GatewayApiInboundReplyWebhook', 'description': 'Receives MO (mobile-originated) SMS replies via POST /GatewayApi/Reply. Publishes InboundMessageEvent (fire-and-forget, not awaited). AllowAnonymous.', 'trigger': 'Inbound MO SMS from GatewayApi', 'source_file': 'ServiceAlert.Api/Controllers/Webhooks/GatewayApiController.cs'}",
+      "route": "/{'id':'behavior_4','name':'gatewayapiinboundreplywebhook','description':'receivesmo(mobile-originated)smsrepliesviapost/gatewayapi/reply.publishesinboundmessageevent(fire-and-forget,notawaited).allowanonymous.','trigger':'inboundmosmsfromgatewayapi','source_file':'servicealert.api/s/webhooks/gatewayapi.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_5', 'name': 'InfobipDeliveryStatusWebhook', 'description': 'Receives Infobip delivery reports via POST /Infobip/Callback. Maps Infobip error codes to internal status codes: 3/7/26=501(pending), 4/9=523(undeliverable), 5/10000=522(delivered), 15/29=525(expired), 6/8/10/11/14/21/34/53/54=523(rejected). Reads raw body via StreamReader.', 'trigger': 'Inbound webhook POST from Infobip', 'source_file': 'ServiceAlert.Api/Controllers/Webhooks/InfobipWebhookController.cs'}",
+      "route": "/{'id':'behavior_5','name':'infobipdeliverystatuswebhook','description':'receivesinfobipdeliveryreportsviapost/infobip/callback.mapsinfobiperrorcodestointernalstatuscodes:3/7/26=501(pending),4/9=523(undeliverable),5/10000=522(delivered),15/29=525(expired),6/8/10/11/14/21/34/53/54=523(rejected).readsrawbodyviastreamreader.','trigger':'inboundwebhookpostfrominfobip','source_file':'servicealert.api/s/webhooks/infobipwebhook.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": true,
+      "component": "{'id': 'behavior_6', 'name': 'SendGridEmailStatusWebhook', 'description': 'Receives SendGrid event webhooks via POST /Sendgrid/SetEmailStatus. Requires Bearer + SuperAdmin auth. Deserialises SendGridRootEvent array, calls UpdateEmailMessageStatusesAsync with UpdateEmailMessageStatusCommand per event (Id, SmsLogId, SgMessageId, Status converted from event type).', 'trigger': 'Inbound webhook POST from SendGrid', 'source_file': 'ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs'}",
+      "route": "/{'id':'behavior_6','name':'sendgridemailstatuswebhook','description':'receivessendgrideventwebhooksviapost/sendgrid/setemailstatus.requiresbearer+superadminauth.deserialisessendgridrooteventarray,callsupdateemailmessagestatusesasyncwithupdateemailmessagestatuscommandperevent(id,smslogid,sgmessageid,statusconvertedfromeventtype).','trigger':'inboundwebhookpostfromsendgrid','source_file':'servicealert.api/s/webhooks/sendgrid.cs'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'id': 'behavior_7', 'name': 'SendGridInboundEmailParse', 'description': 'Receives inbound emails via POST /Sendgrid/InboundParse. Uses StrongGrid WebhookParser to parse multipart email. Extracts text body. AllowAnonymous. Publishes inbound parse event.', 'trigger': 'Inbound email forwarded from SendGrid', 'source_file': 'ServiceAlert.Api/Controllers/Webhooks/SendgridController.cs'}",
+      "route": "/{'id':'behavior_7','name':'sendgridinboundemailparse','description':'receivesinboundemailsviapost/sendgrid/inboundparse.usesstronggridwebhookparsertoparsemultipartemail.extractstextbody.allowanonymous.publishesinboundparseevent.','trigger':'inboundemailforwardedfromsendgrid','source_file':'servicealert.api/s/webhooks/sendgrid.cs'}",
+      "source": "inferred"
+    },
     {
       "auth_required": false,
       "component": "EboksController",
@@ -33,8 +101,20 @@
       "SmsSentNotification"
     ],
     "rules": [
+      "Bulk SMS countries in order: DK, SE, FI, NO — each gets its own executor. Country 0 = test mode.",
+      "GatewayApi callback fields: userref=SmsLogs.Id (the reference we track), id=gateway-internal (ignored).",
+      "GatewayApi inbound reply (MO SMS): published fire-and-forget (not awaited, CS4014 suppressed by design).",
+      "Infobip error id 10000 = NORMAL_HANGUP (IVR calls) → maps to 522 (delivered).",
+      "MarkSmsGroupsSentAsync called after bulk batch completes — not per message.",
+      "Priority executor runs BEFORE each country executor in the loop — starved countries get priority SMS first.",
+      "SMS encoding: UCS2 when item.Data.UseUCS2 is true, otherwise GSM7.",
+      "SMS recipient field: long.Parse(phoneCode + phone) — concatenated before parsing.",
+      "SendGrid webhook requires Bearer + SuperAdmin auth. GatewayApi and Infobip webhooks are AllowAnonymous.",
+      "SmsSentNotification published per-item after successful send (MediatR Publish, not Send).",
       "if truly empty (use empty list, not null).",
-      "must be plain English or well-known identifiers."
+      "must",
+      "must be plain English or well-known identifiers.",
+      "should"
     ],
     "type": "stateful"
   },
@@ -78,8 +158,20 @@
       "table": "ands"
     },
     {
+      "entity": "in",
+      "table": "ins"
+    },
+    {
       "entity": "names",
       "table": "namess"
+    },
+    {
+      "entity": "should",
+      "table": "shoulds"
+    },
+    {
+      "entity": "to",
+      "table": "tos"
     }
   ],
   "known_integrations": [
@@ -87,7 +179,19 @@
     "HTTP REST Client"
   ],
   "validation_rules": [
+    "Bulk SMS countries in order: DK, SE, FI, NO — each gets its own executor. Country 0 = test mode.",
+    "GatewayApi callback fields: userref=SmsLogs.Id (the reference we track), id=gateway-internal (ignored).",
+    "GatewayApi inbound reply (MO SMS): published fire-and-forget (not awaited, CS4014 suppressed by design).",
+    "Infobip error id 10000 = NORMAL_HANGUP (IVR calls) → maps to 522 (delivered).",
+    "MarkSmsGroupsSentAsync called after bulk batch completes — not per message.",
+    "Priority executor runs BEFORE each country executor in the loop — starved countries get priority SMS first.",
+    "SMS encoding: UCS2 when item.Data.UseUCS2 is true, otherwise GSM7.",
+    "SMS recipient field: long.Parse(phoneCode + phone) — concatenated before parsing.",
+    "SendGrid webhook requires Bearer + SuperAdmin auth. GatewayApi and Infobip webhooks are AllowAnonymous.",
+    "SmsSentNotification published per-item after successful send (MediatR Publish, not Send).",
     "if truly empty (use empty list, not null).",
-    "must be plain English or well-known identifiers."
+    "must",
+    "must be plain English or well-known identifiers.",
+    "should"
   ]
 }

@@ -1,5 +1,7 @@
 [
   "CitizenDialogueSearchCommand",
+  "CitizenDialogueSmsGroupCommand",
+  "CitizenDialogueStdReceiverGroupCommand",
   "CreateLogCommand",
   "CreateSmsLogCommand",
   "CreateSmsLogResponseCommand",
@@ -8,6 +10,9 @@
   "LookupSmsLogsQuery",
   "SmsLogResponseCommand",
   "SmsLogResponseEvent",
+  "citizenDialogueSearchCommand",
+  "citizenDialogueSmsGroupCommand",
+  "citizenDialogueStdReceiverGroupCommand",
   "createLogCommand",
   "smsLogResponseCommand"
 ]

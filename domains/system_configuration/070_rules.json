@@ -1,57 +1,10 @@
 [
-  {
-    "rule": "CreateDefault() is idempotent — safe to run multiple times. Does NOT overwrite existing values.",
-    "verified": true,
-    "file": "ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs",
-    "method": "Save",
-    "line": "57-79",
-    "note": "Save() checks dbSetting == null → Insert if missing, Update if exists. Get() only creates default if setting is null AND defaultSetting provided."
-  },
-  {
-    "rule": "Cache key 'Sms.applicationsettings' loads ALL settings at once (not per-key). Cache invalidation is full-clear on Save().",
-    "verified": true,
-    "file": "ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs",
-    "method": "AllSettings",
-    "line": "83-96",
-    "cache_key_line": "14",
-    "invalidation_method": "Save",
-    "invalidation_line": "77"
-  },
-  {
-    "rule": "GetUncached() must be used in Admin UI to avoid showing stale values.",
-    "verified": true,
-    "file": "ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs",
-    "method": "GetUncached",
-    "line": "25-35",
-    "note": "GetUncached() reads directly from repository, bypassing _cacheManager."
-  },
-  {
-    "rule": "FileTypeIdFromExtension() returning 0 = file rejected. Known extensions mapped to IDs 1-10; default case returns 0.",
-    "verified": true,
-    "file": "ServiceAlert.Services/ProfileStorage/ProfileStorageService.cs",
-    "method": "FileTypeIdFromExtension",
-    "line": "64-95",
-    "rejection_file": "ServiceAlert.Api/Controllers/ProfileController.cs",
-    "rejection_line": "221-226",
-    "note": "Returns 0 (not null) for unknown extension. ProfileController rejects with BadRequest if fileTypeId == 0."
-  },
-  {
-    "rule": "AppSetting enum values are defined in code — the enum numeric Id IS the row ID in ApplicationSettings. Never insert free-text keys.",
-    "verified": true,
-    "file": "ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs",
-    "method": "AppSetting (enum)",
-    "line": "1-end",
-    "note": "Enum numeric values (e.g. DisableAllBroadcasts=184) are the ApplicationSettingTypeId used in DB rows. AllSettings() uses Enum.IsDefined() check on line 88."
-  },
-  {
-    "rule": "DisableAllBroadcasts(184) and DisableAllSystemMessages(206) are emergency kill-switches. Checked before any delivery. If '1': no messages sent.",
-    "verified": true,
-    "file": "ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs",
-    "method": "ExecuteAsync",
-    "line": "77",
-    "system_messages_file": "ServiceAlert.Services/Monitoring/MonitoringService.cs",
-    "system_messages_line": "206",
-    "enum_file": "ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs",
-    "enum_line": "57 (DisableAllBroadcasts=184), 75 (DisableAllSystemMessages=206)"
-  }
+  "if truly empty (use empty list, not null).",
+  "must be plain English or well-known identifiers.",
+  "{'rule': \"Cache key 'Sms.applicationsettings' loads ALL settings at once (not per-key). Cache invalidation is full-clear on Save().\", 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'AllSettings', 'line': '83-96', 'cache_key_line': '14', 'invalidation_method': 'Save', 'invalidation_line': '77'}",
+  "{'rule': \"DisableAllBroadcasts(184) and DisableAllSystemMessages(206) are emergency kill-switches. Checked before any delivery. If '1': no messages sent.\", 'verified': True, 'file': 'ServiceAlert.Services/Messages/BackgrundServices/Sms/SmsBackgroundService.cs', 'method': 'ExecuteAsync', 'line': '77', 'system_messages_file': 'ServiceAlert.Services/Monitoring/MonitoringService.cs', 'system_messages_line': '206', 'enum_file': 'ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs', 'enum_line': '57 (DisableAllBroadcasts=184), 75 (DisableAllSystemMessages=206)'}",
+  "{'rule': 'AppSetting enum values are defined in code — the enum numeric Id IS the row ID in ApplicationSettings. Never insert free-text keys.', 'verified': True, 'file': 'ServiceAlert.Core/Domain/Settings/ApplicationSettingType.cs', 'method': 'AppSetting (enum)', 'line': '1-end', 'note': 'Enum numeric values (e.g. DisableAllBroadcasts=184) are the ApplicationSettingTypeId used in DB rows. AllSettings() uses Enum.IsDefined() check on line 88.'}",
+  "{'rule': 'CreateDefault() is idempotent — safe to run multiple times. Does NOT overwrite existing values.', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'Save', 'line': '57-79', 'note': 'Save() checks dbSetting == null → Insert if missing, Update if exists. Get() only creates default if setting is null AND defaultSetting provided.'}",
+  "{'rule': 'FileTypeIdFromExtension() returning 0 = file rejected. Known extensions mapped to IDs 1-10; default case returns 0.', 'verified': True, 'file': 'ServiceAlert.Services/ProfileStorage/ProfileStorageService.cs', 'method': 'FileTypeIdFromExtension', 'line': '64-95', 'rejection_file': 'ServiceAlert.Api/Controllers/ProfileController.cs', 'rejection_line': '221-226', 'note': 'Returns 0 (not null) for unknown extension. ProfileController rejects with BadRequest if fileTypeId == 0.'}",
+  "{'rule': 'GetUncached() must be used in Admin UI to avoid showing stale values.', 'verified': True, 'file': 'ServiceAlert.Services/ApplicationSettings/ApplicationSettingService.cs', 'method': 'GetUncached', 'line': '25-35', 'note': 'GetUncached() reads directly from repository, bypassing _cacheManager.'}"
 ]

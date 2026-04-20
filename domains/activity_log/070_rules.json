@@ -1,18 +1,8 @@
 [
-  {
-    "detail": "Enum: None, Broadcast, SubscriptionsImport, PositiveListsImport, StandardReceiversImport. Only these four (+ None) are valid activity types. Not extensible without code change.",
-    "rule": "ActivityLogType is a bounded enum"
-  },
-  {
-    "detail": "The description stored is a locale resource KEY — not a pre-translated string. The admin UI calls ILocalizationService.GetLocalizedResource(key, languageId) at display time.",
-    "rule": "descriptionTranslationKey is displayed via localization"
-  },
-  {
-    "detail": "One ActivityLog parent row per (type, objectId). Multiple ActivityLogEntry children per event. Parent is created on first entry.",
-    "rule": "ActivityLog is per-object — ActivityLogEntries are per-event"
-  },
-  {
-    "detail": "All activity tracked belongs to customer-owned objects. objectId references the entity primary key (e.g. FtpSettingId, DataImportFileId).",
-    "rule": "Activity log is customer-scoped"
-  }
+  "if truly empty (use empty list, not null).",
+  "must be plain English or well-known identifiers.",
+  "{'detail': 'All activity tracked belongs to customer-owned objects. objectId references the entity primary key (e.g. FtpSettingId, DataImportFileId).', 'rule': 'Activity log is customer-scoped'}",
+  "{'detail': 'Enum: None, Broadcast, SubscriptionsImport, PositiveListsImport, StandardReceiversImport. Only these four (+ None) are valid activity types. Not extensible without code change.', 'rule': 'ActivityLogType is a bounded enum'}",
+  "{'detail': 'One ActivityLog parent row per (type, objectId). Multiple ActivityLogEntry children per event. Parent is created on first entry.', 'rule': 'ActivityLog is per-object — ActivityLogEntries are per-event'}",
+  "{'detail': 'The description stored is a locale resource KEY — not a pre-translated string. The admin UI calls ILocalizationService.GetLocalizedResource(key, languageId) at display time.', 'rule': 'descriptionTranslationKey is displayed via localization'}"
 ]

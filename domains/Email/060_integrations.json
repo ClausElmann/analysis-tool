@@ -1,30 +1,4 @@
 [
-  {
-    "credentials": "AppSetting SendGridAPIKey(130), SendGridHost(229)",
-    "name": "SendGrid",
-    "type": "EmailGateway",
-    "description": "Primary email delivery gateway. Handles SMTP-level sending, bounce tracking, delivery status callbacks, and inbound email parsing (Email2SMS).",
-    "direction": "outbound+inbound",
-    "api": "SendGrid HTTP API v3 + Inbound Parse webhook"
-  },
-  {
-    "events": [
-      "delivered",
-      "bounced",
-      "opened",
-      "clicked",
-      "spam_report",
-      "unsubscribe",
-      "group_unsubscribe",
-      "group_resubscribe",
-      "dropped",
-      "deferred",
-      "blocked"
-    ],
-    "name": "SendGrid_Webhooks",
-    "type": "InboundWebhook",
-    "path": "/api/inbound",
-    "direction": "inbound",
-    "description": "SendGrid posts delivery events back. Handled by InboundParseEventHandler."
-  }
+  "{'credentials': 'AppSetting SendGridAPIKey(130), SendGridHost(229)', 'name': 'SendGrid', 'type': 'EmailGateway', 'description': 'Primary email delivery gateway. Handles SMTP-level sending, bounce tracking, delivery status callbacks, and inbound email parsing (Email2SMS).', 'direction': 'outbound+inbound', 'api': 'SendGrid HTTP API v3 + Inbound Parse webhook'}",
+  "{'events': ['delivered', 'bounced', 'opened', 'clicked', 'spam_report', 'unsubscribe', 'group_unsubscribe', 'group_resubscribe', 'dropped', 'deferred', 'blocked'], 'name': 'SendGrid_Webhooks', 'type': 'InboundWebhook', 'path': '/api/inbound', 'direction': 'inbound', 'description': 'SendGrid posts delivery events back. Handled by InboundParseEventHandler.'}"
 ]

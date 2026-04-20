@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-04-02T01:23:29.225385Z",
+    "generated_at": "2026-04-20T18:16:20.655712Z",
     "generated_by": "HeuristicAIProvider",
     "schema_version": "2.0",
     "target_stack": "Blazor Server"
@@ -9,23 +9,96 @@
     {
       "method": "HTTP REST Client",
       "source": "integration"
+    },
+    {
+      "method": "{'description': 'All log events forwarded to Application Insights via TelemetryClient. Enables cloud-based log aggregation, alerts, and dashboards.', 'name': 'AzureApplicationInsights', 'direction': 'outbound', 'type': 'TelemetryTarget'}",
+      "source": "integration"
+    },
+    {
+      "method": "{'description': 'FinalEmailLogger uses IEmailService to send email on Fatal-level events.', 'name': 'SendGrid(viaEmailService)', 'direction': 'outbound', 'type': 'AlertTarget'}",
+      "source": "integration"
+    },
+    {
+      "method": "GET /{'description': \"middleware intercepts every http request. captures path, method, query, payload body, response body, status code, duration. controlled by appsetting requestloglevel(160). only writes if 'all' (everything) or 'error' (only non-2xx responses).\", 'name': 'requestresponselogging', 'trigger': 'every http request. gated by appsetting.', 'data': ['requestlogs', 'applicationsettings(requestloglevel=160)']}",
+      "source": "inferred"
+    },
+    {
+      "method": "GET /{'description': 'creates a log row. shortmessage truncated to 1500 chars. dataobject serialized to json. ip address and page url captured from httpcontext if loglevel > information. three implementations: db (defaultlogger), applicationinsights, email (finalemaillogger on fatal).', 'name': 'insertlog', 'signature': 'isystemlogger.insertlog(loglevel, shortmessage, fullmessage, user, module, dataobject)', 'trigger': 'exception handling, service operations, error boundaries throughout codebase.', 'data': ['logs']}",
+      "source": "inferred"
+    },
+    {
+      "method": "GET /{'description': 'delegatinghandler injected into all httpclient instances. captures url, method, request body, response body, status code, duration ms for every outbound call. writes outgoingrequestlog rows.', 'name': 'outgoinghttplogging', 'trigger': 'any external http call (sendgrid, gatewayapi, infobip, krr, kofuvi, datafordeler, etc.)', 'data': ['outgoingrequestlogs']}",
+      "source": "inferred"
+    },
+    {
+      "method": "GET /{'description': 'records map tile render requests per profile. used by billing system to quantify map api usage.', 'name': 'maprequestlogging', 'trigger': 'map tile served to frontend.', 'data': ['maprequestlogs']}",
+      "source": "inferred"
+    },
+    {
+      "method": "GET /{'description': 'specialized outbound log for norwegian api calls. captures per-request identifier (cpr/address key) for billing compliance. written separately from outgoingrequestlogs.', 'name': 'norwegianapilogging', 'trigger': 'krr lookup, kofuvi lookup, maskinporten-authenticated calls.', 'data': ['norwegianoutgoingrequestlogs']}",
+      "source": "inferred"
     }
   ],
-  "authorization_hints": [],
-  "blazor_pages": [],
+  "authorization_hints": [
+    "{'description': 'Specialized outbound log for Norwegian API calls. Captures per-request identifier (CPR/address key) for billing compliance. Written separately from OutgoingRequestLogs.', 'name': 'NorwegianApiLogging', 'trigger': 'KRR lookup, KoFuVi lookup, Maskinporten-authenticated calls.', 'data': ['NorwegianOutgoingRequestLogs']}"
+  ],
+  "blazor_pages": [
+    {
+      "auth_required": false,
+      "component": "{'description': 'Creates a Log row. ShortMessage truncated to 1500 chars. dataObject serialized to JSON. IP address and page URL captured from HttpContext if logLevel > Information. Three implementations: DB (DefaultLogger), ApplicationInsights, Email (FinalEmailLogger on Fatal).', 'name': 'InsertLog', 'signature': 'ISystemLogger.InsertLog(logLevel, shortMessage, fullMessage, user, module, dataObject)', 'trigger': 'Exception handling, service operations, error boundaries throughout codebase.', 'data': ['Logs']}",
+      "route": "/{'description':'createsalogrow.shortmessagetruncatedto1500chars.dataobjectserializedtojson.ipaddressandpageurlcapturedfromhttpcontextifloglevel>information.threeimplementations:db(defaultlogger),applicationinsights,email(finalemailloggeronfatal).','name':'insertlog','signature':'isystemlogger.insertlog(loglevel,shortmessage,fullmessage,user,module,dataobject)','trigger':'exceptionhandling,serviceoperations,errorboundariesthroughoutcodebase.','data':['logs']}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'methods': ['InsertLog(logLevel, shortMessage, fullMessage, user, module, dataObject) → int', 'GetAllLogsAsync(fromUtc, toUtc, message, logLevel, pageIndex, pageSize) → IPagedList<Log>'], 'name': 'ISystemLogger', 'type': 'Interface'}",
+      "route": "/{'methods':['insertlog(loglevel,shortmessage,fullmessage,user,module,dataobject)→int','getalllogsasync(fromutc,toutc,message,loglevel,pageindex,pagesize)→idlist<log>'],'name':'isystemlogger','type':'interface'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'name': 'LogEntry', 'notes': 'In-memory variant of Log used in some query contexts. Same fields as Log plus LogType enum. Not a DB table.', 'type': 'ViewModel'}",
+      "route": "/{'name':'logentry','notes':'in-memoryvariantoflogusedinsomequerycontexts.samefieldsaslogpluslogtypeenum.notadbtable.','type':'model'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": false,
+      "component": "{'name': 'LogLevel', 'values': ['Debug=10', 'Information=20', 'Warning=30', 'Error=40', 'Fatal=50'], 'type': 'Enum'}",
+      "route": "/{'name':'loglevel','values':['debug=10','information=20','warning=30','error=40','fatal=50'],'type':'enum'}",
+      "source": "inferred"
+    },
+    {
+      "auth_required": true,
+      "component": "{'table': 'Logs', 'name': 'Log', 'notes': 'General system error/event log. Written by ISystemLogger.InsertLog(). Read by admin log viewer.', 'type': 'Entity', 'fields': ['Id INT IDENTITY', 'LogLevelId INT', 'ShortMessage NVARCHAR(1500)', 'FullMessage NVARCHAR(MAX)', 'IpAddress NVARCHAR(200)', 'PageUrl NVARCHAR(200)', 'ReferrerUrl NVARCHAR(200)', 'DateCreatedUtc DATETIME', 'Module NVARCHAR', 'DataObject NVARCHAR(MAX)', 'IsHandled BIT nullable', 'UserId INT nullable FK->Users']}",
+      "route": "/{'table':'logs','name':'log','notes':'generalsystemerror/eventlog.writtenbyisystemlogger.insertlog().readbyadminlogviewer.','type':'entity','fields':['idintidentity','loglevelidint','shortmessagenvarchar(1500)','fullmessagenvarchar(max)','ipaddressnvarchar(200)','urlnvarchar(200)','referrerurlnvarchar(200)','datecreatedutcdatetime','modulenvarchar','dataobjectnvarchar(max)','ishandledbitnullable','useridintnullablefk->users']}",
+      "source": "inferred"
+    }
+  ],
   "blazor_state_model": {
     "events": [
+      "ClientEventServiceConnectEvent",
       "CreateLogCommand"
     ],
     "rules": [
+      "RULE[wiki:Blob-storage]: Azure Blob '' container = Azure App Service platform logs (separate from application logs).",
+      "RULE[wiki:Blob-storage]: Azure Blob 'errorlogs' container used for 3 specific critical failures: (1) Dapper cannot connect to DB, (2) Dapper license invalid, (3) Email send failure (raw SendGrid response). These are NOT routed through ISystemLogger but written directly to blob.",
       "if truly empty (use empty list, not null).",
-      "must be plain English or well-known identifiers."
+      "must be plain English or well-known identifiers.",
+      "{'detail': \"AppSetting(RequestLogLevel=160). Values: off (null), 'Error' (only >=400), 'All' (every request). Never log in production at 'All' — performance impact.\", 'rule': 'RequestLogLevel controls HTTP logging verbosity'}",
+      "{'detail': 'Any HttpClient registered in DI gets OutgoingHttpClientLoggingHandler automatically. Services do NOT call log methods for external calls — the handler does it transparently.', 'rule': 'Outbound HTTP logging is automatic via DelegatingHandler'}",
+      "{'detail': 'DefaultLogger (DB), ApplicationInsightsLogger (Azure Monitor), FinalEmailLogger (email on Fatal). All registered in DI. System resolves all three via CompositeLogger pattern.', 'rule': 'Three logger implementations — all injected via ISystemLogger'}",
+      "{'detail': 'ISystemLogger.InsertLog() truncates ShortMessage to 1500 chars. FullMessage (stack trace) is NVARCHAR(MAX) — no truncation.', 'rule': 'ShortMessage is bounded — FullMessage is unbounded'}",
+      "{'detail': 'KRR/KoFuVi calls write to NorwegianOutgoingRequestLogs — separate table for billing/compliance separation.', 'rule': 'Norwegian request logs are separate from general outbound logs'}",
+      "{'detail': 'cleanup_systemlogs, cleanup_requestlogs batch jobs delete rows older than retention threshold. Prevents unbounded growth.', 'rule': 'Cleanup jobs purge old logs'}"
     ],
     "type": "stateful"
   },
   "domain_flows": [
     "LoggingVoiceMessageQueueEventProcessor",
-    "OutgoingHttpClientLoggingHandler"
+    "OutgoingHttpClientLoggingHandler",
+    "{'name': 'ErrorLoggingFlow', 'steps': ['1. Exception caught in controller/service', '2. ISystemLogger.InsertLog(Error/Fatal, shortMessage, fullMessage, user, module, exceptionData)', '3. DefaultLogger: creates Log row in DB, truncates message', '4. ApplicationInsightsLogger: fires TelemetryClient.TrackException()', '5. If Fatal: FinalEmailLogger sends admin email via IEmailService', '6. Return HTTP 500 or domain-specific error to client']}",
+    "{'name': 'OutboundHttpLoggingFlow', 'steps': ['1. Service calls external API via injected HttpClient', '2. OutgoingHttpClientLoggingHandler.SendAsync() intercepts', '3. Reads request body, starts timer', '4. Calls base.SendAsync()', '5. Reads response body, calculates duration', '6. Writes OutgoingRequestLog row', '7. Returns response to caller']}",
+    "{'name': 'RequestLoggingFlow', 'steps': ['1. HTTP request arrives at pipeline', '2. RequestResponseLoggingMiddleware reads AppSetting(RequestLogLevel)', \"3. If 'All': captures request body, wraps response stream\", '4. Next() executes actual handler', \"5. If 'Error' and status >= 400, OR 'All': writes RequestLog row\", '6. Restores original response stream']}"
   ],
   "ef_core_entities": [
     {
@@ -51,13 +124,59 @@
     {
       "entity": "names",
       "table": "namess"
+    },
+    {
+      "entity": "{'methods': ['InsertLog(logLevel, shortMessage, fullMessage, user, module, dataObject) → int', 'GetAllLogsAsync(fromUtc, toUtc, message, logLevel, pageIndex, pageSize) → IPagedList<Log>'], 'name': 'ISystemLogger', 'type': 'Interface'}",
+      "table": "{'methods': ['insertlog(loglevel, shortmessage, fullmessage, user, module, dataobject) → int', 'getalllogsasync(fromutc, toutc, message, loglevel, pageindex, pagesize) → ipagedlist<log>'], 'name': 'isystemlogger', 'type': 'interface'}s"
+    },
+    {
+      "entity": "{'name': 'LogLevel', 'values': ['Debug=10', 'Information=20', 'Warning=30', 'Error=40', 'Fatal=50'], 'type': 'Enum'}",
+      "table": "{'name': 'loglevel', 'values': ['debug=10', 'information=20', 'warning=30', 'error=40', 'fatal=50'], 'type': 'enum'}s"
+    },
+    {
+      "entity": "{'name': 'OutgoingHttpClientLoggingHandler', 'notes': 'Injected into all registered HttpClient instances. Intercepts outbound HTTP calls, writes OutgoingRequestLog rows.', 'type': 'DelegatingHandler'}",
+      "table": "{'name': 'outgoinghttpclientlogginghandler', 'notes': 'injected into all registered httpclient instances. intercepts outbound http calls, writes outgoingrequestlog rows.', 'type': 'delegatinghandler'}s"
+    },
+    {
+      "entity": "{'name': 'RequestResponseLoggingMiddleware', 'trigger': 'Every HTTP request when RequestLogLevel AppSetting != off', 'type': 'Middleware', 'notes': \"Captures full request path, method, query, payload, response body, status code, ticks (duration). Controlled by AppSetting RequestLogLevel(160): 'All', 'Error', or off.\"}",
+      "table": "{'name': 'requestresponseloggingmiddleware', 'trigger': 'every http request when requestloglevel appsetting != off', 'type': 'middleware', 'notes': \"captures full request path, method, query, payload, response body, status code, ticks (duration). controlled by appsetting requestloglevel(160): 'all', 'error', or off.\"}s"
+    },
+    {
+      "entity": "{'table': 'ImpersonationLogs', 'name': 'ImpersonationLog', 'notes': 'Audit record written when a SuperAdmin starts impersonating another user.', 'type': 'Entity', 'fields': ['Id', 'ImpersonatingUserId INT', 'ImpersonatedUserId INT', 'CustomerId INT', 'DateCreatedUtc DATETIME']}",
+      "table": "{'table': 'impersonationlogs', 'name': 'impersonationlog', 'notes': 'audit record written when a superadmin starts impersonating another user.', 'type': 'entity', 'fields': ['id', 'impersonatinguserid int', 'impersonateduserid int', 'customerid int', 'datecreatedutc datetime']}s"
+    },
+    {
+      "entity": "{'table': 'MapRequestLogs', 'name': 'MapRequestLog', 'notes': 'Tracks map tile render requests per profile. Used for map API billing/quota. Written by MapRequestLogger.', 'type': 'Entity', 'fields': ['Id', 'ProfileId INT', 'TileCount INT', 'DateCreatedUtc DATETIME']}",
+      "table": "{'table': 'maprequestlogs', 'name': 'maprequestlog', 'notes': 'tracks map tile render requests per profile. used for map api billing/quota. written by maprequestlogger.', 'type': 'entity', 'fields': ['id', 'profileid int', 'tilecount int', 'datecreatedutc datetime']}s"
+    },
+    {
+      "entity": "{'table': 'NorwegianOutgoingRequestLogs', 'name': 'NorwegianOutgoingRequestLog', 'notes': 'Specialized log for Norwegian KRR/KoFuVi API calls. Used for billing compliance (per-request Norwegian API quota tracking).', 'type': 'Entity', 'fields': ['Id', 'CustomerId INT', 'ProfileId INT', 'RequestType NVARCHAR', 'IdentifierValue NVARCHAR', 'DateCreatedUtc DATETIME']}",
+      "table": "{'table': 'norwegianoutgoingrequestlogs', 'name': 'norwegianoutgoingrequestlog', 'notes': 'specialized log for norwegian krr/kofuvi api calls. used for billing compliance (per-request norwegian api quota tracking).', 'type': 'entity', 'fields': ['id', 'customerid int', 'profileid int', 'requesttype nvarchar', 'identifiervalue nvarchar', 'datecreatedutc datetime']}s"
+    },
+    {
+      "entity": "{'table': 'OutgoingRequestLogs', 'name': 'OutgoingRequestLog', 'notes': 'Outbound HTTP call log. Written by OutgoingHttpClientLoggingHandler (DelegatingHandler injected into all external HttpClient instances). Used for compliance and debugging.', 'type': 'Entity', 'fields': ['Id', 'CustomerId INT', 'ProfileId INT', 'Url NVARCHAR', 'Method NVARCHAR', 'RequestBody NVARCHAR(MAX)', 'ResponseBody NVARCHAR(MAX)', 'StatusCode INT', 'DurationMs INT', 'DateCreatedUtc DATETIME']}",
+      "table": "{'table': 'outgoingrequestlogs', 'name': 'outgoingrequestlog', 'notes': 'outbound http call log. written by outgoinghttpclientlogginghandler (delegatinghandler injected into all external httpclient instances). used for compliance and debugging.', 'type': 'entity', 'fields': ['id', 'customerid int', 'profileid int', 'url nvarchar', 'method nvarchar', 'requestbody nvarchar(max)', 'responsebody nvarchar(max)', 'statuscode int', 'durationms int', 'datecreatedutc datetime']}s"
+    },
+    {
+      "entity": "{'table': 'RequestLogs', 'name': 'RequestLog', 'notes': 'Full HTTP request/response capture. Only written when RequestLogLevel AppSetting > 0. Used for debugging and support.', 'type': 'Entity', 'fields': ['Id', 'Path', 'Method', 'QueryString', 'Payload NVARCHAR(MAX)', 'Response NVARCHAR(MAX)', 'StatusCode INT', 'Ticks INT', 'RequestedOnUtc DATETIME', 'IpAddress', 'Hostname', 'UserId INT nullable']}",
+      "table": "{'table': 'requestlogs', 'name': 'requestlog', 'notes': 'full http request/response capture. only written when requestloglevel appsetting > 0. used for debugging and support.', 'type': 'entity', 'fields': ['id', 'path', 'method', 'querystring', 'payload nvarchar(max)', 'response nvarchar(max)', 'statuscode int', 'ticks int', 'requestedonutc datetime', 'ipaddress', 'hostname', 'userid int nullable']}s"
     }
   ],
   "known_integrations": [
-    "HTTP REST Client"
+    "HTTP REST Client",
+    "{'description': 'All log events forwarded to Application Insights via TelemetryClient. Enables cloud-based log aggregation, alerts, and dashboards.', 'name': 'AzureApplicationInsights', 'direction': 'outbound', 'type': 'TelemetryTarget'}",
+    "{'description': 'FinalEmailLogger uses IEmailService to send email on Fatal-level events.', 'name': 'SendGrid(viaEmailService)', 'direction': 'outbound', 'type': 'AlertTarget'}"
   ],
   "validation_rules": [
+    "RULE[wiki:Blob-storage]: Azure Blob '' container = Azure App Service platform logs (separate from application logs).",
+    "RULE[wiki:Blob-storage]: Azure Blob 'errorlogs' container used for 3 specific critical failures: (1) Dapper cannot connect to DB, (2) Dapper license invalid, (3) Email send failure (raw SendGrid response). These are NOT routed through ISystemLogger but written directly to blob.",
     "if truly empty (use empty list, not null).",
-    "must be plain English or well-known identifiers."
+    "must be plain English or well-known identifiers.",
+    "{'detail': \"AppSetting(RequestLogLevel=160). Values: off (null), 'Error' (only >=400), 'All' (every request). Never log in production at 'All' — performance impact.\", 'rule': 'RequestLogLevel controls HTTP logging verbosity'}",
+    "{'detail': 'Any HttpClient registered in DI gets OutgoingHttpClientLoggingHandler automatically. Services do NOT call log methods for external calls — the handler does it transparently.', 'rule': 'Outbound HTTP logging is automatic via DelegatingHandler'}",
+    "{'detail': 'DefaultLogger (DB), ApplicationInsightsLogger (Azure Monitor), FinalEmailLogger (email on Fatal). All registered in DI. System resolves all three via CompositeLogger pattern.', 'rule': 'Three logger implementations — all injected via ISystemLogger'}",
+    "{'detail': 'ISystemLogger.InsertLog() truncates ShortMessage to 1500 chars. FullMessage (stack trace) is NVARCHAR(MAX) — no truncation.', 'rule': 'ShortMessage is bounded — FullMessage is unbounded'}",
+    "{'detail': 'KRR/KoFuVi calls write to NorwegianOutgoingRequestLogs — separate table for billing/compliance separation.', 'rule': 'Norwegian request logs are separate from general outbound logs'}",
+    "{'detail': 'cleanup_systemlogs, cleanup_requestlogs batch jobs delete rows older than retention threshold. Prevents unbounded growth.', 'rule': 'Cleanup jobs purge old logs'}"
   ]
 }

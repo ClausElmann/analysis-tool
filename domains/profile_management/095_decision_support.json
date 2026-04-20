@@ -1,8 +1,8 @@
 {
   "business_value": "medium",
-  "complexity": "high",
-  "coupling": "low",
+  "complexity": "medium",
+  "coupling": "medium",
   "domain": "profile_management",
   "rebuild_priority": 6,
-  "saved_utc": "2026-04-02T01:30:09.942149+00:00"
+  "saved_utc": "2026-04-20T18:14:47.683888+00:00"
 }

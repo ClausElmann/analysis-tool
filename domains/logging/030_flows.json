@@ -1,36 +1,7 @@
 [
-  {
-    "name": "ErrorLoggingFlow",
-    "steps": [
-      "1. Exception caught in controller/service",
-      "2. ISystemLogger.InsertLog(Error/Fatal, shortMessage, fullMessage, user, module, exceptionData)",
-      "3. DefaultLogger: creates Log row in DB, truncates message",
-      "4. ApplicationInsightsLogger: fires TelemetryClient.TrackException()",
-      "5. If Fatal: FinalEmailLogger sends admin email via IEmailService",
-      "6. Return HTTP 500 or domain-specific error to client"
-    ]
-  },
-  {
-    "name": "RequestLoggingFlow",
-    "steps": [
-      "1. HTTP request arrives at pipeline",
-      "2. RequestResponseLoggingMiddleware reads AppSetting(RequestLogLevel)",
-      "3. If 'All': captures request body, wraps response stream",
-      "4. Next() executes actual handler",
-      "5. If 'Error' and status >= 400, OR 'All': writes RequestLog row",
-      "6. Restores original response stream"
-    ]
-  },
-  {
-    "name": "OutboundHttpLoggingFlow",
-    "steps": [
-      "1. Service calls external API via injected HttpClient",
-      "2. OutgoingHttpClientLoggingHandler.SendAsync() intercepts",
-      "3. Reads request body, starts timer",
-      "4. Calls base.SendAsync()",
-      "5. Reads response body, calculates duration",
-      "6. Writes OutgoingRequestLog row",
-      "7. Returns response to caller"
-    ]
-  }
+  "LoggingVoiceMessageQueueEventProcessor",
+  "OutgoingHttpClientLoggingHandler",
+  "{'name': 'ErrorLoggingFlow', 'steps': ['1. Exception caught in controller/service', '2. ISystemLogger.InsertLog(Error/Fatal, shortMessage, fullMessage, user, module, exceptionData)', '3. DefaultLogger: creates Log row in DB, truncates message', '4. ApplicationInsightsLogger: fires TelemetryClient.TrackException()', '5. If Fatal: FinalEmailLogger sends admin email via IEmailService', '6. Return HTTP 500 or domain-specific error to client']}",
+  "{'name': 'OutboundHttpLoggingFlow', 'steps': ['1. Service calls external API via injected HttpClient', '2. OutgoingHttpClientLoggingHandler.SendAsync() intercepts', '3. Reads request body, starts timer', '4. Calls base.SendAsync()', '5. Reads response body, calculates duration', '6. Writes OutgoingRequestLog row', '7. Returns response to caller']}",
+  "{'name': 'RequestLoggingFlow', 'steps': ['1. HTTP request arrives at pipeline', '2. RequestResponseLoggingMiddleware reads AppSetting(RequestLogLevel)', \"3. If 'All': captures request body, wraps response stream\", '4. Next() executes actual handler', \"5. If 'Error' and status >= 400, OR 'All': writes RequestLog row\", '6. Restores original response stream']}"
 ]

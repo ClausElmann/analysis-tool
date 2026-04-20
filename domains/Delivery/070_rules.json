@@ -1,4 +1,16 @@
 [
+  "Bulk SMS countries in order: DK, SE, FI, NO — each gets its own executor. Country 0 = test mode.",
+  "GatewayApi callback fields: userref=SmsLogs.Id (the reference we track), id=gateway-internal (ignored).",
+  "GatewayApi inbound reply (MO SMS): published fire-and-forget (not awaited, CS4014 suppressed by design).",
+  "Infobip error id 10000 = NORMAL_HANGUP (IVR calls) → maps to 522 (delivered).",
+  "MarkSmsGroupsSentAsync called after bulk batch completes — not per message.",
+  "Priority executor runs BEFORE each country executor in the loop — starved countries get priority SMS first.",
+  "SMS encoding: UCS2 when item.Data.UseUCS2 is true, otherwise GSM7.",
+  "SMS recipient field: long.Parse(phoneCode + phone) — concatenated before parsing.",
+  "SendGrid webhook requires Bearer + SuperAdmin auth. GatewayApi and Infobip webhooks are AllowAnonymous.",
+  "SmsSentNotification published per-item after successful send (MediatR Publish, not Send).",
   "if truly empty (use empty list, not null).",
-  "must be plain English or well-known identifiers."
+  "must",
+  "must be plain English or well-known identifiers.",
+  "should"
 ]

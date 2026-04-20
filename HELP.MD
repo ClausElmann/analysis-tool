@@ -109,7 +109,38 @@ Crash under step N:
 ## PROMPTS (kopier direkte til Copilot)
 ## ═══════════════════════════════════════
 
-### ▶ START / GENOPTAG DOMAIN ENGINE (normal daglig kørsel)
+### ▶ HARVEST_IDLE_MODE_V3 — AUTONOM HØST (lang kørsel)
+
+**Trigger-kommando (kopiér præcis — ingen variationer):**
+
+```
+Skriv KUN til temp.md. Ingen output i chat — max 1 linje bekræftelse.
+
+COMMAND: HARVEST_PROTOKOL_START
+
+Aktiver HARVEST_IDLE_MODE_V3 præcis som defineret i temp.md §HARVEST_IDLE_MODE_V3.
+Ingen ændringer. Ingen fortolkning.
+
+Kør kontinuerligt indtil:
+- ny besked fra mig
+- STOP conditions rammes
+
+Start nu.
+```
+
+**Regler:**
+- ÉN trigger = ÉN adfærd. Ingen variationer ("start harvest", "kør analyse" o.l.)
+- Afbryd IKKE med småbeskeder — det stopper loopet
+- Du behøver IKKE vente på IDLE — protokollen self-guarder og venter selv hvis N-B er aktiv
+- Kræver Architect prioritetsliste i temp.md (Q-HARVEST-1) — ellers STOP
+
+**Hvad der sker:**
+1. Copilot tager domains i Architect-prioriteret rækkefølge
+2. Kører `run_domain_engine.py --seeds {domain} --once` per domain
+3. Logger score-delta + status i temp.md som `HARVEST_LOOP` entries
+4. Stopper selv ved stagnation (3 domains) eller DONE
+
+---
 
 ```
 Følg Domain Completion Protocol v1. Læs current state. Genoptag aktivt domæne eller vælg næste højst prioriterede ufuldstændige domæne. Arbejd kun på ét domæne. Kør indtil iterationen er sikkert persisteret. Brug anti-loop reglerne. Markér aldrig et domæne complete før alle completion-regler er opfyldt i 3 på hinanden følgende iterationer. Returnér kun: domæne, iteration, score før/efter, lukkede gaps, resterende gaps, og næste kommando.
