@@ -1,0 +1,149 @@
+{
+  "domain": "conversation_messaging",
+  "transformation_verdict": "REDESIGNED",
+  "date": "2026-04-20",
+  "architect_directive": "GO → TRANSFORMATION (2026-04-20)",
+
+  "before_model": {
+    "pattern": "Coupled: SEND SMS → INSERT ConversationMessage (no transaction, no ownership)",
+    "atomicity": "none — SMS send precedes DB insert, partial state possible if insert fails",
+    "ownership": "no — afsender-identitet tabt (ProfileId/UserId ikke persisteret)",
+    "status_model": "Pending(0) / Delivered(1) / Failed(2) — bundet til SMS delivery callback",
+    "idempotency": "SmsLogId-baseret — race-prone, afhænger af SMS provider",
+    "tenant_isolation": "INDIRECT — via ConversationPhoneNumbers.CustomerId join (ikke explicit)",
+    "sse_trigger": "efter SMS send (ikke efter DB insert)",
+    "inbound_scope": "blandet med outbound i ConversationService — ingen klar boundary"
+  },
+
+  "after_model": {
+    "pattern": "INSERT-first: INSERT ConversationMessage → enqueue async send",
+    "atomicity": "IDbSession.ExecuteInTransactionAsync — INSERT message atomisk, SMS async decoupled",
+    "ownership": "ConversationMessage.ProfileId (FK Profiles) + ConversationMessage.CreatedByUserId (FK Users)",
+    "status_model": "Created(0) → Queued(1) → Sent(2) → Delivered(3) / Failed(4)",
+    "idempotency": "IdempotencyKey (GUID/string) på command + UNIQUE constraint (ConversationId, IdempotencyKey)",
+    "tenant_isolation": "EXPLICIT — alle queries join Conversation → ConversationPhoneNumbers → CustomerId = @CustomerId",
+    "sse_trigger": "efter DB insert (ikke efter SMS send)",
+    "inbound_scope": "DEFERRED — ikke i dette slice, markeret som deferred_domain = conversation_inbound"
+  },
+
+  "design_decisions": [
+    {
+      "id": "DD_CM_01",
+      "title": "Message ownership",
+      "status": "REQUIRED",
+      "change": "Tilføj ConversationMessage.ProfileId (FK → Profiles) + ConversationMessage.CreatedByUserId (FK → Users)",
+      "rationale": "Layer 0 mister afsender-identitet. Nødvendigt for auth, audit, UI og fremtidige features.",
+      "migration": "ny kolonne på ConversationMessages — migration påkrævet"
+    },
+    {
+      "id": "DD_CM_02",
+      "title": "INSERT-FIRST architecture",
+      "status": "BREAKING, REQUIRED",
+      "change": "Flow ændres: Layer 0 SEND SMS → INSERT. GreenAI: INSERT → enqueue/send async.",
+      "rationale": "Fjerner partial state risk. Gør systemet deterministisk. Matcher DD_C05 fra conversation_creation.",
+      "invariant": "Ingen message eksisterer uden DB record"
+    },
+    {
+      "id": "DD_CM_03",
+      "title": "MessageStatus redesign",
+      "status": "REQUIRED",
+      "change": "Erstat Pending/Delivered/Failed med: Created=0, Queued=1, Sent=2, Delivered=3, Failed=4",
+      "rationale": "INSERT-first kræver lifecycle der afspejler async dispatch. Understøtter retry og DLR callbacks.",
+      "migration": "ny enum + kolonne-default"
+    },
+    {
+      "id": "DD_CM_04",
+      "title": "Tenant isolation hardening",
+      "status": "REQUIRED",
+      "change": "ALLE queries SKAL explicit join: Conversation → ConversationPhoneNumbers → CustomerId = @CustomerId",
+      "rationale": "Layer 0 bruger implicit tenant isolation via JOIN. GreenAI kræver explicit CustomerId på alle queries."
+    },
+    {
+      "id": "DD_CM_05",
+      "title": "Idempotency redesign",
+      "status": "REQUIRED",
+      "change": "Fjern SmsLogId-baseret idempotency. Ny model: IdempotencyKey (GUID/string) på command + UNIQUE constraint (ConversationId, IdempotencyKey)",
+      "rationale": "SmsLogId er eksternt (fra SMS provider) — race-prone og kun tilgængeligt efter send. INSERT-first kræver idempotency INDEN send."
+    },
+    {
+      "id": "DD_CM_06",
+      "title": "SSE event preserved",
+      "status": "UNCHANGED — trigger moved",
+      "change": "Behold SSE push efter INSERT. MEN: event trigger = DB insert (ikke SMS send).",
+      "rationale": "SSE skal reflektere hvad der er persisteret — ikke hvad der er sendt."
+    },
+    {
+      "id": "DD_CM_07",
+      "title": "Inbound scope deferred",
+      "status": "BOUNDARY",
+      "change": "Inbound (partner → system) er IKKE i dette slice.",
+      "deferred_domain": "conversation_inbound",
+      "rationale": "Inbound processor ikke analyseret i N-A. Separat domain boundary krævet."
+    }
+  ],
+
+  "target_handler": {
+    "name": "SendConversationReplyHandler",
+    "command": {
+      "fields": [
+        "ConversationId: int",
+        "Text: string",
+        "IdempotencyKey: string (GUID)",
+        "from ICurrentUser: CustomerId, UserId, ProfileId"
+      ]
+    },
+    "steps": [
+      "Step 1: Validate ConversationId exists + CustomerId match (tenant isolation via explicit JOIN)",
+      "Step 2: Check IdempotencyKey — UNIQUE(ConversationId, IdempotencyKey) → return MESSAGE_EXISTS if duplicate",
+      "Step 3: ExecuteInTransactionAsync: INSERT ConversationMessages (ProfileId + CreatedByUserId + Status=Created)",
+      "Step 4: UPDATE ConversationMessage.Status = Queued",
+      "Step 5: Push SSE event (CONVERSATIONMESSAGESENT) — trigger on DB insert",
+      "Step 6: Return Result<SendConversationReplyResponse>(MessageId)"
+    ],
+    "async_boundary": "SMS send er decoupled — håndteres af separat job/queue efter Status=Queued"
+  },
+
+  "invariants_enforced": [
+    "INV_CM_01: Ingen message uden DB record (INSERT-first)",
+    "INV_CM_02: Alle messages har ProfileId + CreatedByUserId (ownership required)",
+    "INV_CM_03: Tenant isolation explicit på alle queries (CustomerId join)",
+    "INV_CM_04: Idempotency via IdempotencyKey UNIQUE constraint (ikke SmsLogId)"
+  ],
+
+  "message_lifecycle": {
+    "Created": "INSERT — message eksisterer i DB, SMS ikke sendt",
+    "Queued": "Klar til async send — enqueued",
+    "Sent": "SMS dispatched — bekræftelse fra provider",
+    "Delivered": "DLR callback modtaget — delivery bekræftet",
+    "Failed": "SMS send fejlet — DLR eller timeout"
+  },
+
+  "migration_required": {
+    "table": "ConversationMessages",
+    "new_columns": [
+      "ProfileId INT NOT NULL",
+      "CreatedByUserId INT NOT NULL",
+      "IdempotencyKey NVARCHAR(100) NULL"
+    ],
+    "new_constraints": [
+      "FK ConversationMessages.ProfileId → Profiles.Id",
+      "FK ConversationMessages.CreatedByUserId → Users.Id",
+      "UNIQUE (ConversationId, IdempotencyKey)"
+    ],
+    "status_change": "Status kolonne: enum udvides fra 3 til 5 værdier"
+  },
+
+  "deferred": [
+    {
+      "domain": "conversation_inbound",
+      "reason": "Inbound processor (partner → system) ikke analyseret i N-A",
+      "scope": "Separat domain boundary"
+    }
+  ],
+
+  "simplifications": [
+    "S_CM_01: GetConversationMessages + MarkRead/Unread + UpdateDeliveryStatus handlers er straightforward READ/UPDATE — ingen transformation nødvendig ud over tenant isolation hardening"
+  ],
+
+  "clone_risk": "0% — breaking semantic changes på flow, status model og idempotency"
+}

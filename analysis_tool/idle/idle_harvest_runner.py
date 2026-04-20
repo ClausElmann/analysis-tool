@@ -571,9 +571,9 @@ class IdleHarvestRunner:
         print(f"      Total new files: {total_new_files}")
 
         # STOP_NO_NEW_FILES guard — before expensive re-run
+        from analysis_tool.idle.result_comparator import ResultComparator, STOP_NO_NEW_FILES
         if total_new_files == 0 and len(target_metrics) > 0:
             print(f"\n  [STOP] No new files discovered — skipping DFEP re-run.")
-            from analysis_tool.idle.result_comparator import ResultComparator, STOP_NO_NEW_FILES
             comparator = ResultComparator(snapshots_dir=self.snapshots_dir)
             result = comparator.compare(
                 domain=self.domain,

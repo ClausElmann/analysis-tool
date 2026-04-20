@@ -1,0 +1,165 @@
+{
+  "domain": "conversation_messaging",
+  "stage": "N-A",
+  "layer": "flows",
+  "flows": [
+    {
+      "name": "SendReply_Outbound",
+      "description": "User sends a reply message in an existing conversation",
+      "trigger": "POST /api/Conversation/SendConversationReply",
+      "actor": "Authenticated user (profile)",
+      "steps": [
+        {
+          "step": 1,
+          "component": "ConversationController",
+          "action": "Receive SendConversationReplyCommand {ConversationId, Text}",
+          "source": "ConversationController.cs:137",
+          "code_verified": true
+        },
+        {
+          "step": 2,
+          "component": "ConversationController",
+          "action": "GetConversationPhoneNumberWithProfileIdsByConversationId(ConversationId)",
+          "result": "null → 404 Not Found",
+          "source": "ConversationController.cs:141",
+          "code_verified": true
+        },
+        {
+          "step": 3,
+          "component": "ConversationController",
+          "action": "GetProfilesbyUserId(CurrentUserId, CurrentCustomerId) → intersect with phone number's profiles",
+          "result": "empty intersection → 403 Forbidden",
+          "source": "ConversationController.cs:142",
+          "code_verified": true
+        },
+        {
+          "step": 4,
+          "component": "ConversationController",
+          "action": "GetConversationReadModelById(ConversationId) → ConversationReadModel",
+          "source": "ConversationController.cs:146",
+          "code_verified": true
+        },
+        {
+          "step": 5,
+          "component": "ConversationService",
+          "action": "CreateAndSendConversationMessage(CurrentProfileId, ConversationReadModel, text)",
+          "source": "ConversationService.cs:59",
+          "code_verified": true
+        },
+        {
+          "step": 6,
+          "component": "SmsConversationOutboundMessageSender",
+          "action": "SendMessage(profileId, senderPhoneCode, senderPhoneNumber, gatewayProvider, partnerPhoneCode, partnerPhoneNumber, partnerName, text) → smsLogId",
+          "source": "SmsConversationOutboundMessageSender.cs:1",
+          "code_verified": true,
+          "note": "External SMS gateway call. Fires BEFORE DB insert."
+        },
+        {
+          "step": 7,
+          "component": "ConversationRepository",
+          "action": "GetConversationMessageBySmsLogId(smsLogId) — idempotency guard",
+          "result": "exists → return early (no duplicate insert)",
+          "source": "ConversationService.cs:77",
+          "code_verified": true
+        },
+        {
+          "step": 8,
+          "component": "ConversationRepository",
+          "action": "INSERT dbo.ConversationMessages (ConversationId, Text, SmsLogId, DateCreatedUtc, Status=Pending)",
+          "source": "ConversationRepository.cs (CreateConversationMessage → _baseRepository.Insert)",
+          "code_verified": true
+        },
+        {
+          "step": 9,
+          "component": "ConversationService",
+          "action": "Build ConversationMessageSentEventDto",
+          "source": "ConversationService.cs:20",
+          "code_verified": true
+        },
+        {
+          "step": 10,
+          "component": "ClientEventService",
+          "action": "CreateClientEventAsync — SSE push (ServerSentEventType.CONVERSATIONMESSAGESENT, GroupName='ConversationMessageSent/{conversationPhoneNumberId}')",
+          "source": "ConversationService.cs:20",
+          "code_verified": true
+        },
+        {
+          "step": 11,
+          "component": "ConversationController",
+          "action": "Return 200 Ok(conversationMessageId:long)"
+        }
+      ],
+      "transformation_notes": [
+        "SMS send (step 6) precedes DB insert (step 8) — no distributed transaction",
+        "transformation_required=true — green-ai design: INSERT first (Status=Pending), dispatch SMS via job, update Status on delivery",
+        "SmsLogId as idempotency key works only if gateway guarantees unique IDs — transformation_required for explicit idempotency key"
+      ]
+    },
+    {
+      "name": "InboundReply_Partner",
+      "description": "Partner sends inbound SMS reply — arrives via webhook/batch processor",
+      "trigger": "Webhook / batch DLR processor",
+      "actor": "External SMS gateway",
+      "steps": [
+        {
+          "step": 1,
+          "component": "External processor",
+          "action": "Receive inbound SMS from partner (gateway webhook)",
+          "note": "Layer 0 processor not analyzed in this domain — out of scope for conversation_messaging"
+        },
+        {
+          "step": 2,
+          "component": "ConversationRepository",
+          "action": "INSERT dbo.ConversationMessages (ConversationId, Text, SmsLogId=NULL, DateCreatedUtc, Status=Delivered)",
+          "note": "SmsLogId=NULL marks as inbound. Status=Delivered immediately (received = delivered).",
+          "code_verified": false,
+          "transformation_notes": ["UNKNOWN: exact inbound processor code not analyzed — transformation_required=true"]
+        },
+        {
+          "step": 3,
+          "component": "ConversationService",
+          "action": "MarkConversationUnread (set Conversations.Unread=true)",
+          "source": "ConversationService.cs:170",
+          "code_verified": true
+        },
+        {
+          "step": 4,
+          "component": "MediatR",
+          "action": "Publish ConversationUnreadStatusChangedEvent → SSE push",
+          "source": "ConversationService.cs:175",
+          "code_verified": true
+        }
+      ]
+    },
+    {
+      "name": "GetMessages",
+      "description": "Load conversation message history",
+      "trigger": "GET (implicit — via ConversationDto hydration or direct call)",
+      "steps": [
+        {
+          "step": 1,
+          "component": "ConversationRepository",
+          "action": "SELECT m.Id, m.Text, m.DateCreatedUtc, m.SmsLogId FROM ConversationMessages m INNER JOIN Conversations c WHERE c.Id=@conversationId ORDER BY m.Id ASC",
+          "source": "ConversationRepository.cs (GetConversationMessages)",
+          "code_verified": true,
+          "output": "IEnumerable<ConversationMessageReadModel>"
+        }
+      ]
+    },
+    {
+      "name": "DeliveryStatusUpdate",
+      "description": "DLR callback updates message delivery status",
+      "trigger": "DLR webhook / status processor",
+      "steps": [
+        {
+          "step": 1,
+          "component": "ConversationRepository",
+          "action": "UPDATE ConversationMessages SET Status=@status WHERE SmsLogId=@smsLogId (if exists guard)",
+          "source": "ConversationRepository.cs (UpdateConversationMessageStatus)",
+          "code_verified": true
+        }
+      ],
+      "note": "Status: Pending(0) → Delivered(1) or Failed(2)"
+    }
+  ]
+}

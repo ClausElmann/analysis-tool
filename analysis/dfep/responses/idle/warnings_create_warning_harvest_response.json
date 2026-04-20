@@ -1,0 +1,78 @@
+{
+  "capability_id": "create_warning",
+  "domain": "Warnings",
+  "found": true,
+  "entry_point": {
+    "controller": "N/A — batch job (no HTTP entry point)",
+    "method": "CreateWarnings (ReadyService) / CreateWarnings (TrimbleOutageNotificationService)",
+    "http_verb": null,
+    "route": null,
+    "file": "ServiceAlert.Services/Ready/ReadyService.cs:364"
+  },
+  "request_model": {
+    "class": "Warning (domain entity constructed in-process by batch service)",
+    "fields": [
+      "ProfileId: int",
+      "WarningTypeId: int (enum WarningTypes: READyLeak, READyAmbientTemp, READyBurst)",
+      "DateCreatedUtc: DateTime (set to UtcNow by repository)",
+      "Status: int (WarningStatus enum)",
+      "RecipientStrategy: int? (bitmask: 0=none, 1=resident, 2=owner, 3=both, 4=forwarded, etc.)",
+      "SourceRef: string (unique dedup key: '{profileId}_{serial}_{customerNo}_{timestamp}')",
+      "SourceDateUtc: DateTime",
+      "Serial: string",
+      "Fields: List<WarningField> ({ WarningId, Name, Value })",
+      "Recipients: List<WarningRecipient> ({ WarningId, Kvhx, StandardReceiverId, StandardReceiverGroupId, PhoneCode, PhoneNumber, Email })"
+    ],
+    "file": "ServiceAlert.Core/Domain/Warnings/Warning.cs:1"
+  },
+  "service_calls": [
+    {
+      "class": "WarningService",
+      "method": "CreateWarning(Warning warning)",
+      "file": "ServiceAlert.Services/Warnings/WarningService.cs:67"
+    }
+  ],
+  "repository_calls": [
+    {
+      "class": "WarningRepository",
+      "method": "WarningExists(profileId, warningTypeId, sourceRef)",
+      "file": "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:159"
+    },
+    {
+      "class": "WarningRepository",
+      "method": "CreateWarning(Warning warning)",
+      "file": "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:18"
+    }
+  ],
+  "sql_operations": [
+    {
+      "type": "SELECT",
+      "table": "Warnings",
+      "operation": "select count(*) FROM dbo.Warnings WHERE ProfileId=@ProfileId AND WarningTypeId=@WarningTypeId AND SourceRef=@SourceRef",
+      "note": "Idempotency guard — skip if already exists",
+      "file": "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:159"
+    },
+    {
+      "type": "INSERT (BulkInsert transaction)",
+      "table": "Warnings + WarningFields + WarningRecipients",
+      "operation": "BulkInsert Warning → then BulkInsert WarningRecipients + WarningFields (Z.Dapper.Plus, transacted)",
+      "file": "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:18"
+    }
+  ],
+  "validations": [
+    "SourceRef uniqueness check before insert: WarningRepository.WarningExists() — skip duplicate if same profileId+warningTypeId+sourceRef (WarningService.cs:1)",
+    "Warning null check in WarningService.CreateWarning (WarningService.cs:1)",
+    "ReadyService: only creates warning if sensor data meets threshold (leak/burst/ambientTemp candidate logic) (ReadyService.cs:300+)"
+  ],
+  "side_effects": [
+    "WarningWorkloadProcessor picks up new warnings (Status=unprocessed) and sends SMS/email via WarningMessageSender (WarningWorkloadProcessor.cs:1)",
+    "Batch job sets DateProcessedUtc and updates Status after sending (WarningService.ProcessWarningsAsync)"
+  ],
+  "error_paths": [
+    "Duplicate SourceRef → silently skipped (no error, no insert) (WarningService.cs:1)",
+    "null warning → silently skipped (WarningService.cs:1)",
+    "Transaction rollback if BulkInsert fails — Warning + Fields + Recipients all-or-nothing (WarningRepository.cs:17)"
+  ],
+  "confidence": 0.92,
+  "notes": "create_warning has NO HTTP entry point — it is exclusively triggered by internal batch jobs: ReadyService (FTP file processor for Kamstrup READy meters) and TrimbleOutageNotificationService (SOAP-based). WarningRecipient.ExternalReference field exists on entity but not mapped to WarningRecipients table in the BulkInsert — may be missing column. TrimbleOutageNotificationService entry: ServiceAlert.Web/Controllers/TrimbleOutageNotificationSoap.cs (SOAP endpoint) → TrimbleOutageNotificationService.CreateWarnings()."
+}

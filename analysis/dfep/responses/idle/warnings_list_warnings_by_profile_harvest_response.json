@@ -1,0 +1,76 @@
+{
+  "capability_id": "list_warnings_by_profile",
+  "domain": "Warnings",
+  "found": true,
+  "entry_point": {
+    "controller": "KamstrupReportsController",
+    "method": "GetWarnings",
+    "http_verb": "GET",
+    "route": "/api/KamstrupReports/GetWarnings?profileId={profileId}&fromDateUtc={from}&toDateUtc={to}",
+    "file": "ServiceAlert.Web/Controllers/Kamstrup/KamstrupReportsController.cs:83"
+  },
+  "request_model": {
+    "class": "query parameters (no request body)",
+    "fields": [
+      "profileId: int",
+      "fromDateUtc: DateTimeOffset",
+      "toDateUtc: DateTimeOffset"
+    ],
+    "file": "ServiceAlert.Web/Controllers/Kamstrup/KamstrupReportsController.cs:83"
+  },
+  "service_calls": [
+    {
+      "class": "IWarningService",
+      "method": "GetWarningTypesForProfile(profileId, ProfileRoleNames.KamstrupREADy)",
+      "note": "Used to build warningTypeId → translation key dictionary for response DTOs",
+      "file": "ServiceAlert.Services/Warnings/WarningService.cs:1"
+    },
+    {
+      "class": "IWarningService",
+      "method": "GetWarningsByProfile(profileId, fromDateUtc, toDateUtc.AddDays(1))",
+      "note": "toDateUtc is extended +1 day in controller",
+      "file": "ServiceAlert.Services/Warnings/WarningService.cs:1"
+    }
+  ],
+  "repository_calls": [
+    {
+      "class": "WarningRepository",
+      "method": "GetWarningsByProfile(profileId, fromDateUtc, toDateUtc)",
+      "file": "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:280"
+    }
+  ],
+  "sql_operations": [
+    {
+      "type": "SELECT",
+      "table": "Warnings",
+      "operation": "select * from Warnings where ProfileId = @profileId and DateCreatedUtc >= @fromDateUtc and DateCreatedUtc < @toDateUtc",
+      "file": "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:283"
+    }
+  ],
+  "validations": [
+    "profileId == 0 → 400 Bad Request (KamstrupReportsController.cs:84)",
+    "Profile must exist: GetProfileById(profileId) → null = 404 (KamstrupReportsController.cs:85)",
+    "No explicit date range validation — toDateUtc.AddDays(1) is applied silently in controller (KamstrupReportsController.cs:90)"
+  ],
+  "side_effects": [],
+  "error_paths": [
+    "profileId == 0 → 400",
+    "Profile not found → 404"
+  ],
+  "response_dto": {
+    "class": "WarningDto",
+    "fields": [
+      "MeterNumber: string (Warning.Serial)",
+      "WarningType: string (translation key from warningTypes dictionary)",
+      "DateCreatedUtc: DateTimeOffset (Warning.DateCreatedUtc)",
+      "Status: string (WarningStatus translation key)"
+    ],
+    "file": "ServiceAlert.Web/Controllers/Kamstrup/Dto/WarningDto.cs:1"
+  },
+  "auth": {
+    "policy": "UserAuthenticationPolicyNames.SuperAdmin",
+    "note": "Controller is SuperAdmin-only — no per-profile authorization check in GetWarnings (only profile existence check)"
+  },
+  "confidence": 0.95,
+  "notes": "Controller route: [Authorize(SuperAdmin)] → only super admins can list warnings by profile. The response maps WarningTypeId → NameTranslationKey (string) and Status (int) → translation key string. Fields and Recipients are NOT returned in this endpoint — raw Warning entity only. WarningService.GetWarningsByProfile delegates directly to repository — no business logic layer."
+}

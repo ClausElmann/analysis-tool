@@ -1,0 +1,33 @@
+{
+  "domain": "Warnings",
+  "run_date": "2026-04-20",
+  "iteration": 1,
+  "prior_match_score": 0.0,
+  "snapshot_date": "2026-04-18",
+  "targets": [
+    {
+      "capability_id": "create_warning",
+      "gap_type": "HIGH_GAP",
+      "reason": "Missing HIGH-severity capability: Create a new Warning from an external system, attaching typed fields and recipie",
+      "priority": 1,
+      "capability_intent": "Create a new Warning from an external system, attaching typed fields and recipients",
+      "confidence": 0.0
+    },
+    {
+      "capability_id": "list_warnings_by_profile",
+      "gap_type": "HIGH_GAP",
+      "reason": "Missing HIGH-severity capability: Retrieve historical Warning records for a profile within a date range",
+      "priority": 2,
+      "capability_intent": "Retrieve historical Warning records for a profile within a date range",
+      "confidence": 0.0
+    },
+    {
+      "capability_id": "warning_type_management",
+      "gap_type": "HIGH_GAP",
+      "reason": "Missing HIGH-severity capability: Read WarningTypes available to a profile, optionally filtered by ProfileRole",
+      "priority": 3,
+      "capability_intent": "Read WarningTypes available to a profile, optionally filtered by ProfileRole",
+      "confidence": 0.0
+    }
+  ]
+}

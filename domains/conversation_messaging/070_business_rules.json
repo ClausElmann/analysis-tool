@@ -1,0 +1,116 @@
+{
+  "domain": "conversation_messaging",
+  "stage": "N-A",
+  "layer": "business_rules",
+  "rules": [
+    {
+      "id": "RULE_CM_001",
+      "name": "Profile must have access to conversation phone number",
+      "description": "A user may only send/receive messages for conversations whose phone number is accessible by at least one of the user's profiles (profile intersection check).",
+      "enforcement": "controller",
+      "source": {
+        "file": "sms-service/ServiceAlert.Web/Controllers/Conversations/ConversationController.cs",
+        "line": 141,
+        "code_verified": true
+      },
+      "logic": "GetConversationPhoneNumberWithProfileIdsByConversationId().ProfileIds.Intersect(GetProfilesbyUserId()) → if empty → 403",
+      "violation_response": "403 Forbidden ('Not your conversation!')",
+      "transformation_required": false,
+      "green_ai_mapping": "Replicate in Handler: verify ProfileId ∈ ConversationPhoneNumbers.ProfileMappings via SQL"
+    },
+    {
+      "id": "RULE_CM_002",
+      "name": "Tenant isolation — via ConversationPhoneNumbers.CustomerId (indirect)",
+      "description": "ConversationMessages have no direct CustomerId. Tenant isolation flows through: ConversationMessage.ConversationId → Conversations.ConversationPhoneNumberId → ConversationPhoneNumbers.CustomerId.",
+      "enforcement": "implicit_via_auth",
+      "source": {
+        "file": "sms-service/ServiceAlert.DB/Tables/ConversationMessages.sql",
+        "line": 1,
+        "code_verified": true
+      },
+      "transformation_required": true,
+      "green_ai_mapping": "All message queries MUST join through Conversations → ConversationPhoneNumbers WHERE CustomerId=@CustomerId. No direct CustomerId on ConversationMessages.",
+      "note": "Same INDIRECT pattern as conversation_creation — verified consistent"
+    },
+    {
+      "id": "RULE_CM_003",
+      "name": "SMS dispatch precedes DB insert",
+      "description": "Layer 0 sends the SMS to the external gateway BEFORE inserting the ConversationMessage record. If DB insert fails after send, message is lost in DB but delivered to SMS.",
+      "enforcement": "code_flow",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 59,
+        "code_verified": true
+      },
+      "transformation_required": true,
+      "green_ai_mapping": "green-ai design: INSERT first (Status=Pending), then dispatch SMS via outbox/job. Update Status=Delivered/Failed via DLR callback. Decouples atomicity risk.",
+      "risk": "HIGH — if SMS send succeeds but DB insert fails, message is untracked"
+    },
+    {
+      "id": "RULE_CM_004",
+      "name": "Direction inferred from SmsLogId null-check",
+      "description": "No explicit Direction column. SmsLogId NULL = inbound from partner. SmsLogId NOT NULL = outbound sent by customer.",
+      "enforcement": "convention",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ReadModels/ConversationMessageReadModel.cs",
+        "line": 1,
+        "code_verified": true
+      },
+      "transformation_required": false,
+      "green_ai_mapping": "Maintain same convention in green-ai. IsReply bool on response DTO derived from SmsLogId != null."
+    },
+    {
+      "id": "RULE_CM_005",
+      "name": "Delivery status lifecycle",
+      "description": "ConversationMessage.Status (ConversationMessageStatus enum) follows: Pending(0) → Delivered(1) | Failed(2). Updated by SmsLogId match on DLR callback.",
+      "enforcement": "code_flow",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/Repository/ConversationRepository.cs",
+        "line": 1,
+        "code_verified": true
+      },
+      "transformation_required": false,
+      "green_ai_mapping": "Status column and enum identical. DLR update: UPDATE ConversationMessages SET Status=@status WHERE SmsLogId=@smsLogId"
+    },
+    {
+      "id": "RULE_CM_006",
+      "name": "Unread state on conversation (not on message)",
+      "description": "There is no per-message unread flag. Unread state is tracked on Conversations.Unread (BIT). When inbound message arrives → Unread=true. When user views conversation → Unread=false (MarkConversationRead).",
+      "enforcement": "code_flow",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 156,
+        "code_verified": true
+      },
+      "transformation_required": false,
+      "green_ai_mapping": "MarkConversationRead / MarkConversationUnread map directly. ConversationUnreadStatusChangedEvent → SSE push."
+    },
+    {
+      "id": "RULE_CM_007",
+      "name": "SSE notification on every sent/received message",
+      "description": "Every message insertion (outbound and inbound) triggers a ClientEvent of type CONVERSATIONMESSAGESENT, pushed to SSE group 'ConversationMessageSent/{conversationPhoneNumberId}'.",
+      "enforcement": "code_flow",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 20,
+        "code_verified": true
+      },
+      "transformation_required": false,
+      "green_ai_mapping": "Replicate SSE ClientEvent push after insert. GroupName pattern identical."
+    },
+    {
+      "id": "RULE_CM_008",
+      "name": "Idempotency guard on outbound message insert",
+      "description": "Before inserting a ConversationMessage, Layer 0 checks GetConversationMessageBySmsLogId(smsLogId). If already exists, returns early without duplicate insert.",
+      "enforcement": "code_logic",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 77,
+        "code_verified": true
+      },
+      "transformation_required": true,
+      "green_ai_mapping": "transformation_required — if SMS-first order is changed (RULE_CM_003), idempotency guard needs redesign. If insert-first, SmsLogId is assigned after send, so guard moves to DLR update path.",
+      "note": "Race condition possible in Layer 0: two concurrent sends with same SmsLogId — unlikely but unguarded"
+    }
+  ]
+}

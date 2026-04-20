@@ -1,0 +1,69 @@
+{
+  "domain": "conversation_dispatch",
+  "phase": "N-A",
+  "revised": true,
+  "code_verified": true,
+  "business_rules": [
+    {
+      "id": "DD_CD_01",
+      "name": "DispatchOnlyQueuedMessages",
+      "description": "Only ConversationMessages with Status=Queued may be dispatched. Dispatching Created, Sent, Delivered, or Failed messages is forbidden.",
+      "layer0_source": "ConversationService.cs:CreateAndSendConversationMessage:59 (Layer 0 has no Status=Queued concept — implicit: only new messages are dispatched inline). Green-ai: explicit Status=Queued guard before gateway call (INV_CD_01).",
+      "code_verified": true,
+      "transformation_required": false,
+      "evidence": "green-ai SendConversationReplyHandler.cs:96 — Status set to Queued(1) only for messages that passed transaction; ConversationMessageStatus.cs:12 (Queued=1)"
+    },
+    {
+      "id": "DD_CD_02",
+      "name": "SmsLogIdSetOnSuccessfulDispatch",
+      "description": "ConversationMessage.SmsLogId MUST be set to the gateway-returned SmsLogId on successful dispatch. SmsLogId=null means message not yet dispatched (or inbound partner reply).",
+      "layer0_source": "ConversationMessage.cs:18 (xmldoc: null = message from recipient). ConversationService.cs:CreateAndSendConversationMessage:77 (smsLogId from SendMessage used as idempotency key before insert). SmsConversationOutboundMessageSender.cs:50 (returns result.SmsLogId.GetValueOrDefault()).",
+      "code_verified": true,
+      "transformation_required": false
+    },
+    {
+      "id": "DD_CD_03",
+      "name": "TenantIsolation_DispatchOwnCustomerMessages",
+      "description": "Dispatch job MUST only process messages belonging to the correct CustomerId. A ConversationMessage from Customer A must never be dispatched in Customer B context.",
+      "layer0_source": "ConversationRepository.cs:GetConversation:121 — SQL includes cpn.CustomerId via JOIN ConversationPhoneNumbers. Layer 0 does NOT enforce this in a background job context (no job isolation concept).",
+      "code_verified": true,
+      "transformation_required": true,
+      "transformation_note": "Green-ai dispatch SELECT must JOIN ConversationMessages → Conversations → ConversationPhoneNumbers → WHERE CustomerId=@CustomerId. No explicit background job isolation in Layer 0 — transformation_required."
+    },
+    {
+      "id": "DD_CD_04",
+      "name": "InsertFirstGuarantee_DispatchReadsExistingRow",
+      "description": "Dispatch MUST read an existing ConversationMessage row (Status=Queued). It MUST NOT INSERT. The INSERT-FIRST guarantee (DD_CM_02) ensures the row exists before any dispatch attempt.",
+      "layer0_source": "green-ai SendConversationReplyHandler.cs:88 (INSERT ConversationMessages Status=Created) + :96 (UPDATE Status=Queued). ConversationRepository.cs:GetConversationMessage:62 (SELECT by Id — read-only).",
+      "code_verified": true,
+      "transformation_required": false
+    },
+    {
+      "id": "DD_CD_05",
+      "name": "FailureMustTransitionFromQueued",
+      "description": "On gateway failure, Status MUST transition Queued→Failed. A permanently Queued message indicates a stuck job — invalid state. On success: Queued→Sent.",
+      "layer0_source": "SmsConversationOutboundMessageSender.cs:47-49 — throws MessageNotSentException(result.ErrorMessage) when result.ErrorMessage != null. ConversationRepository.cs:UpdateConversationMessageStatus:79 (status update by SmsLogId).",
+      "code_verified": true,
+      "transformation_required": false
+    },
+    {
+      "id": "DD_CD_06",
+      "name": "DeliveryStatusLifecycle_DLRMapsToStatus",
+      "description": "DLR (Delivery Receipt) callbacks from gateway MUST update ConversationMessage.Status via SmsStatusCode→ConversationMessageStatus mapping. Layer 0 defines exact mapping: SmsReceived1→Delivered, error codes→Failed, others→Pending.",
+      "layer0_source": "StatusUpdatesEventListener.cs:ConversationStatus:34-50 — full mapping: SmsReceived1→Delivered(1), SmsSendNotReceived2→Pending(0), Unknown136→Pending(0), GatewaySendError6→Failed(2), GatewayUnableToDeliver7→Failed(2), MessageDeleted9→Failed(2), Rejected146→Failed(2), Undeliverable156→Failed(2), default→Pending(0). ConversationRepository.cs:UpdateConversationMessageStatuses:84 — batch SQL UPDATE by SmsLogId.",
+      "code_verified": true,
+      "transformation_required": true,
+      "transformation_note": "Layer 0 status values: Delivered=1, Failed=2. Green-ai status values: Delivered=3, Failed=4 (ConversationMessageStatus.cs). Mapping must be remapped in green-ai DLR handler. Update by SmsLogId is correct (gateway correlation key)."
+    },
+    {
+      "id": "UNKNOWN_CD_01",
+      "name": "RetryPolicy_ForFailedMessages",
+      "description": "UNKNOWN — Layer 0 has no retry for conversation dispatch (fire-and-forget). Green-ai retry count, backoff strategy, dead-letter policy: all undefined.",
+      "layer0_source": "NONE — no retry logic found in sms-service for conversation messages",
+      "code_verified": false,
+      "transformation_required": true,
+      "classification": "UNKNOWN (missing Layer 0 design) — transformation_required=true. NOT a gate failure.",
+      "resolution": "025_transformation.json — Architect decision required"
+    }
+  ]
+}

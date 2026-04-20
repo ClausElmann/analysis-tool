@@ -1,0 +1,109 @@
+{
+  "domain": "conversation_messaging",
+  "stage": "N-A",
+  "layer": "entities",
+  "entities": [
+    {
+      "name": "ConversationMessage",
+      "type": "db_entity",
+      "source": {
+        "file": "sms-service/ServiceAlert.DB/Tables/ConversationMessages.sql",
+        "line": 1,
+        "code_verified": true
+      },
+      "entity_source": {
+        "file": "sms-service/ServiceAlert.Core/Domain/Conversations/Entities/ConversationMessage.cs",
+        "line": 1,
+        "code_verified": true
+      },
+      "fields": [
+        { "name": "Id", "type": "INT IDENTITY(1,1)", "nullable": false, "pk": true },
+        { "name": "ConversationId", "type": "INT", "nullable": false, "fk": "Conversations.Id" },
+        { "name": "Text", "type": "NVARCHAR(MAX)", "nullable": false },
+        { "name": "SmsLogId", "type": "INT NULL", "nullable": true, "note": "NULL = inbound from partner; non-null = outbound by customer" },
+        { "name": "DateCreatedUtc", "type": "DATETIME", "nullable": false, "default": "getdate()" },
+        { "name": "Status", "type": "INT", "nullable": false, "default": 0, "enum_ref": "ConversationMessageStatus" }
+      ],
+      "indexes": [
+        { "name": "IX_ConversationMessages_SmsLogId", "columns": ["SmsLogId"] },
+        { "name": "IX_ConversationId_cover", "columns": ["ConversationId"], "include": ["DateCreatedUtc", "SmsLogId", "Status", "Text"] }
+      ],
+      "transformation_notes": [
+        "No CreatedByUserId / ProfileId on message — direction derived only from SmsLogId null-check",
+        "transformation_required=true — sender identity (ProfileId/UserId) absent from Layer 0; design decision needed"
+      ]
+    },
+    {
+      "name": "ConversationMessageStatus",
+      "type": "enum",
+      "source": {
+        "file": "sms-service/ServiceAlert.Core/Domain/Conversations/Entities/ConversationMessage.cs",
+        "line": 5,
+        "code_verified": true
+      },
+      "values": [
+        { "name": "Pending", "value": 0 },
+        { "name": "Delivered", "value": 1 },
+        { "name": "Failed", "value": 2 }
+      ]
+    },
+    {
+      "name": "SendConversationReplyCommand",
+      "type": "command_dto",
+      "source": {
+        "file": "sms-service/ServiceAlert.Web/Controllers/Conversations/DtoAndCommands/SendConversationReplyCommand.cs",
+        "line": 1,
+        "code_verified": true
+      },
+      "fields": [
+        { "name": "ConversationId", "type": "int", "nullable": false },
+        { "name": "Text", "type": "string", "nullable": false }
+      ]
+    },
+    {
+      "name": "ConversationMessageDto",
+      "type": "read_dto",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/Dto/ConversationMessageDto.cs",
+        "line": 1,
+        "code_verified": true
+      },
+      "fields": [
+        { "name": "Id", "type": "int" },
+        { "name": "ConversationId", "type": "int" },
+        { "name": "Text", "type": "string" },
+        { "name": "DateCreatedUtc", "type": "DateTime" },
+        { "name": "IsReply", "type": "bool", "note": "SmsLogId == null → false (inbound from partner)" }
+      ]
+    },
+    {
+      "name": "ConversationMessageReadModel",
+      "type": "read_model",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ReadModels/ConversationMessageReadModel.cs",
+        "line": 1,
+        "code_verified": true
+      },
+      "fields": [
+        { "name": "Id", "type": "int" },
+        { "name": "Text", "type": "string" },
+        { "name": "DateCreatedUtc", "type": "DateTime" },
+        { "name": "SmsLogId", "type": "int?", "nullable": true }
+      ]
+    },
+    {
+      "name": "ConversationMessageSentEventDto",
+      "type": "sse_event_dto",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 20,
+        "code_verified": true
+      },
+      "fields": [
+        { "name": "ConversationMessage", "type": "ConversationMessageDto" },
+        { "name": "Conversation", "type": "ConversationDto" }
+      ],
+      "note": "Payload for SSE ClientEvent CONVERSATIONMESSAGESENT"
+    }
+  ]
+}

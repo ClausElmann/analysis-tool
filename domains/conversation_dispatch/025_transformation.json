@@ -1,0 +1,213 @@
+{
+  "domain": "conversation_dispatch",
+  "phase": "TRANSFORMATION",
+  "verdict": "REDESIGNED",
+  "architect_go": "2026-04-20",
+  "clone_risk": "NONE — all Layer 0 patterns explicitly redesigned",
+
+  "transformation_decisions": [
+    {
+      "id": "T_CD_01",
+      "item": "SMS gateway integration",
+      "layer0_pattern": "IOutboundMessageSender (sms-service internal interface, registered Startup.cs:751). Implementation: SmsConversationOutboundMessageSender.cs:23 calls IBroadcastSender.SendFastMessageSingleGroupAsync.",
+      "layer0_problem": "IOutboundMessageSender and IBroadcastSender are sms-service internal. Green-ai cannot reference these types.",
+      "greenai_design": "ISmsGatewayClient — new green-ai HTTP interface. Method: Task<SmsGatewayResult> SendMessageAsync(SendSmsRequest request). Registered as scoped HTTP client.",
+      "types": {
+        "ISmsGatewayClient": "Features/ConversationDispatch/Gateway/ISmsGatewayClient.cs",
+        "SendSmsRequest": "Features/ConversationDispatch/Gateway/SendSmsRequest.cs — fields: ProfileId (int), SenderPhoneCode (int), SenderPhoneNumber (long), SenderGatewayProvider (GatewayProvider), RecipientPhoneCode (int), RecipientPhoneNumber (long), RecipientName (string), Text (string)",
+        "SmsGatewayResult": "Features/ConversationDispatch/Gateway/SmsGatewayResult.cs — fields: SmsLogId (long?), ErrorMessage (string?), IsSuccess (bool)"
+      },
+      "code_verified": true,
+      "transformation_required": false
+    },
+    {
+      "id": "T_CD_02",
+      "item": "Job trigger mechanism",
+      "layer0_pattern": "No background job in Layer 0. ConversationService.CreateAndSendConversationMessage:59 called inline by controller immediately after message creation (send-first).",
+      "layer0_problem": "Send-first = partial state risk. No Queued concept. No async dispatch capability.",
+      "greenai_design": "DispatchConversationMessagesJob : BackgroundService. Polls ConversationMessages WHERE Status=Queued ORDER BY Id ASC SELECT TOP(@BatchSize). Processes each message via DispatchConversationMessageHandler (IMediator.Send). No retry (v1 decision).",
+      "polling_query": "SELECT TOP(@BatchSize) cm.Id, cm.ConversationId, cm.Text FROM ConversationMessages cm INNER JOIN Conversations c ON c.Id = cm.ConversationId WHERE cm.Status = @Queued ORDER BY cm.Id ASC",
+      "polling_note": "No CustomerId filter at job level — job processes all tenants. Tenant isolation enforced per-message via GetConversation JOIN (DD_CD_03 preserved).",
+      "code_verified": false,
+      "transformation_required": false
+    },
+    {
+      "id": "T_CD_03",
+      "item": "Retry policy",
+      "layer0_pattern": "Fire-and-forget — no retry in Layer 0.",
+      "greenai_design": "NONE (v1). Failed = terminal state. No re-queue. Dead letter not implemented in v1. Architect decision locked 2026-04-20.",
+      "code_verified": false,
+      "transformation_required": false
+    },
+    {
+      "id": "T_CD_04",
+      "item": "Status lifecycle — INSERT-FIRST vs SEND-FIRST redesign",
+      "layer0_pattern": "SEND-FIRST: ConversationService.cs:67-84 — IBroadcastSender called BEFORE INSERT. SmsLogId returned from send, then message inserted with SmsLogId already set. No Queued state.",
+      "layer0_problem": "Partial state risk: if INSERT fails after send, SMS was sent but no DB record. No traceability.",
+      "greenai_design": "INSERT-FIRST (inherited from conversation_messaging DONE 🔒): SendConversationReplyHandler.cs:88 inserts Status=Created, :96 updates to Status=Queued within transaction. Dispatch job reads Queued rows. On success: Status=Sent + SmsLogId set. On DLR: Sent→Delivered or Sent→Failed.",
+      "status_lifecycle": {
+        "Created": { "value": 0, "set_by": "SendConversationReplyHandler.cs:88 — INSERT", "source": "conversation_messaging domain DONE 🔒" },
+        "Queued":  { "value": 1, "set_by": "SendConversationReplyHandler.cs:96 — UPDATE within transaction", "source": "conversation_messaging domain DONE 🔒" },
+        "Sent":    { "value": 2, "set_by": "DispatchConversationMessageHandler — UPDATE SET SmsLogId=@SmsLogId, Status=Sent WHERE Id=@Id on ISmsGatewayClient success" },
+        "Delivered": { "value": 3, "set_by": "UpdateDeliveryStatusHandler — DLR SmsReceived1, batch UPDATE WHERE SmsLogId IN @SmsLogIds" },
+        "Failed":  { "value": 4, "set_by": "DispatchConversationMessageHandler on ISmsGatewayClient failure OR UpdateDeliveryStatusHandler on error codes" }
+      },
+      "code_verified": true,
+      "transformation_required": false
+    },
+    {
+      "id": "T_CD_05",
+      "item": "DLR status remapping (Layer 0 enum → green-ai enum)",
+      "layer0_pattern": "StatusUpdatesEventListener.cs:34-50. Layer 0 enum: Pending=0, Delivered=1, Failed=2.",
+      "greenai_design": "UpdateDeliveryStatusHandler maps SmsStatusCode → green-ai ConversationMessageStatus. Transient codes (SmsSendNotReceived2, Unknown136, default) → no update (NOT Pending — no Pending in green-ai dispatch flow).",
+      "mapping": {
+        "SmsReceived1":            "→ ConversationMessageStatus.Delivered (3)",
+        "SmsSendNotReceived2":     "→ no update (transient — not terminal)",
+        "Unknown136":              "→ no update (transient)",
+        "GatewaySendError6":       "→ ConversationMessageStatus.Failed (4)",
+        "GatewayUnableToDeliver7": "→ ConversationMessageStatus.Failed (4)",
+        "MessageDeleted9":         "→ ConversationMessageStatus.Failed (4)",
+        "Rejected146":             "→ ConversationMessageStatus.Failed (4)",
+        "Undeliverable156":        "→ ConversationMessageStatus.Failed (4)",
+        "default":                 "→ no update"
+      },
+      "sql": "UPDATE ConversationMessages SET Status=@Status WHERE SmsLogId IN @SmsLogIds — ConversationRepository.cs:84 pattern, status values remapped",
+      "code_verified": true,
+      "transformation_required": false
+    },
+    {
+      "id": "T_CD_06",
+      "item": "GetQueuedConversationMessages SQL (no Layer 0 equivalent)",
+      "layer0_pattern": "NONE — Layer 0 has no Status=Queued polling concept.",
+      "greenai_design": "New SQL derived from Layer 0 JOIN patterns. Embedded resource: GetQueuedConversationMessages.sql",
+      "sql": "SELECT TOP(@BatchSize) cm.Id, cm.ConversationId, cm.Text FROM ConversationMessages cm INNER JOIN Conversations c ON c.Id = cm.ConversationId WHERE cm.Status = @Queued ORDER BY cm.Id ASC",
+      "derivation": "JOIN pattern: ConversationRepository.cs:39 (GetConversationMessages JOIN). Status=Queued(1) from green-ai ConversationMessageStatus.cs. No CustomerId filter — tenant isolation per DD_CD_03 via GetConversation JOIN per message.",
+      "code_verified": false,
+      "transformation_required": false
+    },
+    {
+      "id": "T_CD_07",
+      "item": "UPDATE ConversationMessage after dispatch — by Id (not SmsLogId)",
+      "layer0_pattern": "ConversationRepository.cs:UpdateConversationMessageStatus:79 — UPDATE by SmsLogId. In Layer 0: SmsLogId is known before INSERT (send-first). SQL: if exists (...WHERE SmsLogId=@smsLogId) update SET Status=@status WHERE SmsLogId=@smsLogId",
+      "layer0_problem": "In green-ai INSERT-FIRST: ConversationMessage.Id is known before dispatch. SmsLogId is null until dispatch returns — cannot update by SmsLogId.",
+      "greenai_design": "New SQL: UPDATE ConversationMessages SET SmsLogId=@SmsLogId, Status=@Status WHERE Id=@Id AND Status=@Queued (optimistic guard: only update if still Queued — prevents race condition).",
+      "failure_sql": "UPDATE ConversationMessages SET Status=@Failed WHERE Id=@Id AND Status=@Queued",
+      "code_verified": false,
+      "transformation_required": false
+    }
+  ],
+
+  "before_after": {
+    "layer0_flow": [
+      "1. ConversationController.SendConversationReply",
+      "2. ConversationService.CreateAndSendConversationMessage:59",
+      "3. ← SEND FIRST: IOutboundMessageSender.SendMessage (IBroadcastSender.SendFastMessageSingleGroupAsync:42) → returns SmsLogId",
+      "4. INSERT ConversationMessage with SmsLogId already set (partial-state risk: DB insert after send)",
+      "5. No Queued state. No async dispatch. No DLR lifecycle in dispatch path."
+    ],
+    "greenai_flow": [
+      "=== conversation_messaging (DONE 🔒) ===",
+      "1. SendConversationReplyHandler.cs:88 — INSERT ConversationMessage Status=Created",
+      "2. SendConversationReplyHandler.cs:96 — UPDATE Status=Queued (same DB transaction)",
+      "   → INSERT-FIRST COMPLETE. Row guaranteed before any dispatch attempt.",
+      "",
+      "=== conversation_dispatch (THIS DOMAIN) ===",
+      "3. DispatchConversationMessagesJob (BackgroundService, polling)",
+      "   → SELECT TOP(N) WHERE Status=Queued ORDER BY Id ASC",
+      "4. per message: DispatchConversationMessageHandler",
+      "   4a. GetConversationMessage WHERE Id=@Id — verify Status=Queued (INV_CD_01 guard)",
+      "   4b. GetConversation — phone numbers, CustomerId, GatewayProvider (JOIN CustomerId — DD_CD_03)",
+      "   4c. ISmsGatewayClient.SendMessageAsync(SendSmsRequest) ← NEW green-ai HTTP interface",
+      "   4d. SUCCESS: UPDATE SET SmsLogId=@SmsLogId, Status=Sent WHERE Id=@Id AND Status=@Queued",
+      "   4e. FAILURE: UPDATE SET Status=Failed WHERE Id=@Id AND Status=@Queued",
+      "",
+      "=== DLR callback ===",
+      "5. UpdateDeliveryStatusHandler (INotificationHandler<StatusUpdatesEvent>)",
+      "   5a. Receive batch StatusUpdatesEvent (SmsLogId + StatusCode per item)",
+      "   5b. Map StatusCode → green-ai ConversationMessageStatus (T_CD_05 remapping)",
+      "   5c. Batch UPDATE SET Status=@Status WHERE SmsLogId IN @SmsLogIds"
+    ]
+  },
+
+  "clone_risk_assessment": {
+    "verdict": "NONE",
+    "checks": [
+      {
+        "item": "IOutboundMessageSender / IBroadcastSender",
+        "risk": "NONE",
+        "reason": "Not used. Replaced by ISmsGatewayClient — entirely new green-ai type with new contract."
+      },
+      {
+        "item": "ConversationService.CreateAndSendConversationMessage (send-first pattern)",
+        "risk": "NONE",
+        "reason": "Send-first pattern not replicated. DispatchConversationMessageHandler reads existing Queued row — no inline send after insert."
+      },
+      {
+        "item": "StatusUpdatesEventListener.cs DLR mapping logic",
+        "risk": "LOW — concept re-implemented, not copied",
+        "reason": "Same SmsStatusCode values used (Layer 0 enum is the authoritative source). Status values remapped to green-ai enum (Delivered=3, Failed=4). SQL pattern preserved (batch by SmsLogId — correct gateway correlation key). Logic restructured in UpdateDeliveryStatusHandler using green-ai patterns (Result<T>, vertical slice)."
+      },
+      {
+        "item": "ConversationRepository SQL patterns (GetConversationMessage:62, GetConversation:121, UpdateConversationMessageStatus:79, UpdateConversationMessageStatuses:84)",
+        "risk": "LOW — adapted, not copied",
+        "reason": "GetConversationMessage + GetConversation SQL reused (same data model). UPDATE after dispatch redesigned: by Id (not SmsLogId) + AND Status=@Queued guard. DLR UPDATE by SmsLogId preserved (correct key). New query: GetQueuedConversationMessages (no Layer 0 equivalent)."
+      }
+    ]
+  },
+
+  "new_types_greenai": [
+    { "type": "ISmsGatewayClient",                 "file": "Features/ConversationDispatch/Gateway/ISmsGatewayClient.cs" },
+    { "type": "SendSmsRequest",                    "file": "Features/ConversationDispatch/Gateway/SendSmsRequest.cs" },
+    { "type": "SmsGatewayResult",                  "file": "Features/ConversationDispatch/Gateway/SmsGatewayResult.cs" },
+    { "type": "DispatchConversationMessagesJob",    "file": "Features/ConversationDispatch/Job/DispatchConversationMessagesJob.cs" },
+    { "type": "DispatchConversationMessageCommand", "file": "Features/ConversationDispatch/DispatchConversationMessage/DispatchConversationMessageCommand.cs" },
+    { "type": "DispatchConversationMessageHandler", "file": "Features/ConversationDispatch/DispatchConversationMessage/DispatchConversationMessageHandler.cs" },
+    { "type": "DispatchConversationMessageResponse","file": "Features/ConversationDispatch/DispatchConversationMessage/DispatchConversationMessageResponse.cs" },
+    { "type": "UpdateDeliveryStatusCommand",        "file": "Features/ConversationDispatch/UpdateDeliveryStatus/UpdateDeliveryStatusCommand.cs" },
+    { "type": "UpdateDeliveryStatusHandler",        "file": "Features/ConversationDispatch/UpdateDeliveryStatus/UpdateDeliveryStatusHandler.cs" }
+  ],
+
+  "sql_files_greenai": [
+    {
+      "name": "GetQueuedConversationMessages.sql",
+      "sql": "SELECT TOP(@BatchSize) cm.Id, cm.ConversationId, cm.Text FROM ConversationMessages cm INNER JOIN Conversations c ON c.Id = cm.ConversationId WHERE cm.Status = @Queued ORDER BY cm.Id ASC",
+      "source": "DERIVED — no Layer 0 equivalent"
+    },
+    {
+      "name": "GetConversationMessageById.sql",
+      "sql": "SELECT TOP(1) * FROM dbo.ConversationMessages WHERE Id = @Id",
+      "source": "ConversationRepository.cs:62 — same SQL"
+    },
+    {
+      "name": "GetConversationById.sql",
+      "sql": "SELECT c.*, cpn.PhoneCode SenderPhoneCode, cpn.PhoneNumber SenderPhoneNumber, cpn.GatewayProvider SenderGatewayProvider, cpn.CustomerId FROM Conversations c INNER JOIN ConversationPhoneNumbers cpn ON cpn.Id = c.ConversationPhoneNumberId WHERE c.Id = @Id",
+      "source": "ConversationRepository.cs:121-125 — adapted (WHERE c.Id=@Id explicit)"
+    },
+    {
+      "name": "UpdateConversationMessageDispatch.sql",
+      "sql": "UPDATE ConversationMessages SET SmsLogId = @SmsLogId, Status = @Status WHERE Id = @Id AND Status = @Queued",
+      "source": "REDESIGNED — Layer 0 updates by SmsLogId. Green-ai: update by Id (INSERT-FIRST) + optimistic guard AND Status=@Queued"
+    },
+    {
+      "name": "UpdateConversationMessageFailed.sql",
+      "sql": "UPDATE ConversationMessages SET Status = @Failed WHERE Id = @Id AND Status = @Queued",
+      "source": "REDESIGNED — failure path, update by Id + optimistic guard"
+    },
+    {
+      "name": "UpdateConversationMessageStatusesByDlr.sql",
+      "sql": "UPDATE ConversationMessages SET Status = @Status WHERE SmsLogId IN @SmsLogIds",
+      "source": "ConversationRepository.cs:84 — same pattern, status values remapped to green-ai enum"
+    }
+  ],
+
+  "invariants_preserved": [
+    {
+      "id": "INV_CD_01",
+      "description": "ConversationMessage MUST exist with Status=Queued BEFORE gateway call. Guard read (GetConversationMessageById.sql) in DispatchConversationMessageHandler step 1. If not Queued: abort, do not call ISmsGatewayClient."
+    },
+    {
+      "id": "INV_CM_01",
+      "description": "INSERT-FIRST (conversation_messaging domain) — row guaranteed to exist before any dispatch. DispatchConversationMessageHandler reads existing row, never inserts."
+    }
+  ]
+}

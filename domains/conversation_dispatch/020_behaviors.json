@@ -1,0 +1,93 @@
+{
+  "domain": "conversation_dispatch",
+  "phase": "N-A",
+  "revised": true,
+  "code_verified": true,
+  "behaviors": [
+    {
+      "name": "DispatchQueuedMessage",
+      "source": "ConversationService.cs:CreateAndSendConversationMessage:59 (Layer 0 inline dispatch — send-first anti-pattern)",
+      "code_verified": true,
+      "trigger": "Green-ai: async job picks up ConversationMessage WHERE Status=Queued. Layer 0: called inline from ConversationController after message creation.",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Load ConversationMessage by Id (verify Status=Queued before gateway call)",
+          "layer0_source": "ConversationRepository.cs:GetConversationMessage:62 — SQL: SELECT TOP(1) * FROM dbo.ConversationMessages WHERE Id = @Id",
+          "code_verified": true,
+          "transformation_note": "Layer 0 does NOT load by Id before dispatch — it passes profileId + ConversationReadModel directly to CreateAndSendConversationMessage. Green-ai: load by Id first (INV_CD_01)."
+        },
+        {
+          "step": 2,
+          "action": "Load Conversation dispatch context (phone numbers, gateway provider, CustomerId)",
+          "layer0_source": "ConversationRepository.cs:GetConversation:121 — SQL: SELECT c.*, cpn.PhoneCode SenderPhoneCode, cpn.PhoneNumber SenderPhoneNumber, cpn.GatewayProvider, cpn.CustomerId FROM Conversations INNER JOIN ConversationPhoneNumbers",
+          "code_verified": true
+        },
+        {
+          "step": 3,
+          "action": "Call SMS gateway: IOutboundMessageSender.SendMessage → returns SmsLogId (long)",
+          "layer0_source": "SmsConversationOutboundMessageSender.cs:SendMessage:23 — calls IBroadcastSender.SendFastMessageSingleGroupAsync, returns result.SmsLogId.GetValueOrDefault() at line 50",
+          "code_verified": true
+        },
+        {
+          "step": 4,
+          "action": "On SUCCESS: UPDATE ConversationMessage SET SmsLogId=@smsLogId, Status=Sent (green-ai: ConversationMessageStatus.Sent=2)",
+          "layer0_source": "ConversationRepository.cs:UpdateConversationMessageStatus:79 — SQL: if exists (select null from ConversationMessages where SmsLogId=@smsLogId) update ConversationMessages set Status=@status where SmsLogId=@smsLogId",
+          "code_verified": true,
+          "transformation_note": "Layer 0 updates by SmsLogId (post-send). Green-ai: update by ConversationMessage.Id (INSERT-FIRST — Id is known before dispatch)."
+        },
+        {
+          "step": 5,
+          "action": "On FAILURE (MessageNotSentException): UPDATE ConversationMessage SET Status=Failed (green-ai: ConversationMessageStatus.Failed=4)",
+          "layer0_source": "SmsConversationOutboundMessageSender.cs:47-49 — throws new MessageNotSentException(result.ErrorMessage) when result.ErrorMessage != null",
+          "code_verified": true
+        }
+      ],
+      "partial_state_risk": "NONE if INSERT-FIRST holds — message row exists (Queued) before any gateway call (green-ai INV_CM_01 from SendConversationReplyHandler.cs:88)",
+      "clone_risk": "HIGH — direct port yields send-first-insert-second anti-pattern (Layer 0 ConversationService.cs:67-84)"
+    },
+    {
+      "name": "UpdateDeliveryStatus",
+      "source": "StatusUpdatesEventListener.cs:Handle:24 — INotificationHandler<StatusUpdatesEvent>",
+      "code_verified": true,
+      "trigger": "DLR (Delivery Receipt) batch event from SMS gateway — StatusUpdatesEvent.Updates (IEnumerable<StatusUpdate> each has SmsLogId + StatusCode)",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Receive StatusUpdatesEvent notification with batch of StatusUpdate(SmsLogId, StatusCode)",
+          "layer0_source": "StatusUpdatesEventListener.cs:24-28 (Handle method, ArgumentNullException.ThrowIfNull)",
+          "code_verified": true
+        },
+        {
+          "step": 2,
+          "action": "Map SmsStatusCode → ConversationMessageStatus per message",
+          "layer0_source": "StatusUpdatesEventListener.cs:ConversationStatus:34-50 — SmsReceived1→Delivered(1), SmsSendNotReceived2/Unknown136→Pending(0), GatewaySendError6/GatewayUnableToDeliver7/MessageDeleted9/Rejected146/Undeliverable156→Failed(2), default→Pending(0)",
+          "code_verified": true
+        },
+        {
+          "step": 3,
+          "action": "Batch UPDATE ConversationMessages SET Status=@status WHERE SmsLogId IN @smsLogIds (grouped by status)",
+          "layer0_source": "ConversationRepository.cs:UpdateConversationMessageStatuses:84 — SQL: update ConversationMessages set Status=@Status where SmsLogId in @SmsLogIds",
+          "code_verified": true
+        }
+      ]
+    },
+    {
+      "name": "GetConversationMessages",
+      "source": "ConversationRepository.cs:GetConversationMessages:39",
+      "code_verified": true,
+      "sql": "SELECT m.Id, m.[Text], m.DateCreatedUtc, m.SmsLogId FROM dbo.ConversationMessages m INNER JOIN dbo.Conversations c ON c.Id = m.ConversationId WHERE c.Id = @conversationId ORDER BY m.Id ASC",
+      "returns": "IEnumerable<ConversationMessageReadModel>",
+      "note": "Read behavior — present in Layer 0. No Status filter. Not a dispatch behavior but needed by dispatch context."
+    },
+    {
+      "name": "GetQueuedConversationMessages",
+      "source": "NONE — no Layer 0 equivalent. Layer 0 never polls for Queued messages (concept does not exist in Layer 0).",
+      "code_verified": false,
+      "transformation_required": true,
+      "classification": "UNKNOWN (missing Layer 0 design) — transformation_required=true",
+      "design_basis": "Green-ai design decision: SELECT cm.* FROM ConversationMessages cm INNER JOIN Conversations c ON c.Id=cm.ConversationId WHERE cm.Status=@Queued AND c.CustomerId=@CustomerId ORDER BY cm.Id ASC — customer isolation must be explicit (DD_CD_03)",
+      "note": "The query pattern is derivable from existing Layer 0 patterns (ConversationRepository GetConversationMessages JOIN + CustomerId from GetConversation) — but the Status=Queued polling behavior does not exist in Layer 0."
+    }
+  ]
+}

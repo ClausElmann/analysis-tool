@@ -1,0 +1,96 @@
+{
+  "domain": "conversation_dispatch",
+  "phase": "N-A",
+  "revised": true,
+  "code_verified": true,
+  "flows": [
+    {
+      "name": "DispatchSingleQueuedMessage",
+      "trigger": "Async job picks up ConversationMessage with Status=Queued — green-ai design (DD_CM_02 continuation). Layer 0: triggered inline by ConversationController:SendConversationReply.",
+      "code_verified": true,
+      "steps": [
+        {
+          "step": 1,
+          "action": "SELECT ConversationMessage WHERE Id=@MessageId and verify Status=Queued",
+          "source": "ConversationRepository.cs:GetConversationMessage:62 — SQL: SELECT TOP(1) * FROM dbo.ConversationMessages WHERE Id = @Id",
+          "code_verified": true,
+          "layer0_vs_greenai": "Layer 0 skips this check — passes message data directly. Green-ai: guard read required (INV_CD_01)."
+        },
+        {
+          "step": 2,
+          "action": "SELECT Conversation + phone numbers + gateway provider + CustomerId for dispatch context",
+          "source": "ConversationRepository.cs:GetConversation:121 — SQL: SELECT c.*, cpn.PhoneCode SenderPhoneCode, cpn.PhoneNumber SenderPhoneNumber, cpn.GatewayProvider SenderGatewayProvider, cpn.CustomerId FROM Conversations c INNER JOIN ConversationPhoneNumbers cpn ON cpn.Id = c.ConversationPhoneNumberId WHERE c.Id = @id",
+          "code_verified": true
+        },
+        {
+          "step": 3,
+          "action": "Call IOutboundMessageSender.SendMessage(profileId, senderPhoneCode, senderPhoneNumber, senderGatewayProvider, partnerPhoneCode, partnerPhoneNumber, partnerName, text) → returns SmsLogId (long)",
+          "source": "SmsConversationOutboundMessageSender.cs:SendMessage:23 — calls IBroadcastSender.SendFastMessageSingleGroupAsync(config):42, returns result.SmsLogId.GetValueOrDefault():50",
+          "code_verified": true
+        },
+        {
+          "step": 4,
+          "action": "On SUCCESS: UPDATE ConversationMessages SET SmsLogId=@smsLogId, Status=Sent (2) WHERE Id=@MessageId",
+          "source": "ConversationRepository.cs:UpdateConversationMessageStatus:79 — SQL: if exists (...WHERE SmsLogId=@smsLogId) update SET Status=@status WHERE SmsLogId=@smsLogId",
+          "code_verified": true,
+          "transformation_note": "Layer 0 updates by SmsLogId (post-send, smsLogId known). Green-ai: update by Id (pre-send, Id known from INSERT-FIRST) — requires new SQL in green-ai."
+        },
+        {
+          "step": 5,
+          "action": "On FAILURE (MessageNotSentException): UPDATE ConversationMessages SET Status=Failed (4) WHERE Id=@MessageId",
+          "source": "SmsConversationOutboundMessageSender.cs:47-49 — throws MessageNotSentException when result.ErrorMessage != null",
+          "code_verified": true
+        },
+        {
+          "step": 6,
+          "action": "Return Result<DispatchConversationMessageResponse>(MessageId, SmsLogId, Status)",
+          "source": "green-ai design — transformation_required (no Layer 0 return value — CreateAndSendConversationMessage returns long smsLogId)",
+          "code_verified": false,
+          "transformation_required": true
+        }
+      ],
+      "invariant": "INV_CD_01: ConversationMessage MUST exist with Status=Queued BEFORE any gateway call (step 1 guard — green-ai design; Layer 0 has no equivalent guard).",
+      "partial_state_risk": "LOW — row exists (Queued) before gateway call. On failure: Queued→Failed. On success: Queued→Sent. No orphan state possible."
+    },
+    {
+      "name": "DeliveryStatusUpdateFlow",
+      "trigger": "DLR (Delivery Receipt) event from SMS gateway arrives as StatusUpdatesEvent with batch of StatusUpdate(SmsLogId, StatusCode)",
+      "code_verified": true,
+      "steps": [
+        {
+          "step": 1,
+          "action": "Receive StatusUpdatesEvent — ArgumentNullException.ThrowIfNull guard",
+          "source": "StatusUpdatesEventListener.cs:Handle:24-28",
+          "code_verified": true
+        },
+        {
+          "step": 2,
+          "action": "Map each StatusUpdate.StatusCode → ConversationMessageStatus: SmsReceived1→Delivered(1), SmsSendNotReceived2/Unknown136→Pending(0), GatewaySendError6/GatewayUnableToDeliver7/MessageDeleted9/Rejected146/Undeliverable156→Failed(2), default→Pending(0)",
+          "source": "StatusUpdatesEventListener.cs:ConversationStatus:34-50",
+          "code_verified": true
+        },
+        {
+          "step": 3,
+          "action": "Batch UPDATE ConversationMessages SET Status=@Status WHERE SmsLogId IN @SmsLogIds (grouped by status value)",
+          "source": "ConversationRepository.cs:UpdateConversationMessageStatuses:84 — SQL: update ConversationMessages set Status=@Status where SmsLogId in @SmsLogIds",
+          "code_verified": true
+        }
+      ],
+      "transformation_note": "Layer 0 updates by SmsLogId. Green-ai: must also update by SmsLogId for DLR (SmsLogId is the gateway correlation key). Status values must be remapped: Layer 0 Delivered=1/Failed=2 → green-ai Delivered=3/Failed=4."
+    }
+  ],
+  "unknowns": [
+    {
+      "flow": "Retry policy for Failed messages",
+      "classification": "UNKNOWN (missing Layer 0 design) — transformation_required=true",
+      "reason": "Layer 0 has no retry for conversation dispatch (fire-and-forget). Green-ai retry policy is a design decision.",
+      "resolution": "025_transformation.json — Architect input needed"
+    },
+    {
+      "flow": "Job trigger mechanism for DispatchSingleQueuedMessage",
+      "classification": "UNKNOWN (missing Layer 0 design) — transformation_required=true",
+      "reason": "No background job infrastructure in Layer 0 for this flow. Green-ai: polling interval vs event-driven not decided.",
+      "resolution": "025_transformation.json — Architect input needed"
+    }
+  ]
+}

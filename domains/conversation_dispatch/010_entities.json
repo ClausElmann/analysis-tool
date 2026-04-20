@@ -1,0 +1,84 @@
+{
+  "domain": "conversation_dispatch",
+  "phase": "N-A",
+  "revised": true,
+  "code_verified": true,
+  "entities": [
+    {
+      "name": "ConversationMessage",
+      "source": "ServiceAlert.Core/Domain/Conversations/Entities/ConversationMessage.cs:1",
+      "code_verified": true,
+      "fields": [
+        { "name": "Id",             "type": "long",     "nullable": false, "code_verified": true,
+          "source": "ConversationMessage.cs:12" },
+        { "name": "ConversationId", "type": "int",      "nullable": false, "code_verified": true,
+          "source": "ConversationMessage.cs:13" },
+        { "name": "Text",           "type": "string",   "nullable": false, "code_verified": true,
+          "source": "ConversationMessage.cs:14" },
+        { "name": "SmsLogId",       "type": "long?",    "nullable": true,  "code_verified": true,
+          "source": "ConversationMessage.cs:18 (xmldoc: null = message from recipient)",
+          "note": "null = inbound partner reply. Set at INSERT (Layer 0 send-first) or set on dispatch (green-ai INSERT-FIRST)." },
+        { "name": "DateCreatedUtc", "type": "DateTime", "nullable": false, "code_verified": true,
+          "source": "ConversationMessage.cs:20" },
+        { "name": "Status",         "type": "int",      "nullable": false, "code_verified": true,
+          "source": "ConversationMessage.cs:21",
+          "layer0_enum": "ConversationMessageStatus: Pending=0, Delivered=1, Failed=2 — ConversationMessage.cs:4-8",
+          "greenai_enum": "ConversationMessageStatus: Created=0, Queued=1, Sent=2, Delivered=3, Failed=4 — green-ai ConversationMessageStatus.cs:11 (code_verified)" }
+      ]
+    },
+    {
+      "name": "ConversationReadModel",
+      "source": "ConversationRepository.cs:GetConversation:121 — SELECT c.*, cpn.Name, cpn.PhoneCode SenderPhoneCode, cpn.PhoneNumber SenderPhoneNumber, cpn.GatewayProvider SenderGatewayProvider, cpn.CustomerId FROM Conversations c INNER JOIN ConversationPhoneNumbers cpn",
+      "code_verified": true,
+      "sql_source": "ConversationRepository.cs:121-125",
+      "used_by": "ConversationService.cs:CreateAndSendConversationMessage:63-75 — all fields passed to IOutboundMessageSender.SendMessage",
+      "fields": [
+        { "name": "Id",                    "code_verified": true, "source": "ConversationRepository.cs:122 (c.*)" },
+        { "name": "SenderPhoneCode",       "code_verified": true, "source": "ConversationRepository.cs:122 (cpn.PhoneCode SenderPhoneCode)" },
+        { "name": "SenderPhoneNumber",     "code_verified": true, "source": "ConversationRepository.cs:122 (cpn.PhoneNumber SenderPhoneNumber)" },
+        { "name": "SenderGatewayProvider", "code_verified": true, "source": "ConversationRepository.cs:122 (cpn.GatewayProvider SenderGatewayProvider)" },
+        { "name": "CustomerId",            "code_verified": true, "source": "ConversationRepository.cs:123 (cpn.CustomerId)" },
+        { "name": "PartnerPhoneCode",      "code_verified": true, "source": "ConversationService.cs:70 (conversation.PartnerPhoneCode)" },
+        { "name": "PartnerPhoneNumber",    "code_verified": true, "source": "ConversationService.cs:71 (conversation.PartnerPhoneNumber)" },
+        { "name": "PartnerName",           "code_verified": true, "source": "ConversationService.cs:72 (conversation.PartnerName)" },
+        { "name": "ConversationPhoneNumberId", "code_verified": true, "source": "ConversationService.cs:56 (passed to CreateConversationMessage)" }
+      ]
+    },
+    {
+      "name": "IOutboundMessageSender",
+      "source": "ServiceAlert.Services/Conversations/IntegrationPoints/IOutboundMessageSender.cs:6",
+      "code_verified": true,
+      "contract": "Task<long> SendMessage(int profileId, int senderPhoneCode, long senderPhoneNumber, GatewayProvider senderGatewayProvider, int recipientPhoneCode, long recipientPhoneNumber, string recipientName, string text)",
+      "implementation": "SmsConversationOutboundMessageSender.cs:23 — calls IBroadcastSender.SendFastMessageSingleGroupAsync",
+      "returns": "result.SmsLogId.GetValueOrDefault() — SmsConversationOutboundMessageSender.cs:50",
+      "throws": "MessageNotSentException(result.ErrorMessage) when result.ErrorMessage != null — SmsConversationOutboundMessageSender.cs:47-49",
+      "registered": "ServiceAlert.Api/Startup.cs:751 + ServiceAlert.Contracts/Extensions/ServiceCollectionExtensions.cs:833"
+    },
+    {
+      "name": "ConversationMessageStatusDto",
+      "source": "ServiceAlert.Services/Conversations/Dto/ConversationMessageStatusDto.cs:9",
+      "code_verified": true,
+      "used_by": "StatusUpdatesEventListener.cs:29 — batch status update on DLR callback",
+      "fields": [
+        { "name": "SmsLogId", "type": "long", "code_verified": true },
+        { "name": "Status",   "type": "int",  "code_verified": true }
+      ]
+    },
+    {
+      "name": "StatusUpdatesEvent",
+      "source": "StatusUpdatesEventListener.cs:16 — INotificationHandler<StatusUpdatesEvent>",
+      "code_verified": true,
+      "description": "MediatR notification fired when DLR (Delivery Receipt) updates arrive from gateway",
+      "handler": "StatusUpdatesEventListener.Handle (StatusUpdatesEventListener.cs:24)",
+      "contains": "notification.Updates — IEnumerable<StatusUpdate> (each has SmsLogId + StatusCode)"
+    }
+  ],
+  "unknowns": [
+    {
+      "item": "green-ai SMS gateway HTTP integration mechanism",
+      "reason": "IOutboundMessageSender is Layer 0 (sms-service internal interface). Green-ai needs its own HTTP client or equivalent to call SMS gateway. No Layer 0 contract for green-ai's outbound call.",
+      "resolution": "transformation_required — define in 025_transformation.json",
+      "code_verified": false
+    }
+  ]
+}

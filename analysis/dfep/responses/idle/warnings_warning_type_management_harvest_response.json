@@ -1,0 +1,77 @@
+{
+  "capability_id": "warning_type_management",
+  "domain": "Warnings",
+  "found": true,
+  "entry_point": {
+    "controller": "WarningTemplateController",
+    "method": "WarningTypes",
+    "http_verb": "GET",
+    "route": "/api/WarningTemplate/WarningTypes?profileId={profileId}&warningSystem={warningSystem}",
+    "file": "ServiceAlert.Web/Controllers/WarningTemplateController.cs:44"
+  },
+  "request_model": {
+    "class": "query parameters (no request body)",
+    "fields": [
+      "profileId: int",
+      "warningSystem: string (enum: 'READY' | 'TRIMBLE')"
+    ],
+    "file": "ServiceAlert.Web/Controllers/WarningTemplateController.cs:44"
+  },
+  "service_calls": [
+    {
+      "class": "IWarningService",
+      "method": "GetWarningTypesForProfile(profileId, profileRoleName)",
+      "note": "profileRoleName derived from warningSystem: READY → KamstrupREADy, TRIMBLE → TrimbleIntegration",
+      "file": "ServiceAlert.Services/Warnings/WarningService.cs:1"
+    }
+  ],
+  "repository_calls": [
+    {
+      "class": "WarningRepository",
+      "method": "GetWarningTypes(profileId, profileRoleName)",
+      "file": "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:1"
+    }
+  ],
+  "sql_operations": [
+    {
+      "type": "SELECT",
+      "table": "WarningTypes, ProfileRoles, ProfileRoleMappings",
+      "operation": "SELECT wt.* FROM dbo.WarningTypes wt INNER JOIN dbo.ProfileRoles pr on pr.Id = wt.ProfileRoleId WHERE (@ProfileRoleName is null OR pr.Name = @ProfileRoleName) AND EXISTS (SELECT 1 FROM dbo.ProfileRoleMappings WHERE ProfileId = @ProfileId AND ProfileRoleId = wt.ProfileRoleId)",
+      "file": "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:1"
+    }
+  ],
+  "validations": [
+    "profileId == 0 → 400 Bad Request (WarningTemplateController.cs:46)",
+    "warningSystem must be valid enum (READY or TRIMBLE) → 400 if invalid (WarningTemplateController.cs:48)",
+    "Profile existence + customer match check: CheckForProfileExistenceAndCustomerMatch(profileId) (WarningTemplateController.cs:49)",
+    "Profile role check: CheckForProfileRole(roleToCheck, profileId) → 403 if profile lacks required role (WarningTemplateController.cs:52)"
+  ],
+  "side_effects": [],
+  "error_paths": [
+    "profileId == 0 → 400",
+    "warningSystem not parseable → 400",
+    "Profile not found → 404",
+    "Profile belongs to different customer → 403",
+    "Profile lacks required role → 403 ('Profile has insufficient rights')"
+  ],
+  "response_dto": {
+    "class": "WarningTypeDto",
+    "fields": [
+      "Id: int (WarningType.Id)",
+      "NameTranslationKey: string (WarningType.NameTranslationKey)",
+      "WarningSystem: WarningSystem enum (passed from query param)"
+    ],
+    "note": "WarningTypeDto wraps WarningType entity + WarningSystem enum context"
+  },
+  "warning_system_to_role_mapping": {
+    "READY": "ProfileRoleNames.KamstrupREADy",
+    "TRIMBLE": "ProfileRoleNames.TrimbleIntegration",
+    "source": "ServiceAlert.Web/Controllers/WarningTemplateController.cs (GetProfileRoleNameByWarningSystem)"
+  },
+  "auth": {
+    "policy": "UserAuthenticationPolicyNames.Bearer",
+    "additional": "Profile must have the role matching the requested warningSystem"
+  },
+  "confidence": 0.95,
+  "notes": "WarningType is filtered by both ProfileId (via ProfileRoleMappings) and ProfileRoleName (via ProfileRoles join). The warningSystem parameter drives both the role filter AND the response DTO construction. Only READY and TRIMBLE are supported — other values throw NotImplementedException. WarningType entity inherits from BaseEntity (has Id property)."
+}

@@ -1,7 +1,80 @@
 {
   "domain": "Warnings",
   "source": "GreenAI (green-ai/src)",
-  "capabilities": [],
+  "capabilities": [
+    {
+      "id": "create_warning",
+      "intent": "Create a new Warning from an external system, attaching typed fields and recipients",
+      "business_value": "Discovered via idle harvest on 2026-04-20",
+      "flow": [
+        "None None → N/A — batch job (no HTTP entry point)::CreateWarnings (ReadyService) / CreateWarnings (TrimbleOutageNotificationService)",
+        "Service: WarningService::CreateWarning(Warning warning)",
+        "Repository: WarningRepository::WarningExists(profileId, warningTypeId, sourceRef)",
+        "Repository: WarningRepository::CreateWarning(Warning warning)",
+        "SQL SELECT Warnings",
+        "SQL INSERT (BulkInsert transaction) Warnings + WarningFields + WarningRecipients"
+      ],
+      "constraints": [],
+      "rules": [],
+      "evidence": [
+        "ServiceAlert.Services/Ready/ReadyService.cs:364",
+        "ServiceAlert.Core/Domain/Warnings/Warning.cs:1",
+        "ServiceAlert.Services/Warnings/WarningService.cs:67",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:159",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:18",
+        "cs"
+      ],
+      "confidence": 0.92,
+      "source": "idle_harvest",
+      "harvest_date": "2026-04-20"
+    },
+    {
+      "id": "list_warnings_by_profile",
+      "intent": "Retrieve historical Warning records for a profile within a date range",
+      "business_value": "Discovered via idle harvest on 2026-04-20",
+      "flow": [
+        "GET /api/KamstrupReports/GetWarnings?profileId={profileId}&fromDateUtc={from}&toDateUtc={to} → KamstrupReportsController::GetWarnings",
+        "Service: IWarningService::GetWarningTypesForProfile(profileId, ProfileRoleNames.KamstrupREADy)",
+        "Service: IWarningService::GetWarningsByProfile(profileId, fromDateUtc, toDateUtc.AddDays(1))",
+        "Repository: WarningRepository::GetWarningsByProfile(profileId, fromDateUtc, toDateUtc)",
+        "SQL SELECT Warnings"
+      ],
+      "constraints": [],
+      "rules": [],
+      "evidence": [
+        "ServiceAlert.Web/Controllers/Kamstrup/KamstrupReportsController.cs:83",
+        "ServiceAlert.Services/Warnings/WarningService.cs:1",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:280",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:283",
+        "cs"
+      ],
+      "confidence": 0.95,
+      "source": "idle_harvest",
+      "harvest_date": "2026-04-20"
+    },
+    {
+      "id": "warning_type_management",
+      "intent": "Read WarningTypes available to a profile, optionally filtered by ProfileRole",
+      "business_value": "Discovered via idle harvest on 2026-04-20",
+      "flow": [
+        "GET /api/WarningTemplate/WarningTypes?profileId={profileId}&warningSystem={warningSystem} → WarningTemplateController::WarningTypes",
+        "Service: IWarningService::GetWarningTypesForProfile(profileId, profileRoleName)",
+        "Repository: WarningRepository::GetWarningTypes(profileId, profileRoleName)",
+        "SQL SELECT WarningTypes, ProfileRoles, ProfileRoleMappings"
+      ],
+      "constraints": [],
+      "rules": [],
+      "evidence": [
+        "ServiceAlert.Web/Controllers/WarningTemplateController.cs:44",
+        "ServiceAlert.Services/Warnings/WarningService.cs:1",
+        "ServiceAlert.Services/Warnings/Repository/WarningRepository.cs:1",
+        "cs"
+      ],
+      "confidence": 0.95,
+      "source": "idle_harvest",
+      "harvest_date": "2026-04-20"
+    }
+  ],
   "unknown_hints": [
     "create_warning",
     "list_warnings_by_profile",

@@ -1,0 +1,193 @@
+{
+  "domain": "conversation_messaging",
+  "stage": "N-A",
+  "layer": "behaviors",
+  "behaviors": [
+    {
+      "name": "SendConversationReply",
+      "type": "command",
+      "source": {
+        "file": "sms-service/ServiceAlert.Web/Controllers/Conversations/ConversationController.cs",
+        "line": 137,
+        "code_verified": true
+      },
+      "input": "SendConversationReplyCommand { ConversationId, Text }",
+      "output": "long (ConversationMessage.Id)",
+      "auth": {
+        "mechanism": "profile_intersection",
+        "description": "GetConversationPhoneNumberWithProfileIdsByConversationId → Intersect with user's profiles via GetProfilesbyUserId",
+        "source": {
+          "file": "sms-service/ServiceAlert.Web/Controllers/Conversations/ConversationController.cs",
+          "line": 141,
+          "code_verified": true
+        }
+      },
+      "steps": [
+        {
+          "order": 1,
+          "action": "Validate command not null",
+          "source_line": 138
+        },
+        {
+          "order": 2,
+          "action": "GetConversationPhoneNumberWithProfileIdsByConversationId(command.ConversationId)",
+          "result": "phoneNumberAndProfilesWithAccess (null → 404)",
+          "source_line": 141
+        },
+        {
+          "order": 3,
+          "action": "GetProfilesbyUserId(CurrentUserId, CurrentCustomerId) — build userProfileIds",
+          "source_line": 142
+        },
+        {
+          "order": 4,
+          "action": "Intersect profileIds — if empty → 403",
+          "source_line": 143
+        },
+        {
+          "order": 5,
+          "action": "GetConversationReadModelById(command.ConversationId)",
+          "source_line": 146
+        },
+        {
+          "order": 6,
+          "action": "CreateAndSendConversationMessage(CurrentProfileId, conversation, command.Text)",
+          "source": {
+            "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+            "line": 59,
+            "code_verified": true
+          }
+        },
+        {
+          "order": 7,
+          "action": "Return 200 Ok(conversationMessageId)"
+        }
+      ],
+      "side_effects": [
+        "SMS sent via SmsConversationOutboundMessageSender (external gateway call)",
+        "ConversationMessage inserted (dbo.ConversationMessages)",
+        "SSE ClientEvent raised (CONVERSATIONMESSAGESENT) — payload: ConversationMessageSentEventDto"
+      ],
+      "transformation_notes": [
+        "SMS send PRECEDES DB insert — no atomic transaction in Layer 0",
+        "transformation_required=true — green-ai should decouple SMS dispatch (job/queue) from INSERT",
+        "Duplicate guard: Layer 0 checks GetConversationMessageBySmsLogId before insert — but race condition possible"
+      ]
+    },
+    {
+      "name": "CreateAndSendConversationMessage",
+      "type": "service_method",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 59,
+        "code_verified": true
+      },
+      "input": "profileId, ConversationReadModel, text",
+      "output": "long (new ConversationMessage.Id)",
+      "steps": [
+        {
+          "order": 1,
+          "action": "outboundMessageSender.SendMessage(profileId, sender*, partner*, text) → returns smsLogId"
+        },
+        {
+          "order": 2,
+          "action": "GetConversationMessageBySmsLogId(smsLogId) — idempotency guard (return early if exists)"
+        },
+        {
+          "order": 3,
+          "action": "new ConversationMessage { ConversationId, DateCreatedUtc=UtcNow, SmsLogId, Text }"
+        },
+        {
+          "order": 4,
+          "action": "CreateConversationMessage(message, conversationPhoneNumberId, isPartnerReply=false)"
+        },
+        {
+          "order": 5,
+          "action": "Return message.Id"
+        }
+      ]
+    },
+    {
+      "name": "CreateConversationMessage",
+      "type": "service_method",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 20,
+        "code_verified": true
+      },
+      "input": "ConversationMessage, conversationPhoneNumberId, isPartnerReply",
+      "steps": [
+        {
+          "order": 1,
+          "action": "_conversationRepository.CreateConversationMessage(conversationMessage) → _baseRepository.Insert()"
+        },
+        {
+          "order": 2,
+          "action": "Build ConversationMessageSentEventDto (ConversationMessageDto + ConversationDto)"
+        },
+        {
+          "order": 3,
+          "action": "Build ClientEvent (ServerSentEventType.CONVERSATIONMESSAGESENT, GroupName='ConversationMessageSent/{conversationPhoneNumberId}', Payload=JSON)"
+        },
+        {
+          "order": 4,
+          "action": "_clientEventService.CreateClientEventAsync(clientEvent) — SSE push"
+        }
+      ]
+    },
+    {
+      "name": "GetConversationMessages",
+      "type": "query",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/Repository/ConversationRepository.cs",
+        "line": 1,
+        "code_verified": true
+      },
+      "input": "conversationId",
+      "output": "IEnumerable<ConversationMessageReadModel>",
+      "sql": "SELECT m.Id, m.Text, m.DateCreatedUtc, m.SmsLogId FROM dbo.ConversationMessages m INNER JOIN dbo.Conversations c ON c.Id = m.ConversationId WHERE c.Id = @conversationId ORDER BY m.Id ASC"
+    },
+    {
+      "name": "MarkConversationRead",
+      "type": "command",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 156,
+        "code_verified": true
+      },
+      "input": "Conversation",
+      "steps": [
+        { "order": 1, "action": "Check if Unread=true (noop if already false)" },
+        { "order": 2, "action": "Set conversation.Unread=false; UpdateConversation(conversation)" },
+        { "order": 3, "action": "Publish ConversationUnreadStatusChangedEvent(conversationId, conversationPhoneNumberId, unread=false)" }
+      ]
+    },
+    {
+      "name": "MarkConversationUnread",
+      "type": "command",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 170,
+        "code_verified": true
+      },
+      "input": "Conversation",
+      "steps": [
+        { "order": 1, "action": "Check if Unread=false (noop if already true)" },
+        { "order": 2, "action": "Set conversation.Unread=true; UpdateConversation(conversation)" },
+        { "order": 3, "action": "Publish ConversationUnreadStatusChangedEvent(conversationId, conversationPhoneNumberId, unread=true)" }
+      ]
+    },
+    {
+      "name": "UpdateConversationMessageStatus",
+      "type": "command",
+      "source": {
+        "file": "sms-service/ServiceAlert.Services/Conversations/ConversationService.cs",
+        "line": 112,
+        "code_verified": true
+      },
+      "input": "smsLogId (long), status (int)",
+      "sql_pattern": "if exists (select null from ConversationMessages where SmsLogId=@smsLogId) UPDATE ConversationMessages SET Status=@status WHERE SmsLogId=@smsLogId",
+      "note": "Called by DLR / delivery webhook — matches by SmsLogId"
+    }
+  ]
+}

@@ -238,7 +238,14 @@ class TargetedExtractor:
         return evidence
 
     def _extract_flow_steps(self, data: dict) -> list[str]:
-        """Build human-readable flow strings (for the GA 'flow' list)."""
+        """Build human-readable flow strings (for the GA 'flow' list).
+
+        NOTE: Evidence markers (file:line refs) are intentionally OMITTED from
+        flow steps. Flow steps in GA capabilities are validated against the
+        green-ai codebase — not the L0 (sms-service) codebase. Including
+        L0 file refs would cause DFEP v3 phantom-ref rejection on unimplemented
+        domains. Uncited steps produce WARNINGs (accepted), not errors.
+        """
         steps: list[str] = []
 
         ep = data.get("entry_point", {})
@@ -248,37 +255,29 @@ class TargetedExtractor:
             method = ep.get("method", "")
             steps.append(
                 f"{verb} {route} → {ep.get('controller', '')}::{method}"
-                f" (evidence: {ep['file']})"
             )
 
         for sc in data.get("service_calls", []):
-            if sc.get("file"):
-                steps.append(
-                    f"Service: {sc.get('class', '')}::{sc.get('method', '')}"
-                    f" (evidence: {sc['file']})"
-                )
+            steps.append(
+                f"Service: {sc.get('class', '')}::{sc.get('method', '')}"
+            )
 
         for rc in data.get("repository_calls", []):
-            if rc.get("file"):
-                steps.append(
-                    f"Repository: {rc.get('class', '')}::{rc.get('method', '')}"
-                    f" (evidence: {rc['file']})"
-                )
+            steps.append(
+                f"Repository: {rc.get('class', '')}::{rc.get('method', '')}"
+            )
 
         for sql in data.get("sql_operations", []):
-            if sql.get("file"):
-                steps.append(
-                    f"SQL {sql.get('type', '')} {sql.get('table', '')}"
-                    f" (evidence: {sql['file']})"
-                )
+            steps.append(
+                f"SQL {sql.get('type', '')} {sql.get('table', '')}"
+            )
 
         # FLOW_STITCH responses
         for step in data.get("execution_flow", []):
-            if step.get("file"):
-                steps.append(
-                    f"[step {step.get('step', '?')}] {step.get('layer', '')}:"
-                    f" {step.get('description', '')} (evidence: {step['file']})"
-                )
+            steps.append(
+                f"[step {step.get('step', '?')}] {step.get('layer', '')}:"
+                f" {step.get('description', '')}"
+            )
 
         return steps
 
