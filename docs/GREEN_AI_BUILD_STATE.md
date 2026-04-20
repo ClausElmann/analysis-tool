@@ -3,10 +3,10 @@
 > **Purpose:** Alt hvad jeg behøver at vide om green-ai — tech, build-state, locks, domain-states.  
 > **Opdatér** når et STEP afsluttes, migration applied, lock ændres, eller tech stack ændres.
 
-**Last Updated:** 2026-04-20 (conversation_dispatch N-B BUILD + BEHAVIOR_TEST_PROOF ✅ — V081 applied)  
-**Migration level:** V081  
-**Tests:** 4/4 PASS (ConversationDispatchRuntimeProofTests) — alle tidligere tests fortsat grønne  
-**Build:** 0 errors, 0 warnings  
+**Last Updated:** 2026-04-20 (conversation_dispatch + conversation_creation + conversation_messaging — DONE 🔒 — Architect GO ✅)
+**Migration level:** V081
+**Tests:** 10/10 PASS (ConversationDispatch + CreateConversation RuntimeProofTests) — alle tidligere tests fortsat grønne
+**Build:** 0 errors, 0 warnings
 **DB:** `GreenAI_DEV` på `(localdb)\MSSQLLocalDB`  
 **App:** `http://localhost:5057` — start: `dotnet run --project src/GreenAi.Api`
 
@@ -71,7 +71,8 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 | CustomerAdmin | GetCustomerSettings, GetProfiles, GetUsers | ✅ DONE 🔒 |
 | UserOnboarding | CreateUserOnboarding | ✅ DONE 🔒 (INV_001/002/003 + BEHAVIOR_TEST_PROOF 4/4 PASS) |
 | Conversations | CreateConversation, SendConversationReply | ✅ N-B BUILD DONE — BEHAVIOR_TEST_PROOF ✅ |
-| ConversationDispatch | DispatchConversationMessage, UpdateDeliveryStatus, ConversationDispatchJob | ✅ DONE 🔒 (BUILD+RIG+BEHAVIOR+TEST_PROOF) — afventer Architect GO |
+| ConversationDispatch | DispatchConversationMessage, UpdateDeliveryStatus, ConversationDispatchJob | ✅ HARDENING DONE — afventer Architect GO |
+| Conversations (read) | ListConversations, GetConversationMessages, MarkConversationRead | ✅ DONE (read-side D4) |
 | Email | Send, SendSystem, GatewayDispatch, WebhookStatusUpdate | ✅ CLOSED 🔒 |
 | Identity | ChangeUserEmail | ✅ |
 | JobManagement | LogJobTaskStatus, GetRecentAndOngoingTasks, ActiveJobs (SSE) — **unified monitoring** (Azure Batch + in-process) | ✅ DONE 🔒 |
@@ -154,8 +155,8 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | standard_receivers | 0.84 | ⏳ Not started |
 | integrations | 0.7833 | ⏳ Not started — needs more extraction first |
 | address_management | 0.58 | ⏳ Needs more extraction |
-| Conversation / conversation_creation | 0.54→built | ✅ N-B BUILD DONE — BEHAVIOR_TEST_PROOF ✅ — afventer GO |
-| conversation_dispatch | derived | ✅ ARCHITECT REVIEW — BUILD+RIG+BEHAVIOR+TEST_PROOF ✅ (2026-04-20) |
+| Conversation / conversation_creation | 0.54→built | ✅ DONE 🔒 (Architect GO 2026-04-20) |
+| conversation_dispatch | derived | ✅ DONE 🔒 D1-D5 hardening (Architect GO 2026-04-20) |
 | data_import | 0.54 | ⏳ Needs more extraction |
 | Enrollment | 0.54 | ⏳ Needs more extraction |
 | Benchmark | 0.4667 | ⏳ Needs more extraction |
@@ -180,7 +181,9 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | customer_administration | DONE 🔒 | 2026-04-19 | UX 8, S 8, CL 8, M 9 |
 | profile_management | DONE 🔒 | 2026-04-19 | UX 9, S 9, CL 9, M 9 |
 | user_onboarding | DONE 🔒 | 2026-04-19 | INV_001/002/003 + BEHAVIOR_TEST_PROOF ✅ (4/4 PASS, 7 query traces) |
-| conversation_creation | BEHAVIOR_TEST_PROOF ✅ — afventer Architect GO | 2026-04-20 | 7 DD (DD_C01–DD_C07), V079 applied, 4/4 tests PASS |
+| conversation_creation | DONE 🔒 | 2026-04-20 | 7 DD (DD_C01–DD_C07) + tenant isolation Test_05. Architect GO ✅ |
+| conversation_messaging | DONE 🔒 | 2026-04-20 | DD_CM_01–DD_CM_06, RIG_CONDITIONAL_ENFORCED_V2. Architect GO ✅ |
+| conversation_dispatch | DONE 🔒 | 2026-04-20 | D1-D5 hardening, 10/10 PASS, worker loop + tenant isolation + DLR fail-closed. Architect GO ✅ |
 | job_management | DONE 🔒 | V035 | LogJobTaskStatus, GetRecentAndOngoingTasks, SSE (ActiveJobsHub + ClientEventBackgroundService) |
 | activity_log | DONE 🔒 | V037 | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs — FAIL-OPEN invariant |
 | sms | IN PROGRESS | 2026-04-15 | Wave 8 done (F1-F4+RULE-EXEC-01..06). Wave 10: F5 (STD_RECEIVER phone-normalized) + F6 (real payload) fixed. OutboundMessages = canonical truth. |

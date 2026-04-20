@@ -1,4 +1,4 @@
-PACKAGE_TOKEN: GA-2026-0419-V078-2130
+PACKAGE_TOKEN: GA-2026-0420-V081-1000
 
 > ChatGPT SKAL citere dette token i sin første sætning som bevis på at den har læst denne ZIP.
 > Svar der IKKE starter med token-citering afvises.
@@ -8,6 +8,10 @@ PACKAGE_TOKEN: GA-2026-0419-V078-2130
 - Pipeline Enforcement v2: **ACTIVE** (`docs/PIPELINE_ENFORCEMENT_V2.md`)
 
 ---
+
+> **PACKAGE_TOKEN: GA-2026-0420-V081-1000**
+> ChatGPT SKAL citere dette token i sin første sætning som bevis på at den har læst denne ZIP.
+> Svar der IKKE starter med token-citering afvises.
 
 ## §PIPELINE GOVERNANCE
 
@@ -44,7 +48,9 @@ DONE 🔒 kræver: Build ✅ + RIG (0 HIGH) ✅ + BEHAVIOR CHECK ✅ + BEHAVIOR_
 | user_onboarding | **DONE 🔒** | INV_001/002/003 ✅ + BEHAVIOR_TEST_PROOF ✅ (4/4 PASS, 7 query traces) |
 | conversation_creation | **DONE 🔒** | 7 DD (DD_C01–DD_C07) + BEHAVIOR_TEST_PROOF ✅ (4/4 PASS, 6 query traces) |
 | conversation_messaging | **DONE 🔒** — RIG_CONDITIONAL_ENFORCED_V2 | DD_CM_01–DD_CM_06, BUILD ✅ + RIG v2 ✅ + BEHAVIOR_TEST_PROOF ✅ (5/5) + Architect GO ✅ |
-| conversation_dispatch | **ARCHITECT REVIEW** | N-B BUILD COMPLETE ✅ — BUILD+RIG+BEHAVIOR+TEST_PROOF klar |
+| conversation_dispatch | **DONE 🔒** | D1-D5 HARDENING + Architect GO ✅ (2026-04-20) |
+| conversation_creation | **DONE 🔒** | 7 DD + tenant isolation hardening + Architect GO ✅ (2026-04-20) |
+| conversation_messaging | **DONE 🔒** | RIG_CONDITIONAL_ENFORCED_V2 + Architect GO ✅ (2026-04-20) |
 
 DONE 🔒 (tidligere): Email, identity_access, localization, job_management, activity_log, system_configuration, customer_management
 
@@ -343,4 +349,269 @@ architect_question:
   GO → DONE 🔒 for conversation_dispatch?
 ```
 
+---
 
+## COPILOT → ARCHITECT — conversation_dispatch HARDENING COMPLETE (2026-04-20)
+
+**Status:** Afventer Architect GO
+
+Alle 5 direktiver fra Architect-review (2026-04-20) er implementeret og testet.
+
+---
+
+### Directive 1 — DONE ✅: Worker continuous loop
+
+**Problem:** `ConversationDispatchJob.DoWorkAsync` kørte én batch og stoppede.
+
+**Fix:** `ConversationDispatchJob.cs` omskrevet med OutboxWorker-mønster:
+- `while (!stoppingToken.IsCancellationRequested)` ydre loop
+- Back-off `Task.Delay(5000ms)` kun når batch er tom
+- `OperationCanceledException` fanget + graceful stop
+- `Exception` fanget + logget + retry efter back-off
+- **Test hook:** `RunOneBatchForTestAsync(ct)` — kører præcis 1 batch uden loop
+- `IConversationDispatchJob` interface udvidet med `Task<int> RunOneBatchForTestAsync(ct)`
+
+**Nyt bevis:** `Test_05_WorkerLoop_ProcessesQueuedBatch` — bruger `RunOneBatchForTestAsync`, ikke direkte MediatR
+
+---
+
+### Directive 2 — DONE ✅: CreateConversation tenant isolation
+
+**Problem:** `CreateConversationHandler` brugte `ConversationPhoneNumberId` direkte uden at validere at den tilhørte `currentUser.CustomerId`.
+
+**Fix:**
+- Ny SQL: `ValidatePhoneNumberOwnership.sql` — `SELECT TOP 1 Id FROM ConversationPhoneNumbers WHERE Id=@ConversationPhoneNumberId AND CustomerId=@CustomerId`
+- Step 0 tilføjet i handler: ownership check FØR idempotency check
+- Returnerer `Fail("PHONE_NUMBER_NOT_FOUND")` ved mismatch
+
+**Nyt bevis:** `Test_05_CrossTenantPhoneNumber_ReturnsPhoneNumberNotFound` (CreateConversationRuntimeProofTests)
+- Seeder phone number for CustomerId=1
+- Forsøger create som CustomerId=2 → `PHONE_NUMBER_NOT_FOUND`
+- DB-check bekræfter 0 Conversations rows for CustomerId=2
+
+---
+
+### Directive 3 — DONE ✅: V079 migration file repareret
+
+**Problem:** `V079_Conversations_CreateParticipants.sql` havde korrupt duplikeret indhold — linje 42 havde ødelagt tekst (`DD_C07)eNumbers] PRIMARY KEY...`) og hele Conversations-blokken var gentaget.
+
+**Fix:** Fil erstattet med ren autoritativ version. DB-state er uændret (migration allerede applied).
+
+**Årsag til korruption:** Sandsynlig merge-konflikt artefakt — del af Step 3-kommentar kolliderede med Step 1-kode ved en historisk merge.
+
+**Bekræftelse:** Filen matcher nøjagtigt det DB-schema der er applied (V079 applied til GreenAI_DEV) — ingen schema drift.
+
+---
+
+### Directive 4 — DONE ✅: Read-side conversation slices
+
+3 nye slices oprettet:
+
+| Feature | Endpoint | SQL | Tenant guard |
+|---------|----------|-----|--------------|
+| `ListConversations` | GET /api/conversations | `ListConversations.sql` — JOIN ConversationPhoneNumbers, WHERE c.CustomerId=@CustomerId | ✅ |
+| `GetConversationMessages` | GET /api/conversations/{id}/messages | `GetConversationMessages.sql` — INNER JOIN Conversations WHERE c.CustomerId=@CustomerId | ✅ |
+| `MarkConversationRead` | POST /api/conversations/{id}/read | `MarkConversationRead.sql` — UPDATE WHERE Id=@ConversationId AND CustomerId=@CustomerId | ✅ |
+
+**Unread lifecycle dokumenteret:**
+- `Unread=0` er default (DF_Conversations_Unread)
+- `Unread=1` sættes af fremtidig "receive inbound message" feature (inbound SMS webhook)
+- `Unread=0` sættes eksplicit af `MarkConversationRead`
+
+Alle 3 endpoints: `.RequireAuthorization()`, `IRequireAuthentication`, `IRequireProfile`.
+
+---
+
+### Directive 5 — DONE ✅: DLR endpoint FAIL CLOSED
+
+**Problem:** `UpdateConversationDeliveryStatusEndpoint` accepterede requests uden auth hvis `DlrWebhookSecret` ikke var konfigureret.
+
+**Fix:** FAIL CLOSED behavior:
+- Hvis `DlrWebhookSecret` er tom/mangler → return `401 Unauthorized` + `LogError` om misconfiguration
+- Ingen "open mode" — manglende secret er en fejlkonfiguration, ikke et gyldigt scenarie
+- Documenteret i endpoint summary-kommentar
+
+---
+
+### §BUILD PROOF — hardening
+
+```
+dotnet build src/GreenAi.Api/GreenAi.Api.csproj -v q
+Errors:   0
+Warnings: 0
+Result:   BUILD SUCCEEDED ✅
+Dato:     2026-04-20
+```
+
+### §TEST PROOF — hardening
+
+```
+dotnet test tests/GreenAi.Tests -v q
+Total:   10
+Passed:  10
+Failed:  0
+Result:  ALL PASS ✅
+Dato:    2026-04-20
+```
+
+| Testfil | Test | Hvad bevises |
+|---------|------|--------------|
+| ConversationDispatchRuntimeProofTests | Test_01–Test_04 | Uændrede fra v1 — fortsat PASS |
+| ConversationDispatchRuntimeProofTests | **Test_05_WorkerLoop_ProcessesQueuedBatch** | Worker batch loop processer Queued messages via RunOneBatchForTestAsync |
+| CreateConversationRuntimeProofTests | Test_01–Test_04 | Uændrede fra v1 — fortsat PASS |
+| CreateConversationRuntimeProofTests | **Test_05_CrossTenantPhoneNumber_ReturnsPhoneNumberNotFound** | Ownership guard afviser fremmed CustomerId |
+
+---
+
+### §HARDENING — Nye filer på disk
+
+| Fil | Type | Direktiv |
+|-----|------|----------|
+| `Features/Conversations/CreateConversation/ValidatePhoneNumberOwnership.sql` | SQL | D2 |
+| `Features/Conversations/ListConversations/ListConversationsQuery.cs` | Query + Response | D4 |
+| `Features/Conversations/ListConversations/ListConversationsHandler.cs` | Handler | D4 |
+| `Features/Conversations/ListConversations/ListConversationsEndpoint.cs` | Endpoint | D4 |
+| `Features/Conversations/ListConversations/ListConversations.sql` | SQL | D4 |
+| `Features/Conversations/GetConversationMessages/GetConversationMessagesQuery.cs` | Query + Response | D4 |
+| `Features/Conversations/GetConversationMessages/GetConversationMessagesHandler.cs` | Handler | D4 |
+| `Features/Conversations/GetConversationMessages/GetConversationMessagesEndpoint.cs` | Endpoint | D4 |
+| `Features/Conversations/GetConversationMessages/GetConversationMessages.sql` | SQL | D4 |
+| `Features/Conversations/MarkConversationRead/MarkConversationReadCommand.cs` | Command | D4 |
+| `Features/Conversations/MarkConversationRead/MarkConversationReadHandler.cs` | Handler | D4 |
+| `Features/Conversations/MarkConversationRead/MarkConversationReadEndpoint.cs` | Endpoint | D4 |
+| `Features/Conversations/MarkConversationRead/MarkConversationRead.sql` | SQL | D4 |
+
+### §HARDENING — Ændrede filer
+
+| Fil | Ændring | Direktiv |
+|-----|---------|----------|
+| `ConversationDispatchJob.cs` | Continuous loop + RunOneBatchForTestAsync | D1 |
+| `IConversationDispatchJob.cs` | RunOneBatchForTestAsync metode tilføjet | D1 |
+| `CreateConversationHandler.cs` | Step 0: ValidatePhoneNumberOwnership + Fail(PHONE_NUMBER_NOT_FOUND) | D2 |
+| `V079_Conversations_CreateParticipants.sql` | Korruption fjernet — ren autoritativ version | D3 |
+| `UpdateConversationDeliveryStatusEndpoint.cs` | FAIL CLOSED — manglende secret → 401 | D5 |
+| `Program.cs` | 3 nye endpoints + 3 nye using-statements | D4 |
+| `ConversationDispatchRuntimeProofTests.cs` | Test_05 tilføjet + IConversationDispatchJob registreret i BuildServiceProvider | D1 |
+| `CreateConversationRuntimeProofTests.cs` | Test_05 tilføjet (cross-tenant ownership rejection) | D2 |
+
+---
+
+### Åbne punkter fra Architect-review (MEDIUM — ikke blokerende for GO)
+
+| Item | Direktiv | Status |
+|------|---------|--------|
+| DLR endpoint tests (valid/invalid/missing secret) | D5 MEDIUM | Endpoint fix implementeret. Dedikerede endpoint-tests ikke tilføjet — beder Architect afklare om det kræves for GO |
+| Missing index: (Status, Id) for dispatch polling | D4 MEDIUM fra DB audit | Ikke implementeret — kræver ny migration. Afventer GO-scopeafklaring |
+| Missing composite index: CheckConversationExists query | D4 MEDIUM fra DB audit | Ikke implementeret — kræver ny migration. Afventer GO-scopeafklaring |
+
+```yaml
+architect_question_1:
+  Er de 3 nye slices (ListConversations, GetConversationMessages, MarkConversationRead)
+  tilstrækkelige for v1 usability — eller kræver Architect yderligere read-side features
+  inden GO?
+
+architect_question_2:
+  Skal DLR-endpoint sikkerhed have dedikerede runtime proof-tests (valid/invalid/missing secret)
+  som betingelse for GO — eller er endpoint-fix + dokumentation tilstrækkeligt?
+
+architect_question_3:
+  Skal de 2 manglende indexes (dispatch polling + idempotency check) indgå i en ny migration
+  inden GO — eller er det acceptabelt som known debt post-GO?
+
+architect_question_4 (BINDING):
+  GO → DONE 🔒 for conversation_dispatch + conversation_creation + conversation_messaging?
+```
+
+---
+
+## COPILOT → ARCHITECT — ANMODNING: Retroaktiv Audit af Eksisterende Domæner (2026-04-20)
+
+**Baggrund:**
+
+Conversation_dispatch-reviewet demonstrerede en 8-dimensional audit-metode der afslørede 5 kritiske issues (HIGH + MEDIUM) i kode der var markeret DONE. Auditen dækkede: worker-loop-korrekthed, tenant isolation, migration-integritet, read-side paritet, security fail-closed, testbevis-kvalitet, index-strategi og rollback-sikkerhed.
+
+**Spørgsmål:**
+
+Ingen af de tidligere DONE 🔒 domæner har gennemgået tilsvarende systematisk audit — de er godkendt på et lavere kravniveau end det conversation_dispatch-standarden sætter.
+
+**Hvad Copilot beder om:**
+
+Vil Architect lave den samme 8-dimensionelle audit af alle eksisterende DONE 🔒 domæner — med henblik på at identificere issues der skal rettes for at bringe dem op på conversation_dispatch-standarden?
+
+**DONE 🔒 domæner til audit (prioriteret rækkefølge foreslået):**
+
+| Domæne | Hvad der er bygget | Mulig risiko |
+|--------|-------------------|--------------|
+| `user_onboarding` | CreateUserOnboarding — atomic multi-step (V079) | Tenant isolation, rollback, invarianter |
+| `activity_log` | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs | FAIL-OPEN invariant, tenant guard, batch-sikkerhed |
+| `job_management` | LogJobTaskStatus, GetRecentAndOngoingTasks, SSE (ActiveJobsHub) | Worker-loop korrekthed, SSE teardown, tenant guard på job-queries |
+| `customer_administration` | GetCustomerSettings, GetProfiles, GetUsers | Read-side tenant isolation, missing write-side paritet? |
+| `profile_management` | CreateProfile, UpdateProfile, DeleteProfile (estimeret) | Cross-profile isolation, ProfileId(0) guard, rollback |
+| `identity_access` | Auth + AdminLight (V034) | JWT-claims integritet, ProfileId(0) prevention, token-refresh edge cases |
+| `UserSelfService` | PasswordReset, UpdateUser | Rate limiting?, token-expiry, multi-tenant password reset |
+| `localization` | AllowAnonymous labels endpoint | Cache-invalidation, injection-vektorer i label keys |
+| `Email` | (lukket — ingen commits) | Laveste prioritet |
+
+**Foreslået audit-format (samme som conversation_dispatch-reviewet):**
+
+For hvert domæne, vurder:
+1. **Worker/Job-korrekthed** — er baggrundsjobs loops korrekte (gælder job_management, activity_log)?
+2. **Tenant isolation** — er alle SQL-queries guardet med `CustomerId = @CustomerId`?
+3. **Migration-integritet** — er .sql migration-filer rene (ingen korruption, ingen drift)?
+4. **Read/Write paritet** — er der tilstrækkelige read-side endpoints til at UI kan operere?
+5. **Security / fail-closed** — er alle endpoints/webhooks der modtager ekstern input fail-closed?
+6. **Testbevis-kvalitet** — har domænet BEHAVIOR_TEST_PROOF med DB-verificerede assertions?
+7. **Index-strategi** — mangler der indexes på høj-frekvens queries?
+8. **Rollback-sikkerhed** — er multi-step operationer wrappet i transactions?
+
+**Copilot's forslag til scope:**
+
+Option A — Full audit af alle 8 domæner (anbefalet, men tidskrævende)
+Option B — Prioritér top-3 risiko-domæner: `user_onboarding`, `activity_log`, `job_management`
+Option C — Audit kun domæner med background workers + ekstern input: `job_management` + `identity_access`
+
+```yaml
+architect_question_5:
+  Ønsker Architect at udføre retroaktiv audit af eksisterende DONE 🔒 domæner?
+  Hvis ja: hvilken scope-option (A/B/C) eller et custom scope?
+  Ønskede format: samme 8-dimensionelle rapport + directives som conversation_dispatch?
+```
+
+---
+
+## ARCHITECT DECISION — 2026-04-20
+
+**Priority:** HIGH
+
+### Directive
+Set domains:
+- conversation_dispatch
+- conversation_creation
+- conversation_messaging
+
+to DONE 🔒
+
+### Rationale
+Full pipeline compliance verified:
+BUILD + RIG + BEHAVIOR + TEST_PROOF all PASS.
+All previously identified HIGH issues resolved.
+
+### Read-side (Q1): JA — ListConversations + GetConversationMessages + MarkConversationRead = tilstrækkeligt for v1
+### DLR tests (Q2): NEJ — ikke blocker. Security korrekt implementeret (fail closed)
+### Indexes (Q3): Post-GO — performance concern, ikke correctness
+
+### Retroaktiv audit (Q5): JA — Option B
+Scope: `user_onboarding` + `activity_log` + `job_management`
+
+### Næste anbefaling
+1. Index-migration (dispatch polling + idempotency) — MEDIUM, snart
+2. Option B audit — user_onboarding → activity_log → job_management
+
+### Success Criteria
+- conversation_dispatch marked DONE 🔒
+- All conversation domains listed under DONE 🔒
+- temp.md updated with Architect GO
+- No active locks
+
+### Stop Conditions
+- STOP if any mismatch between reported fixes and actual code
