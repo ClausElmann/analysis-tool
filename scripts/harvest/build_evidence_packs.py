@@ -285,6 +285,25 @@ def build_prompt(pack: dict) -> str:
     pack_json = json.dumps(pack, ensure_ascii=False, separators=(",", ":"))
     comp = pack["meta"]["component"]
     comp_type = pack["meta"]["type"]
+    is_dumb = comp_type in ("DUMB", "CONTAINER")
+
+    if is_dumb:
+        type_rule = (
+            f"TYPE {comp_type}: KUN ui_behaviors (hvad brugeren ser/goer) - ingen flows, ingen requirements.\n"
+            f"Lad flows og requirements vaere tomme lister.\n"
+            f"behaviors maa IKKE bruges."
+        )
+        output_schema = '{"ui_behaviors":[],"flows":[],"requirements":[]}'
+    else:
+        type_rule = (
+            f"TYPE {comp_type}: behaviors SKAL udfyldes (mindst 2 forretningshandlinger bevist i evidence pack).\n"
+            f"flows og requirements tilladt naar direkte bevist.\n"
+            f"flows: kun naar alle 4 led er direkte bevist (trigger → method → service_call → http).\n"
+            f"requirements: KUN endpoints der er direkte i service_http_calls eller direct_http_calls i pack.\n"
+            f"ui_behaviors maa IKKE bruges."
+        )
+        output_schema = '{"behaviors":[],"flows":[],"requirements":[]}'
+
     return f"""## ACDDA v4 - Angular Component Domain Analysis
 
 Token: {comp}  |  Type: {comp_type}
@@ -295,7 +314,7 @@ Abstraction: Angular UI --> User capability --> Domain behavior --> System capab
 TEST FOER DU SKRIVER: Giver saetningen mening for en person uden kode?
   JA = ok. NEJ = afvis.
 
-BEHAVIORS - hvad brugeren KAN i systemet:
+UI_BEHAVIORS - hvad brugeren KAN i systemet:
   OK:  'Soeg efter sendte beskeder'
   OK:  'Opdater eksisterende brugerprofil'
   OK:  'Opret ny samtale med kunde'
@@ -308,18 +327,13 @@ HARD REJECT - behavior maatte ALDRIG indeholde:
   component, service, method, load, init, fetch, handler, initialize, subscribe
   camelCase ord (fx doSearch, getUsersByCustomer, getTileStyleClasses)
 
-FLOWS: kun naar alle 4 led er direkte bevist i evidence pack:
-  trigger (hvad brugeren goer) -> method (TS metode i pack) -> service_call (Service.method()) -> http (VERB endpoint i pack)
-
-REQUIREMENTS: KUN endpoints der er direkte i service_http_calls eller direct_http_calls i pack.
-
-TYPE DUMB: KUN ui_behaviors (hvad brugeren ser/goer) - ingen flows, ingen requirements.
+{type_rule}
 
 EVIDENCE PACK:
 {pack_json}
 
 OUTPUT - kun dette JSON objekt, ingen forklaring, ingen markdown:
-{{"component":"{comp}","type":"{comp_type}","behaviors":[{{"text":"...","evidence_method":"...","evidence_line":0,"confidence":0.0}}],"flows":[{{"trigger":"...","method":"...","service_call":"ServiceName.method()","http":"METHOD api/path","result":"...","confidence":0.0}}],"requirements":[{{"method":"GET","endpoint":"api/...","type":"QUERY","evidence_method":"..."}}],"ui_behaviors":[],"unknowns":[]}}"""
+{output_schema}"""
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
@@ -338,7 +352,13 @@ print(f"OutputDir:  {OUTPUT_DIR}")
 print()
 
 for entry in entries:
-    comp_path = Path(entry if isinstance(entry, str) else entry.get("filePath", str(entry)))
+    if isinstance(entry, str):
+        rel = entry
+    elif isinstance(entry, dict):
+        rel = entry.get("path") or entry.get("filePath") or str(entry)
+    else:
+        rel = str(entry)
+    comp_path = Path(rel)
     if not comp_path.is_absolute():
         comp_path = APP_ROOT / comp_path
     comp_path = comp_path.resolve()

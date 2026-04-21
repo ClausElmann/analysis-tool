@@ -125,7 +125,12 @@ print(f"ACDDA v4 - validate_llm_output ({len(entries)} components)")
 print()
 
 for entry in entries:
-    comp_path = entry if isinstance(entry, str) else entry.get("filePath", str(entry))
+    if isinstance(entry, str):
+        comp_path = entry
+    elif isinstance(entry, dict):
+        comp_path = entry.get("path") or entry.get("filePath") or str(entry)
+    else:
+        comp_path = str(entry)
     comp_name = Path(comp_path).stem.replace(".component", "")
 
     pack_path  = RAW_DIR / comp_name / "evidence_pack.json"
@@ -210,7 +215,7 @@ for entry in entries:
     if is_dumb:
         status = "PASS_UI_ONLY" if (b_pass > 0 or ui_behaviors) else "SKIP_UI_ONLY"
     else:
-        if b_pass >= 2 and (f_pass >= 1 or r_pass >= 1):
+        if b_pass >= 2:
             status = "PASS"
         elif b_pass >= 1 or f_pass >= 1 or r_pass >= 1:
             status = "PARTIAL"
