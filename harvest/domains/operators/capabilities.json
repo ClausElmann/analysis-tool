@@ -1,0 +1,43 @@
+{
+  "domain": "sender_control",
+  "parent_domain": null,
+  "cluster_source": "Cluster_2",
+  "evidence_count": 3,
+  "evidence_status": "hypothesis",
+  "rename_note": "Omdoebt fra operators — sender_control udtrykker forretningsansvaret: styre hvem der maa sende hvad paa vegne af hvem. Domain = OPERATING AUTHORITY (governance + identity in context of communication).",
+  "capabilities": [
+    {
+      "name": "control_who_can_send",
+      "customer_problem": "Kunden skal sikre at kun de rette personer kan udsende beskeder — og at det er sporbart",
+      "user_value": "Styre hvilke personer der har adgang til at afsende beskeder i systemet",
+      "execution_mode": "manual_only",
+      "boundary": {
+        "includes": ["adgangsrettigheder til afsendelse", "overblik over hvem har rettigheder", "audit trail for adgaendsaendringer"],
+        "excludes": ["afsenderidentitet synlig for modtager (manage_sender_identity)", "beskedkomposition (outbound_messaging)"]
+      },
+      "actions": [
+        "se hvem der i dag har afsendelsesrettigheder",
+        "tilpasse adgang for enkeltpersoner",
+        "se hvilken afsenderidentitet der bruges"
+      ],
+      "works_without_ui": false,
+      "automation_note": "Adgangsstyring kraever menneskelig godkendelse"
+    },
+    {
+      "name": "manage_sender_identity",
+      "customer_problem": "Kunden skal styre hvilket navn og nummer modtageren ser — afhaengigt af kontekst og afsender",
+      "user_value": "Opdatere og vedligeholde de afsenderidentiteter der bruges ved udsendelse",
+      "execution_mode": "manual_only",
+      "boundary": {
+        "includes": ["konfiguration af afsendernavn og -nummer", "standard-afsenderidentitet per kontekst"],
+        "excludes": ["adgangsrettigheder (control_who_can_send)", "beskedindhold (outbound_messaging)"]
+      },
+      "actions": [
+        "se og redigere oplysninger om en afsender",
+        "saette standard-afsenderidentitet"
+      ],
+      "works_without_ui": false,
+      "automation_note": "Konfiguration — kraever menneskelig bevidst handling"
+    }
+  ]
+}

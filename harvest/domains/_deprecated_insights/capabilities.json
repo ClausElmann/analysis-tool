@@ -1,0 +1,34 @@
+{
+  "domain": "delivery_insights",
+  "parent_domain": null,
+  "cluster_source": "Cluster_1 (rapport + søgning del)",
+  "evidence_count": 2,
+  "evidence_status": "hypothesis",
+  "split_from": "Cluster_1 — skilt fra outbound_messaging fordi indsigt og afsendelse er separate bekymringer",
+  "capabilities": [
+    {
+      "name": "track_delivery_outcomes",
+      "customer_problem": "Kunden skal vide om vigtige beskeder faktisk er nået frem — og handle hvis de ikke har",
+      "user_value": "Følge op på status for udsendelser og identificere leveringsproblemer",
+      "actions": [
+        "se hvilke beskeder er leveret og hvilke ikke er",
+        "filtrere på tidsperiode for at finde specifikke udsendelser",
+        "identificere modtagere hvor levering fejlede"
+      ],
+      "works_without_ui": true,
+      "automation_note": "Kan eksponeres som rapport-feed, alert, eller dashboard uden manuel navigation"
+    },
+    {
+      "name": "audit_dispatch_history",
+      "customer_problem": "Kunden skal kunne dokumentere hvad der er sendt, hvornår og til hvem — af compliance og kontrolhensyn",
+      "user_value": "Gennemgå historik over tidligere udsendelser med detaljer om afsender og tidspunkt",
+      "actions": [
+        "søge i udsendelseshistorik",
+        "filtrere på afsender",
+        "se detaljer om en specifik udsendelse"
+      ],
+      "works_without_ui": true,
+      "automation_note": "Kan eksporteres eller tilgås via API til audit-formål"
+    }
+  ]
+}

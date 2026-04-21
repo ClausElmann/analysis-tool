@@ -1,0 +1,27 @@
+{
+  "domain": "delivery_timing",
+  "parent_domain": "outbound_messaging",
+  "cluster_source": "Cluster_1 (scheduling del)",
+  "evidence_count": 1,
+  "evidence_status": "hypothesis — kun 1 behavior bevist. Afventer Harvest Slice 2 for bekraeftelse.",
+  "split_from": "Cluster_1 — timing er et separat forretningsansvar, ikke en del af selve afsendelsen",
+  "capabilities": [
+    {
+      "name": "control_when_messages_arrive",
+      "customer_problem": "Kunden skal sikre at beskeder ankommer paa det rigtige tidspunkt — ikke bare hurtigst muligt",
+      "user_value": "Planlaegge hvornaar en udsendelse frigives til modtagerne",
+      "execution_mode": "manual_or_scheduled",
+      "boundary": {
+        "includes": ["saetning af ScheduledAt", "valg mellem ojeblikkelig og forsinket dispatch", "annullering af planlagt udsendelse"],
+        "excludes": ["beskedens indhold (message_personalization)", "modtagervalg (outbound_messaging)", "leveringsbekraeftelse (delivery_monitoring)"]
+      },
+      "actions": [
+        "sende en udsendelse med det samme",
+        "planlaegge udsendelse til et fremtidigt tidspunkt",
+        "annullere en planlagt udsendelse inden den frigives"
+      ],
+      "works_without_ui": true,
+      "automation_note": "Timing kan styres eksternt via trigger (alarm-tidspunkt, begivenhed, schedule) uden manuel input"
+    }
+  ]
+}

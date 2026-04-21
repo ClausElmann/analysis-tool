@@ -1,0 +1,29 @@
+{
+  "domain": "recipient_reachability",
+  "parent_domain": null,
+  "domain_status": "PROVISIONAL_CANDIDATE",
+  "cluster_source": "Cluster_4",
+  "evidence_count": 2,
+  "evidence_status": "hypothesis — CONTAINER, ingen flows bevist. Afventer Harvest Slice 2 (maalrettet paa kontaktdata flows, fallback-kanaler, datakilder).",
+  "rename_note": "Omdoebt fra recipients — reachability udtrykker problemet: sikre at beskeder kan naa frem paa det rigtige nummer",
+  "open_question": "Er det contact-data-management (selvstaendigt top-level) eller delivery-constraint (subdomain under outbound_messaging)?",
+  "capabilities": [
+    {
+      "name": "ensure_contact_reachability",
+      "customer_problem": "Kunden skal sikre at vigtige beskeder faktisk naar frem — selv naar en persons primaere kontaktpunkt aendrer sig",
+      "user_value": "Holde kontaktinformation opdateret saa beskeder altid naar de rette modtagere",
+      "execution_mode": "manual_or_automated",
+      "boundary": {
+        "includes": ["tilfoejelse og opdatering af kontaktkanaler for modtagere", "fallback-kanal konfiguration"],
+        "excludes": ["modtagervalg til dispatch (outbound_messaging)", "leveringsbekraeftelse (delivery_monitoring)"]
+      },
+      "actions": [
+        "tilfoeje et alternativt kontaktpunkt for en modtager",
+        "opdatere eksisterende kontaktinformation",
+        "se hvilke kanaler en modtager kan naas paa"
+      ],
+      "works_without_ui": true,
+      "automation_note": "Kan opdateres via integration med HR-system eller eksternt register"
+    }
+  ]
+}

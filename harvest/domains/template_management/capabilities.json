@@ -1,0 +1,44 @@
+{
+  "domain": "message_personalization",
+  "parent_domain": "outbound_messaging",
+  "cluster_source": "Cluster_3",
+  "evidence_count": 3,
+  "evidence_status": "hypothesis",
+  "rename_note": "Omdoebt fra template_management — personalization udtrykker kundevaerdien, ikke teknologien",
+  "capabilities": [
+    {
+      "name": "personalize_with_recipient_data",
+      "customer_problem": "Kunden skal kunne sende beskeder der foeles relevante og personlige for modtageren — ikke generiske",
+      "user_value": "Indsaette data om den konkrete modtager direkte i beskeden automatisk",
+      "execution_mode": "system_only",
+      "boundary": {
+        "includes": ["definition af tokens", "automatisk token-oplosning ved udsendelse", "preview af fusionerede vaerdier"],
+        "excludes": ["skabelonstruktur (maintain_reusable_content)", "selve dispatch (outbound_messaging)", "kontaktdata paa modtager (recipient_reachability)"]
+      },
+      "actions": [
+        "definere hvilke data der kan bruges i en besked",
+        "se hvilke personaliserede vaerdier er tilgaengelige",
+        "faa systemet til at udfylde vaerdier automatisk ved udsendelse"
+      ],
+      "works_without_ui": true,
+      "automation_note": "Systemet erstatter tokens ved udsendelse — ingen UI kraevet naar felt er defineret"
+    },
+    {
+      "name": "maintain_reusable_content",
+      "customer_problem": "Kunden skal ikke formulere den samme type besked fra bunden hver gang",
+      "user_value": "Oprette, tilpasse og fjerne genanvendeligt beskedindhold",
+      "execution_mode": "manual_only",
+      "boundary": {
+        "includes": ["oprettelse af indholdsudkast med plassholdere", "opdatering og sletning af eksisterende indhold"],
+        "excludes": ["token-oplosning (personalize_with_recipient_data)", "dispatch (outbound_messaging)", "indholdsgodkendelse (verify_before_dispatch)"]
+      },
+      "actions": [
+        "oprette et nyt indholdsudkast med plassholdere",
+        "opdatere eksisterende indhold",
+        "fjerne indhold der ikke laengere er relevant"
+      ],
+      "works_without_ui": false,
+      "automation_note": "Konfiguration — kraever menneskelig redaktion"
+    }
+  ]
+}

@@ -133,6 +133,30 @@ analysis-tool/analysis_tool/idle/  (Idle Harvest v1 loop — Python source)
 
 **⚠️ Ekskluderet fra Layer 3:** `.pyc`, `.venv`, `analyzers/`, `core/`, `run_*.py` (domain-pipeline kode — ikke governance)
 
+### 4b. Harvest Intelligence (Layer 4)
+```
+analysis-tool/scripts/harvest/
+  Start-AutonomousHarvest.ps1    (ACDDA v3 — Angular domain knowledge harvester)
+
+analysis-tool/harvest/
+  component-list.json            (De 10 sampledede komponenter — reproducerbar re-run)
+  angular/normalized/
+    behaviors.jsonl              (Ekstraherede behaviors pr komponent)
+    flows.jsonl                  (Ekstraherede flows — kun 4-link verificerede)
+    requirements.jsonl           (HTTP endpoints traceret fra komponent → service → HTTP)
+```
+
+**Formål:**
+- Giver Architect indsigt i **Angular-lag** (Layer 0.5) — hvad UI-komponenter faktisk gør
+- `behaviors.jsonl`: bruger-domæne-sprog (imperativ, title case, valideret)
+- `flows.jsonl`: kun flows med komplet kæde UI→method→service→HTTP
+- `requirements.jsonl`: kun direkte kaldte endpoints (targeted tracing — ikke alle service-endpoints)
+- `component-list.json`: samme 10 komponenter som v1-run → sammenligning mulig
+
+**⚠️ REGLER for Layer 4:**
+- ✅ Inkludér: alle `.ps1`, `.jsonl`, `.json` i `scripts/harvest/` og `harvest/`
+- ❌ ALDRIG: re-kør harvest automatisk ved package-generering (side-effects)
+
 ### 5. Visual Intelligence (Layer 2.5)
 ```
 analysis-tool/visual-intelligence/
@@ -176,6 +200,12 @@ analysis-tool/visual-intelligence/
 ✅ c:\Udvikling\analysis-tool\dfep_v3\        (DFEP v3 engine)
 ✅ c:\Udvikling\analysis-tool\dfep_v2\        (DFEP v2 engine)
 ✅ c:\Udvikling\analysis-tool\analysis_tool\idle\  (Idle Harvest)
+```
+
+**Inkluderet harvest (Layer 4 — Angular intelligence):**
+```
+✅ c:\Udvikling\analysis-tool\scripts\harvest\  (Start-AutonomousHarvest.ps1)
+✅ c:\Udvikling\analysis-tool\harvest\          (component-list.json + *.jsonl output)
 ```
 
 **WHY:** ChatGPT should design green-ai based on CONCEPTS (analysis-tool), NOT by copying sms-service implementation directly.

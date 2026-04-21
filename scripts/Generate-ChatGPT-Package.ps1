@@ -42,7 +42,29 @@ $atExcludeExts = @('.py','.pyc','.log','.zip','.dll','.exe','.pdb','.suo','.user
 $atCount = Copy-Filtered $atRoot "$tmp\analysis-tool" $atExcludeDirs $atExcludeExts
 Write-Host "   -> $atCount filer"
 
-# --- Layer 3: governance tools (Python source — kun specifikke governance-moduler) ---
+# --- Layer 4: Harvest scripts + output (eksplicit tracking) ---
+Write-Host "Layer 4: harvest scripts + output..."
+$harvestScriptCount = 0
+$harvestOutputCount = 0
+@('scripts\harvest', 'harvest') | ForEach-Object {
+    $hSrc = Join-Path $atRoot $_
+    if (Test-Path $hSrc) {
+        Get-ChildItem -Path $hSrc -Recurse -File | Where-Object {
+            $atExcludeExts -notcontains $_.Extension.ToLower()
+        } | ForEach-Object {
+            $rel  = $_.FullName.Substring($atRoot.Length + 1)
+            $dest = Join-Path "$tmp\analysis-tool" $rel
+            $d    = Split-Path $dest -Parent
+            if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
+            Copy-Item $_.FullName $dest -Force
+            if ($rel -like 'scripts\harvest*') { $harvestScriptCount++ }
+            else                              { $harvestOutputCount++ }
+        }
+    }
+}
+Write-Host "   -> scripts: $harvestScriptCount  output: $harvestOutputCount filer"
+
+# --- Layer 3: governance tools (Python source - kun specifikke governance-moduler) ---
 Write-Host "Layer 3: governance tools (dfep_v3, dfep_v2, analysis_tool/idle)..."
 $govDirs = @('dfep_v3', 'dfep_v2', 'analysis_tool')
 $govExcludeExts = @('.pyc','.log','.zip')
@@ -104,6 +126,7 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine("| Layer 1 | analysis-tool (ekstraheret viden) | $atCount |")
 [void]$sb.AppendLine("| Layer 2 | green-ai (implementering) | $gaCount |")
 [void]$sb.AppendLine("| Layer 3 | governance tools (dfep_v3, dfep_v2, idle harvest) | $govCount |")
+[void]$sb.AppendLine("| Layer 4 | harvest scripts + output (Start-AutonomousHarvest.ps1, *.jsonl) | $($harvestScriptCount + $harvestOutputCount) |")
 [void]$sb.AppendLine("")
 [void]$sb.AppendLine("## DOMAIN ANALYSE STATUS")
 [void]$sb.AppendLine("")
@@ -186,6 +209,9 @@ $rm = [System.Text.StringBuilder]::new()
 [void]$rm.AppendLine("| analysis-tool/dfep_v3/ | L3 | DFEP v3 Copilot-native engine (Python source) |")
 [void]$rm.AppendLine("| analysis-tool/dfep_v2/ | L3 | DFEP v2 hybrid engine (Python source) |")
 [void]$rm.AppendLine("| analysis-tool/analysis_tool/idle/ | L3 | Idle Harvest v1 loop (Python source) |")
+[void]$rm.AppendLine("| analysis-tool/scripts/harvest/ | L4 | Harvest script (Start-AutonomousHarvest.ps1) |")
+[void]$rm.AppendLine("| analysis-tool/harvest/angular/normalized/ | L4 | behaviors.jsonl + flows.jsonl + requirements.jsonl |")
+[void]$rm.AppendLine("| analysis-tool/harvest/component-list.json | L4 | Sampled component paths (de 10 analyserede) |")
 [void]$rm.AppendLine("")
 [void]$rm.AppendLine("## HVAD ER EKSKLUDERET (Layer 0)")
 [void]$rm.AppendLine("")

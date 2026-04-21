@@ -109,7 +109,11 @@ Crash under step N:
 ## PROMPTS (kopier direkte til Copilot)
 ## ═══════════════════════════════════════
 
-### ▶ HARVEST_IDLE_MODE_V3 — AUTONOM HØST (lang kørsel)
+### ▶ HARVEST_IDLE_MODE_V3 — AUTONOM DOMAIN-HØST (lang kørsel)
+
+> **DOMAIN-HØST** — høster viden fra alle ressourcer: git-historik, WIKI, slices, kildekode.
+> Kræver `run_domain_engine.py` og en Architect-prioritetsliste i temp.md.
+> Bruger IKKE Angular-komponenter — det er `run_harvest.py` der gør.
 
 **Trigger-kommando (kopiér præcis — ingen variationer):**
 
@@ -303,7 +307,10 @@ python -m dfep_v3.engine.dfep_runner --all --generate-prompts
 ## Idle Harvest Loop (gap-drevet, DFEP-styret)
 ## ═══════════════════════════════════════
 
-> Kør når Copilot er idle. Finder selv det domæne der mangler mest — ingen manuel domæne-angivelse nødvendig.
+> **DOMAIN-HØST** — gap-drevet, DFEP-styret.
+> Finder automatisk det domæne der mangler mest viden og genererer målrettede prompts.
+> Kilde: git-historik, WIKI, slices, kildekode — IKKE Angular `.component.ts` filer.
+> For Angular-høst → se "HARVEST PIPELINE — run_harvest.py" nedenfor.
 
 ### Se status på alle domæner
 ```powershell
@@ -436,3 +443,59 @@ cd c:\Udvikling\analysis-tool
 ```
 
 Output: ZIP-fil sted + `PACKAGE_TOKEN` til brug i temp.md rapport.
+
+---
+
+## ═══════════════════════════════════════
+## HARVEST PIPELINE — run_harvest.py
+## ═══════════════════════════════════════
+
+> ⚠️ DETTE ER ANGULAR-HØST — IKKE DOMAIN-HØST
+>
+> `run_harvest.py` høster KUN Angular `.component.ts` filer fra sms-service.
+> Pipeline: structural evidence → **Copilot chat skriver llm_output.json** → validate → emit til corpus/
+>
+> For domain-høst (git, WIKI, slices, alle ressourcer) → se "Domain engine" sektionen ovenfor.
+
+### Normal workflow (Copilot chat som LLM)
+
+```
+STEP 1 — byg evidence packs (automatisk):
+  .venv\Scripts\python.exe scripts/harvest/run_harvest.py --prepare --batch-size 10
+
+STEP 2 — Copilot læser copilot_prompt.md og skriver llm_output.json
+  (dette sker i chat — Copilot er LLM'en)
+
+STEP 3 — validér + emit til corpus/ (automatisk):
+  .venv\Scripts\python.exe scripts/harvest/run_harvest.py --finalize --batch-size 10 --auto-mark-done
+```
+
+### Status (vis hvad der mangler)
+```powershell
+.venv\Scripts\python.exe scripts/harvest/run_harvest.py --status
+```
+
+### Nulstil manifest (start forfra)
+```powershell
+.venv\Scripts\python.exe scripts/harvest/run_harvest.py --reset
+```
+
+Sletter `harvest/harvest-manifest.json` — alle komponenter bliver PENDING igen. Corpus/ røres IKKE.
+
+### Kør ét batch — fuld pipeline inkl. API-kald (automatisk, kræver GITHUB_TOKEN)
+```powershell
+.venv\Scripts\python.exe scripts/harvest/run_harvest.py --batch-size 10 --auto-mark-done
+```
+
+### Kør og kør — loop til alle er færdige
+```powershell
+.venv\Scripts\python.exe scripts/harvest/run_harvest.py --batch-size 10 --auto-mark-done --loop
+```
+
+### Regler
+| Regel | Beskrivelse |
+|-------|-------------|
+| DONE | Kun via `pipeline_status IN (PASS, PASS_UI_ONLY)` + `--auto-mark-done` |
+| DONE manuelt | ❌ ALDRIG |
+| Eksisterende `llm_output.json` | Genbruges automatisk (LLM-step springes over) |
+| Manifest | `harvest/harvest-manifest.json` — persisteres efter hvert komponent |

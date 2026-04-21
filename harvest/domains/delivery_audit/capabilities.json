@@ -1,0 +1,29 @@
+{
+  "domain": "delivery_audit",
+  "parent_domain": "outbound_messaging",
+  "cluster_source": "Cluster_1 (rapport+soegning del — compliance halvdel)",
+  "evidence_count": 2,
+  "evidence_status": "hypothesis",
+  "split_from": "delivery_insights — splittet fordi compliance/audit og operationel overvagning er to distinkte brugerintentioner",
+  "domain_concern": "hvad skete der historisk, og kan jeg dokumentere det?",
+  "capabilities": [
+    {
+      "name": "audit_dispatch_history",
+      "customer_problem": "Kunden skal kunne dokumentere hvad der er sendt, hvornaar og til hvem — af compliance og kontrolhensyn",
+      "user_value": "Gennemgaa historik over tidligere udsendelser med detaljer om afsender og tidspunkt",
+      "execution_mode": "system_generated_manual_access",
+      "execution_mode_note": "Data genereres automatisk af systemet (system_only). Visning/soegning kraever menneskelig handling (manual). Todelt: generation=system, access=manual.",
+      "boundary": {
+        "includes": ["soegbar udsendelseshistorik", "afsender/modtager/tidspunkt-detaljer", "eksport til compliance-formaal"],
+        "excludes": ["real-time leveringsstatus (delivery_monitoring)", "beskedkomposition (outbound_messaging)"]
+      },
+      "actions": [
+        "soege i udsendelseshistorik",
+        "filtrere paa afsender",
+        "se detaljer om en specifik udsendelse"
+      ],
+      "works_without_ui": true,
+      "automation_note": "Kan eksporteres eller tilgaas via API til audit-formaal"
+    }
+  ]
+}

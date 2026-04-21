@@ -3,9 +3,9 @@
 > **Purpose:** Alt hvad jeg behøver at vide om green-ai — tech, build-state, locks, domain-states.  
 > **Opdatér** når et STEP afsluttes, migration applied, lock ændres, eller tech stack ændres.
 
-**Last Updated:** 2026-04-20 (conversation_dispatch + conversation_creation + conversation_messaging — DONE 🔒 — Architect GO ✅)
-**Migration level:** V081
-**Tests:** 10/10 PASS (ConversationDispatch + CreateConversation RuntimeProofTests) — alle tidligere tests fortsat grønne
+**Last Updated:** 2026-04-21 (audit hardening: ResultExtensions HTTP mapping + V087 Status-index)
+**Migration level:** V087
+**Tests:** Alle tests PASS (inkl. StandardReceiversRuntimeProofTests 5/5, DeliveryRuntimeProofTests 6/6, LoggingRuntimeProofTests 3/3) — 0 errors, 0 warnings
 **Build:** 0 errors, 0 warnings
 **DB:** `GreenAI_DEV` på `(localdb)\MSSQLLocalDB`  
 **App:** `http://localhost:5057` — start: `dotnet run --project src/GreenAi.Api`
@@ -76,10 +76,14 @@ Primary: `--color-primary: #2563EB` · MudTheme: inline `<style id="greenai-pale
 | Email | Send, SendSystem, GatewayDispatch, WebhookStatusUpdate | ✅ CLOSED 🔒 |
 | Identity | ChangeUserEmail | ✅ |
 | JobManagement | LogJobTaskStatus, GetRecentAndOngoingTasks, ActiveJobs (SSE) — **unified monitoring** (Azure Batch + in-process) | ✅ DONE 🔒 |
-| Localization | BatchUpsertLabels, GetLabels | ⚠️ Stubs — gap-assessment mangler |
+| Localization | BatchUpsertLabels, GetLabels | ✅ DONE 🔒 |
 | SharedKernel/FileValidation | **IFileTypeValidationService** + FileTypeValidationService | ✅ DONE 🔒 (system_configuration) |
 | System | Health, Ping | ✅ |
-| UserSelfService | PasswordReset, UpdateUser | ✅ |
+| UserSelfService | PasswordReset, UpdateUser | ✅ DONE 🔒 |
+| Sms/Delivery | OutboxWorker, TrackDelivery, IngestGatewayApiDlr | ✅ DONE 🔒 GEN2 (Outbox + DLR + state machine, 2026-04-21) |
+| Sms/Logging | FatalEmailLogger | ✅ DONE 🔒 GEN2 (FAIL-OPEN, 2026-04-21) |
+| Sms/EboksIntegration | EboksMessageProvider (Channel=3, auto-delivered) | ✅ DONE 🔒 GEN2 (2026-04-21) |
+| Sms/ManageStandardReceiver | CreateReceiver, UpdateReceiver, DeactivateReceiver, AddGroup, AddKeyword, AddDistributionPhone, MapToProfile | ✅ DONE 🔒 GEN2 (2026-04-21) |
 
 ---
 
@@ -149,10 +153,12 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | localization | 0.915 | ⚠️ Partially built (BatchUpsertLabels, GetLabels exist — needs gap assessment) |
 | customer_administration | 0.88 | ⚠️ Partially built (GetCustomerSettings, GetProfiles, GetUsers — needs gap assessment) |
 | customer_management | 0.88 | ⏳ Not started |
-| eboks_integration | 0.88 | ⏳ Not started |
-| logging | 0.88 | ⏳ Not started |
-| Delivery | 0.84 | ⏳ Not started |
-| standard_receivers | 0.84 | ⏳ Not started |
+| eboks_integration | 1.00 | ✅ DONE 🔒 GEN2 (2026-04-21) |
+| logging | 1.00 | ✅ DONE 🔒 GEN2 (2026-04-21) |
+| delivery | 1.00 | ✅ DONE 🔒 GEN2 (2026-04-21) |
+| standard_receivers | 1.00 | ✅ DONE 🔒 GEN2 (2026-04-21) |
+| web_messages | 1.00 | 🚫 OUT_OF_SCOPE MVP (Architect GO 2026-04-21) |
+| sms_group | 1.00 | ⏳ N-A PENDING |
 | integrations | 0.7833 | ⏳ Not started — needs more extraction first |
 | address_management | 0.58 | ⏳ Needs more extraction |
 | Conversation / conversation_creation | 0.54→built | ✅ DONE 🔒 (Architect GO 2026-04-20) |
@@ -186,8 +192,18 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 | conversation_dispatch | DONE 🔒 | 2026-04-20 | D1-D5 hardening, 10/10 PASS, worker loop + tenant isolation + DLR fail-closed. Architect GO ✅ |
 | job_management | **DONE 🔒** | 2026-04-20 | Gen2 hardened: 4/4 runtime proof ✅ + transaction wrapper ✅ + V082 index ✅ + Architect GO ✅ |
 | activity_log | DONE 🔒 | V037 | CreateActivityLogEntry, CreateActivityLogEntries, GetActivityLogs — FAIL-OPEN invariant |
+| system_configuration | DONE 🔒 | 2026-04-20 | 4/4 PASS + cache model accepted + plaintext deferred. Architect GO ✅ |
+| customer_management | DONE 🔒 | 2026-04-20 | 5/5 PASS + defence-in-depth + V086 index. Architect GO ✅ |
+| warnings | DONE 🔒 | 2026-04-20 | 4/4 PASS + NULL dedup bug fixed + transaction verified. Architect GO ✅ |
+| user_self_service | DONE 🔒 | 2026-04-20 | 4/4 PASS + OWASP A02 token + token lifecycle. Architect GO ✅ |
+| conversation_read_side | DONE 🔒 | 2026-04-20 | 4/4 RuntimeProofTests: tenant isolation + cross-tenant denied + Unread semantics. |
+| delivery | DONE 🔒 | 2026-04-21 | 6/6 RuntimeProofTests + Outbox + DLR ingest + state machine + security bevist. |
+| logging | DONE 🔒 | 2026-04-21 | 3/3 RuntimeProofTests + FatalEmailLogger + FAIL-OPEN + deterministisk. |
+| eboks_integration | DONE 🔒 | 2026-04-21 | GEN2 via Outbox + RuntimeProof. |
+| standard_receivers | DONE 🔒 | 2026-04-21 | 5/5 RuntimeProofTests + CRUD + grouping + keyword invariants + tenant isolation bevist. |
+| web_messages | OUT_OF_SCOPE | 2026-04-21 | MVP exclusion — harvest=1.0, 0 green-ai kode, Architect GO ✅ |
 | sms | IN PROGRESS | 2026-04-15 | Wave 8 done (F1-F4+RULE-EXEC-01..06). Wave 10: F5 (STD_RECEIVER phone-normalized) + F6 (real payload) fixed. OutboundMessages = canonical truth. |
-| customer_management | N-A | — | Score 0.88 — analyse pågår |
+| sms_group | N-A PENDING | 2026-04-21 | Q-HARVEST-1 prioritet #6 — N-A analyse startet |
 | Alle øvrige | N-A | — | Score < 0.88 — extraction mangler |
 
 **Regel:** Copilot MÅ KUN bygge domæner med state `N-B APPROVED` eller `REBUILD APPROVED`.  
@@ -228,14 +244,17 @@ Domains available to green-ai (completeness ≥ 0.85 = ready for STEP N-A):
 3. Architect approves N-A report
 4. STEP N-B: Implementation begins
 
-**Candidate domains (Layer 1 score ≥ 0.88, not yet built):**
+**Candidate domains (remaining — Q-HARVEST-1):**
 
-| Priority | Domain | Score | Rationale |
-|----------|--------|-------|-----------|
-| 1 | `system_configuration` | 0.94 | READY_FOR_GATE — WAVE_A foundation, no deps |
-| 2 | `logging` | 0.88 | High completeness, 0 green-ai code |
-| 3 | `customer_management` | 0.88 | High completeness, 0 green-ai code |
-| 4 | `eboks_integration` | 0.88 | High completeness, 0 green-ai code |
+| Priority | Domain | Score | Status |
+|----------|--------|-------|--------|
+| ✅ | `eboks_integration` | 1.00 | DONE 🔒 |
+| ✅ | `logging` | 1.00 | DONE 🔒 |
+| ✅ | `delivery` | 1.00 | DONE 🔒 |
+| 🚫 | `web_messages` | 1.00 | OUT_OF_SCOPE MVP |
+| ✅ | `standard_receivers` | 1.00 | DONE 🔒 |
+| 🔄 | `sms_group` | 1.00 | N-A PENDING |
+
 **Architect must decide** — Copilot does NOT choose the next domain autonomously.
 
 **Analysis-tool next candidates:**

@@ -1,0 +1,28 @@
+{
+  "domain": "delivery_monitoring",
+  "parent_domain": "outbound_messaging",
+  "cluster_source": "Cluster_1 (rapport+soegning del — operationel halvdel)",
+  "evidence_count": 2,
+  "evidence_status": "hypothesis",
+  "split_from": "delivery_insights — splittet fordi operationel overvagning og compliance/audit er to distinkte brugerintentioner",
+  "domain_concern": "er mine beskeder gaaet igennem?",
+  "capabilities": [
+    {
+      "name": "track_delivery_outcomes",
+      "customer_problem": "Kunden skal vide om vigtige beskeder faktisk er naaet frem — og handle hvis de ikke har",
+      "user_value": "Foelge op paa status for udsendelser og identificere leveringsproblemer",
+      "execution_mode": "manual_or_automated",
+      "boundary": {
+        "includes": ["real-time leveringsstatus per besked", "identifikation af fejlede leveringer", "filtrering paa tidsperiode"],
+        "excludes": ["historisk audit og dokumentation (delivery_audit)", "kontaktdata paa modtager (recipient_reachability)", "beskedindhold (outbound_messaging)"]
+      },
+      "actions": [
+        "se hvilke beskeder er leveret og hvilke ikke er",
+        "filtrere paa tidsperiode for at finde specifikke udsendelser",
+        "identificere modtagere hvor levering fejlede"
+      ],
+      "works_without_ui": true,
+      "automation_note": "Kan eksponeres som rapport-feed, alert, eller dashboard uden manuel navigation"
+    }
+  ]
+}

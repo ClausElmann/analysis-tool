@@ -1,0 +1,15 @@
+[
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\administration.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\customer-admin\\customer-profiles\\edit-profile\\tab-children\\profile-ready-reports\\reports\\ready-messages-report\\ready-messages-report.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\message-templates\\template-merge-fields\\template-merge-fields.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\std-receivers\\create-edit-delete\\std-receiver-info-form\\bi-std-receiver-extra-phone-numbers\\bi-std-receiver-extra-phone-numbers.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\super-administration\\communication\\email-newsletter\\view-newsletter\\view-newsletter.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\super-administration\\humanresource\\employees\\employees.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\super-administration\\phonenumber-import\\phonenumber-provider-main.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\web-messages\\iframe-driftstatus-map-admin\\iframe-driftstatus-map-admin.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\message-wizard\\childComponents\\by-map\\map-tools\\geojson-dialog\\geojson-dialog.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\message-wizard-limited\\message-wizard-limited.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\message-wizard\\message-wizard.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\broadcasting\\single-sms-email\\single-sms.component.ts",
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\scheduled-broadcasts\\scheduled-broadcasts\\scheduled-broadcasts.component.ts"
+]

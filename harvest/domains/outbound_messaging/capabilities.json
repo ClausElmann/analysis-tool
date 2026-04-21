@@ -1,0 +1,44 @@
+{
+  "domain": "outbound_messaging",
+  "parent_domain": null,
+  "cluster_source": "Cluster_1 (compose + dispatch del)",
+  "evidence_count": 3,
+  "evidence_status": "hypothesis",
+  "split_from": "Cluster_1 — rapport og scheduling er separerede domains",
+  "capabilities": [
+    {
+      "name": "reach_recipients",
+      "customer_problem": "Kunden skal naa ud til relevante personer med vigtig information — hurtigt og sikkert",
+      "user_value": "Afsende en maalsrettet besked til de rette modtagere",
+      "execution_mode": "manual_or_automated",
+      "boundary": {
+        "includes": ["valg af modtagere", "formulering af besked", "igangsaettelse af udsendelse"],
+        "excludes": ["leveringsbekraeftelse (delivery_monitoring)", "timing-styring (delivery_timing)", "indholdsudkast (message_personalization)"]
+      },
+      "actions": [
+        "vaelge hvem der skal modtage beskeden",
+        "formulere indholdet til den konkrete situation",
+        "igangsaette udsendelsen"
+      ],
+      "works_without_ui": true,
+      "automation_note": "Kan triggers af eksternt event (alarm, varsel, systemhaendelse)"
+    },
+    {
+      "name": "verify_before_dispatch",
+      "customer_problem": "Kunden skal have mulighed for at stoppe en forkert udsendelse inden den naar frem",
+      "user_value": "Gennemse og godkende en udsendelse inden den frigives",
+      "execution_mode": "manual_only",
+      "boundary": {
+        "includes": ["preview af modtagere og indhold", "menneskelig godkendelsesbeslutning", "annullering foer dispatch"],
+        "excludes": ["redigering af indhold (message_personalization)", "planlaegning (delivery_timing)", "leverings-tracking (delivery_monitoring)"]
+      },
+      "actions": [
+        "se hvem der vil modtage beskeden",
+        "bekraefte at indhold og modtagere er korrekte",
+        "annullere hvis noget er forkert"
+      ],
+      "works_without_ui": false,
+      "automation_note": "Kraever eksplicit menneskelig godkendelse — kan ikke automatiseres"
+    }
+  ]
+}

@@ -123,11 +123,8 @@ N-A → GATE → TRANSFORMATION → N-B BUILD → RIG → BEHAVIOR → BEHAVIOR_
 | user_onboarding | CreateUserOnboarding — INV_001/002/003 + 4/4 tests PASS |
 | conversation_creation | CreateConversation — 7 DD + 4/4 tests PASS |
 | conversation_messaging | SendConversationReply — INSERT-FIRST pattern + 5/5 tests PASS |
-
-### Afventer din GO
-| Domain | State | Bevis |
-|--------|-------|-------|
-| **conversation_dispatch** | ARCHITECT REVIEW | BUILD ✅ + RIG ✅ + BEHAVIOR 100% ✅ + 4/4 tests PASS ✅ |
+| conversation_dispatch | ConversationDispatchJob + DLR — D1-D5 hardening + 10/10 PASS |
+| conversation_read_side | ListConversations, GetConversationMessages, MarkConversationRead |
 
 ---
 
