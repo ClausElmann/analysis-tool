@@ -4,6 +4,11 @@
 
 ## ═══════════════════════════════════════
 ## AUTONOM KØRSEL — run_autonomous.py
+
+### LLM-POLICY (2026-04-21)
+**Kun lokal LLM (GitHub Copilot chat) er tilladt.**
+- Ekstern LLM, CopilotAIProcessor, GITHUB_TOKEN, OpenAI API, stub fallback og lignende er forbudt i hele repoet.
+- Alle AI-analyser og pipelines skal bruge lokal LLM (Copilot chat) — ingen undtagelser.
 ## ═══════════════════════════════════════
 
 ### ARKITEKTUR
@@ -463,8 +468,8 @@ Output: ZIP-fil sted + `PACKAGE_TOKEN` til brug i temp.md rapport.
 STEP 1 — byg evidence packs (automatisk):
   .venv\Scripts\python.exe scripts/harvest/run_harvest.py --prepare --batch-size 10
 
-STEP 2 — Copilot læser copilot_prompt.md og skriver llm_output.json
-  (dette sker i chat — Copilot er LLM'en)
+STEP 2 — Copilot (lokal chat) læser copilot_prompt.md og skriver llm_output.json
+  (dette sker i chat — **kun GitHub Copilot chat er tilladt som LLM**)
 
 STEP 3 — validér + emit til corpus/ (automatisk):
   .venv\Scripts\python.exe scripts/harvest/run_harvest.py --finalize --batch-size 10 --auto-mark-done
@@ -482,12 +487,12 @@ STEP 3 — validér + emit til corpus/ (automatisk):
 
 Sletter `harvest/harvest-manifest.json` — alle komponenter bliver PENDING igen. Corpus/ røres IKKE.
 
-### Kør ét batch — fuld pipeline inkl. API-kald (automatisk, kræver GITHUB_TOKEN)
+### Kør ét batch — fuld pipeline (kun lokal LLM, ingen ekstern API)
 ```powershell
 .venv\Scripts\python.exe scripts/harvest/run_harvest.py --batch-size 10 --auto-mark-done
 ```
 
-### Kør og kør — loop til alle er færdige
+### Kør og kør — loop til alle er færdige (kun lokal LLM)
 ```powershell
 .venv\Scripts\python.exe scripts/harvest/run_harvest.py --batch-size 10 --auto-mark-done --loop
 ```
@@ -498,4 +503,5 @@ Sletter `harvest/harvest-manifest.json` — alle komponenter bliver PENDING igen
 | DONE | Kun via `pipeline_status IN (PASS, PASS_UI_ONLY)` + `--auto-mark-done` |
 | DONE manuelt | ❌ ALDRIG |
 | Eksisterende `llm_output.json` | Genbruges automatisk (LLM-step springes over) |
+| LLM | **Kun GitHub Copilot chat er tilladt — ekstern LLM, GITHUB_TOKEN, stub, fallback er forbudt** |
 | Manifest | `harvest/harvest-manifest.json` — persisteres efter hvert komponent |

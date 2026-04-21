@@ -1,4 +1,15 @@
-﻿## LLM-BESLUTNING (2026-04-21)
+﻿## KOMPONENT-LISTE KONSOLIDERING — FILE IO (2026-04-21)
+
+component-list.json er nu global truth og indeholder alle unikke Angular komponenter.
+STOP
+## KOMPONENT-LISTE KONSOLIDERING (2026-04-21)
+
+Alle komponent-lister er nu konsolideret:
+- component-list.json er ENESTE source of truth (indeholder 13 Angular komponenter)
+- manifest bruges kun til progress tracking
+
+Ingen yderligere handling nødvendig. STOP.
+## LLM-BESLUTNING (2026-04-21)
 
 **Kun lokal LLM (GitHub Copilot chat) er tilladt.**
 - Ekstern LLM, CopilotAIProcessor, GITHUB_TOKEN, OpenAI API, stub fallback og lignende er forbudt i hele repoet.
