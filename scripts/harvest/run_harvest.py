@@ -86,8 +86,12 @@ def print_manifest_status(components: list, manifest: dict) -> None:
 
 def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
                raw_dir: Path, corpus_dir: Path) -> None:
-    pending = [c for c in components
-               if manifest.get(c, {}).get("status") not in ("DONE", "FAILED")]
+    if getattr(args, "finalize", False):
+        pending = [c for c in components
+                   if manifest.get(c, {}).get("status") not in ("DONE", "FAILED")]
+    else:
+        pending = [c for c in components
+                   if manifest.get(c, {}).get("status") not in ("DONE", "FAILED", "SKIPPED_FOR_TEST")]
     batch = pending[:args.batch_size]
 
     done_count  = sum(1 for v in manifest.values() if v.get("status") == "DONE")
@@ -114,18 +118,26 @@ def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
         temp_list = Path(tmp.name)
 
         try:
-            # Step 1: Build evidence pack
-            ok = run_step([
-                PYTHON,
-                str(SCRIPTS_DIR / "build_evidence_packs.py"),
-                "--component-list", str(temp_list),
-                "--app-root",       args.app_root,
-                "--output-dir",     str(raw_dir),
-            ], "build_evidence_packs")
+            if not getattr(args, "finalize", False):
+                # Step 1: Build evidence pack
+                ok = run_step([
+                    PYTHON,
+                    str(SCRIPTS_DIR / "build_evidence_packs.py"),
+                    "--component-list", str(temp_list),
+                    "--app-root",       args.app_root,
+                    "--output-dir",     str(raw_dir),
+                ], "build_evidence_packs")
 
-            if not ok:
-                manifest[comp_path] = {"status": "FAILED", "reason": "build_failed"}
+                if not ok:
+                    manifest[comp_path] = {"status": "FAILED", "reason": "build_failed"}
+                    save_manifest(manifest_path, manifest)
+                    continue
+
+            # --prepare: stop here, wait for LLM output
+            if getattr(args, "prepare", False):
+                manifest[comp_path] = {"status": "PENDING_REVIEW", "pipeline_status": "AWAITING_LLM"}
                 save_manifest(manifest_path, manifest)
+                print(f"  → evidence built, awaiting LLM output")
                 continue
 
             # Step 2: Validate (llm_output.json skal være genereret af Copilot LLM her)
@@ -221,7 +233,11 @@ def main() -> None:
         print(f"ERROR: component-list not found: {comp_list_path}", file=sys.stderr)
         sys.exit(1)
 
-    components = [c["path"] for c in json.loads(comp_list_path.read_text(encoding="utf-8-sig"))]
+    raw_components = json.loads(comp_list_path.read_text(encoding="utf-8-sig"))
+    if raw_components and isinstance(raw_components[0], dict):
+        components = [c["path"] for c in raw_components]
+    else:
+        components = raw_components
 
     if args.reset:
         if manifest_path.exists():
