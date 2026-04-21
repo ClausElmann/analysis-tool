@@ -1,3 +1,6 @@
+# INACTIVE SYSTEM
+Denne fil er ikke aktiv i nuværende HARVEST_MODE.
+
 # DOMAIN DISTILLATION INDEX
 
 **Protocol:** Tracks formal non-technical distillation status per domain.

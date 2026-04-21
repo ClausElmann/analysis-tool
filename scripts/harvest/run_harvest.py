@@ -221,7 +221,7 @@ def main() -> None:
         print(f"ERROR: component-list not found: {comp_list_path}", file=sys.stderr)
         sys.exit(1)
 
-    components = json.loads(comp_list_path.read_text(encoding="utf-8-sig"))
+    components = [c["path"] for c in json.loads(comp_list_path.read_text(encoding="utf-8-sig"))]
 
     if args.reset:
         if manifest_path.exists():

@@ -1,3 +1,6 @@
+# INACTIVE SYSTEM
+Denne fil er ikke aktiv i nuværende HARVEST_MODE.
+
 # ai-fitness-scores.md — AI AUTONOMY FITNESS SCORES
 
 **Source:** Wave 3.5 (extracted from temp_history/temp_2026-04-12_wave3-wave4.md, 2026-04-12)  

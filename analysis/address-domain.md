@@ -1,3 +1,6 @@
+# INACTIVE SYSTEM
+Denne fil er ikke aktiv i nuværende HARVEST_MODE.
+
 # ADDRESS DOMAIN — SSOT (Layer 1 Extracted Facts)
 
 **Source:** Layer 0 — sms-service source code + SQL  

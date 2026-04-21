@@ -1,3 +1,6 @@
+# INACTIVE SYSTEM
+Denne fil er ikke aktiv i nuværende HARVEST_MODE.
+
 ## STEP 12-D — IDENTITY_ACCESS COMPLETE
 
 **Status:** CLOSED. All corrections applied. Indexes updated.

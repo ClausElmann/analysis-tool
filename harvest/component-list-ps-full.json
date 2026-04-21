@@ -1,0 +1,10 @@
+Scanning for Angular components...
+component-list.json generated: 549 components
+harvest-manifest.json generated: 549 entries
+
+First 5 components:
+- bi-accordion
+- bi-confirm-dialog
+- bi-archive-messages-map-toggle
+- bi-archive-messages-map-toggle
+- bi-leaflet-googlesearch

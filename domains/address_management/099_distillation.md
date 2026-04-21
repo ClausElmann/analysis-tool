@@ -1,3 +1,6 @@
+# INACTIVE SYSTEM
+Denne fil er ikke aktiv i nuværende HARVEST_MODE.
+
 # address_management — Domain Distillation
 
 **Status:** APPROVED_BASELINE 2026-04-11  

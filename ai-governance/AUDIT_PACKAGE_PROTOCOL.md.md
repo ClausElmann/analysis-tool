@@ -1,3 +1,6 @@
+# INACTIVE SYSTEM
+Denne fil er ikke aktiv i nuværende HARVEST_MODE.
+
 # AI Builder-Architect Protocol
 
 **Effective Date:** 2026-04-10  
