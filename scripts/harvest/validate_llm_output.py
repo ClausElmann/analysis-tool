@@ -148,8 +148,14 @@ for entry in entries:
                         "b_pass": 0, "b_reject": 0, "f_pass": 0, "r_pass": 0})
         continue
 
-    pack = json.loads(pack_path.read_text(encoding="utf-8"))
-    llm  = json.loads(llm_path.read_text(encoding="utf-8"))
+    try:
+        pack = json.loads(pack_path.read_text(encoding="utf-8"))
+        llm  = json.loads(llm_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(f"  [ERROR] could not parse JSON for {comp_name}: {exc}")
+        summary.append({"component": comp_name, "status": "FAIL", "type": "?",
+                        "b_pass": 0, "b_reject": 0, "f_pass": 0, "r_pass": 0})
+        continue
     is_dumb = pack["meta"]["type"] in ("DUMB", "CONTAINER")
     pack_methods = pack.get("ts_methods") or []
 
@@ -157,6 +163,8 @@ for entry in entries:
     b_pass = b_reject = 0
     v_behaviors = []
     for b in (llm.get("behaviors") or []):
+        if isinstance(b, str):
+            b = {"text": b}
         if not b.get("text"):
             continue
         r = test_behavior_text(b["text"], pack_methods)
@@ -177,7 +185,7 @@ for entry in entries:
     v_flows = []
     if not is_dumb:
         for f in (llm.get("flows") or []):
-            if not f:
+            if not f or isinstance(f, str):
                 continue
             r = test_flow_chain(f, pack)
             if r["valid"]:
@@ -193,7 +201,7 @@ for entry in entries:
     v_reqs = []
     if not is_dumb:
         for req in (llm.get("requirements") or []):
-            if not req:
+            if not req or isinstance(req, str):
                 continue
             r = test_requirement(req, pack)
             if r["valid"]:

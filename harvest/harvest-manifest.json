@@ -58,5 +58,137 @@
     "status": "DONE",
     "pipeline_status": "PASS_UI_ONLY",
     "lastProcessed": "2026-04-21T20:38:08.443289+00:00"
+  },
+  "app-globals/components/dialog-content/bi-address-info/address-info-status/entry-address-info-status.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:24:25.807566+00:00"
+  },
+  "app-globals/components/dialog-content/bi-address-info/address-info-status/specific-address-info-status.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:24:26.054559+00:00"
+  },
+  "app-globals/components/dialog-content/bi-address-info/bi-address-info-base.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:11:46.286495+00:00"
+  },
+  "app-globals/components/dialog-content/bi-address-info/bi-address-info-table/bi-address-info-table.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:24:26.470581+00:00"
+  },
+  "app-globals/components/dialog-content/info-message-dialog-content/info-message-dialog-content.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:24:26.707324+00:00"
+  },
+  "app-globals/components/spinner/bi-spinner.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:47.603995+00:00"
+  },
+  "app-globals/components/unavailable/unavailable.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:47.821638+00:00"
+  },
+  "app-globals/components/zip-street-number-input/zip-street-number-input.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:12:49.537267+00:00"
+  },
+  "side-projects/iframe-modules/src/app/driftstatus/iframe-driftstatus.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:19:33.180340+00:00"
+  },
+  "side-projects/iframe-modules/src/app/driftstatus-map/iframe-driftstatus-map.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:20:33.739947+00:00"
+  },
+  "side-projects/iframe-modules/src/app/iframe-modules-app.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:48.419097+00:00"
+  },
+  "side-projects/iframe-modules/src/app/subscribe-unsubscribe/shared/subscription-module-reset-button/subscription-module-reset-button.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:48.642005+00:00"
+  },
+  "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/create-address-subscription/create-address-subscription.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:48.849203+00:00"
+  },
+  "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/create-supply-number-subscription/create-supply-number-subscription.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:49.058642+00:00"
+  },
+  "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/iframe-subscription.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:49.262073+00:00"
+  },
+  "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/subscription-overview/subscription-overview.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:21:29.717578+00:00"
+  },
+  "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-std-receivers/group-subscription/group-subscription.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:22:24.378158+00:00"
+  },
+  "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-std-receivers/iframe-subscription-std-receiver.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:49.643925+00:00"
+  },
+  "side-projects/iframe-modules/src/shared/components/bi-skip-link/bi-skip-link.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:49.834214+00:00"
+  },
+  "side-projects/quick-response/src/app/quick-response-app.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:23:17.632560+00:00"
+  },
+  "side-projects/quick-response/src/app/quick-response-root.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:50.116747+00:00"
+  },
+  "side-projects/subscription-app/src/app/en-toolbar/en-toolbar.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T21:54:50.308886+00:00"
   }
 }
