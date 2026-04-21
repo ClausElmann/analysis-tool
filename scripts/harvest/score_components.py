@@ -1,3 +1,5 @@
+## LLM-ENFORCEMENT: Scriptet stopper hvis LLM-output mangler eller fejler
+
 """
 ACDDA v4 - Phase 3b: Scoring
 Reads _validation_summary.json, computes pass_rate, appends full report to temp.md.
@@ -19,6 +21,19 @@ args = parser.parse_args()
 RAW_DIR = Path(args.raw_dir)
 TEMP_MD = Path(args.temp_md)
 
+
+# LLM-output enforcement: check for llm_output.json and validation summary
+llm_output_path = RAW_DIR / "llm_output.json"
+if not llm_output_path.exists():
+    print(f"LLM-ERROR: llm_output.json mangler — Copilot chat har ikke kørt eller fejlet.", file=sys.stderr)
+    sys.exit(2)
+
+try:
+    llm_output = json.loads(llm_output_path.read_text(encoding="utf-8"))
+except Exception as e:
+    print(f"LLM-ERROR: llm_output.json kunne ikke indlæses: {e}", file=sys.stderr)
+    sys.exit(3)
+
 summary_path = RAW_DIR / "_validation_summary.json"
 if not summary_path.exists():
     print(f"ERROR: Not found: {summary_path}", file=sys.stderr)
@@ -34,7 +49,7 @@ for r in summary:
         case "FAIL":         n_fail += 1
         case "PASS_UI_ONLY": n_pass_ui += 1
         case "SKIP_UI_ONLY": n_skip_ui += 1
-        case "WAITING_LLM":  n_waiting += 1
+        pass
 
 backend_eligible = n_pass + n_partial + n_fail
 pass_rate = round((n_pass + 0.5 * n_partial) / backend_eligible, 2) if backend_eligible > 0 else 0
@@ -58,15 +73,13 @@ for r in summary:
         f"| {r.get('f_pass',0):>3} | {r.get('r_pass',0):>3} |"
     )
 
-# Deep validation examples (first 2 with llm_output_validated.json)
+pass
 deep_examples = ""
 ex_count = 0
 for r in summary:
     if ex_count >= 2:
         break
-    valid_path = RAW_DIR / r["component"] / "llm_output_validated.json"
-    if not valid_path.exists():
-        continue
+    pass
     v = json.loads(valid_path.read_text(encoding="utf-8"))
     ex_count += 1
 
@@ -119,7 +132,7 @@ report = f"""
 
 **Totaler:**
 - PASS: {n_pass}  |  PARTIAL: {n_partial}  |  FAIL: {n_fail}
-- PASS_UI_ONLY: {n_pass_ui}  |  SKIP_UI_ONLY: {n_skip_ui}  |  WAITING_LLM: {n_waiting}
+-- PASS_UI_ONLY: {n_pass_ui}  |  SKIP_UI_ONLY: {n_skip_ui}
 - backend_eligible: {backend_eligible}  |  pass_rate: {pass_rate}
 
 ### DYBDE VALIDERING (2 eksempler){deep_examples}

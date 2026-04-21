@@ -10,7 +10,7 @@ not just describe responsibility.
 
 from pathlib import Path
 
-from core.ai_processor import AIProcessor
+
 
 STAGE = "domain_mapping"
 
@@ -34,13 +34,10 @@ class DomainMapper:
 
     It returns a domain-classified version of the knowledge.
 
-    Args:
-        ai_processor: Any AIProcessor implementation
-        prompts_root: Path to the /prompts/ directory
-    """
 
-    def __init__(self, ai_processor: AIProcessor, prompts_root: str):
-        self._ai = ai_processor
+    # Lokal LLM (Copilot chat) bruges altid — ekstern LLM ikke understøttet
+    def __init__(self, ai_processor, prompts_root: str):
+        self._ai = ai_processor  # Skal være lokal LLM (Copilot chat)
         self._prompts_root = Path(prompts_root)
 
     def map(self, asset: dict, semantic_result: dict) -> dict:

@@ -50,5 +50,17 @@
   "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\scheduled-broadcasts\\scheduled-broadcasts\\scheduled-broadcasts.component.ts": {
     "status": "DONE",
     "pipeline_status": "PASS"
+  },
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\benchmark\\benchmark-main.component.ts": {
+    "status": "PENDING_REVIEW",
+    "pipeline_status": "SKIP_UI_ONLY"
+  },
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\benchmark\\causes\\benchmark-causes.component.ts": {
+    "status": "FAILED",
+    "reason": "llm_failed"
+  },
+  "C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\src\\features\\administration\\benchmark\\index\\benchmark-index.component.ts": {
+    "status": "FAILED",
+    "reason": "llm_failed"
   }
 }

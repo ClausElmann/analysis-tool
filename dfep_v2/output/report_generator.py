@@ -51,8 +51,8 @@ class ReportGeneratorV2:
             f"# DFEP v2 Report — {domain}",
             f"",
             f"> Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}  ",
-            f"> Engine: DFEP v2 Hybrid (Deterministic + LLM)  ",
-            f"> Model: gpt-4.1 via GitHub Copilot API  ",
+            f"> Engine: DFEP v2 Hybrid (Deterministic + lokal LLM)  ",
+            f"> Model: GitHub Copilot chat (lokal)  ",
             f"",
             "---",
             "",
@@ -85,7 +85,7 @@ class ReportGeneratorV2:
             f"| Validation issues | {len(validation_issues)} |",
         ]
         if stub_mode:
-            lines += ["", "> ⚠️ **STUB MODE** — Set `GITHUB_TOKEN` env var for real LLM analysis", ""]
+            lines += ["", "> ⚠️ **STUB MODE** — KUN lokal LLM (Copilot chat) er tilladt", ""]
         lines += ["", "---", ""]
 
         # L0 capabilities

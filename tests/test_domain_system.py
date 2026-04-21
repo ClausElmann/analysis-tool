@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from core.domain_builder import DomainBuilder, DomainCluster, _domain_token
-from core.ai_processor import StubAIProcessor, DOMAIN_OUTPUT_KEYS
+from core.domain.ai.semantic_analyzer import SemanticAnalyzer
 from core.ai.semantic_analyzer import SemanticAnalyzer
 from core.ai.domain_mapper import DomainMapper
 from core.ai.refiner import Refiner
@@ -222,7 +222,7 @@ class TestDomainBuilder:
 class TestSemanticAnalyzer:
     def test_analyze_ReturnsAllDomainKeys(self, tmp_path):
         _write_prompt(tmp_path, "code_semantic.txt")
-        analyzer = SemanticAnalyzer(StubAIProcessor(), str(tmp_path))
+        analyzer = SemanticAnalyzer(lambda *a, **kw: None, str(tmp_path))
         result = analyzer.analyze(_asset(), "content here")
         for key in DOMAIN_OUTPUT_KEYS:
             assert key in result
@@ -233,7 +233,7 @@ class TestSemanticAnalyzer:
 
         prompts_seen = []
 
-        class CapturingAI(StubAIProcessor):
+        class CapturingAI:
             def process(self, asset, stage, prompt):
                 prompts_seen.append(prompt)
                 return super().process(asset, stage, prompt)
@@ -245,7 +245,7 @@ class TestSemanticAnalyzer:
 
     def test_analyze_MissingPromptFile_DoesNotCrash(self, tmp_path):
         # No prompt files in tmp_path
-        analyzer = SemanticAnalyzer(StubAIProcessor(), str(tmp_path))
+        analyzer = SemanticAnalyzer(lambda *a, **kw: None, str(tmp_path))
         result = analyzer.analyze(_asset(), "content")
         assert isinstance(result, dict)
 
@@ -253,7 +253,7 @@ class TestSemanticAnalyzer:
         _write_prompt(tmp_path, "code_semantic.txt")
         prompts_seen = []
 
-        class CapturingAI(StubAIProcessor):
+        class CapturingAI:
             def process(self, asset, stage, prompt):
                 prompts_seen.append(prompt)
                 return super().process(asset, stage, prompt)
@@ -268,7 +268,8 @@ class TestSemanticAnalyzer:
 class TestDomainMapper:
     def test_map_ReturnsAllDomainKeys(self, tmp_path):
         _write_prompt(tmp_path, "code_domain.txt")
-        mapper = DomainMapper(StubAIProcessor(), str(tmp_path))
+        from core.ai.domain_mapper import DomainMapper
+        mapper = DomainMapper(lambda *a, **kw: None, str(tmp_path))
         result = mapper.map(_asset(), {"entities": [], "behaviors": []})
         for key in DOMAIN_OUTPUT_KEYS:
             assert key in result
@@ -277,7 +278,7 @@ class TestDomainMapper:
         _write_prompt(tmp_path, "code_domain.txt", "DOMAIN MAPPING PROMPT")
         prompts_seen = []
 
-        class CapturingAI(StubAIProcessor):
+        class CapturingAI:
             def process(self, asset, stage, prompt):
                 prompts_seen.append(prompt)
                 return super().process(asset, stage, prompt)
@@ -292,7 +293,8 @@ class TestDomainMapper:
 class TestRefiner:
     def test_refine_ReturnsAllDomainKeys(self, tmp_path):
         _write_prompt(tmp_path, "refinement.txt")
-        refiner = Refiner(StubAIProcessor(), str(tmp_path))
+        from core.ai.refiner import Refiner
+        refiner = Refiner(lambda *a, **kw: None, str(tmp_path))
         result = refiner.refine(_asset(), {"entities": [], "behaviors": []})
         for key in DOMAIN_OUTPUT_KEYS:
             assert key in result
@@ -301,7 +303,7 @@ class TestRefiner:
         _write_prompt(tmp_path, "refinement.txt")
         asset_ids_seen = []
 
-        class CapturingAI(StubAIProcessor):
+        class CapturingAI:
             def process(self, asset, stage, prompt):
                 asset_ids_seen.append(asset["id"])
                 return super().process(asset, stage, prompt)
@@ -314,7 +316,7 @@ class TestRefiner:
         _write_prompt(tmp_path, "refinement.txt", "REFINEMENT PROMPT")
         prompts_seen = []
 
-        class CapturingAI(StubAIProcessor):
+        class CapturingAI:
             def process(self, asset, stage, prompt):
                 prompts_seen.append(prompt)
                 return super().process(asset, stage, prompt)

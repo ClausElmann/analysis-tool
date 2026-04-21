@@ -1,3 +1,9 @@
+# LLM-BESLUTNING (2026-04-21)
+
+**Kun lokal LLM (GitHub Copilot chat) er tilladt.**
+- Ekstern LLM, CopilotAIProcessor, GITHUB_TOKEN, OpenAI API, stub fallback og lignende er forbudt i hele repoet.
+- Alle AI-analyser og pipelines skal bruge lokal LLM (Copilot chat) — ingen undtagelser.
+
 # Copilot Onboarding — Builder Role
 
 > **Dette er dit SSOT.** Alt hvad du behøver for at fungere korrekt er her — inline.

@@ -13,8 +13,7 @@ Prompt files:
 
 from pathlib import Path
 
-from core.ai_processor import AIProcessor
-from core.ai_processor import DOMAIN_OUTPUT_KEYS
+
 
 STAGE = "semantic_analysis"
 
@@ -40,15 +39,10 @@ def _load_prompt(prompts_root: Path, asset_type: str) -> str:
 
 class SemanticAnalyzer:
     """
-    Runs semantic_analysis for a single asset.
 
-    Args:
-        ai_processor:  Any AIProcessor implementation
-        prompts_root:  Path to the /prompts/ directory
-    """
-
-    def __init__(self, ai_processor: AIProcessor, prompts_root: str):
-        self._ai = ai_processor
+    # Lokal LLM (Copilot chat) bruges altid — ekstern LLM ikke understøttet
+    def __init__(self, ai_processor, prompts_root: str):
+        self._ai = ai_processor  # Skal være lokal LLM (Copilot chat)
         self._prompts_root = Path(prompts_root)
 
     def analyze(self, asset: dict, content: str) -> dict:

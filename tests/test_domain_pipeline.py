@@ -144,23 +144,7 @@ class TestStageState:
 
 
 class TestStubAIProcessor:
-    def test_process_ReturnsAllDomainKeys(self):
-        proc = StubAIProcessor()
-        result = proc.process(_asset(), "semantic_analysis", "prompt")
-        for key in DOMAIN_OUTPUT_KEYS:
-            assert key in result
-
-    def test_process_StubMarkerIsTrue(self):
-        proc = StubAIProcessor()
-        result = proc.process(_asset(), "semantic_analysis", "")
-        assert result["_stub"] is True
-
-    def test_validate_output_FillsMissingKeys(self):
-        proc = StubAIProcessor()
-        result = proc.validate_output({"entities": [{"name": "Foo"}]})
-        for key in DOMAIN_OUTPUT_KEYS:
-            assert key in result
-        assert result["entities"] == [{"name": "Foo"}]
+    # TestStubAIProcessor er fjernet — kun lokal LLM (Copilot chat) er tilladt
 
 
 # ── TestPromptBuilder ─────────────────────────────────────────────────────────

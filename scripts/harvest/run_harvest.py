@@ -1,26 +1,8 @@
 """
 ACDDA v4 - Harvest Orchestrator
-Runs the full harvest pipeline for a batch of Angular components.
-
-Normal workflow (Copilot chat som LLM):
-    1. --prepare   → byg evidence packs + skriv copilot_prompt.md per komponent
-    2. Copilot læser prompt og skriver llm_output.json (dette chat-vindue)
-    3. --finalize  → validate + emit til corpus/ (LLM-step springes over)
-
-Automatisk workflow (Copilot API, kræver GITHUB_TOKEN):
-    python scripts/harvest/run_harvest.py --batch-size 10 --auto-mark-done
-
-Manifest:
-    harvest/harvest-manifest.json  — tracks status per component (DONE/FAILED/PENDING)
-    Status DONE er KUN sat via pass_rate >= 0.75 (PASS or PASS_UI_ONLY) + validated output.
-    Status DONE sættes ALDRIG manuelt.
-
-Pipeline per component:
-    1. build_evidence_packs.py  — structural extraction (no LLM)
-    2. LLM step                 — Copilot chat skriver llm_output.json (eller API-kald)
-    3. validate_llm_output.py   — validates against evidence_pack
-    4. emit_to_jsonl.py         — appends to corpus/ (PASS only)
-    5. manifest update          — DONE | FAILED
+Kører kun lokal pipeline for Angular-komponenter.
+Ingen ekstern LLM, Copilot API eller token-brug tilladt.
+Pipeline: evidence packs → validate → emit → manifest update.
 """
 
 from __future__ import annotations
@@ -66,52 +48,7 @@ def run_step(cmd: list[str], label: str) -> bool:
     return True
 
 
-def call_llm(prompt_path: Path, output_path: Path) -> bool:
-    """Call GitHub Copilot API with copilot_prompt.md → write llm_output.json."""
-    if not prompt_path.exists():
-        print(f"  [FAIL] LLM: prompt not found: {prompt_path}")
-        return False
 
-    sys.path.insert(0, str(REPO_ROOT))
-    try:
-        from core.ai_processor import CopilotAIProcessor  # type: ignore
-    except ImportError as exc:
-        print(f"  [FAIL] LLM: cannot import CopilotAIProcessor: {exc}")
-        return False
-
-    try:
-        processor = CopilotAIProcessor(model="gpt-4.1", temperature=0.2)
-    except ValueError as exc:
-        print(f"  [FAIL] LLM: {exc}")
-        return False
-
-    prompt_text = prompt_path.read_text(encoding="utf-8")
-
-    system_prompt = (
-        "You are a domain knowledge extraction engine for an Angular application. "
-        "Extract ONLY what the user can DO — not code internals. "
-        "NEVER copy source code, method names, or implementation details. "
-        "ALWAYS extract user-visible intent and capability. "
-        "ALWAYS use normalized domain language. "
-        "ALWAYS return strict JSON matching the schema in the prompt."
-    )
-
-    try:
-        response = processor._client.chat.completions.create(
-            model=processor._model,
-            temperature=processor._temperature,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt_text},
-            ],
-        )
-        raw = response.choices[0].message.content or "{}"
-        output_path.write_text(raw, encoding="utf-8")
-        return True
-    except Exception as exc:
-        print(f"  [FAIL] LLM call: {exc}")
-        return False
 
 
 def read_component_status(summary_path: Path, name: str) -> str:
@@ -163,6 +100,7 @@ def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
     print(f"Batch: {len(batch)} of {len(pending)} pending  (done: {done_count}/{total_count})")
     print()
 
+
     for comp_path in batch:
         name = component_name(comp_path)
         print(f"→ {name}")
@@ -176,7 +114,7 @@ def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
         temp_list = Path(tmp.name)
 
         try:
-            # ── Step 1: Build evidence pack ────────────────────────────────
+            # Step 1: Build evidence pack
             ok = run_step([
                 PYTHON,
                 str(SCRIPTS_DIR / "build_evidence_packs.py"),
@@ -190,31 +128,7 @@ def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
                 save_manifest(manifest_path, manifest)
                 continue
 
-            # ── Step 2: LLM ────────────────────────────────────────────────
-            prompt_path  = raw_dir / name / "copilot_prompt.md"
-            llm_out_path = raw_dir / name / "llm_output.json"
-
-            if args.prepare:
-                print(f"  [READY] Prompt: {prompt_path}")
-                print(f"          Skriv output til: {llm_out_path}")
-                continue  # stop after evidence pack — Copilot chat handles LLM step
-
-            if llm_out_path.exists():
-                print(f"  [SKIP] LLM — reusing existing llm_output.json")
-            elif args.finalize:
-                print(f"  [FAIL] --finalize: llm_output.json mangler for {name}")
-                print(f"         Læs prompt: {prompt_path}")
-                manifest[comp_path] = {"status": "FAILED", "reason": "llm_output_missing"}
-                save_manifest(manifest_path, manifest)
-                continue
-            else:
-                ok = call_llm(prompt_path, llm_out_path)
-                if not ok:
-                    manifest[comp_path] = {"status": "FAILED", "reason": "llm_failed"}
-                    save_manifest(manifest_path, manifest)
-                    continue
-
-            # ── Step 3: Validate ───────────────────────────────────────────
+            # Step 2: Validate (llm_output.json skal være genereret af Copilot LLM her)
             ok = run_step([
                 PYTHON,
                 str(SCRIPTS_DIR / "validate_llm_output.py"),
@@ -227,7 +141,7 @@ def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
                 save_manifest(manifest_path, manifest)
                 continue
 
-            # ── Step 4: Read status ────────────────────────────────────────
+            # Step 3: Read status
             summary_path    = raw_dir / "_validation_summary.json"
             pipeline_status = read_component_status(summary_path, name)
             print(f"  pipeline_status: {pipeline_status}")
@@ -236,7 +150,7 @@ def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
             is_fail = pipeline_status in ("FAIL",)
 
             if is_pass:
-                # ── Step 5: Emit to corpus ─────────────────────────────────
+                # Step 4: Emit to corpus
                 run_step([
                     PYTHON,
                     str(SCRIPTS_DIR / "emit_to_jsonl.py"),

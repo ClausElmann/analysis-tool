@@ -123,45 +123,32 @@ def main() -> int:
     parser.add_argument("--legacy",   required=True, help="Legacy codebase root folder")
     parser.add_argument("--output",   default=None,  help="Write JSON report to this path")
     parser.add_argument("--sql",      action="store_true", help="Also analyse .sql files")
-    parser.add_argument(
-        "--no-llm",
-        action="store_true",
-        help="[DEPRECATED — ignoreres. Heuristik er nu altid default. "
-             "LLM-analyse sker KUN via VS Code Copilot — se --copilot-batch]",
-    )
-    parser.add_argument(
-        "--copilot-batch",
-        default=None,
-        metavar="OUTPUT.md",
-        help="Generer en Copilot Chat batch-prompt fil med alle fil-par. "
-             "Indsæt den genererede .md-fil i VS Code Copilot Chat for manuel LLM-analyse.",
-    )
+
+    # Ekstern LLM ikke understøttet — kun lokal LLM (GitHub Copilot chat) bruges
 
     args = parser.parse_args()
+
 
     print(f"\n🔍 Rebuild Integrity Gate")
     print(f"   GreenAI: {args.greenai}")
     print(f"   Legacy:  {args.legacy}")
-    print(f"   LLM:     heuristic (VS Code Copilot er eneste LLM — brug --copilot-batch for manuel analyse)")
+    print(f"   LLM:     lokal (GitHub Copilot chat)")
     print(f"   SQL:     {'yes' if args.sql else 'no'}")
     if args.output:
         print(f"   Output:  {args.output}")
-    if args.copilot_batch:
-        print(f"   Copilot: {args.copilot_batch}")
 
     try:
+
         report = run_integrity_check(
             greenai_folder = args.greenai,
             legacy_folder  = args.legacy,
             include_sql    = args.sql,
             output_json    = args.output,
-            use_llm        = False,  # Ekstern LLM ikke tilgængelig — kun VS Code Copilot (built-in)
+            use_llm        = False,  # Kun lokal LLM (Copilot chat) bruges
         )
 
-        if args.copilot_batch:
-            _generate_copilot_batch(report, args.copilot_batch)
-            print(f"\n📝 Copilot batch-prompt skrevet til: {args.copilot_batch}")
-            print(f"   → Åbn filen i VS Code og indsæt indholdet i Copilot Chat for manuel LLM-analyse.")
+
+        # Batch-prompt funktionalitet fjernet — kun lokal LLM (Copilot chat) bruges
     except FileNotFoundError as exc:
         print(f"\n❌ Error: {exc}", file=sys.stderr)
         return 1

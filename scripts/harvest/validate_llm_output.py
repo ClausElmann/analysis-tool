@@ -138,8 +138,8 @@ for entry in entries:
                         "b_pass": 0, "b_reject": 0, "f_pass": 0, "r_pass": 0})
         continue
     if not llm_path.exists():
-        print(f"  WAITING (no llm_output): {comp_name}")
-        summary.append({"component": comp_name, "status": "WAITING_LLM", "type": "?",
+        print(f"  SKIP (no llm_output): {comp_name}")
+        summary.append({"component": comp_name, "status": "NO_LLM_OUTPUT", "type": "?",
                         "b_pass": 0, "b_reject": 0, "f_pass": 0, "r_pass": 0})
         continue
 

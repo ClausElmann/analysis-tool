@@ -269,7 +269,7 @@ class DomainLoopEngine:
     Args:
         scanner:              AssetScanner instance
         stage_state:          StageState instance
-        ai_processor:         AIProcessor implementation
+        ai_processor:         Lokal LLM (GitHub Copilot chat) — ekstern LLM ikke understøttet
         data_root:            Path to data/ (stage_state, domain_output/)
         domains_root:         Path to domains/
         max_iterations:       Maximum loop iterations per domain
@@ -298,7 +298,7 @@ class DomainLoopEngine:
     ):
         self._scanner = scanner
         self._stage_state = stage_state
-        self._ai = ai_processor
+        self._ai = ai_processor  # Skal være lokal LLM (Copilot chat)
         self._data_root = Path(data_root)
         self._domains_root = Path(domains_root)
         self._max_iterations = max_iterations

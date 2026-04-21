@@ -36,7 +36,7 @@ Usage:
     engine.run_domain("messaging")
 
 Environment:
-    GITHUB_TOKEN    Required by CopilotAIProcessor in the outer pipeline
+
 
 Paths written:
     domains/{name}/domain_state.json  — per-domain state (status, scores, gaps)
@@ -248,7 +248,7 @@ class DomainEngine:
     Args:
         scanner:         AssetScanner instance
         stage_state:     StageState instance
-        ai_processor:    AIProcessor implementation
+        ai_processor:    Lokal LLM (GitHub Copilot chat) — ekstern LLM ikke understøttet
         data_root:       Path to data/ directory
         domains_root:    Path to domains/ directory
         max_iterations:  Hard cap per domain (default 15)
@@ -269,7 +269,7 @@ class DomainEngine:
     ):
         self._scanner = scanner
         self._stage_state = stage_state
-        self._ai = ai_processor
+        self._ai = ai_processor  # Skal være lokal LLM (Copilot chat)
         self._data_root = Path(data_root)
         self._domains_root = Path(domains_root)
         self._max_iterations = max_iterations

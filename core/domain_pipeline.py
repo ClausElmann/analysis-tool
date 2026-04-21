@@ -20,8 +20,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from core.stage_state import StageState, STAGES
-from core.ai_processor import AIProcessor
-from core.prompt_builder import PromptBuilder
+
 
 
 class DomainPipeline:
@@ -31,7 +30,7 @@ class DomainPipeline:
     Args:
         scanner:       Any object with scan_all_assets() → list[dict]
         stage_state:   StageState instance (tracks per-stage completion)
-        ai_processor:  AIProcessor implementation (or StubAIProcessor)
+        ai_processor:  Lokal LLM (GitHub Copilot chat) — ekstern LLM ikke understøttet
         output_root:   Directory where JSON results are written
         verbose:       Print [SCAN]/[PROCESS]/[SKIP]/[DONE]/[ERROR] lines
     """
@@ -46,7 +45,7 @@ class DomainPipeline:
     ):
         self._scanner = scanner
         self._state = stage_state
-        self._ai = ai_processor
+        self._ai = ai_processor  # Skal være lokal LLM (Copilot chat)
         self._output_root = Path(output_root)
         self._verbose = verbose
         self._prompt_builder = PromptBuilder()

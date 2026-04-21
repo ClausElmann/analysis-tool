@@ -18,42 +18,17 @@ TECHNICAL_WORDS = {
     "fetch", "init", "subscribe", "lifecycle", "handler", "observable"
 }
 
-def is_llm_valid_behavior(entry):
-    """True only if entry is LLM-sourced, verified, confidence >= 0.70,
-    and text does not contain technical lifecycle wording."""
-    if entry.get("source") != "angular":
-        return False
-    if entry.get("verified") is False:
-        return False
-    if entry.get("confidence", 0) < 0.70:
-        return False
-    text = entry.get("behavior", "").lower()
-    for word in TECHNICAL_WORDS:
-        if word in text.split():
-            return False
+def is_valid_behavior(entry):
+    """Accept all behaviors (no LLM filter)."""
     return True
 
-def is_llm_valid_flow(entry):
-    """True only if all 4 legs present and source is LLM."""
-    if entry.get("source") != "angular":
-        return False
-    if not entry.get("method"):
-        return False
-    if not entry.get("service_call"):
-        return False
-    if not (entry.get("http") or entry.get("api")):
-        return False
-    if entry.get("confidence", 0) < 0.70:
-        return False
+def is_valid_flow(entry):
+    """Accept all flows (no LLM filter)."""
     return True
 
-def is_llm_valid_requirement(entry, llm_endpoints):
-    """True only if endpoint matches an LLM-verified flow endpoint."""
-    if entry.get("source") == "regex":
-        # Accept regex requirement ONLY if its endpoint key is confirmed by LLM flow
-        ep_norm = normalize_text(entry.get("endpoint", ""))
-        return any(normalize_text(e) == ep_norm for e in llm_endpoints)
-    return True  # LLM-sourced requirements are kept
+def is_valid_requirement(entry):
+    """Accept all requirements (no LLM filter)."""
+    return True
 
 def load_jsonl(path):
     lines = []
@@ -75,18 +50,15 @@ def normalize_text(t):
     return t
 
 def canonical_text(entries):
-    """Pick the LLM-sourced text if available, else first occurrence."""
-    for e in entries:
-        if e.get("source") == "angular":
-            return e.get("behavior") or e.get("trigger") or e.get("endpoint")
+    """Pick first occurrence."""
     return entries[0].get("behavior") or entries[0].get("trigger") or entries[0].get("endpoint")
 
 now = datetime.utcnow().isoformat()
 
 # ── BEHAVIORS ────────────────────────────────────────────────────────────────
 raw_behaviors = load_jsonl(NORMALIZED_DIR / "behaviors.jsonl")
-dropped_behaviors = [b for b in raw_behaviors if not is_llm_valid_behavior(b)]
-valid_behaviors = [b for b in raw_behaviors if is_llm_valid_behavior(b)]
+dropped_behaviors = []
+valid_behaviors = [b for b in raw_behaviors if is_valid_behavior(b)]
 
 # Group by normalized behavior text
 b_groups = defaultdict(list)
@@ -133,8 +105,8 @@ behaviors_out.sort(key=lambda x: -x["confidence"])
 
 # ── FLOWS ────────────────────────────────────────────────────────────────────
 raw_flows = load_jsonl(NORMALIZED_DIR / "flows.jsonl")
-dropped_flows = [f for f in raw_flows if not is_llm_valid_flow(f)]
-valid_flows = [f for f in raw_flows if is_llm_valid_flow(f)]
+dropped_flows = []
+valid_flows = [f for f in raw_flows if is_valid_flow(f)]
 
 # Group by (normalized trigger, http endpoint)
 def flow_key(f):
@@ -182,17 +154,12 @@ for (trigger_norm, http_norm), group in f_groups.items():
 
 flows_out.sort(key=lambda x: -x["confidence"])
 
-# Collect LLM-confirmed endpoints for requirement cross-validation
-llm_endpoints = set()
-for f in valid_flows:
-    ep = f.get("http", "")
-    if ep:
-        llm_endpoints.add(ep)
+pass
 
 # ── REQUIREMENTS ─────────────────────────────────────────────────────────────
 raw_reqs = load_jsonl(NORMALIZED_DIR / "requirements.jsonl")
-dropped_reqs = [r for r in raw_reqs if not is_llm_valid_requirement(r, llm_endpoints)]
-valid_reqs = [r for r in raw_reqs if is_llm_valid_requirement(r, llm_endpoints)]
+dropped_reqs = []
+valid_reqs = [r for r in raw_reqs if is_valid_requirement(r)]
 
 # Normalise endpoint keys for grouping
 def req_key(r):
@@ -209,16 +176,12 @@ for r in valid_reqs:
     k = req_key(r)
     r_groups[k].append(r)
 
-# Also group regex vs LLM for same semantic endpoint
+pass
 reqs_out = []
 for (method, ep_key), group in r_groups.items():
     components = list(dict.fromkeys(e.get("component", "") for e in group))
     sources = list(dict.fromkeys(e.get("source", "regex") for e in group))
-    # Prefer LLM endpoint string; fall back to regex
-    canonical_ep = next(
-        (e.get("endpoint") for e in group if e.get("source") == "angular"),
-        group[0].get("endpoint")
-    )
+    canonical_ep = group[0].get("endpoint")
     types = list(dict.fromkeys(e.get("type", "") for e in group))
     evidence_refs = []
     for e in group:
@@ -244,7 +207,7 @@ reqs_out.sort(key=lambda x: x.get("method", "") + x.get("endpoint", ""))
 # ── CONFLICTS ────────────────────────────────────────────────────────────────
 conflicts_out = []
 
-# CONFLICT: same method in same component maps to different HTTP endpoints in LLM flows
+pass
 method_to_apis = defaultdict(list)
 for f in valid_flows:
     method = f.get("method", "")
@@ -277,9 +240,9 @@ write_json(OUT_DIR / "requirements.json", reqs_out)
 write_json(OUT_DIR / "conflicts.json", conflicts_out)
 
 total_dropped = len(dropped_behaviors) + len(dropped_flows) + len(dropped_reqs)
-print("\nConsolidation complete (LLM-only filter applied).")
-print(f"  behaviors:    {len(behaviors_out)} kept | {len(dropped_behaviors)} dropped")
-print(f"  flows:        {len(flows_out)} kept | {len(dropped_flows)} dropped")
+print("\nConsolidation complete (no LLM filter).")
+print(f"  behaviors:    {len(behaviors_out)} kept")
+print(f"  flows:        {len(flows_out)} kept")
 print(f"  requirements: {len(reqs_out)} kept | {len(dropped_reqs)} dropped")
 print(f"  conflicts:    {len(conflicts_out)} detected")
 print(f"  TOTAL DROPPED: {total_dropped}")

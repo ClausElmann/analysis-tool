@@ -1,4 +1,10 @@
-﻿PACKAGE_TOKEN: GA-2026-0421-V087-1143
+﻿## LLM-BESLUTNING (2026-04-21)
+
+**Kun lokal LLM (GitHub Copilot chat) er tilladt.**
+- Ekstern LLM, CopilotAIProcessor, GITHUB_TOKEN, OpenAI API, stub fallback og lignende er forbudt i hele repoet.
+- Alle AI-analyser og pipelines skal bruge lokal LLM (Copilot chat) — ingen undtagelser.
+
+PACKAGE_TOKEN: GA-2026-0421-V087-1143
 
 > ChatGPT SKAL citere dette token i sin første sætning som bevis på at den har læst denne ZIP.
 > Svar der IKKE starter med token-citering afvises.

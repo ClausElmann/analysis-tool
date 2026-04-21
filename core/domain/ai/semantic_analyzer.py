@@ -1,11 +1,9 @@
-"""Stub semantic analyzer — keyword heuristics only, no LLM.
+"""Semantic analyzer — bruger kun lokal LLM (GitHub Copilot chat) eller heuristik.
 
-``analyze(asset, domain_name)`` extracts structural signals from an asset
-using regex patterns.  All nine insight keys are always present in the
-return value, even if some are empty lists.
+``analyze(asset, domain_name)`` udtrækker strukturelle signaler fra et asset
+ved hjælp af regex eller lokal LLM. Ekstern LLM er aldrig tilladt.
 
-This is intentionally a stub.  Replace the extraction logic with LLM calls
-in a later version without changing the function signature.
+Alle ni insight keys er altid til stede i return value, selv hvis nogle er tomme.
 """
 
 from __future__ import annotations

@@ -121,7 +121,7 @@ class ComparatorAI:
     """
 
     def __init__(self, ai_processor):
-        self._ai = ai_processor
+        self._ai = ai_processor  # Skal være lokal LLM (Copilot chat)
 
     # ------------------------------------------------------------------
     def compare(self, l0_cap: Any, greenai_cap: Any) -> AIComparisonResult:

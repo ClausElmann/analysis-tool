@@ -133,9 +133,8 @@ class CapabilityBuilder:
 
     def __init__(self, ai_processor):
         """
-        ai_processor: CopilotAIProcessor or StubAIProcessor from core/ai_processor.py
-        """
-        self._ai = ai_processor
+        ai_processor: Lokal LLM (GitHub Copilot chat) — ekstern LLM ikke understøttet
+        self._ai = ai_processor  # Skal være lokal LLM (Copilot chat)
 
     def build_from_facts(
         self,

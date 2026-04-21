@@ -14,7 +14,7 @@ Uses prompts/refinement.txt.
 import json
 from pathlib import Path
 
-from core.ai_processor import AIProcessor
+
 
 STAGE = "refinement"
 
@@ -35,13 +35,10 @@ class Refiner:
     The refinement stage receives the domain_mapping result and improves it.
     It is also used by the DomainBuilder to refine aggregated domain clusters.
 
-    Args:
-        ai_processor: Any AIProcessor implementation
-        prompts_root: Path to the /prompts/ directory
-    """
 
-    def __init__(self, ai_processor: AIProcessor, prompts_root: str):
-        self._ai = ai_processor
+    # Lokal LLM (Copilot chat) bruges altid — ekstern LLM ikke understøttet
+    def __init__(self, ai_processor, prompts_root: str):
+        self._ai = ai_processor  # Skal være lokal LLM (Copilot chat)
         self._prompts_root = Path(prompts_root)
 
     def refine(self, asset: dict, domain_result: dict) -> dict:
