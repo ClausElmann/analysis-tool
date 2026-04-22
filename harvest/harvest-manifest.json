@@ -1,13 +1,13 @@
 {
   "app-globals/components/bi-accordion/bi-accordion.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:18.696438+00:00"
   },
   "app-globals/components/bi-confirm-dialog/bi-confirm-dialog.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:24.679606+00:00"
   },
@@ -17,568 +17,528 @@
     "retryCount": 0
   },
   "app-globals/components/bi-map/bi-archive-messages-map-toggle.component.ts/bi-archive-messages-map-toggle.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:29.496666+00:00"
   },
   "app-globals/components/bi-map/bi-leaflet-googlesearch/bi-leaflet-googlesearch.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:32.031780+00:00"
   },
   "app-globals/components/bi-map/bi-map.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:38.218037+00:00"
   },
   "app-globals/components/bi-map/bi-map-legend/bi-map-legend.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:40.673342+00:00"
   },
   "app-globals/components/bi-map/bi-meters-setting/bi-meters-setting.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:43.088999+00:00"
   },
   "app-globals/components/bi-notification-bar/bi-notification-bar.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:45.500266+00:00"
   },
   "app-globals/components/bi-phone-input/bi-phone-input.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:48.028624+00:00"
   },
   "app-globals/components/bi-zip-code-input/bi-zip-code-input.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:53.765405+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/address-contacts-info/address-contacts-info.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:56.177537+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/address-info-status/entry-address-info-status.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:58.561441+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/address-info-status/specific-address-info-status.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:00.994855+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/bi-address-info-base.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:14.340706+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/bi-address-info-table/bi-address-info-table.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:16.762507+00:00"
   },
   "app-globals/components/dialog-content/info-message-dialog-content/info-message-dialog-content.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:19.188037+00:00"
   },
   "app-globals/components/spinner/bi-spinner.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:21.606878+00:00"
   },
   "app-globals/components/unavailable/unavailable.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:23.999475+00:00"
   },
   "app-globals/components/zip-street-number-input/zip-street-number-input.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PARTIAL",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:33.423363+00:00"
   },
   "side-projects/iframe-modules/src/app/driftstatus/iframe-driftstatus.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:56.016313+00:00"
   },
   "side-projects/iframe-modules/src/app/driftstatus-map/iframe-driftstatus-map.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:27.546454+00:00"
   },
   "side-projects/iframe-modules/src/app/iframe-modules-app.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:29.981229+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/shared/subscription-module-reset-button/subscription-module-reset-button.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:32.403251+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/create-address-subscription/create-address-subscription.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:41.619131+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/create-supply-number-subscription/create-supply-number-subscription.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:47.227251+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/iframe-subscription.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:53.276838+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/subscription-overview/subscription-overview.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PARTIAL",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:13:02.759581+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-std-receivers/group-subscription/group-subscription.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:13:32.691289+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-std-receivers/iframe-subscription-std-receiver.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:13:38.093446+00:00"
   },
   "side-projects/iframe-modules/src/shared/components/bi-skip-link/bi-skip-link.component.ts": {
-    "status": "DONE",
-    "pipeline_status": "PASS_UI_ONLY",
+    "status": "PENDING",
+    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:13:40.502790+00:00"
   },
   "side-projects/quick-response/src/app/quick-response-app.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T06:58:30.933192+00:00"
   },
   "side-projects/quick-response/src/app/quick-response-root.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/app/en-toolbar/en-toolbar.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/app/subscription-app.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T06:59:02.726133+00:00"
   },
   "side-projects/subscription-app/src/features/about-page/en-about-page.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T06:59:11.756447+00:00"
   },
   "side-projects/subscription-app/src/features/enrollment-steps/enrollment-finished-message/enrollment-finished-message.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/enrollment-steps/enrollment-steps-main.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T06:59:25.716017+00:00"
   },
   "side-projects/subscription-app/src/features/enrollment-steps/enter-address/enter-address.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/enrollment-steps/mobile-and-pin-step/mobile-and-pin-step.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/enrollment-steps/sender-selection/sender-selection.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:00:09.262968+00:00"
   },
   "side-projects/subscription-app/src/features/login/en-login.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/my-senders/additional-sender-selection/additional-sender-selection.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:00:26.427775+00:00"
   },
   "side-projects/subscription-app/src/features/my-senders/add-senders/add-senders.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/my-senders/edit-address/edit-address.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/my-senders/my-info/my-info.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/my-senders/my-senders.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:01:38.715187+00:00"
   },
   "side-projects/subscription-app/src/features/privacy-policy/en-privacy-policy-dk.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/privacy-policy/en-privacy-policy-fi.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/privacy-policy/en-privacy-policy-se.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/privacy-policy/privacy-policy-main.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/unsubscribe-sender/unsubscribe-sender.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/welcome-page/welcome-page.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:02:09.630035+00:00"
   },
   "side-projects/subscription-app/src/features-shared/add-address/add-address.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:44:34.665655+00:00"
   },
   "side-projects/subscription-app/src/features-shared/mobile-and-pin/mobile-and-pin.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:03:03.778299+00:00"
   },
   "side-projects/subscription-app/src/features-shared/send-a-tip-dialog-content/send-a-tip-dialog-content.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:03:31.370115+00:00"
   },
   "side-projects/subscription-app/src/features-shared/terms-and-conditions/en-terms-and-conditions-dk.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features-shared/terms-and-conditions/en-terms-and-conditions-fi.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features-shared/terms-and-conditions/en-terms-and-conditions-main.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features-shared/terms-and-conditions/en-terms-and-conditions-se.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-address/en-address.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-address-selector/en-address-selector.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:03:55.668575+00:00"
   },
   "side-projects/subscription-app/src/shared/components/en-confirm-dialog-content/en-confirm-dialog-content.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-dialog-frame/en-dialog-frame.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-expanding-panel/en-expanding-panel.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-language-selector/en-language-selector.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-phone-input/en-phone-input.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:04:18.095189+00:00"
   },
   "side-projects/subscription-app/src/shared/components/en-sender/en-sender.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-sender-search/en-sender-search.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-spinner/en-spinner.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-two-buttons/en-two-buttons.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/leave-page-warning/leave-page-warning.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/app-module/app.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:44:41.909384+00:00"
   },
   "src/app-module/app-header/app-header.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:44:49.387951+00:00"
   },
   "src/app-module/app-header/user-has-no-profile-access-dialog-content.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/app-module/app-header/user-menu/user-menu.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/app-module/navigation-bar/bi-app-navigation-bar.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/app-module/navigation-bar/bi-app-navigation-bar-base.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:45:12.913203+00:00"
   },
   "src/app-module/navigation-bar/bi-app-navigation-bar-item/bi-app-navigation-bar-item.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/app-module/navigation-bar/bi-app-navigation-bar-mobile.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/app-module/navigation-bar/profile-has-no-access-dialog-content.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/features/administration/administration.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/features/administration/benchmark/benchmark-main.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/features/administration/benchmark/causes/benchmark-causes.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:45:40.223025+00:00"
   },
   "src/features/administration/benchmark/index/benchmark-index.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:45:47.718397+00:00"
   },
   "src/features/administration/benchmark/index/create-edit-main/create-edit-main.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:45:54.744092+00:00"
   },
   "src/features/administration/benchmark/kpis/benchmark-kpis.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:46:01.467296+00:00"
   },
   "src/features/administration/benchmark/overview/benchmark-overview.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:46:08.144091+00:00"
   },
   "src/features/administration/benchmark/settings/benchmark-settings.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:46:15.004769+00:00"
   },
   "src/features/administration/benchmark/settings/kvhx-count-list/kvhx-count-list.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:46:21.757433+00:00"
   },
   "src/features/administration/benchmark/statistics/benchmark-map-statistics/benchmark-map-statistics.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/features/administration/benchmark/statistics/benchmark-statistics.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:46:35.031274+00:00"
   },
   "src/features/administration/benchmark/statistics/benchmark-statistics-criteria/benchmark-statistics-criteria.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/features/administration/critical-addresses/addresses/add-critical-address-dialog/add-critical-address-dialog.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/features/administration/critical-addresses/addresses/addresses.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:46:53.343077+00:00"
   },
   "src/features/administration/critical-addresses/addresses/critical-addresses-map-view/critical-addresses-map-view.component.ts": {
-    "status": "PENDING",
-    "pipeline_status": null,
-    "lastProcessed": null,
+    "status": "SKIPPED",
+    "pipeline_status": "VERIFIED_UI",
     "retryCount": 0
   },
   "src/features/administration/critical-addresses/addresses-import/addresses-import.component.ts": {
     "status": "PENDING",
     "pipeline_status": null,
-    "lastProcessed": null,
-    "retryCount": 0
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T07:47:07.192277+00:00"
   },
   "src/features/administration/critical-addresses/critical-addresses.component.ts": {
     "status": "PENDING",

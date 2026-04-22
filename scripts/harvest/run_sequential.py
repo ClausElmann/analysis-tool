@@ -31,6 +31,7 @@ CORPUS_DIR      = REPO_ROOT / "corpus"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--target", type=int, default=10, help="Stop after this many DONE")
+parser.add_argument("--resume", action="store_true", help="Resume from existing manifest — skip reset")
 args = parser.parse_args()
 TARGET_DONE = args.target
 
@@ -218,8 +219,12 @@ def _ensure_watcher() -> None:
 
 def main() -> None:
     _ensure_watcher()
-    reset()
-    manifest = init_manifest()
+    if args.resume and MANIFEST_PATH.exists():
+        print("[RESUME] Skipping reset — loading existing manifest")
+        manifest = load_manifest()
+    else:
+        reset()
+        manifest = init_manifest()
     write_status(manifest, None, "Initialiseret — starter loop", 0)
 
     while True:

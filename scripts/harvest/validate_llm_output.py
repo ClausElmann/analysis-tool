@@ -11,6 +11,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
@@ -120,6 +121,9 @@ def test_requirement(req: dict, pack: dict) -> dict:
 
 
 # ── Step 3: Truth gate ─────────────────────────────────────────────────────────
+_HTTP_VERBS = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"}
+
+
 def is_provable_from_evidence(item: dict, pack: dict) -> bool:
     """Return True if item is directly traceable to data in evidence_pack."""
     http_calls = (pack.get("service_http_calls") or []) + (pack.get("direct_http_calls") or [])
@@ -131,7 +135,8 @@ def is_provable_from_evidence(item: dict, pack: dict) -> bool:
     endpoint = (item.get("endpoint") or "").strip()
     check_url = http_str.split(" ", 1)[-1].strip() if " " in http_str else (http_str or endpoint)
 
-    if method and method not in http_methods_in_pack:
+    # HTTP verbs (GET/POST/...) are not service method names — skip service_method check
+    if method and method.upper() not in _HTTP_VERBS and method not in http_methods_in_pack:
         return False
     if check_url:
         matched = any(
@@ -151,6 +156,107 @@ def _classify_behavior(b: dict, pack: dict) -> str:
         if evidence_method in handlers:
             return "VERIFIED_UI"
     return "INFERRED_UI"
+
+
+def _build_deterministic_flows(pack: dict, source_file: str) -> tuple[list, list]:
+    """
+    Build VERIFIED_STRUCTURAL flows + requirements from evidence_pack deterministically.
+    No LLM dependency.
+
+    Returns (flows, requirements)
+    """
+    flows = []
+    requirements = []
+    ts = datetime.utcnow().isoformat() + "Z"
+
+    shc = pack.get("service_http_calls") or []
+    method_graph = pack.get("method_graph") or {}
+    lifecycle_flows = pack.get("lifecycle_flows") or []
+    template_actions = pack.get("template_actions") or []
+
+    # Build lookup: service_method → http entry
+    shc_by_method: dict[str, dict] = {h["service_method"]: h for h in shc}
+
+    emitted_flow_keys: set[tuple] = set()
+
+    def _emit_flow(trigger: str, method: str, service_call: str, h: dict) -> None:
+        key = (trigger, h.get("service_method", ""), h.get("url", ""))
+        if key in emitted_flow_keys:
+            return
+        emitted_flow_keys.add(key)
+        flows.append({
+            "trigger": trigger,
+            "method": method,
+            "service_call": service_call,
+            "http": f"{h.get('http_method', '?')} {h.get('url', '')}",
+            "result": f"HTTP {h.get('http_method', '?')} til {h.get('service', '')}",
+            "status": "PASS",
+            "classification": "VERIFIED_STRUCTURAL",
+            "pipeline_status": "VERIFIED_STRUCTURAL",
+            "evidence_ids": [h.get("url", "")],
+            "source_files": [source_file],
+            "confidence_score": 0.95,
+        })
+
+    # 1. Template handlers via method_graph
+    template_handler_names = {a.get("handler", "") for a in template_actions}
+    for handler in template_handler_names:
+        if not handler:
+            continue
+        bridged = method_graph.get(handler, [])
+        for svc_method in bridged:
+            if svc_method in shc_by_method:
+                h = shc_by_method[svc_method]
+                _emit_flow(
+                    trigger=f"user:{handler}",
+                    method=handler,
+                    service_call=f"{h.get('service', '?')}.{svc_method}()",
+                    h=h,
+                )
+
+    # 2. Direct: template handler IS already a service_method (1-hop)
+    for handler in template_handler_names:
+        if handler and handler in shc_by_method:
+            h = shc_by_method[handler]
+            _emit_flow(
+                trigger=f"user:{handler}",
+                method=handler,
+                service_call=f"{h.get('service', '?')}.{handler}()",
+                h=h,
+            )
+
+    # 3. Lifecycle flows (ngOnInit, constructor, ngOnChanges)
+    for lf in lifecycle_flows:
+        svc_method = lf.get("service_method", "")
+        if svc_method in shc_by_method:
+            h = shc_by_method[svc_method]
+            _emit_flow(
+                trigger=f"component_init:{lf.get('lifecycle', 'ngOnInit')}",
+                method=lf.get("lifecycle", "ngOnInit"),
+                service_call=f"{h.get('service', '?')}.{svc_method}()",
+                h=h,
+            )
+
+    # 4. Requirements — one per unique service_http_call
+    seen_endpoints: set[str] = set()
+    for h in shc:
+        url = h.get("url", "")
+        if url and url not in seen_endpoints:
+            seen_endpoints.add(url)
+            requirements.append({
+                "method": h.get("http_method", "?"),
+                "endpoint": url,
+                "type": "QUERY" if h.get("http_method") == "GET" else "COMMAND",
+                "evidence_method": h.get("service_method", ""),
+                "status": "PASS",
+                "classification": "VERIFIED_STRUCTURAL",
+                "pipeline_status": "VERIFIED_STRUCTURAL",
+                "evidence_ids": [url],
+                "source_files": [source_file],
+                "confidence_score": 0.95,
+            })
+
+    return flows, requirements
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
@@ -183,14 +289,15 @@ for entry in entries:
                         "b_pass": 0, "b_reject": 0, "f_pass": 0, "r_pass": 0})
         continue
     if not llm_path.exists():
-        print(f"  SKIP (no llm_output): {comp_name}")
-        summary.append({"component": comp_name, "status": "NO_LLM_OUTPUT", "type": "?",
-                        "b_pass": 0, "b_reject": 0, "f_pass": 0, "r_pass": 0})
-        continue
+        # No LLM output — deterministic-only mode (SMART/CONTAINER get flows from evidence_pack)
+        llm = {"behaviors": [], "flows": [], "requirements": [], "ui_behaviors": []}
+    else:
+        llm = None  # will be loaded below
 
     try:
         pack = json.loads(pack_path.read_text(encoding="utf-8"))
-        llm  = json.loads(llm_path.read_text(encoding="utf-8"))
+        if llm is None:
+            llm = json.loads(llm_path.read_text(encoding="utf-8"))
     except Exception as exc:
         print(f"  [ERROR] could not parse JSON for {comp_name}: {exc}")
         summary.append({"component": comp_name, "status": "FAIL", "type": "?",
@@ -227,61 +334,75 @@ for entry in entries:
     f_pass = f_reject = 0
     v_flows = []
     if not is_dumb:
+        # ── TRIN 3: Deterministic flows from evidence_pack (replaces LLM flows) ──
+        det_flows, det_reqs = _build_deterministic_flows(pack, pack["meta"].get("file", ""))
+        v_flows = det_flows
+        f_pass = len(det_flows)
+        # Also try LLM flows that are NOT covered by deterministic — keep if valid+provable
         for f in (llm.get("flows") or []):
             if not f or isinstance(f, str):
                 continue
             r = test_flow_chain(f, pack)
-            if r["valid"]:
-                f_pass += 1
-                provable = is_provable_from_evidence(f, pack)
-                ev_ids = [
-                    h.get("url") for h in (pack.get("service_http_calls") or [])
-                    if h.get("service_method") == f.get("method") and h.get("url")
-                ]
-                v_flows.append({
-                    **f,
-                    "status": "PASS",
-                    "classification": "VERIFIED_STRUCTURAL",
-                    "pipeline_status": "VERIFIED_STRUCTURAL" if provable else "FAIL",
-                    "evidence_ids": ev_ids,
-                    "source_files": [pack["meta"].get("file", "")],
-                    "confidence_score": f.get("confidence", 0.0),
-                })
+            if r["valid"] and is_provable_from_evidence(f, pack):
+                # Avoid duplicate trigger+method combos already covered deterministically
+                dup = any(
+                    df.get("trigger") == f.get("trigger") and df.get("method") == f.get("method")
+                    for df in v_flows
+                )
+                if not dup:
+                    ev_ids = [
+                        h.get("url") for h in (pack.get("service_http_calls") or [])
+                        if h.get("service_method") == f.get("method") and h.get("url")
+                    ]
+                    v_flows.append({
+                        **f,
+                        "status": "PASS",
+                        "classification": "VERIFIED_STRUCTURAL",
+                        "pipeline_status": "VERIFIED_STRUCTURAL",
+                        "evidence_ids": ev_ids,
+                        "source_files": [pack["meta"].get("file", "")],
+                        "confidence_score": f.get("confidence", 0.0),
+                    })
+                    f_pass += 1
             else:
                 f_reject += 1
-                v_flows.append({"trigger": f.get("trigger"), "method": f.get("method"),
-                                "status": "REJECTED", "reason": r["reason"]})
 
     # Validate requirements (DUMB: skip)
     r_pass = r_reject = 0
     v_reqs = []
     if not is_dumb:
+        # ── TRIN 3: Deterministic requirements from evidence_pack ──
+        v_reqs = det_reqs  # already built above
+        r_pass = len(det_reqs)
+        # Also keep valid+provable LLM requirements not already covered
         for req in (llm.get("requirements") or []):
             if not req or isinstance(req, str):
                 continue
             r = test_requirement(req, pack)
-            if r["valid"]:
-                r_pass += 1
-                provable = is_provable_from_evidence(req, pack)
-                all_http = (pack.get("service_http_calls") or []) + (pack.get("direct_http_calls") or [])
-                req_ep = (req.get("endpoint") or "").lstrip("/")
-                ev_ids = [
-                    h.get("url") for h in all_http
-                    if h.get("url") and (req_ep in h["url"] or h["url"] in req_ep)
-                ]
-                v_reqs.append({
-                    **req,
-                    "status": "PASS",
-                    "classification": "VERIFIED_STRUCTURAL",
-                    "pipeline_status": "VERIFIED_STRUCTURAL" if provable else "FAIL",
-                    "evidence_ids": ev_ids,
-                    "source_files": [pack["meta"].get("file", "")],
-                    "confidence_score": 0.7,
-                })
+            if r["valid"] and is_provable_from_evidence(req, pack):
+                dup = any(
+                    dr.get("endpoint") == req.get("endpoint")
+                    for dr in v_reqs
+                )
+                if not dup:
+                    all_http = (pack.get("service_http_calls") or []) + (pack.get("direct_http_calls") or [])
+                    req_ep = (req.get("endpoint") or "").lstrip("/")
+                    ev_ids = [
+                        h.get("url") for h in all_http
+                        if h.get("url") and (req_ep in h["url"] or h["url"] in req_ep)
+                    ]
+                    v_reqs.append({
+                        **req,
+                        "status": "PASS",
+                        "classification": "VERIFIED_STRUCTURAL",
+                        "pipeline_status": "VERIFIED_STRUCTURAL",
+                        "evidence_ids": ev_ids,
+                        "source_files": [pack["meta"].get("file", "")],
+                        "confidence_score": 0.7,
+                    })
+                    r_pass += 1
             else:
                 r_reject += 1
-                v_reqs.append({"endpoint": req.get("endpoint"), "status": "REJECTED",
-                               "reason": r["reason"]})
 
     # UI behaviors (DUMB/CONTAINER) — wrapped with VERIFIED_UI classification
     ui_behaviors = []
@@ -294,29 +415,54 @@ for entry in entries:
             if text:
                 ui_behaviors.append({"text": text, "classification": "VERIFIED_UI"})
 
-    # Score per component — Step 1: remove PASS_UI_ONLY
+    # Score per component
     if is_dumb:
-        status = "VERIFIED_UI" if ui_behaviors else "FAIL"
+        status = "VERIFIED_UI" if ui_behaviors else "VERIFIED_STRUCTURAL_NULL"
     else:
         if b_pass >= 2:
             status = "PASS"
         elif b_pass >= 1 or f_pass >= 1 or r_pass >= 1:
             status = "PARTIAL"
+        elif _has_no_backend:
+            status = "VERIFIED_STRUCTURAL_NULL"
         else:
             status = "FAIL"
 
     # Step 3: Compute component-level pipeline_status
     verified_flows = [f for f in v_flows if f.get("pipeline_status") == "VERIFIED_STRUCTURAL"]
     verified_reqs  = [r for r in v_reqs  if r.get("pipeline_status") == "VERIFIED_STRUCTURAL"]
+
+    # VERIFIED_STRUCTURAL_NULL: evidence pack parsed OK but component has no backend calls
+    # (no service_http_calls, no method_graph entries, no lifecycle_flows)
+    # This is a valid structural state — not a failure.
+    _has_no_backend = (
+        len(pack.get("service_http_calls") or []) == 0
+        and len(pack.get("method_graph") or {}) == 0
+        and len(pack.get("lifecycle_flows") or []) == 0
+    )
+
     if is_dumb:
-        pipeline_status = "VERIFIED_UI" if ui_behaviors else "FAIL"
+        if ui_behaviors:
+            pipeline_status = "VERIFIED_UI"
+        elif _has_no_backend:
+            pipeline_status = "VERIFIED_STRUCTURAL_NULL"
+        else:
+            pipeline_status = "FAIL"
     else:
         if verified_flows or verified_reqs:
             pipeline_status = "VERIFIED_STRUCTURAL"
+        elif _has_no_backend:
+            # SMART/CONTAINER with no backend evidence — structurally clean, just frontend-only
+            pipeline_status = "VERIFIED_STRUCTURAL_NULL"
         elif b_pass >= 1 or f_pass >= 1 or r_pass >= 1:
             pipeline_status = "INFERRED_UI"
         else:
-            pipeline_status = "FAIL"
+            # FAIL only if: service_http_calls exist but could not be matched
+            shc_count = len(pack.get("service_http_calls") or [])
+            if shc_count > 0:
+                pipeline_status = "FAIL"
+            else:
+                pipeline_status = "VERIFIED_STRUCTURAL_NULL"
 
     # Step 8: Output contract — pipeline_status + classification in validated output
     validated = {

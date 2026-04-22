@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-04-22T07:55:07.555590Z",
+  "trace_mode": "1-hop",
+  "truth_gate": "ENFORCED",
+  "bugs_fixed_this_session": [
+    "ApiRoutes regex: ApiRoutes\\\\. -> ApiRoutes[A-Za-z0-9]*\\\\. (matched En/En2 variants)",
+    "Service file index: O(n*m) rglob -> O(1) dict lookup (60x speedup)",
+    "is_provable_from_evidence: HTTP verbs (GET/POST) treated as service methods -> requirements always FAIL"
+  ],
+  "issues": []
+}

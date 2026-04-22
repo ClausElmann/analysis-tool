@@ -1,0 +1,22 @@
+{
+  "shared": {
+    "flows": 6,
+    "requirements": 2
+  },
+  "iframe-modules": {
+    "flows": 2,
+    "requirements": 2
+  },
+  "administration": {
+    "flows": 29,
+    "requirements": 0
+  },
+  "UNKNOWN": {
+    "flows": 0,
+    "requirements": 34
+  },
+  "subscription-app": {
+    "flows": 1,
+    "requirements": 0
+  }
+}

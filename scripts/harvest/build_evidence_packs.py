@@ -51,16 +51,32 @@ def get_alias_map(root: Path) -> dict:
     return alias_map
 
 
-# ── Find service implementation file ──────────────────────────────────────────
-def find_service_file(class_name: str, root: Path) -> str | None:
-    pattern = f"export class {class_name}"
+# ── Service file index — built once, O(n) instead of O(n×m) ─────────────────
+_SERVICE_FILE_INDEX: dict[str, str] = {}
+_SERVICE_FILE_INDEX_BUILT = False
+
+def _build_service_index(root: Path) -> None:
+    global _SERVICE_FILE_INDEX_BUILT
+    if _SERVICE_FILE_INDEX_BUILT:
+        return
+    print("Building service file index...", end=" ", flush=True)
     for f in root.rglob("*.ts"):
         try:
-            if pattern in f.read_text(encoding="utf-8", errors="ignore"):
-                return str(f)
+            content = f.read_text(encoding="utf-8", errors="ignore")
         except Exception:
-            pass
-    return None
+            continue
+        for m in re.finditer(r"export class ([A-Z][A-Za-z0-9_]*)", content):
+            cls = m.group(1)
+            if cls not in _SERVICE_FILE_INDEX:
+                _SERVICE_FILE_INDEX[cls] = str(f)
+    _SERVICE_FILE_INDEX_BUILT = True
+    print(f"indexed {len(_SERVICE_FILE_INDEX)} classes.")
+
+
+# ── Find service implementation file ──────────────────────────────────────────
+def find_service_file(class_name: str, root: Path) -> str | None:
+    _build_service_index(root)
+    return _SERVICE_FILE_INDEX.get(class_name)
 
 
 # ── Extract template actions from HTML ────────────────────────────────────────
@@ -178,7 +194,7 @@ def _extract_url(jl: str) -> str | None:
     tl = re.search(r"`([^`]+)`", jl)
     if tl:
         return re.sub(r"\$\{[^}]+\}", "{param}", tl.group(1))
-    ar = re.search(r"ApiRoutes\.([A-Za-z0-9_.]+)", jl)
+    ar = re.search(r"ApiRoutes[A-Za-z0-9]*\.([A-Za-z0-9_.]+)", jl)
     if ar:
         return f"{{ApiRoutes.{ar.group(1)}}}"
     return None
@@ -458,6 +474,47 @@ for entry in entries:
             or svc_count >= 5
         )
 
+        # ── method_graph: component_method → [service_method] (via service_http_calls) ──
+        # Build a mapping from injected service var_name to class_name for lookup
+        var_to_class = {s["var_name"]: s["class_name"] for s in resolved_svcs}
+        # Build set of known service_methods from svc_http_calls
+        svc_method_set = {h["service_method"] for h in svc_http_calls}
+
+        method_graph: dict[str, list[str]] = {}
+        lifecycle_flows: list[dict] = []
+        _LIFECYCLE_NAMES = {"ngOnInit", "constructor", "ngOnChanges", "ngAfterViewInit", "ngOnDestroy"}
+
+        for meth in methods:
+            mname = meth["name"]
+            bridged: list[str] = []
+            for call in meth.get("calls", []):
+                # call format: "varName.methodName()"
+                parts = call.split(".")
+                if len(parts) < 2:
+                    continue
+                call_var = parts[0]
+                call_svc_method = parts[1].rstrip("()")
+                if call_svc_method in svc_method_set:
+                    if call_svc_method not in bridged:
+                        bridged.append(call_svc_method)
+            if bridged:
+                method_graph[mname] = bridged
+
+            # lifecycle_flows: ngOnInit / constructor / ngOnChanges calling a traced service method
+            if mname in _LIFECYCLE_NAMES:
+                for sm in bridged:
+                    # find the http details from svc_http_calls
+                    for h in svc_http_calls:
+                        if h["service_method"] == sm:
+                            lifecycle_flows.append({
+                                "lifecycle": mname,
+                                "service_method": sm,
+                                "http": h["http_method"],
+                                "url": h["url"],
+                                "service": h["service"],
+                            })
+                            break
+
         pack = {
             "meta": {
                 "component": comp_name,
@@ -470,6 +527,8 @@ for entry in entries:
             "injected_services": resolved_svcs,
             "service_http_calls": svc_http_calls,
             "direct_http_calls": direct_http,
+            "method_graph": method_graph,
+            "lifecycle_flows": lifecycle_flows,
             "routes": routes,
             "cluster_signals": {
                 "navigates_to_routes": nav_count,

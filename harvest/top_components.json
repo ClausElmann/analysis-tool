@@ -1,0 +1,50 @@
+[
+  {
+    "component": "create-edit-main",
+    "flows": 6
+  },
+  {
+    "component": "benchmark-causes",
+    "flows": 5
+  },
+  {
+    "component": "benchmark-settings",
+    "flows": 5
+  },
+  {
+    "component": "addresses",
+    "flows": 5
+  },
+  {
+    "component": "benchmark-statistics",
+    "flows": 4
+  },
+  {
+    "component": "app-header",
+    "flows": 3
+  },
+  {
+    "component": "benchmark-index",
+    "flows": 3
+  },
+  {
+    "component": "bi-map",
+    "flows": 2
+  },
+  {
+    "component": "iframe-driftstatus-map",
+    "flows": 2
+  },
+  {
+    "component": "app",
+    "flows": 1
+  },
+  {
+    "component": "add-address",
+    "flows": 1
+  },
+  {
+    "component": "benchmark-overview",
+    "flows": 1
+  }
+]

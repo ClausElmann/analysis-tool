@@ -2,6 +2,16 @@
 # Sæt miljøvariabler til GitHub Copilot AI-provider for enrichment scripts
 # Kør denne i PowerShell før du starter Python-scriptet
 
+# Aktiver venv og sæt python-alias så 'python' virker i alle PS-sessioner
+$venvPython = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
+if (Test-Path $venvPython) {
+    Set-Alias -Name python -Value $venvPython -Scope Global -Force
+    $env:PYTHONIOENCODING = 'utf-8'
+    Write-Host "python alias sat til: $venvPython"
+} else {
+    Write-Warning "venv ikke fundet: $venvPython"
+}
+
 # Hent token fra shell-miljø — sæt GITHUB_TOKEN i din PowerShell-profil eller system-miljø.
 # Aldrig hardkod tokens her — filen kan ende i git history.
 if (-not $env:GITHUB_TOKEN) {

@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-04-22T07:55:07.555590Z",
+  "total_components": 549,
+  "done": 56,
+  "pending": 452,
+  "skipped": 41,
+  "failed": 0,
+  "corpus": {
+    "capabilities.jsonl": 3,
+    "flows.jsonl": 38,
+    "rejected_outputs.jsonl": 116,
+    "requirements.jsonl": 38,
+    "ui_behaviors_inferred.jsonl": 84,
+    "ui_behaviors_verified.jsonl": 83
+  },
+  "flows": 38,
+  "requirements": 38,
+  "ui_verified": 83,
+  "ui_inferred": 84
+}
