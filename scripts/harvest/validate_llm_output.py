@@ -59,7 +59,13 @@ def test_flow_chain(flow: dict, pack: dict) -> dict:
         None,
     )
     if not method_in_pack:
-        return {"valid": False, "reason": f"method_not_in_pack:{flow['method']}"}
+        # Also accept service methods from service_http_calls
+        method_in_service = next(
+            (h for h in (pack.get("service_http_calls") or []) if h.get("service_method") == flow["method"]),
+            None,
+        )
+        if not method_in_service:
+            return {"valid": False, "reason": f"method_not_in_pack:{flow['method']}"}
 
     if not flow.get("service_call"):
         return {"valid": False, "reason": "missing_service_call"}

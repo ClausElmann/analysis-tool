@@ -9,6 +9,7 @@ Usage:
 
 import argparse
 import json
+import re
 import sys
 import uuid
 from datetime import datetime
@@ -48,18 +49,66 @@ def derive_domain(comp_path: str) -> str:
     if p0 == "src":
         if p1 == "features" and p2:
             return p2
+        # src/app, src/components etc. -> shared
         return "shared"
     if p0 == "app-globals":
         return "shared"
     if p0 == "side-projects":
         return p1 if p1 else "side-projects"
+    # iframe paths
+    if p0 in ("iframe", "iframe-modules") or (p0 == "src" and "iframe" in comp_path.lower()):
+        return "iframe-modules"
+    # message-wizard paths
+    if "message-wizard" in comp_path.lower():
+        # extract exact domain name from path if possible
+        for part in parts:
+            if part.startswith("message-wizard"):
+                return part
+        return "message-wizard"
     return "UNKNOWN"
 
 
 b_count = f_count = r_count = 0
 
 
-def append_jsonl(path: Path, obj: dict):
+def _load_existing_keys(path: Path, key_fields: list[str]) -> set:
+    if not path.exists():
+        return set()
+    keys = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            try:
+                obj = json.loads(line)
+                keys.add(tuple(obj.get(f, "") for f in key_fields))
+            except json.JSONDecodeError:
+                pass
+    return keys
+
+
+_existing_keys: dict[str, set] = {}
+
+_REJECT_BEHAVIOR_RE = re.compile(
+    r"(write value|register on change|register on touched|set disabled state|"
+    r"^Brugeren kan formular$|^Brugeren kan street$|Brugeren kan zip kode|"
+    r"Brugeren kan street names|Brugeren kan write|Brugeren kan register|"
+    r"Brugeren kan disabled|skip to main|go to sms conversations|"
+    r"Brugeren kan see status|Brugeren kan table columns|Brugeren kan year options|"
+    r"Brugeren kan supply type|Brugeren kan chart|Brugeren kan street cleared|"
+    r"Brugeren kan sms group$|Brugeren kan benchmarks$|Brugeren kan kpis$|"
+    r"Brugeren kan kvhx|Brugeren kan causes$|Brugeren kan conflict$)",
+    re.IGNORECASE,
+)
+
+
+def append_jsonl(path: Path, obj: dict, key_fields: list[str] | None = None):
+    if key_fields:
+        cache_key = str(path)
+        if cache_key not in _existing_keys:
+            _existing_keys[cache_key] = _load_existing_keys(path, key_fields)
+        dedup_key = tuple(obj.get(f, "") for f in key_fields)
+        if dedup_key in _existing_keys[cache_key]:
+            return  # already exists — skip
+        _existing_keys[cache_key].add(dedup_key)
     with open(path, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(obj, ensure_ascii=False, separators=(",", ":")) + "\n")
 
@@ -81,6 +130,8 @@ for entry in entries:
     # Emit behaviors (PASS only)
     for b in (v.get("behaviors") or []):
         if b.get("status") == "PASS":
+            if _REJECT_BEHAVIOR_RE.search(b.get("text", "")):
+                continue
             append_jsonl(NORMALIZED_DIR / "behaviors.jsonl", {
                 "id":         str(uuid.uuid4()),
                 "behavior":   b["text"],
@@ -90,7 +141,7 @@ for entry in entries:
                 "confidence": b.get("confidence", 0.0),
                 "source":     "angular",
                 "created_at": ts,
-            })
+            }, key_fields=["behavior", "component"])
             b_count += 1
 
     # Flows + requirements (DUMB excluded)
@@ -109,7 +160,7 @@ for entry in entries:
                     "confidence":   f.get("confidence", 0.0),
                     "source":       "angular",
                     "created_at":   ts,
-                })
+                }, key_fields=["trigger", "http", "component"])
                 f_count += 1
 
         for req in (v.get("requirements") or []):
@@ -124,7 +175,7 @@ for entry in entries:
                     "component":       comp_name,
                     "source":          "angular",
                     "created_at":      ts,
-                })
+                }, key_fields=["endpoint", "method", "component"])
                 r_count += 1
 
 print(f"Emitted: behaviors={b_count}  flows={f_count}  requirements={r_count}")

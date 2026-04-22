@@ -3,3 +3,4 @@
 openai
 pymupdf        # fitz — PDF reading (PyMuPDF)
 Pillow         # PIL — image normalization pipeline (RULE-VISUAL-NORMALIZATION)
+psutil         # process detection — watcher guard i run_sequential.py

@@ -15,7 +15,7 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--raw-dir",  default=r".\harvest\angular\raw")
-parser.add_argument("--temp-md",  default=r".\temp.md")
+parser.add_argument("--temp-md",  default=r".\harvest\pipeline_bus.md")
 args = parser.parse_args()
 
 RAW_DIR = Path(args.raw_dir)

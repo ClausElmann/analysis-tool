@@ -2,7 +2,7 @@
 ACDDA v4 - Harvest Orchestrator
 Kører kun lokal pipeline for Angular-komponenter.
 Ingen ekstern LLM, Copilot API eller token-brug tilladt.
-Pipeline: evidence packs → validate → emit → manifest update.
+Pipeline: evidence packs -> validate -> emit -> manifest update.
 """
 
 from __future__ import annotations
@@ -244,7 +244,7 @@ def _cleanup_temp_md_batches(temp_md: Path, keep_last: int = 3) -> None:
 def _run_auto_batch(args, batch: list, components: list, manifest: dict,
                     manifest_path: Path, raw_dir: Path, corpus_dir: Path) -> None:
     """Scale mode: build all evidence packs, write one batch block, poll once, distribute."""
-    temp_md = REPO_ROOT / "temp.md"
+    temp_md = REPO_ROOT / "harvest" / "pipeline_bus.md"
     total_count = len(components)
 
     # Step 1: Build all evidence packs
@@ -289,7 +289,7 @@ def _run_auto_batch(args, batch: list, components: list, manifest: dict,
     # Step 2: Write batch block to temp.md
     timeout_sec = getattr(args, "auto_timeout", 300)
     batch_id = _write_batch_to_temp_md(temp_md, names_in_batch, raw_dir)
-    print(f"  → batch prompt written ({len(names_in_batch)} components) — polling {timeout_sec}s...")
+    print(f"  -> batch prompt written ({len(names_in_batch)} components) — polling {timeout_sec}s...")
 
     # Step 3: Poll for batch output
     batch_output = _poll_temp_md_for_batch_output(temp_md, batch_id, timeout_sec=timeout_sec)
@@ -312,7 +312,7 @@ def _run_auto_batch(args, batch: list, components: list, manifest: dict,
         if not build_ok.get(comp_path):
             continue
         name = component_name(comp_path)
-        print(f"→ {name}")
+        print(f"-> {name}")
         tmp = tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8",
             dir=str(REPO_ROOT / "harvest"),
@@ -338,7 +338,7 @@ def _run_auto_batch(args, batch: list, components: list, manifest: dict,
                 llm_out_path.write_text(
                     json.dumps(llm_data, indent=2, ensure_ascii=False), encoding="utf-8"
                 )
-                print(f"  → llm_output.json written")
+                print(f"  -> llm_output.json written")
             except Exception as exc:
                 print(f"  [FAIL] write llm_output.json: {exc}")
                 entry = manifest.get(comp_path, {})
@@ -386,7 +386,7 @@ def _run_auto_batch(args, batch: list, components: list, manifest: dict,
                     "retryCount": 0,
                     "lastProcessed": datetime.now(timezone.utc).isoformat(),
                 }
-                print(f"  → DONE")
+                print(f"  -> DONE")
             elif is_fail:
                 entry = manifest.get(comp_path, {})
                 retry = entry.get("retryCount", 0) + 1
@@ -396,13 +396,13 @@ def _run_auto_batch(args, batch: list, components: list, manifest: dict,
                     "retryCount": retry,
                     "lastProcessed": datetime.now(timezone.utc).isoformat(),
                 }
-                print(f"  → {new_status}")
+                print(f"  -> {new_status}")
             else:
                 manifest[comp_path] = {
                     "status": "PENDING_REVIEW", "pipeline_status": pipeline_status,
                     "retryCount": 0,
                 }
-                print(f"  → PENDING_REVIEW [{pipeline_status}]")
+                print(f"  -> PENDING_REVIEW [{pipeline_status}]")
 
             save_manifest(manifest_path, manifest)
         except Exception as exc:
@@ -471,7 +471,7 @@ def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
     # -- prepare / finalize: individual component processing --
     for comp_path in batch:
         name = component_name(comp_path)
-        print(f"→ {name}")
+        print(f"-> {name}")
 
         tmp = tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=False, encoding="utf-8",
@@ -498,7 +498,7 @@ def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
             if getattr(args, "prepare", False):
                 manifest[comp_path] = {"status": "AWAITING_LLM", "pipeline_status": "AWAITING_LLM"}
                 save_manifest(manifest_path, manifest)
-                print(f"  → evidence built, awaiting LLM output")
+                print(f"  -> evidence built, awaiting LLM output")
                 continue
 
             ok = run_step([
@@ -530,18 +530,18 @@ def _run_batch(args, components: list, manifest: dict, manifest_path: Path,
                 if args.auto_mark_done:
                     manifest[comp_path] = {"status": "DONE", "pipeline_status": pipeline_status,
                                            "lastProcessed": datetime.now(timezone.utc).isoformat()}
-                    print(f"  → DONE")
+                    print(f"  -> DONE")
                 else:
                     manifest[comp_path] = {"status": "PENDING_REVIEW", "pipeline_status": pipeline_status,
                                            "lastProcessed": None}
-                    print(f"  → PENDING_REVIEW")
+                    print(f"  -> PENDING_REVIEW")
             elif is_fail and args.auto_mark_done:
                 manifest[comp_path] = {"status": "FAILED", "pipeline_status": pipeline_status,
                                        "lastProcessed": datetime.now(timezone.utc).isoformat()}
-                print(f"  → FAILED")
+                print(f"  -> FAILED")
             else:
                 manifest[comp_path] = {"status": "PENDING_REVIEW", "pipeline_status": pipeline_status}
-                print(f"  → PENDING_REVIEW [{pipeline_status}]")
+                print(f"  -> PENDING_REVIEW [{pipeline_status}]")
 
             save_manifest(manifest_path, manifest)
         finally:
