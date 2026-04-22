@@ -1,3254 +1,2705 @@
 {
   "app-globals/components/bi-accordion/bi-accordion.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:18.696438+00:00"
   },
   "app-globals/components/bi-confirm-dialog/bi-confirm-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:24.679606+00:00"
   },
   "app-globals/components/bi-map/bi-archive-messages-map-toggle.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "NO_PACK",
+    "status": "PENDING",
     "retryCount": 0
   },
   "app-globals/components/bi-map/bi-archive-messages-map-toggle.component.ts/bi-archive-messages-map-toggle.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:29.496666+00:00"
   },
   "app-globals/components/bi-map/bi-leaflet-googlesearch/bi-leaflet-googlesearch.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:32.031780+00:00"
   },
   "app-globals/components/bi-map/bi-map.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:38.218037+00:00"
   },
   "app-globals/components/bi-map/bi-map-legend/bi-map-legend.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:40.673342+00:00"
   },
   "app-globals/components/bi-map/bi-meters-setting/bi-meters-setting.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:43.088999+00:00"
   },
   "app-globals/components/bi-notification-bar/bi-notification-bar.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:45.500266+00:00"
   },
   "app-globals/components/bi-phone-input/bi-phone-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:48.028624+00:00"
   },
   "app-globals/components/bi-zip-code-input/bi-zip-code-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:53.765405+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/address-contacts-info/address-contacts-info.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:56.177537+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/address-info-status/entry-address-info-status.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:10:58.561441+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/address-info-status/specific-address-info-status.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:00.994855+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/bi-address-info-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:14.340706+00:00"
   },
   "app-globals/components/dialog-content/bi-address-info/bi-address-info-table/bi-address-info-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:16.762507+00:00"
   },
   "app-globals/components/dialog-content/info-message-dialog-content/info-message-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:19.188037+00:00"
   },
   "app-globals/components/spinner/bi-spinner.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:21.606878+00:00"
   },
   "app-globals/components/unavailable/unavailable.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:23.999475+00:00"
   },
   "app-globals/components/zip-street-number-input/zip-street-number-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:33.423363+00:00"
   },
   "side-projects/iframe-modules/src/app/driftstatus/iframe-driftstatus.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:11:56.016313+00:00"
   },
   "side-projects/iframe-modules/src/app/driftstatus-map/iframe-driftstatus-map.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:27.546454+00:00"
   },
   "side-projects/iframe-modules/src/app/iframe-modules-app.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:29.981229+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/shared/subscription-module-reset-button/subscription-module-reset-button.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:32.403251+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/create-address-subscription/create-address-subscription.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:41.619131+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/create-supply-number-subscription/create-supply-number-subscription.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:47.227251+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/iframe-subscription.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:12:53.276838+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-normal/subscription-overview/subscription-overview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:13:02.759581+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-std-receivers/group-subscription/group-subscription.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:13:32.691289+00:00"
   },
   "side-projects/iframe-modules/src/app/subscribe-unsubscribe/subscription-module-std-receivers/iframe-subscription-std-receiver.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:13:38.093446+00:00"
   },
   "side-projects/iframe-modules/src/shared/components/bi-skip-link/bi-skip-link.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:13:40.502790+00:00"
   },
   "side-projects/quick-response/src/app/quick-response-app.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:58:30.933192+00:00"
   },
   "side-projects/quick-response/src/app/quick-response-root.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/app/en-toolbar/en-toolbar.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/app/subscription-app.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:59:02.726133+00:00"
   },
   "side-projects/subscription-app/src/features/about-page/en-about-page.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:59:11.756447+00:00"
   },
   "side-projects/subscription-app/src/features/enrollment-steps/enrollment-finished-message/enrollment-finished-message.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/enrollment-steps/enrollment-steps-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T06:59:25.716017+00:00"
   },
   "side-projects/subscription-app/src/features/enrollment-steps/enter-address/enter-address.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/enrollment-steps/mobile-and-pin-step/mobile-and-pin-step.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/enrollment-steps/sender-selection/sender-selection.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:00:09.262968+00:00"
   },
   "side-projects/subscription-app/src/features/login/en-login.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/my-senders/additional-sender-selection/additional-sender-selection.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:00:26.427775+00:00"
   },
   "side-projects/subscription-app/src/features/my-senders/add-senders/add-senders.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/my-senders/edit-address/edit-address.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/my-senders/my-info/my-info.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/my-senders/my-senders.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:01:38.715187+00:00"
   },
   "side-projects/subscription-app/src/features/privacy-policy/en-privacy-policy-dk.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/privacy-policy/en-privacy-policy-fi.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/privacy-policy/en-privacy-policy-se.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/privacy-policy/privacy-policy-main.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/unsubscribe-sender/unsubscribe-sender.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features/welcome-page/welcome-page.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:02:09.630035+00:00"
   },
   "side-projects/subscription-app/src/features-shared/add-address/add-address.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:44:34.665655+00:00"
   },
   "side-projects/subscription-app/src/features-shared/mobile-and-pin/mobile-and-pin.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:03:03.778299+00:00"
   },
   "side-projects/subscription-app/src/features-shared/send-a-tip-dialog-content/send-a-tip-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:03:31.370115+00:00"
   },
   "side-projects/subscription-app/src/features-shared/terms-and-conditions/en-terms-and-conditions-dk.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features-shared/terms-and-conditions/en-terms-and-conditions-fi.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features-shared/terms-and-conditions/en-terms-and-conditions-main.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/features-shared/terms-and-conditions/en-terms-and-conditions-se.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-address/en-address.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-address-selector/en-address-selector.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:03:55.668575+00:00"
   },
   "side-projects/subscription-app/src/shared/components/en-confirm-dialog-content/en-confirm-dialog-content.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-dialog-frame/en-dialog-frame.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-expanding-panel/en-expanding-panel.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-language-selector/en-language-selector.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-phone-input/en-phone-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:04:18.095189+00:00"
   },
   "side-projects/subscription-app/src/shared/components/en-sender/en-sender.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-sender-search/en-sender-search.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-spinner/en-spinner.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/en-two-buttons/en-two-buttons.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "side-projects/subscription-app/src/shared/components/leave-page-warning/leave-page-warning.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/app-module/app.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:44:41.909384+00:00"
   },
   "src/app-module/app-header/app-header.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:44:49.387951+00:00"
   },
   "src/app-module/app-header/user-has-no-profile-access-dialog-content.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/app-module/app-header/user-menu/user-menu.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/app-module/navigation-bar/bi-app-navigation-bar.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/app-module/navigation-bar/bi-app-navigation-bar-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:45:12.913203+00:00"
   },
   "src/app-module/navigation-bar/bi-app-navigation-bar-item/bi-app-navigation-bar-item.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/app-module/navigation-bar/bi-app-navigation-bar-mobile.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/app-module/navigation-bar/profile-has-no-access-dialog-content.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/features/administration/administration.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/features/administration/benchmark/benchmark-main.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/features/administration/benchmark/causes/benchmark-causes.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:45:40.223025+00:00"
   },
   "src/features/administration/benchmark/index/benchmark-index.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:45:47.718397+00:00"
   },
   "src/features/administration/benchmark/index/create-edit-main/create-edit-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:45:54.744092+00:00"
   },
   "src/features/administration/benchmark/kpis/benchmark-kpis.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:46:01.467296+00:00"
   },
   "src/features/administration/benchmark/overview/benchmark-overview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:46:08.144091+00:00"
   },
   "src/features/administration/benchmark/settings/benchmark-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:46:15.004769+00:00"
   },
   "src/features/administration/benchmark/settings/kvhx-count-list/kvhx-count-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:46:21.757433+00:00"
   },
   "src/features/administration/benchmark/statistics/benchmark-map-statistics/benchmark-map-statistics.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/features/administration/benchmark/statistics/benchmark-statistics.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:46:35.031274+00:00"
   },
   "src/features/administration/benchmark/statistics/benchmark-statistics-criteria/benchmark-statistics-criteria.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/features/administration/critical-addresses/addresses/add-critical-address-dialog/add-critical-address-dialog.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/features/administration/critical-addresses/addresses/addresses.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:46:53.343077+00:00"
   },
   "src/features/administration/critical-addresses/addresses/critical-addresses-map-view/critical-addresses-map-view.component.ts": {
-    "status": "SKIPPED",
-    "pipeline_status": "VERIFIED_UI",
+    "status": "PENDING",
     "retryCount": 0
   },
   "src/features/administration/critical-addresses/addresses-import/addresses-import.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "retryCount": 0,
     "lastProcessed": "2026-04-22T07:47:07.192277+00:00"
   },
   "src/features/administration/critical-addresses/critical-addresses.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/critical-addresses/industry-codes/industry-codes.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/critical-addresses/industry-codes/setup-industry-codes-dialog/setup-industry-codes-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-admin.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-gdpr-admin/customer-gdpr-admin.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/create-profile/create-profile.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/customer-profiles.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/edit-profile.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/ftp-setup-profile/ftp-settings-form/ftp-settings-form.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/ftp-setup-profile/ftp-setup-profile.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-account/profile-account.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-api-keys/profile-api-keys.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-distribution/assign-distribution-number/assign-distribution-number.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-distribution/edit-name-and-standardReceiverGroup/edit-name-and-standardReceiverGroup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-distribution/profile-distribution-number-admin.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-email2sms/profile-email2sms.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-info/profile-info.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-map-settings/profile-map-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-ready-reports/profile-ready-reports.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-ready-reports/reports/ready-messages-report/ready-messages-report.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-ready-reports/reports/ready-meters-report/ready-meters-report.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-ready-reports/reports/ready-raw-data/ready-raw-data.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-ready-reports/reports/ready-readings-report/ready-readings-report.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-ready-reports/reports/ready-warnings-report/ready-warnings-report.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-roles/profile-roles.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-social-media/profile-social-media.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-profiles/edit-profile/tab-children/profile-users/profile-users.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-settings/customer-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-social-media/confirm-twitter/confirm-twitter.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-social-media/customer-social-media.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-users/create-user/create-user.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-users/customer-users.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-users/edit-user/edit-user.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-users/edit-user/user-profiles/user-profiles.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/customer-admin/customer-users/edit-user/user-roles/user-roles.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/file-management/file-management-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/file-management/profile-storage-files/profile-storage-files.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/create-edit/create-edit-message-example-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/create-edit/eboks-example/create-edit-eboks-example.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/create-edit/sms-example/create-edit-sms-example.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/example-box-components/eboks-example-box/eboks-example-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/example-box-components/example-box-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/example-box-components/sms-example-box/sms-example-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/message-examples-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/message-examples-management/eboks-examples-management.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/message-examples-management/message-examples-management-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-examples/message-examples-management/sms-examples-management.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/message-templates-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/shared/type-to-template-setup/alarm-settings/alarm-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/shared/type-to-template-setup/type-to-template-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/shared/warning-template-management/warning-template-management.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/template-create-edit-delete/template-attachments-handler/template-attachments-handler.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/template-create-edit-delete/template-create-edit-delete.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/template-create-edit-delete/template-part/template-part.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/template-merge-fields/create-edit-merge-field-dialog/create-edit-merge-field-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/template-merge-fields/template-merge-fields.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/template-profile-access/template-profile-access.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/weather-warning-type-to-template-setup/weather-warning-template-select/weather-warning-template-select.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/message-templates/weather-warning-type-to-template-setup/weather-warning-type-to-template-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/scheduled-broadcasts/scheduled-broadcast-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/scheduled-broadcasts/scheduled-broadcasts/scheduled-broadcasts.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/scheduled-broadcasts/scheduled-broadcasts-list/scheduled-broadcast-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/address-search/bi-address-search.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/address-search/table-search-address-ownership-properties/table-search-address-ownership-properties.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/address-search/table-search-address-robinson/table-search-address-robinson.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/address-search/table-search-contacts-on-address/table-search-contacts-on-address.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/address-search/table-search-owner-of-address/table-search-owner-of-address.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/bi-searching.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/phone-email-search/bi-phone-email-search.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/phone-email-search/table-search-for-right-to-be-forgotten/table-search-for-right-to-be-forgotten.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/phone-email-search/table-search-for-subscriptions-and-tele-data/table-search-for-subscriptions-and-tele-data.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/report-search/bi-report-search.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/report-search/message-traffic/message-traffic.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/right-to-be-forgotten-dialog-content/right-to-be-forgotten-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/shared/address-search-table-base/address-search-table-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/searching/shared/table-search-for-messages-send/table-search-for-messages-send.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/ad-provisioning/ad-provisioning.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/create-edit-delete-receivers.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/edit-receiver/edit-receiver.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/edit-receiver/edit-receiver-common.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/edit-receiver/std-receiver-grouping-setup/std-receiver-grouping-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/edit-receiver/std-receiver-grouping-setup/std-receiver-group-membership-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/edit-receiver/std-receiver-grouping-setup/std-receiver-group-membership-table-view/std-receiver-group-membership-table-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/edit-receiver/std-receiver-grouping-setup/std-receiver-group-membership-tree-view/std-receiver-group-membership-tree-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/edit-receiver/std-receiver-profile-access-setup/std-receiver-profile-access-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/edit-receiver/std-receiver-profile-access-setup/std-receiver-profile-info-mappings-table/std-receiver-profile-info-mappings-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/std-receiver-info-form/bi-std-receiver-extra-phone-numbers/bi-std-receiver-extra-phone-numbers.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/std-receiver-info-form/bi-std-receiver-extra-phone-numbers/std-receiver-phone-number-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/std-receiver-info-form/std-receiver-info-form.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/create-edit-delete/std-receiver-info-form/std-receiver-info-form-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/group-keyword-setup/group-keyword-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/main-std-receivers.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/profiles-and-groups/profiles-and-groups.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/profiles-and-groups/profile-to-std-receiver-access-setup/profile-to-std-receiver-access-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/dialog-components/create-std-receiver-group-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/dialog-components/delete-std-receiver-group-dialog/delete-std-receiver-group-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/edit-receiver-group/edit-receiver-group-common.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/edit-receiver-group/edit-receiver-group-members/add-members-dialog/add-members-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/edit-receiver-group/edit-receiver-group-members/edit-receiver-group-members.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/edit-receiver-group/edit-receiver-group-members/receivers-for-group-selection/receivers-for-group-selection.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/edit-receiver-group/edit-std-receiver-group-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/edit-receiver-group/std-receiver-group-profile-access/std-receiver-group-profile-access.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/receiver-groups.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/std-receiver-group-selected-view/std-receiver-group-selected-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receiver-groups/std-receiver-groups-tree-view/std-receiver-groups-tree-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receivers-upload/receivers-import-settings/receivers-import-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/receivers-upload/receivers-upload.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/shared/group-profile-access-setup/group-profile-access-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/shared/receiver-group-info-form/receiver-group-info-form.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/subscription-module-setup/subscription-module-settings/subscription-module-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/std-receivers/subscription-module-setup/subscription-module-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/subscribe-unsubscribe/enrollmentApp/enrollment-app.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/subscribe-unsubscribe/iFrame-subscription-display/iFrame-subscription-display.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/subscribe-unsubscribe/iFrame-subscription-setup/iFrame-subscription-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/subscribe-unsubscribe/subscribe-unsubscribe.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/subscribe-unsubscribe/subscription-import/subscription-import.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/subscribe-unsubscribe/subscription-notification/subscription-notification.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/subscribe-unsubscribe/subscription-report/subscription-report.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/bi-log/bi-log.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/communication/communication.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/communication/data-processor-agreements/create-edit-data-processor-agreement/create-edit-data-processor-agreement.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/communication/data-processor-agreements/data-processor-agreements.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/communication/email-newsletter/create/create-newsletter.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/communication/email-newsletter/email-newsletter.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/communication/email-newsletter/view-newsletter/view-newsletter.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/communication/operational-messages/create-edit/create-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/communication/operational-messages/operational-messages.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/create-customer/create-customer.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/customer-data-overview/customer-data-overview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/customers-map/customers-map.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/customer-notes/customer-notes.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/customer-notes/customer-notes-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/sales-infos-dialog-content/sales-infos-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-admin/super-customer-admin-logs/super-customer-admin-logs.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-admin/super-customer-invoice-data.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-admin/super-customer-invoices/super-customer-invoices.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-apikeys/create-api-key-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-apikeys/super-customer-apikeys.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-contact-persons/create-edit/contact-persons-create-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-contact-persons/Table/super-customer-contact-persons-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-ftp-settings/dataImport-configurations-table/dataImport-configuration-column-mappings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-ftp-settings/dataImport-configurations-table/dataImport-configurations-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-ftp-settings/profile-positive-list-ftp-settings-table/profile-positive-list-ftp-settings-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-ftp-settings/std-receiver-group-ftp-settings-table/std-receiver-group-ftp-settings-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-ftp-settings/super-customer-ftp-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-gdpr-accept/super-customer-gdpr-accept.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customers-detail.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-customer-settings/super-customer-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-profiles/super-profiles.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customer-detail/super-users/super-users.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/customers/super-customers-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/enrollment/enrollment-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/enrollment/reports/enrollment-reports.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/enrollment/senders/create-edit-sender/create-edit-sender.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/enrollment/senders/senders-main/senders-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/enrollment/statistics/enrollment-statistics.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/humanresource/absences/absences.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/humanresource/driving/drivings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/humanresource/employees/employees.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/humanresource/holidays/holidays.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/humanresource/humanresource-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/humanresource/salary/salary-overview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/humanresource/salary/salary-period-info-dialog/salary-period-info-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/inbound-call-redirect/inbound-call-redirect.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/internal-reports/failed-ad-logins/failed-ad-logins.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/internal-reports/internal-reports-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/internal-reports/krr-kofuvi-statistics/customer-krr-requests/customer-krr-requests.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/internal-reports/krr-kofuvi-statistics/difi-code-statistics/difi-code-statistics.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/internal-reports/krr-kofuvi-statistics/krr-kofuvi-statistics.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/internal-reports/nudging-report/nudging-report.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/internal-reports/virtual-phone-numbers/virtual-phone-numbers.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/internal-reports/webinar-report/webinar-report.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoice-export/invoice-export.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoice-framweb-export/invoice-framweb-export.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-accrual.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-accrual-summary.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-budget-follow-up.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-budget-follow-up-mapping.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-edit-accrual.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-load-invoices.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-product-catalog/invoicing-product-catalog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-product-catalog/invoicing-product-catalog-dialog/invoicing-product-catalog-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/invoicing/invoicing-upload.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/map-layers/map-layers-access/map-layers-access.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/map-layers/map-layers-access/map-layers-add-access/map-layers-add-access.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/map-layers/map-layers-detail/map-layers-detail.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/map-layers/map-layers-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/monitoring/active-job/active-job.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/monitoring/graph/monitoring-graph.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/monitoring/monitoring-dashboard/monitoring-dashboard.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/monitoring/monitoring-jobs/monitoring-jobs.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/monitoring/monitoring-jobs/task-details-dialog-content/task-details-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/monitoring/monitoring-map/monitoring-map.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/phonenumber-import/import/phonenumber-import-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/phonenumber-import/lookup-swedish-skip-list/lookup-swedish-skip-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/phonenumber-import/phonenumber-provider-list/phonenumber-provider-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/phonenumber-import/phonenumber-provider-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/additional-import-addresses/additional-import-addresses.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/import-corrections/import-corrections.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/import-fof-corrections/import-fof-corrections.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/municipality-setup/municipality-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/negative-list/negative-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/positive-lookup/positive-lookup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/poslist-data-import/poslist-data-import.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/poslist-data-import/poslist-data-import-settings/poslist-data-import-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/pos-list-ftp-uploads/pos-list-ftp-uploads.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/pos-lists.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/pos-lists/uploaded-pos-lists/uploaded-pos-lists.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/salesforce/development/salesforce-development.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/salesforce/forecast-evaluation/salesforce-forecast-evaluation.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/salesforce/modified/salesforce-modified.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/salesforce/opportunities/salesforce-opportunities.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/salesforce/pipeline/salesforce-pipeline.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/salesforce/salesforce-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/salesforce/salesforce-opportunities-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/super-admin-settings/packages-setup/packages-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/super-admin-settings/profile-role-country-mapping/profile-role-country-mapping.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/super-admin-settings/sales-info/sales-info.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/super-admin-settings/super-admin-functions/super-admin-functions.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/super-admin-settings/super-admin-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/super-admin-settings/user-role-country-mapping/user-role-country-mapping.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/translation-management/translation-management.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/users/super-customer-contact-persons/super-customer-contact-persons.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/users/super-profiles-selection/super-profiles-selection.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/users/super-users-index/super-users-index.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/super-administration/users/super-users-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/web-messages/iframe-driftstatus-admin/iframe-driftstatus-admin.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/web-messages/iframe-driftstatus-map-admin/iframe-driftstatus-map-admin.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/web-messages/iframe-driftstatus-map-setup/iframe-driftstatus-map-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/web-messages/iframe-driftstatus-map-setup/profile-iframe-drifts-status-map-setup/profile-iframe-drifts-status-map-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/web-messages/iframe-driftstatus-setup/iframe-driftstatus-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/web-messages/iframe-driftstatus-setup/profile-iframe-driftstatus-settings/profile-iframe-driftstatus-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/web-messages/web-messages/web-message-part-admin.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/web-messages/web-messages/web-messages.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/administration/web-messages/web-messages-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/bi-login/ad-login-info-box/ad-login-info-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/bi-login/bi-login.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/bi-login/transparent-login.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/broadcasting/broadcasting.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/broadcasting/customer-survey-nudge-dialog/customer-survey-nudge-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/broadcasting/scenarios/scenarios.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/broadcasting/single-sms-email/single-email.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/broadcasting/single-sms-email/single-sms.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/broadcasting/unapproved-msg-box/unapproved-msg-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/broadcasting-limited/broadcasting-limited.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/frontpage/frontpage.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/base-component-classes/message-wizard-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/base-component-classes/std-receivers-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/base-component-classes/write-message-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/base-component-classes/write-message-wizard-step-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/broadcast-complete/broadcast-complete.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-address/address-tree-item-searched/address-tree-item-searched.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-address/address-tree-item-selected/address-tree-item-selected.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-address/by-address.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-excel/broadcast-import-settings/broadcast-import-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-excel/by-excel.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-level/by-level.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-level/by-level-selection-and-search.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-map/by-map.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-map/by-map-address-table/by-map-address-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-map/edit-map-template-dialog-content/edit-map-template-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-map/map-tools/geojson-dialog/geojson-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-map/map-tools/map-tools.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-municipality/bi-municipality-filter/bi-municipality-filter.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-municipality/bi-municipality-selection.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-municipality/by-municipality.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-municipality/municipality-selection-display/municipality-selection-display.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/by-municipality/tree-nodes/bi-tree-node.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/confirm/confirm.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/confirm/message-data-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/std-receivers/std-receivers.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/std-receivers-extended/std-receivers-extended.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/std-receivers-extended/std-receivers-selection-wrapper/std-receivers-selection-wrapper.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/std-receivers-extended/write-message-wrapper/write-message-wrapper.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/childComponents/write-message/write-message-wizard-step.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/eboks-nudging/eboks-nudging.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/message-wizard.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/message-wizard-scheduled/confirm-scheduled/confirm-scheduled.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/message-wizard-scheduled/message-scheduling-setup/message-scheduling-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/message-wizard-scheduled/message-wizard-scheduled.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/message-wizard-scheduled/write-scheduled-message/write-scheduled-message.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/owners-nudging/owners-nudging.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/std-receiver-selection/std-receiver-selection.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/copy-from-email-or-sms-buttons/copy-from-email-or-sms-buttons.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/individual-messages-settings-form/individual-messages-settings-form.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/individual-messages-settings-form/recipient-type-selector/recipient-type-selector.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/message-part-forms/benchmark-message-part/benchmark-message-part/benchmark-message-part.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/message-part-forms/e-boks-message-part/e-boks-message-part.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/message-part-forms/email-message-part/email-message-part.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/message-part-forms/sms-message-part/sms-message-part.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/message-part-forms/social-media-message-part/social-media-message-part.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/message-part-forms/voice-message-part/voice-message-part.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/message-part-forms/web-message-part/web-message-part.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/message-template-selection/bi-overwrite-template-dialog/bi-overwrite-template-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/message-template-selection/message-template-selection.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/shared/write-message/write-message.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard/voice-nudging/voice-nudging.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard-limited/message-sent-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/message-wizard-limited/message-wizard-limited.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/my-user/my-user.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/my-user/user-info-edit/user-info-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/my-user/user-security/user-security.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/password-reset-create/password-reset-create.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/create-customer-by-prospect/create-customer-by-prospect.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/customer-prospect-create-edit/create-edit-form/company-registration-id-input/company-registration-id-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/customer-prospect-create-edit/create-edit-form/customer-prospect-contact-persons-table/customer-prospect-contact-persons-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/customer-prospect-create-edit/create-edit-form/customer-prospect-contact-persons-table/prospect-contact-form-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/customer-prospect-create-edit/create-edit-form/customer-prospect-create-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/customer-prospect-create-edit/create-edit-form/customer-prospect-products-table/customer-prospect-products-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/customer-prospect-create-edit/customer-prospect-tasks-edit/customer-prospect-tasks-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/customer-prospect-create-edit/edit-customer-prospect-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/customer-termination-edit/customer-termination-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/pipeline-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/process-tasks-edit/process-tasks-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/pipeline/shared-stuff/task-edit-form/task-edit-form.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/sms-conversations/conversation-item/conversation-item.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/sms-conversations/conversation-messages-view/conversation-message/conversation-message.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/sms-conversations/conversation-messages-view/conversation-messages-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/sms-conversations/conversation-messages-view/write-conversation-reply/write-conversation-reply.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/sms-conversations/create-conversation-dialog-content/create-conversation-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/sms-conversations/sms-conversations.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/quick-response-statistics-view/quick-response-rebroadcast-dialog/quick-response-rebroadcast-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/quick-response-statistics-view/quick-response-statistics-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/overview/overview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/overview/status-addresses-count-statistic/status-addresses-count-statistic.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/overview/status-message-actions/download-excel-file-dialog/download-excel-file-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/overview/status-message-actions/status-message-actions.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/overview/status-message-count-statistic/status-message-count-statistic.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/overview/status-message-info/status-message-info.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/status-addresses/status-addresses.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/status-addresses/status-addresses-list-view/status-addresses-list-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/status-addresses/status-addresses-map-view/status-addresses-map-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/status-message-content/status-message-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/status-message-content/status-metadata/status-eboksdata/status-eboksdata.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/status-message-content/status-metadata/status-metadata.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/detail-tabs/status-report/status-report.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/status/status-details/status-details.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/support/support.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/support/support-case-form/support-case-form.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/support/webinars-list/webinars-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features/terms-and-conditions/terms-and-conditions.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/bi-data-import/bi-data-import.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/bi-data-import/data-import-file-columns-setup/data-import-file-column-selector.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/bi-data-import/data-import-file-columns-setup/data-import-file-columns-setup.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/bi-data-import/data-import-save-configuration-dialog/data-import-save-configuration-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/bi-data-import/data-import-validation-result/data-import-validation-result.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/bi-footer/bi-footer.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/customer-contact-person-form/customer-contact-person-form.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/customer-create-edit/customer-create-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/customer-gdpr-accept/customer-gdpr-accept.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/filesource-editor/filesource-editor.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/send-test-message/send-email-test-message/send-email-test-message.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/send-test-message/send-sms-or-voice-test-message/send-sms-or-voice-test-message.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/send-test-message/send-test-message-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/sms-conversations-admin/assign-conversation-number/assign-conversation-number.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/sms-conversations-admin/edit-name-and-profilemappings/edit-name-and-profileMappings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/sms-conversations-admin/sms-conversations-admin.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/sms-statistics-table/sms-statistics-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/statstidende/statstidende-main.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/statstidende/statstidende-receivers/create-edit-statstidende-receiver-dialog/create-edit-statstidende-receiver-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/features-shared/statstidende/statstidende-receivers/statstidende-receivers.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/advanced-voice-settings/advanced-voice-settings.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/benchmark-create-edit/benchmark-create-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/benchmark-create-edit/finish-benchmark-dialog/finish-benchmark-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-address-search-input/bi-address-search-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/bi-date-and-time-input/bi-date-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/bi-date-and-time-input/bi-time-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/bi-language-selector/bi-language-selector.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/bi-number-input/bi-number-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/bi-switch/bi-switch.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/bi-textarea/bi-textarea.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/bi-textarea/bi-textarea-link-tooltip/bi-textarea-link-tooltip.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/bi-tri-state-radio-toggle/bi-tri-state-radio-toggle.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/password-input/password-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-custom-inputs/saved-import-configuration-selector/saved-import-configuration-selector.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-desktop-frame/bi-desktop-frame.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-eboks-preview/bi-show-eboks-preview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-eboks-preview/eboks-preview/desktop/eboks-desktop-message-view/eboks-desktop-message-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-eboks-preview/eboks-preview/desktop/eboks-desktop-preview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-eboks-preview/eboks-preview/eBoks-preview-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-eboks-preview/eboks-preview/mobile/eboks-list-item/eboks-list-item.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-eboks-preview/eboks-preview/mobile/eboks-message-view/eboks-message-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-eboks-preview/eboks-preview/mobile/eboks-mobile-preview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-editable-text/bi-editable-text.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-email-preview/bi-email-content-preview/bi-email-content-preview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-email-preview/bi-email-list-preview/bi-email-list-preview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-email-preview/bi-email-preview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-email-preview/bi-show-email-preview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-error-messages-box/bi-error-messages-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-full-calendar/bi-full-calendar.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-image-uploader/bi-image-uploader.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-indicator-icon/bi-indicator-icon.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-list-box/bi-list-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-menu/bi-menu.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-message.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-phone-frame/phone-frame.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-prospect-tasks-view/bi-prospect-tasks-view.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-quick-response-setup-enabler/bi-quick-response-setup-dialog/bi-quick-response-setup-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-quick-response-setup-enabler/bi-quick-response-setup-dialog/bi-quick-response-setup-dialog-header/bi-quick-response-setup-dialog-header.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-quick-response-setup-enabler/bi-quick-response-setup-dialog/bi-response-option/bi-response-option.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-quick-response-setup-enabler/bi-quick-response-setup-enabler.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-selection-list/bi-selection-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-settings-link/bi-settings-link.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-show-message-preview/BiShowMessagePreview/bi-show-message-preview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-show-message-preview/BiShowMessagePreview/message-preview.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-sms-email-counting-box/bi-sms-email-counting-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-tabs/bi-tabs.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/bi-text-save-cancel/bi-text-save-cancel.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/box-with-checkboxes/box-with-checkboxes.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/buttons/bi-download-chart-button/bi-download-chart-button.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/buttons/bi-excel-button/bi-excel-button.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/country-customer-profile-selection/bi-country-customer-profile-selection.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/activity-log-dialog-content/activity-log-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/activity-log-dialog-content/activity-logs-table/activity-logs-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/bi-create-new-pass-error-dialog-content/bi-create-new-pass-error-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/bi-dialog-spinner/bi-dialog-spinner.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/bi-mergefield-conflict-dialog-content/bi-mergefield-conflict-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/bi-merge-field-dialog-content/bi-merge-field-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/bi-profile-selection-dialog-content/bi-profile-selection-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/create-broadcast-dialog/create-broadcast-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/dialog-with-text-input/dialog-with-text-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/economic-report-dialog-content/economic-report-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/edit-smsGroupSchedule-dialog/edit-smsgroup-schedule-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/manage-product-dialog/manage-product-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/dialog-content/map-coords-dialog/map-coords-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/eboks-create-edit/eboks-create-edit.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/file-upload/bi-file-uploader/bi-file-uploader.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/file-upload/file-storage-upload-and-selection/file-selection-dialog/file-selection-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/file-upload/file-storage-upload-and-selection/file-storage-upload-and-selection.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/file-upload/storage-file-upload-dialog/storage-file-upload-dialog.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/iframe-url-param-descriptions/iframe-url-param-descriptions.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/individual-msg-settings-display-box/individual-msg-settings-display-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/latest-msg-box/latest-msg-box.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/lists/bi-editable-list/bi-editable-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/send-methods-list/bi-message-resend-dialog-content/bi-message-resend-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/send-methods-list/bi-message-resend-dialog-content/bi-message-resend-dialog-content-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/send-methods-list/bi-message-resend-simple-dialog-content/bi-message-resend-simple-dialog-content.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/send-methods-list/send-methods-list.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/std-receiver-selection/std-receiver-selection-base.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/std-receiver-tree-node/std-receiver-nodes-filter-input/std-receiver-nodes-filter-input.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/std-receiver-tree-node/std-receiver-tree-node.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/tables/bi-item-indicator-table/bi-item-indicator-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/tables/bi-p-table/bi-p-table.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/tables/bi-p-table/components/BiColumnFilter/bi-column-filter.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/tables/bi-p-table/components/bi-p-cell-editor.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/tables/bi-p-table/components/bi-p-sort-icon.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/tables/bi-p-table/components/bi-p-table-horizontal-scrollbar/bi-p-table-horizontal-scrollbar.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/tables/bi-p-table/components/bi-row-toggler-button.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/tables/bi-p-table/components/bi-toggle-all-checkbox.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   },
   "src/shared/components/tables/bi-p-table-with-checkboxes/bi-p-table-with-checkboxes.component.ts": {
     "status": "PENDING",
-    "pipeline_status": null,
     "lastProcessed": null,
     "retryCount": 0
   }
