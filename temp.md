@@ -1,4 +1,3 @@
-﻿
 
 
 
@@ -15,12 +14,40 @@
 
 
 
-=== BATCH START: batch-1776810173 (1 components) ===
 
-=== COMPONENT: quick-response-app ===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=== BATCH START: batch-1776833975 (1 components) ===
+
+=== COMPONENT: mobile-and-pin ===
 ## ACDDA v4 - Angular Component Domain Analysis
 
-Token: quick-response-app  |  Type: SMART
+Token: mobile-and-pin  |  Type: SMART
 
 FUNDAMENTAL RULE: Beskriv ALDRIG komponenten. Beskriv KUN hvad systemet goer for kunden.
 Abstraction: Angular UI --> User capability --> Domain behavior --> System capability
@@ -48,7 +75,7 @@ requirements: KUN endpoints der er direkte i service_http_calls eller direct_htt
 ui_behaviors maa IKKE bruges.
 
 EVIDENCE PACK:
-{"meta":{"component":"quick-response-app","file":"side-projects/quick-response/src/app/quick-response-app.component.ts","type":"SMART","generated_at":"2026-04-22T00:22:53"},"template_actions":[{"type":"disabled","expression":"pageData().isOverdue","line":39},{"type":"disabled","expression":"pageData().isOverdue","line":61},{"type":"click","handler":"onSubmitResponse","line":85},{"type":"disabled","expression":"!respondButtonActive()","line":85}],"ts_methods":[{"name":"constructor","line":57,"calls":["pageErrorMsgTranslationKey.set()","quickResponseService.submitReponse()","showSuccessMessage.set()","cd.markForCheck()","quickResponseService.getDataForResponsePage()","selectedResponseId.set()","userComment.set()","commentPlaceholderTranslationKey.set()"],"is_lifecycle":true},{"name":"ngOnInit","line":63,"calls":["pageErrorMsgTranslationKey.set()","quickResponseService.submitReponse()","showSuccessMessage.set()","cd.markForCheck()","quickResponseService.getDataForResponsePage()","selectedResponseId.set()","userComment.set()","commentPlaceholderTranslationKey.set()","pageData.set()"],"is_lifecycle":true},{"name":"onSubmitResponse","line":71,"calls":["quickResponseService.submitReponse()","showSuccessMessage.set()","cd.markForCheck()","quickResponseService.getDataForResponsePage()","selectedResponseId.set()","userComment.set()","commentPlaceholderTranslationKey.set()","pageData.set()","pageErrorMsgTranslationKey.set()"],"is_lifecycle":false},{"name":"initPageData","line":89,"calls":["quickResponseService.getDataForResponsePage()","selectedResponseId.set()","userComment.set()","commentPlaceholderTranslationKey.set()","pageData.set()","pageErrorMsgTranslationKey.set()","cd.markForCheck()"],"is_lifecycle":false},{"name":"handleGetPageDataError","line":103,"calls":["pageErrorMsgTranslationKey.set()","cd.markForCheck()"],"is_lifecycle":false}],"injected_services":[{"var_name":"document","class_name":"DOCUMENT","source":"inject","resolved_file":null,"resolved":false},{"var_name":"cd","class_name":"ChangeDetectorRef","source":"inject","resolved_file":null,"resolved":false},{"var_name":"quickResponseService","class_name":"QuickResponseService","source":"inject","resolved_file":"C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\app-globals\\services\\quick-response.service.ts","resolved":true}],"service_http_calls":[],"direct_http_calls":[],"routes":[],"cluster_signals":{"navigates_to_routes":0,"uses_child_components":0,"cluster_required":false}}
+{"meta":{"component":"mobile-and-pin","file":"side-projects/subscription-app/src/features-shared/mobile-and-pin/mobile-and-pin.component.ts","type":"SMART","generated_at":"2026-04-22T06:59:35"},"template_actions":[{"type":"click","handler":"sendCode","line":21},{"type":"disabled","expression":"phoneCtrl.invalid","line":21},{"type":"click","handler":"sendNewCode","line":95},{"type":"click","handler":"currentPage.set","line":102}],"ts_methods":[{"name":"ngOnInit","line":53,"calls":["error.set()"],"is_lifecycle":true},{"name":"getElement","line":63,"calls":["error.set()"],"is_lifecycle":false},{"name":"isValid","line":67,"calls":["error.set()"],"is_lifecycle":false},{"name":"handleInput","line":71,"calls":["error.set()"],"is_lifecycle":false},{"name":"handlePaste","line":101,"calls":["formGroup.get()"],"is_lifecycle":false},{"name":"handleKeyup","line":105,"calls":["formGroup.get()"],"is_lifecycle":false},{"name":"sendCode","line":155,"calls":["loading.set()","phoneWithCountryCode.set()","enrolleeService.requestPinCodeAttempt()","showPincodeArea.set()","currentPageChange.emit()","error.set()","translator.instant()","enrolleeService.verifyPinCode()","authService.saveTokenModel()"],"is_lifecycle":false},{"name":"validateCode","line":185,"calls":["enrolleeService.verifyPinCode()","error.set()","authService.saveTokenModel()","loginSuccess.emit()","translator.instant()","pin1Ctrl.reset()","pin2Ctrl.reset()","pin3Ctrl.reset()","pin4Ctrl.reset()"],"is_lifecycle":false},{"name":"sendNewCode","line":204,"calls":["pin1Ctrl.reset()","pin2Ctrl.reset()","pin3Ctrl.reset()","pin4Ctrl.reset()"],"is_lifecycle":false}],"injected_services":[{"var_name":"localizationHelper","class_name":"EnLocalizationHelperService","source":"inject","resolved_file":"C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\side-projects\\subscription-app\\src\\core\\utility-services\\en-localization-helper.service.ts","resolved":true},{"var_name":"enrolleeService","class_name":"EnrolleeService","source":"inject","resolved_file":"C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\side-projects\\subscription-app\\src\\core\\services\\enrollee.service.ts","resolved":true},{"var_name":"enrollmentService","class_name":"EnrollmentService","source":"inject","resolved_file":"C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\side-projects\\subscription-app\\src\\core\\services\\enrollment.service.ts","resolved":true},{"var_name":"authService","class_name":"EnrollmentAuthenticationService","source":"inject","resolved_file":"C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\side-projects\\subscription-app\\src\\core\\security\\enrollment-authentication.service.ts","resolved":true},{"var_name":"translator","class_name":"BiTranslateService","source":"inject","resolved_file":"C:\\Udvikling\\sms-service\\ServiceAlert.Web\\ClientApp\\app-globals\\bi-translate\\bi-translate.service.ts","resolved":true}],"service_http_calls":[],"direct_http_calls":[],"routes":[],"cluster_signals":{"navigates_to_routes":0,"uses_child_components":0,"cluster_required":true}}
 
 OUTPUT - kun dette JSON objekt, ingen forklaring, ingen markdown:
 {"behaviors":[],"flows":[],"requirements":[]}
@@ -62,5 +89,5 @@ SLUT markoren er tre = tegn + END BATCH OUTPUT + tre = tegn
 EKSEMPEL: {"comp1": {"ui_behaviors": [...], "flows": [], "requirements": []}, ...}
 
 === BATCH OUTPUT ===
-{"quick-response-app": {"behaviors": ["Brugeren kan afgive et hurtigt svar på en besked", "Brugeren kan se indholdet af den besked der skal besvares"], "flows": [], "requirements": []}}
+{"mobile-and-pin": {"behaviors": ["Brugeren kan indtaste mobilnummer og PIN-kode", "Brugeren kan sende verifikationskode til mobilnummer", "Brugeren kan anmode om ny kode", "Brugeren kan validere sin kode"], "flows": [], "requirements": []}}
 === END BATCH OUTPUT ===

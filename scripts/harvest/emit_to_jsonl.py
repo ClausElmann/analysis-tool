@@ -30,6 +30,32 @@ if not COMPONENT_LIST.exists():
     sys.exit(1)
 
 entries = json.loads(COMPONENT_LIST.read_text(encoding="utf-8-sig"))
+
+# Build name→path lookup for domain derivation
+_name_to_path: dict[str, str] = {}
+for _e in entries:
+    _p = _e if isinstance(_e, str) else _e.get("filePath", str(_e))
+    _name = Path(_p).stem.replace(".component", "")
+    _name_to_path[_name] = _p
+
+
+def derive_domain(comp_path: str) -> str:
+    """Derive domain from component file path."""
+    parts = comp_path.replace("\\", "/").split("/")
+    p0 = parts[0] if parts else ""
+    p1 = parts[1] if len(parts) > 1 else ""
+    p2 = parts[2] if len(parts) > 2 else ""
+    if p0 == "src":
+        if p1 == "features" and p2:
+            return p2
+        return "shared"
+    if p0 == "app-globals":
+        return "shared"
+    if p0 == "side-projects":
+        return p1 if p1 else "side-projects"
+    return "UNKNOWN"
+
+
 b_count = f_count = r_count = 0
 
 
@@ -50,6 +76,7 @@ for entry in entries:
 
     v = json.loads(valid_path.read_text(encoding="utf-8"))
     comp_type = v.get("type", "?")
+    domain = derive_domain(comp_path)
 
     # Emit behaviors (PASS only)
     for b in (v.get("behaviors") or []):
@@ -57,7 +84,7 @@ for entry in entries:
             append_jsonl(NORMALIZED_DIR / "behaviors.jsonl", {
                 "id":         str(uuid.uuid4()),
                 "behavior":   b["text"],
-                "domain":     "UNKNOWN",
+                "domain":     domain,
                 "component":  comp_name,
                 "type":       comp_type,
                 "confidence": b.get("confidence", 0.0),
@@ -77,7 +104,7 @@ for entry in entries:
                     "service_call": f.get("service_call"),
                     "http":         f.get("http"),
                     "result":       f.get("result"),
-                    "domain":       "UNKNOWN",
+                    "domain":       domain,
                     "component":    comp_name,
                     "confidence":   f.get("confidence", 0.0),
                     "source":       "angular",
@@ -93,7 +120,7 @@ for entry in entries:
                     "endpoint":        req.get("endpoint"),
                     "type":            req.get("type"),
                     "evidence_method": req.get("evidence_method"),
-                    "domain":          "UNKNOWN",
+                    "domain":          domain,
                     "component":       comp_name,
                     "source":          "angular",
                     "created_at":      ts,

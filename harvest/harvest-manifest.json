@@ -190,5 +190,131 @@
     "pipeline_status": "PASS_UI_ONLY",
     "retryCount": 0,
     "lastProcessed": "2026-04-21T21:54:50.308886+00:00"
+  },
+  "side-projects/subscription-app/src/app/subscription-app.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:24:47.758578+00:00"
+  },
+  "side-projects/subscription-app/src/features/about-page/en-about-page.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:25:28.771951+00:00"
+  },
+  "side-projects/subscription-app/src/features/enrollment-steps/enrollment-finished-message/enrollment-finished-message.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:26:16.436976+00:00"
+  },
+  "side-projects/subscription-app/src/features/enrollment-steps/enrollment-steps-main.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:27:02.470813+00:00"
+  },
+  "side-projects/subscription-app/src/features/enrollment-steps/enter-address/enter-address.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:27:47.004184+00:00"
+  },
+  "side-projects/subscription-app/src/features/enrollment-steps/mobile-and-pin-step/mobile-and-pin-step.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:28:33.473780+00:00"
+  },
+  "side-projects/subscription-app/src/features/enrollment-steps/sender-selection/sender-selection.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:29:39.435660+00:00"
+  },
+  "side-projects/subscription-app/src/features/login/en-login.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:30:21.893426+00:00"
+  },
+  "side-projects/subscription-app/src/features/my-senders/additional-sender-selection/additional-sender-selection.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:31:05.747858+00:00"
+  },
+  "side-projects/subscription-app/src/features/my-senders/add-senders/add-senders.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:31:49.001399+00:00"
+  },
+  "side-projects/subscription-app/src/features/my-senders/edit-address/edit-address.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:32:32.634573+00:00"
+  },
+  "side-projects/subscription-app/src/features/my-senders/my-info/my-info.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T22:33:14.500708+00:00"
+  },
+  "side-projects/subscription-app/src/features/my-senders/my-senders.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T23:16:19.101765+00:00"
+  },
+  "side-projects/subscription-app/src/features/privacy-policy/en-privacy-policy-dk.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T23:17:07.508758+00:00"
+  },
+  "side-projects/subscription-app/src/features/privacy-policy/en-privacy-policy-fi.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T23:17:31.017575+00:00"
+  },
+  "side-projects/subscription-app/src/features/privacy-policy/en-privacy-policy-se.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-21T23:17:51.871362+00:00"
+  },
+  "side-projects/subscription-app/src/features/privacy-policy/privacy-policy-main.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T04:54:17.692732+00:00"
+  },
+  "side-projects/subscription-app/src/features/unsubscribe-sender/unsubscribe-sender.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS_UI_ONLY",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T04:57:32.383417+00:00"
+  },
+  "side-projects/subscription-app/src/features/welcome-page/welcome-page.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T04:58:12.483011+00:00"
+  },
+  "side-projects/subscription-app/src/features-shared/add-address/add-address.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T04:59:03.073230+00:00"
+  },
+  "side-projects/subscription-app/src/features-shared/mobile-and-pin/mobile-and-pin.component.ts": {
+    "status": "DONE",
+    "pipeline_status": "PASS",
+    "retryCount": 0,
+    "lastProcessed": "2026-04-22T04:59:57.570374+00:00"
   }
 }
