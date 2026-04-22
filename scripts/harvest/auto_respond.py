@@ -262,12 +262,13 @@ def generate_output(name: str, pack: dict) -> dict:
             if _REJECT_BEHAVIOR_PATTERNS.search(b):
                 continue
             seen_b.add(b)
-            behaviors.append(b)
+            # Step 2/5: INFERRED_UI classification — translation is interpretation
+            behaviors.append({"text": b, "classification": "INFERRED_UI"})
 
     if not behaviors:
-        behaviors = [f"Brugeren kan se {readable}"]
+        behaviors = [{"text": f"Brugeren kan se {readable}", "classification": "INFERRED_UI"}]
 
-    # Requirements + flows from HTTP calls
+    # Requirements + flows from HTTP calls — Step 2/5: VERIFIED classification
     requirements = []
     flows = []
     seen_ep: set[str] = set()
@@ -277,22 +278,58 @@ def generate_output(name: str, pack: dict) -> dict:
         if url and url not in seen_ep:
             seen_ep.add(url)
             req_type = "QUERY" if method == "GET" else "COMMAND"
-            requirements.append({"method": method, "endpoint": url, "type": req_type, "status": "PASS", "confidence": 0.7})
-            # Build a flow entry for each HTTP call
+            requirements.append({
+                "method": method, "endpoint": url, "type": req_type,
+                "status": "PASS", "confidence": 0.7, "classification": "VERIFIED_STRUCTURAL",
+            })
             trigger = handlers[0] if handlers else (methods[0] if methods else "init")
             svc_method = http.get("service_method") or ""
             svc_name   = http.get("service") or ""
             flows.append({
-                "trigger":      trigger,
-                "method":       svc_method,
-                "service_call": f"{svc_name}.{svc_method}()" if svc_name and svc_method else svc_method,
-                "http":         f"{method} {url}",
-                "result":       "data loaded" if method == "GET" else "data saved",
-                "status":       "PASS",
-                "confidence":   0.7,
+                "trigger":        trigger,
+                "method":         svc_method,
+                "service_call":   f"{svc_name}.{svc_method}()" if svc_name and svc_method else svc_method,
+                "http":           f"{method} {url}",
+                "result":         "data loaded" if method == "GET" else "data saved",
+                "status":         "PASS",
+                "confidence":     0.7,
+                "classification": "VERIFIED_STRUCTURAL",
             })
 
     return {"behaviors": behaviors, "flows": flows, "requirements": requirements}
+
+
+def generate_output_strict(name: str, pack: dict) -> dict:
+    """Step 6: Strict retry — only emit items directly traceable from evidence_pack.
+    Used when generate_output() produced no flows despite available HTTP calls.
+    'Only include statements directly provable from evidence. Do not infer.'"""
+    http_raw = (pack.get("service_http_calls") or []) + (pack.get("direct_http_calls") or [])
+    flows = []
+    requirements = []
+    seen_ep: set[str] = set()
+    for http in http_raw[:6]:
+        url = (http.get("url") or "").strip()
+        method = (http.get("method") or http.get("http_method") or "GET").upper()
+        svc_method = http.get("service_method") or ""
+        svc_name   = http.get("service") or ""
+        if url and url not in seen_ep:
+            seen_ep.add(url)
+            req_type = "QUERY" if method == "GET" else "COMMAND"
+            requirements.append({
+                "method": method, "endpoint": url, "type": req_type,
+                "status": "PASS", "confidence": 0.9, "classification": "VERIFIED_STRUCTURAL",
+            })
+            flows.append({
+                "trigger":        "init",
+                "method":         svc_method,
+                "service_call":   f"{svc_name}.{svc_method}()" if svc_name and svc_method else svc_method,
+                "http":           f"{method} {url}",
+                "result":         "data loaded" if method == "GET" else "data saved",
+                "status":         "PASS",
+                "confidence":     0.9,
+                "classification": "VERIFIED_STRUCTURAL",
+            })
+    return {"behaviors": [], "flows": flows, "requirements": requirements}
 
 
 # ──────────────────────────────────────────────
@@ -356,6 +393,13 @@ while True:
         try:
             pack = json.loads(ep_path.read_text(encoding="utf-8"))
             out  = generate_output(name, pack)
+            # Step 6: Retry once with stricter generation if SMART + http_raw but no flows
+            http_raw_count = len(
+                (pack.get("service_http_calls") or []) + (pack.get("direct_http_calls") or [])
+            )
+            if pack["meta"]["type"] == "SMART" and http_raw_count > 0 and not out.get("flows"):
+                print(f"  → RETRY strict: {name} (http_calls={http_raw_count}, flows=0)", flush=True)
+                out = generate_output_strict(name, pack)
             outputs[name] = out
             print(f"  → {name} ({pack['meta']['type']})", flush=True)
         except Exception as e:

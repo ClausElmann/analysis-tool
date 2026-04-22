@@ -69,18 +69,24 @@ def corpus_stats() -> dict:
     flows        = read_jsonl(CORPUS_DIR / "flows.jsonl")
     requirements = read_jsonl(CORPUS_DIR / "requirements.jsonl")
     capabilities = read_jsonl(CORPUS_DIR / "capabilities.jsonl")
+    rejected     = read_jsonl(CORPUS_DIR / "rejected_outputs.jsonl")
 
     domain_dist = Counter(b.get("domain", "UNKNOWN") for b in behaviors)
     type_dist   = Counter(b.get("type", "?") for b in behaviors)
+    rejected_by_type   = Counter(r.get("type", "?") for r in rejected)
+    rejected_by_reason = Counter(r.get("reason", "?") for r in rejected)
 
     return {
-        "behaviors":    len(behaviors),
-        "flows":        len(flows),
-        "requirements": len(requirements),
-        "capabilities": len(capabilities),
-        "domain_dist":  dict(domain_dist.most_common()),
-        "type_dist":    dict(type_dist.most_common()),
-        "unknown_domain": domain_dist.get("UNKNOWN", 0) + domain_dist.get("null", 0),
+        "behaviors":          len(behaviors),
+        "flows":              len(flows),
+        "requirements":       len(requirements),
+        "capabilities":       len(capabilities),
+        "rejected":           len(rejected),
+        "rejected_by_type":   dict(rejected_by_type.most_common()),
+        "rejected_by_reason": dict(rejected_by_reason.most_common()),
+        "domain_dist":        dict(domain_dist.most_common()),
+        "type_dist":          dict(type_dist.most_common()),
+        "unknown_domain":     domain_dist.get("UNKNOWN", 0) + domain_dist.get("null", 0),
     }
 
 
@@ -138,16 +144,20 @@ def generate_readme() -> str:
         "  Output: harvest/angular/raw/<name>/llm_output.json",
         "        │",
         "        ▼",
-        "Phase 3a — validate_llm_output.py",
+        "Phase 3a — validate_llm_output.py  [TRUTH GATE]",
         "  Validerer mod evidence_pack (metode-match, HTTP-chain, reject-ord)",
+        "  Klassificerer: VERIFIED (bevist fra evidens) / INFERRED (fortolket)",
+        "  pipeline_status: PASS_VERIFIED | UNKNOWN | FAIL",
         "  Output: harvest/angular/raw/<name>/llm_output_validated.json",
         "        │",
         "        ▼",
-        "Phase 3c — emit_to_jsonl.py",
-        "  Append-only emit til corpus/*.jsonl",
-        "  Output: corpus/behaviors.jsonl",
-        "          corpus/flows.jsonl",
-        "          corpus/requirements.jsonl",
+        "Phase 3c — emit_to_jsonl.py  [TRUTH GATE ENFORCER]",
+        "  Kun PASS_VERIFIED emitteres til main corpus",
+        "  Afviste items → corpus/rejected_outputs.jsonl",
+        "  Output: corpus/behaviors.jsonl  (PASS_VERIFIED only)",
+        "          corpus/flows.jsonl      (PASS_VERIFIED only)",
+        "          corpus/requirements.jsonl (PASS_VERIFIED only)",
+        "          corpus/rejected_outputs.jsonl (blokerede items)",
         "        │",
         "        ▼",
         "Layer 2 — build_capabilities.py",
@@ -200,15 +210,29 @@ def generate_readme() -> str:
     lines += [
         "### Corpus",
         "",
-        f"| Fil | Entries |",
-        f"|-----|---------|",
-        f"| behaviors.jsonl | {c_stats['behaviors']} |",
-        f"| flows.jsonl | {c_stats['flows']} |",
-        f"| requirements.jsonl | {c_stats['requirements']} |",
-        f"| capabilities.jsonl | {c_stats['capabilities']} |",
-        f"| UNKNOWN domain | {c_stats['unknown_domain']} |",
+        "| Fil | Entries | Note |",
+        "|-----|---------|------|",
+        f"| behaviors.jsonl | {c_stats['behaviors']} | PASS_VERIFIED kun |",
+        f"| flows.jsonl | {c_stats['flows']} | PASS_VERIFIED kun |",
+        f"| requirements.jsonl | {c_stats['requirements']} | PASS_VERIFIED kun |",
+        f"| capabilities.jsonl | {c_stats['capabilities']} | Layer 2 clustering |",
+        f"| rejected_outputs.jsonl | {c_stats['rejected']} | Blokeret af truth gate |",
+        f"| UNKNOWN domain | {c_stats['unknown_domain']} | — |",
         "",
     ]
+
+    if c_stats.get("rejected") and c_stats.get("rejected_by_type"):
+        lines.append("**Afviste items per type:**")
+        lines.append("")
+        for t, cnt in c_stats["rejected_by_type"].items():
+            lines.append(f"- {t}: {cnt}")
+        lines.append("")
+    if c_stats.get("rejected") and c_stats.get("rejected_by_reason"):
+        lines.append("**Afvisningsårsager (truth gate):**")
+        lines.append("")
+        for r, cnt in c_stats["rejected_by_reason"].items():
+            lines.append(f"- {r}: {cnt}")
+        lines.append("")
 
     if c_stats.get("domain_dist"):
         lines.append("**Domain distribution (behaviors):**")
@@ -259,10 +283,11 @@ def generate_readme() -> str:
         "| `scripts/harvest/score_components.py` | Scoring og pass-rate rapport |",
         "| `scripts/layer2/build_capabilities.py` | Layer 2A — capability clustering |",
         "| `scripts/layer2/diagnostic.py` | Layer 2 — diagnostisk analyse |",
-        "| `corpus/behaviors.jsonl` | Output: bruger-behaviors |",
-        "| `corpus/flows.jsonl` | Output: HTTP-flows |",
-        "| `corpus/requirements.jsonl` | Output: API-requirements |",
+        "| `corpus/behaviors.jsonl` | Output: bruger-behaviors (PASS_VERIFIED only) |",
+        "| `corpus/flows.jsonl` | Output: HTTP-flows (PASS_VERIFIED only) |",
+        "| `corpus/requirements.jsonl` | Output: API-requirements (PASS_VERIFIED only) |",
         "| `corpus/capabilities.jsonl` | Output: Layer 2 capabilities (hvis genereret) |",
+        "| `corpus/rejected_outputs.jsonl` | Afviste items — truth gate log |",
         "| `harvest/harvest-manifest.json` | Komponent-status (per component) |",
         "| `harvest/harvest_audit.jsonl` | Append-only revisionsspor |",
         "| `harvest/component-list.json` | Input: liste over 549 Angular-komponenter |",

@@ -1,5 +1,5 @@
 # Angular Harvest — Architect Review Package
-> Auto-generated: 2026-04-22 06:14 UTC
+> Auto-generated: 2026-04-22 06:35 UTC
 
 ---
 
@@ -21,16 +21,20 @@ Phase 2 — auto_respond.py  (watcher / batch responder)
   Output: harvest/angular/raw/<name>/llm_output.json
         │
         ▼
-Phase 3a — validate_llm_output.py
+Phase 3a — validate_llm_output.py  [TRUTH GATE]
   Validerer mod evidence_pack (metode-match, HTTP-chain, reject-ord)
+  Klassificerer: VERIFIED (bevist fra evidens) / INFERRED (fortolket)
+  pipeline_status: PASS_VERIFIED | UNKNOWN | FAIL
   Output: harvest/angular/raw/<name>/llm_output_validated.json
         │
         ▼
-Phase 3c — emit_to_jsonl.py
-  Append-only emit til corpus/*.jsonl
-  Output: corpus/behaviors.jsonl
-          corpus/flows.jsonl
-          corpus/requirements.jsonl
+Phase 3c — emit_to_jsonl.py  [TRUTH GATE ENFORCER]
+  Kun PASS_VERIFIED emitteres til main corpus
+  Afviste items → corpus/rejected_outputs.jsonl
+  Output: corpus/behaviors.jsonl  (PASS_VERIFIED only)
+          corpus/flows.jsonl      (PASS_VERIFIED only)
+          corpus/requirements.jsonl (PASS_VERIFIED only)
+          corpus/rejected_outputs.jsonl (blokerede items)
         │
         ▼
 Layer 2 — build_capabilities.py
@@ -54,7 +58,7 @@ Kører én komponent ad gangen, genstart-safe, audit log i `harvest/harvest_audi
 ---
 
 ## Aktuel Status
-> Opdateret: 2026-04-22 06:14 UTC
+> Opdateret: 2026-04-22 06:35 UTC
 
 ### Manifest
 
@@ -75,13 +79,24 @@ Kører én komponent ad gangen, genstart-safe, audit log i `harvest/harvest_audi
 
 ### Corpus
 
-| Fil | Entries |
-|-----|---------|
-| behaviors.jsonl | 23 |
-| flows.jsonl | 4 |
-| requirements.jsonl | 4 |
-| capabilities.jsonl | 3 |
-| UNKNOWN domain | 0 |
+| Fil | Entries | Note |
+|-----|---------|------|
+| behaviors.jsonl | 23 | PASS_VERIFIED kun |
+| flows.jsonl | 4 | PASS_VERIFIED kun |
+| requirements.jsonl | 4 | PASS_VERIFIED kun |
+| capabilities.jsonl | 3 | Layer 2 clustering |
+| rejected_outputs.jsonl | 27 | Blokeret af truth gate |
+| UNKNOWN domain | 0 | — |
+
+**Afviste items per type:**
+
+- behavior: 23
+- requirement: 4
+
+**Afvisningsårsager (truth gate):**
+
+- UNKNOWN: 23
+- FAIL: 4
 
 **Domain distribution (behaviors):**
 
@@ -121,10 +136,11 @@ Kører én komponent ad gangen, genstart-safe, audit log i `harvest/harvest_audi
 | `scripts/harvest/score_components.py` | Scoring og pass-rate rapport |
 | `scripts/layer2/build_capabilities.py` | Layer 2A — capability clustering |
 | `scripts/layer2/diagnostic.py` | Layer 2 — diagnostisk analyse |
-| `corpus/behaviors.jsonl` | Output: bruger-behaviors |
-| `corpus/flows.jsonl` | Output: HTTP-flows |
-| `corpus/requirements.jsonl` | Output: API-requirements |
+| `corpus/behaviors.jsonl` | Output: bruger-behaviors (PASS_VERIFIED only) |
+| `corpus/flows.jsonl` | Output: HTTP-flows (PASS_VERIFIED only) |
+| `corpus/requirements.jsonl` | Output: API-requirements (PASS_VERIFIED only) |
 | `corpus/capabilities.jsonl` | Output: Layer 2 capabilities (hvis genereret) |
+| `corpus/rejected_outputs.jsonl` | Afviste items — truth gate log |
 | `harvest/harvest-manifest.json` | Komponent-status (per component) |
 | `harvest/harvest_audit.jsonl` | Append-only revisionsspor |
 | `harvest/component-list.json` | Input: liste over 549 Angular-komponenter |

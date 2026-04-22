@@ -26,6 +26,12 @@ RAW_DIR         = Path(args.raw_dir)
 NORMALIZED_DIR  = Path(args.normalized_dir)
 NORMALIZED_DIR.mkdir(parents=True, exist_ok=True)
 
+# Step 4: Rejected outputs log — items blocked by truth gate
+REJECTED_JSONL    = NORMALIZED_DIR / "rejected_outputs.jsonl"
+# UI behaviors — split into verified and inferred channels
+UI_VERIFIED_JSONL  = NORMALIZED_DIR / "ui_behaviors_verified.jsonl"
+UI_INFERRED_JSONL  = NORMALIZED_DIR / "ui_behaviors_inferred.jsonl"
+
 if not COMPONENT_LIST.exists():
     print(f"ERROR: Not found: {COMPONENT_LIST}", file=sys.stderr)
     sys.exit(1)
@@ -69,6 +75,8 @@ def derive_domain(comp_path: str) -> str:
 
 
 b_count = f_count = r_count = 0
+ui_count = 0
+rejected_count = 0
 
 
 def _load_existing_keys(path: Path, key_fields: list[str]) -> set:
@@ -127,56 +135,113 @@ for entry in entries:
     comp_type = v.get("type", "?")
     domain = derive_domain(comp_path)
 
-    # Emit behaviors (PASS only)
+    # Emit behaviors — VERIFIED_UI → ui_behaviors_verified.jsonl, INFERRED_UI → ui_behaviors_inferred.jsonl
     for b in (v.get("behaviors") or []):
         if b.get("status") == "PASS":
-            if _REJECT_BEHAVIOR_RE.search(b.get("text", "")):
-                continue
-            append_jsonl(NORMALIZED_DIR / "behaviors.jsonl", {
-                "id":         str(uuid.uuid4()),
-                "behavior":   b["text"],
-                "domain":     domain,
-                "component":  comp_name,
-                "type":       comp_type,
-                "confidence": b.get("confidence", 0.0),
-                "source":     "angular",
-                "created_at": ts,
-            }, key_fields=["behavior", "component"])
-            b_count += 1
+            cls = b.get("classification", "INFERRED_UI")
+            if cls in ("VERIFIED_UI", "INFERRED_UI"):
+                if _REJECT_BEHAVIOR_RE.search(b.get("text", "")):
+                    continue
+                target = UI_VERIFIED_JSONL if cls == "VERIFIED_UI" else UI_INFERRED_JSONL
+                append_jsonl(target, {
+                    "id":               str(uuid.uuid4()),
+                    "behavior":         b["text"],
+                    "domain":           domain,
+                    "component":        comp_name,
+                    "type":             comp_type,
+                    "confidence":       b.get("confidence", 0.0),
+                    "classification":   cls,
+                    "evidence_ids":     b.get("evidence_ids", []),
+                    "source_files":     b.get("source_files", []),
+                    "source":           "angular",
+                    "created_at":       ts,
+                }, key_fields=["behavior", "component"])
+                ui_count += 1
 
-    # Flows + requirements (DUMB excluded)
+    # Emit ui_behaviors (DUMB/CONTAINER) → ui_behaviors_verified.jsonl or ui_behaviors_inferred.jsonl
+    for ub in (v.get("ui_behaviors") or []):
+        text = ub if isinstance(ub, str) else ub.get("text", "") if isinstance(ub, dict) else ""
+        if not text:
+            continue
+        cls = ub.get("classification", "VERIFIED_UI") if isinstance(ub, dict) else "VERIFIED_UI"
+        target = UI_VERIFIED_JSONL if cls == "VERIFIED_UI" else UI_INFERRED_JSONL
+        append_jsonl(target, {
+            "id":             str(uuid.uuid4()),
+            "behavior":       text,
+            "domain":         domain,
+            "component":      comp_name,
+            "type":           comp_type,
+            "confidence":     1.0,
+            "classification": cls,
+            "evidence_ids":   [],
+            "source_files":   [],
+            "source":         "angular",
+            "created_at":     ts,
+        }, key_fields=["behavior", "component"])
+        ui_count += 1
+
+    # Flows + requirements (DUMB excluded) — VERIFIED_STRUCTURAL gate
     if comp_type != "DUMB":
         for f in (v.get("flows") or []):
             if f.get("status") == "PASS":
+                ps = f.get("pipeline_status", "VERIFIED_STRUCTURAL")
+                if ps != "VERIFIED_STRUCTURAL":
+                    append_jsonl(REJECTED_JSONL, {
+                        "component": comp_name, "type": "flow",
+                        "data": f, "reason": ps, "rejected_at": ts,
+                    })
+                    rejected_count += 1
+                    continue
                 append_jsonl(NORMALIZED_DIR / "flows.jsonl", {
-                    "id":           str(uuid.uuid4()),
-                    "trigger":      f.get("trigger"),
-                    "method":       f.get("method"),
-                    "service_call": f.get("service_call"),
-                    "http":         f.get("http"),
-                    "result":       f.get("result"),
-                    "domain":       domain,
-                    "component":    comp_name,
-                    "confidence":   f.get("confidence", 0.0),
-                    "source":       "angular",
-                    "created_at":   ts,
+                    "id":               str(uuid.uuid4()),
+                    "trigger":          f.get("trigger"),
+                    "method":           f.get("method"),
+                    "service_call":     f.get("service_call"),
+                    "http":             f.get("http"),
+                    "result":           f.get("result"),
+                    "domain":           domain,
+                    "component":        comp_name,
+                    "confidence":       f.get("confidence", 0.0),
+                    "confidence_score": f.get("confidence_score", f.get("confidence", 0.0)),
+                    "classification":   f.get("classification", "VERIFIED_STRUCTURAL"),
+                    "evidence_ids":     f.get("evidence_ids", []),
+                    "source_files":     f.get("source_files", []),
+                    "source":           "angular",
+                    "created_at":       ts,
                 }, key_fields=["trigger", "http", "component"])
                 f_count += 1
 
         for req in (v.get("requirements") or []):
             if req.get("status") == "PASS":
+                ps = req.get("pipeline_status", "VERIFIED_STRUCTURAL")
+                if ps != "VERIFIED_STRUCTURAL":
+                    append_jsonl(REJECTED_JSONL, {
+                        "component": comp_name, "type": "requirement",
+                        "data": req, "reason": ps, "rejected_at": ts,
+                    })
+                    rejected_count += 1
+                    continue
                 append_jsonl(NORMALIZED_DIR / "requirements.jsonl", {
-                    "id":              str(uuid.uuid4()),
-                    "method":          req.get("method"),
-                    "endpoint":        req.get("endpoint"),
-                    "type":            req.get("type"),
-                    "evidence_method": req.get("evidence_method"),
-                    "domain":          domain,
-                    "component":       comp_name,
-                    "source":          "angular",
-                    "created_at":      ts,
+                    "id":               str(uuid.uuid4()),
+                    "method":           req.get("method"),
+                    "endpoint":         req.get("endpoint"),
+                    "type":             req.get("type"),
+                    "evidence_method":  req.get("evidence_method"),
+                    "domain":           domain,
+                    "component":        comp_name,
+                    "confidence_score": req.get("confidence_score", 0.7),
+                    "classification":   req.get("classification", "VERIFIED_STRUCTURAL"),
+                    "evidence_ids":     req.get("evidence_ids", []),
+                    "source_files":     req.get("source_files", []),
+                    "source":           "angular",
+                    "created_at":       ts,
                 }, key_fields=["endpoint", "method", "component"])
                 r_count += 1
 
-print(f"Emitted: behaviors={b_count}  flows={f_count}  requirements={r_count}")
+# Step 7: Hard stop rule — structural channel only
+if f_count + r_count == 0:
+    print("TRUTH GATE: No VERIFIED_STRUCTURAL outputs — structural corpus unchanged.")
+    print(f"  ui_verified={ui_count}  Rejected: {rejected_count} → {REJECTED_JSONL}")
+else:
+    print(f"Emitted: flows={f_count}  requirements={r_count}  ui_verified={ui_count}  (rejected={rejected_count})")
 print(f"Output:  {NORMALIZED_DIR}")

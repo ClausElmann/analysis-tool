@@ -119,6 +119,40 @@ def test_requirement(req: dict, pack: dict) -> dict:
     return {"valid": True}
 
 
+# ── Step 3: Truth gate ─────────────────────────────────────────────────────────
+def is_provable_from_evidence(item: dict, pack: dict) -> bool:
+    """Return True if item is directly traceable to data in evidence_pack."""
+    http_calls = (pack.get("service_http_calls") or []) + (pack.get("direct_http_calls") or [])
+    http_methods_in_pack = {(h.get("service_method") or "").strip() for h in http_calls}
+    http_urls_in_pack = {(h.get("url") or "").strip() for h in http_calls if h.get("url")}
+
+    method = (item.get("method") or "").strip()
+    http_str = (item.get("http") or "").strip()
+    endpoint = (item.get("endpoint") or "").strip()
+    check_url = http_str.split(" ", 1)[-1].strip() if " " in http_str else (http_str or endpoint)
+
+    if method and method not in http_methods_in_pack:
+        return False
+    if check_url:
+        matched = any(
+            check_url in u or u in check_url or check_url.split("/")[-1] == u.split("/")[-1]
+            for u in http_urls_in_pack if u
+        )
+        if not matched:
+            return False
+    return bool(method or check_url)  # must have at least one traceable field
+
+
+def _classify_behavior(b: dict, pack: dict) -> str:
+    """VERIFIED_UI if evidence_method matches a template_action handler; INFERRED_UI otherwise."""
+    evidence_method = (b.get("evidence_method") or "").strip()
+    if evidence_method:
+        handlers = {a.get("handler", "") for a in (pack.get("template_actions") or [])}
+        if evidence_method in handlers:
+            return "VERIFIED_UI"
+    return "INFERRED_UI"
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 if not COMPONENT_LIST.exists():
     print(f"ERROR: Not found: {COMPONENT_LIST}", file=sys.stderr)
@@ -176,11 +210,14 @@ for entry in entries:
         r = test_behavior_text(b["text"], pack_methods)
         if r["valid"]:
             b_pass += 1
+            cls = _classify_behavior(b, pack)
             v_behaviors.append({
                 "text": b["text"],
                 "evidence_method": b.get("evidence_method"),
                 "confidence": b.get("confidence"),
                 "status": "PASS",
+                "classification": cls,
+                "pipeline_status": cls,
             })
         else:
             b_reject += 1
@@ -196,7 +233,20 @@ for entry in entries:
             r = test_flow_chain(f, pack)
             if r["valid"]:
                 f_pass += 1
-                v_flows.append({**f, "status": "PASS"})
+                provable = is_provable_from_evidence(f, pack)
+                ev_ids = [
+                    h.get("url") for h in (pack.get("service_http_calls") or [])
+                    if h.get("service_method") == f.get("method") and h.get("url")
+                ]
+                v_flows.append({
+                    **f,
+                    "status": "PASS",
+                    "classification": "VERIFIED_STRUCTURAL",
+                    "pipeline_status": "VERIFIED_STRUCTURAL" if provable else "FAIL",
+                    "evidence_ids": ev_ids,
+                    "source_files": [pack["meta"].get("file", "")],
+                    "confidence_score": f.get("confidence", 0.0),
+                })
             else:
                 f_reject += 1
                 v_flows.append({"trigger": f.get("trigger"), "method": f.get("method"),
@@ -212,22 +262,41 @@ for entry in entries:
             r = test_requirement(req, pack)
             if r["valid"]:
                 r_pass += 1
-                v_reqs.append({**req, "status": "PASS"})
+                provable = is_provable_from_evidence(req, pack)
+                all_http = (pack.get("service_http_calls") or []) + (pack.get("direct_http_calls") or [])
+                req_ep = (req.get("endpoint") or "").lstrip("/")
+                ev_ids = [
+                    h.get("url") for h in all_http
+                    if h.get("url") and (req_ep in h["url"] or h["url"] in req_ep)
+                ]
+                v_reqs.append({
+                    **req,
+                    "status": "PASS",
+                    "classification": "VERIFIED_STRUCTURAL",
+                    "pipeline_status": "VERIFIED_STRUCTURAL" if provable else "FAIL",
+                    "evidence_ids": ev_ids,
+                    "source_files": [pack["meta"].get("file", "")],
+                    "confidence_score": 0.7,
+                })
             else:
                 r_reject += 1
                 v_reqs.append({"endpoint": req.get("endpoint"), "status": "REJECTED",
                                "reason": r["reason"]})
 
-    # UI behaviors (DUMB only)
+    # UI behaviors (DUMB/CONTAINER) — wrapped with VERIFIED_UI classification
     ui_behaviors = []
     if is_dumb:
-        ui_behaviors = llm.get("ui_behaviors") or []
-        if not ui_behaviors and b_pass > 0:
-            ui_behaviors = [b["text"] for b in v_behaviors if b["status"] == "PASS"]
+        raw_ui = llm.get("ui_behaviors") or []
+        if not raw_ui and b_pass > 0:
+            raw_ui = [b["text"] for b in v_behaviors if b["status"] == "PASS"]
+        for u in raw_ui:
+            text = u if isinstance(u, str) else u.get("text", "")
+            if text:
+                ui_behaviors.append({"text": text, "classification": "VERIFIED_UI"})
 
-    # Score per component
+    # Score per component — Step 1: remove PASS_UI_ONLY
     if is_dumb:
-        status = "PASS_UI_ONLY" if (b_pass > 0 or ui_behaviors) else "SKIP_UI_ONLY"
+        status = "VERIFIED_UI" if ui_behaviors else "FAIL"
     else:
         if b_pass >= 2:
             status = "PASS"
@@ -236,10 +305,25 @@ for entry in entries:
         else:
             status = "FAIL"
 
+    # Step 3: Compute component-level pipeline_status
+    verified_flows = [f for f in v_flows if f.get("pipeline_status") == "VERIFIED_STRUCTURAL"]
+    verified_reqs  = [r for r in v_reqs  if r.get("pipeline_status") == "VERIFIED_STRUCTURAL"]
+    if is_dumb:
+        pipeline_status = "VERIFIED_UI" if ui_behaviors else "FAIL"
+    else:
+        if verified_flows or verified_reqs:
+            pipeline_status = "VERIFIED_STRUCTURAL"
+        elif b_pass >= 1 or f_pass >= 1 or r_pass >= 1:
+            pipeline_status = "INFERRED_UI"
+        else:
+            pipeline_status = "FAIL"
+
+    # Step 8: Output contract — pipeline_status + classification in validated output
     validated = {
         "component": comp_name,
         "type": pack["meta"]["type"],
         "status": status,
+        "pipeline_status": pipeline_status,
         "behaviors": v_behaviors,
         "flows": v_flows,
         "requirements": v_reqs,
@@ -250,13 +334,14 @@ for entry in entries:
     summary.append({
         "component": comp_name,
         "status": status,
+        "pipeline_status": pipeline_status,
         "type": pack["meta"]["type"],
         "b_pass": b_pass,
         "b_reject": b_reject,
         "f_pass": f_pass,
         "r_pass": r_pass,
     })
-    print(f"  {comp_name:<48} [{pack['meta']['type']:<10}] {status:<14} "
+    print(f"  {comp_name:<48} [{pack['meta']['type']:<10}] {pipeline_status:<14} "
           f"b={b_pass}/{b_pass+b_reject} f={f_pass} r={r_pass}")
 
 # Write summary
