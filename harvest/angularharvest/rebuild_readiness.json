@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-04-22T19:22:16.809737Z",
+  "entities_count": 28,
+  "behaviors_verified_count": 630,
+  "behaviors_inferred_count": 89,
+  "rules_verified_count": 27,
+  "rules_inferred_count": 7,
+  "refined_domains_count": 6,
+  "weak_area_count": 6,
+  "flows_count": 920,
+  "requirements_count": 561,
+  "detailed_capabilities_count": 416,
+  "grouped_capabilities_count": 48,
+  "vague_gcap_count": 6,
+  "unlinked_cap_count": 193,
+  "rebuild_readiness_score": 97,
+  "top_10_rebuild_risks": [
+    "36 CONTAINER-type components have no captured behaviors — these represent UI interactions with no structural flow evidence",
+    "6 grouped capability buckets are vague ('Other X') — covering 151 detailed capabilities whose specific behaviors are not individually described",
+    "163 capabilities observed in only a single component — fragile tracing that may not generalize to a rebuilt system",
+    "193 detailed capabilities could not be mapped to a business entity — these represent functional areas without a clear domain concept",
+    "Domain assignment is not present on individual flows — domain classification relies entirely on capability-level grouping",
+    "Rejected outputs: 0 — these represent evidence that failed validation and may hide behaviors"
+  ],
+  "recommended_next_step": "Resolve the vague 'Other X' grouped capability buckets by reviewing the underlying detailed capabilities and assigning specific business names. Then address CONTAINER FAIL components to capture missing UI interaction behaviors."
+}

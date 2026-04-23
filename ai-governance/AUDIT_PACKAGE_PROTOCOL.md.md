@@ -221,14 +221,17 @@ Architect: Reads YOUR findings → NOW designs green-ai Email DB based on facts
 
 ## YOUR COMMUNICATION PROTOCOL
 
-**File:** `c:\Udvikling\analysis-tool\temp.md`  
+**File:** `c:\Udvikling\analysis-tool\temp\README.md`  
 **Purpose:** Session-scoped buffer for reporting to Architect  
 **Update:** After EVERY task completion
 
-> 🔴 **CRITICAL: `temp.md` is the ONLY communication channel to the Architect.**  
+> 🔴 **CRITICAL: `temp/README.md` is the ONLY communication channel to the Architect.**  
 > Everything that requires a decision or must be reported MUST be written here.  
-> General documentation belongs in SSOT files — NEVER in temp.md.  
-> The user sends temp.md excerpts directly to ChatGPT (Architect). If it's not in temp.md, the Architect cannot see it.
+> General documentation belongs in SSOT files — NEVER in temp/README.md.  
+> The user sends temp/README.md excerpts directly to ChatGPT (Architect). If it's not in temp/README.md, the Architect cannot see it.
+
+> 🔴 **CRITICAL: The entire `temp/` folder is EPHEMERAL. The user deletes it after each delivery.**
+> All substantive files must have a permanent original in `harvest/architect-review/` or `harvest/stories/` BEFORE being copied to `temp/`.
 
 ### WHEN to Update temp.md (AUTOMATIC)
 

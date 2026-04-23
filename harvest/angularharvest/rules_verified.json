@@ -1,0 +1,473 @@
+{
+  "business_rules": [
+    {
+      "id": "4b757fc8",
+      "text": "A customer can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "ce26601d"
+      ],
+      "source_capability_ids": [
+        "01f0c58a",
+        "02b0c4ae",
+        "0369b17d",
+        "0edb3e4b",
+        "1015e13c"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "ae8b204d",
+      "text": "A message can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "4c2a8fe7"
+      ],
+      "source_capability_ids": [
+        "05153689",
+        "0772c7de",
+        "0c8816e5",
+        "0df824d2",
+        "20fe1fee"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "7f42f7e2",
+      "text": "A user profile can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "90b1f665"
+      ],
+      "source_capability_ids": [
+        "00eb877d",
+        "03aae5d3",
+        "052323d3",
+        "08c8e526",
+        "0ba2bc05"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "be0c7902",
+      "text": "A user account can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "18e4f808"
+      ],
+      "source_capability_ids": [
+        "0f983d02",
+        "2d4169ac",
+        "3072239b",
+        "4e7a08ae",
+        "5d9d6f3d"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "28e9880a",
+      "text": "A message sender can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "e49d81a7"
+      ],
+      "source_capability_ids": [
+        "091f046d",
+        "1a3bb402",
+        "29a2e40a",
+        "322676dc",
+        "3be8aef4"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "57e3d305",
+      "text": "A performance benchmark can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "71117971"
+      ],
+      "source_capability_ids": [
+        "22690410",
+        "39609733",
+        "5d4fa0e1",
+        "d2e62deb",
+        "f3f56936"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "d98b329f",
+      "text": "A sales record can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "aa90cfb5"
+      ],
+      "source_capability_ids": [
+        "07bfdb1d",
+        "4acace27",
+        "6d4726da",
+        "84408042",
+        "bbd44d90"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "e91e045b",
+      "text": "A potential customer can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "f6c94b89"
+      ],
+      "source_capability_ids": [
+        "03f7babf",
+        "27424d40",
+        "2d68c97a",
+        "ad6bfdb5",
+        "b384677f"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "a239d301",
+      "text": "An employee absence can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "624e82f8"
+      ],
+      "source_capability_ids": [
+        "3f34fbf8",
+        "4313ff43",
+        "a6238b8c",
+        "e847b60a",
+        "f22907d3"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "c45e9701",
+      "text": "An operational notification can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "fdf66f2b"
+      ],
+      "source_capability_ids": [
+        "36707fb6",
+        "4ecd7aa1",
+        "650f3a03",
+        "6800da53",
+        "69d20b1d"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "5be47856",
+      "text": "A recipient group can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "0cc99d42"
+      ],
+      "source_capability_ids": [
+        "44548bfa",
+        "45f4fe01",
+        "4a1bf418",
+        "5dad5cda",
+        "79e42340"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "418fc10a",
+      "text": "A contact person can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "790a8c9d"
+      ],
+      "source_capability_ids": [
+        "210b8dd7",
+        "2cfea96c",
+        "7bf891fa",
+        "8e0f04b2"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "b7603786",
+      "text": "A subscription can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "787ad0b7"
+      ],
+      "source_capability_ids": [
+        "5b187d8a",
+        "76510b57",
+        "a1eb53e4",
+        "f26bded0"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "a1c6dfee",
+      "text": "A dynamic notification can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "08fdd27c"
+      ],
+      "source_capability_ids": [
+        "0441170c",
+        "607e752d",
+        "60864fc6",
+        "d63a8af0"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "51b7c09c",
+      "text": "A privacy consent record can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "b8513093"
+      ],
+      "source_capability_ids": [
+        "0bb17cfe",
+        "32103b21",
+        "8608d4e2",
+        "b0062da0"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "ad679246",
+      "text": "A geographic map can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "e0409b2b"
+      ],
+      "source_capability_ids": [
+        "6fc7d0ef",
+        "9816dafc",
+        "ac2cca24",
+        "c7804511",
+        "cc2d2c9b"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "caad6a63",
+      "text": "A web notification channel can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "6e80efc9"
+      ],
+      "source_capability_ids": [
+        "319166c3",
+        "afa2152c",
+        "b8dc2b75",
+        "d90b97e3",
+        "eb276a12"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "fe0275b6",
+      "text": "A system configuration can be created, viewed, and removed. The full lifecycle is supported by the system.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "9b685fec"
+      ],
+      "source_capability_ids": [
+        "8b47d09e",
+        "957ebe1c",
+        "c09f40e3",
+        "e7d16969"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "108cc79b",
+      "text": "Accounts can be locked after repeated failed login attempts.",
+      "rule_type": "access_control",
+      "entity_ids": [
+        "1eeba4cf"
+      ],
+      "source_capability_ids": [
+        "5faa5ae3"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.85,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "dbcbf632",
+      "text": "Users can request a password reset to regain account access.",
+      "rule_type": "access_control",
+      "entity_ids": [
+        "1eeba4cf"
+      ],
+      "source_capability_ids": [
+        "60f68227"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "4caa2128",
+      "text": "A customer administration can be cancelled while still in progress.",
+      "rule_type": "state_transition",
+      "entity_ids": [],
+      "source_capability_ids": [
+        "e7d57635"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.85,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "b7d9dff9",
+      "text": "An employee absence can be rejected/dismissed after review.",
+      "rule_type": "state_transition",
+      "entity_ids": [
+        "624e82f8"
+      ],
+      "source_capability_ids": [
+        "a6238b8c"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.85,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "28bce55c",
+      "text": "A user must register before receiving notifications.",
+      "rule_type": "prerequisite",
+      "entity_ids": [
+        "787ad0b7"
+      ],
+      "source_capability_ids": [
+        "76510b57"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.9,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "aea65783",
+      "text": "An employee absence must first be submitted before it can be approved.",
+      "rule_type": "state_transition",
+      "entity_ids": [
+        "624e82f8"
+      ],
+      "source_capability_ids": [
+        "4313ff43"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.85,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "80d25f8a",
+      "text": "Customers can have their contracts terminated, but this can be reversed if needed.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "ce26601d"
+      ],
+      "source_capability_ids": [
+        "5d476cc2"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.85,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "5ccd057c",
+      "text": "An operational notification can be rejected/dismissed after review.",
+      "rule_type": "state_transition",
+      "entity_ids": [
+        "fdf66f2b"
+      ],
+      "source_capability_ids": [
+        "650f3a03"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.85,
+      "classification": "VERIFIED"
+    },
+    {
+      "id": "29efcdff",
+      "text": "A social media requires explicit confirmation before taking effect.",
+      "rule_type": "state_transition",
+      "entity_ids": [],
+      "source_capability_ids": [
+        "f67bb0ea"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.8,
+      "classification": "VERIFIED"
+    }
+  ],
+  "total": 27
+}

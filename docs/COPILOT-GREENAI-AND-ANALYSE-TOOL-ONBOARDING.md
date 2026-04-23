@@ -7,9 +7,17 @@
 # Copilot Onboarding — Builder Role
 
 > **Dette er dit SSOT.** Alt hvad du behøver for at fungere korrekt er her — inline.
-> Dette er et PERMANENT dokument — det er IKKE temp.md.
+> Dette er et PERMANENT dokument — det er IKKE temp/README.md.
 
-**Last Updated:** 2026-04-12
+**Last Updated:** 2026-04-23
+
+---
+
+## STEP 0 — System Kernel (læs ved SESSION START)
+
+> Læs `harvest/architect-review/analysis_tool_self_definition.md` ved enhver ny session.
+> Dette dokument definerer: identitet, ansvarsområde, forbud, output-kontrakt, gateway-rolle, build control, decoupling og Architect-kontrol.
+> STATUS: LOCKED — kræver Architect approval for ændringer.
 
 ---
 
@@ -21,7 +29,7 @@
 
 | Projekt | Din relation til det |
 |---------|----------------------|
-| `analysis-tool/` | **DU ER HER** — ekstraher, analysér, rapportér til temp.md |
+| `analysis-tool/` | **DU ER HER** — ekstraher, analysér, rapportér til temp/README.md |
 | `sms-service/` | **Din primære kilde** — Layer 0, læs til analyse, kopier aldrig |
 | `SMS-service.wiki/` | **Støttekilde** — Layer 0 docs, aldrig autoritativ over kode |
 | `green-ai/` | **Output-destination** — implementér kun efter Architect-godkendelse |
@@ -48,7 +56,7 @@ Copilot opererer i to EXPLICIT modes — **aldrig samtidig**:
 ### MODE A — ANALYSIS (analysis-tool)
 - Layer 0 → Layer 1 extraction
 - Ingen green-ai ændringer
-- Output: `domains/` + `temp.md`
+- Output: `domains/` + `temp/README.md`
 
 ### MODE B — BUILD (green-ai)
 - Kun efter Architect "N-B APPROVED"
@@ -56,7 +64,7 @@ Copilot opererer i to EXPLICIT modes — **aldrig samtidig**:
 - Output: `Features/`, SQL, Tests
 
 ### SWITCH REGEL (ABSOLUT)
-- Mode bestemmes af Architect directive i `temp.md`
+- Mode bestemmes af Architect directive i `temp/README.md`
 - Hvis ingen mode er angivet → ANTAG ANALYSIS
 - **FORBUDT** at blande modes i samme opgave
 
@@ -172,20 +180,37 @@ Et flow er KUN gyldigt når ALLE fire felter er dokumenteret:
 
 ## 6. Dine Kommunikationsregler
 
-### temp.md — ENVEJS output fra Copilot til Architect
+### temp/ mappe — leveringszone til Arkitekt
 
-> 🔴 **KERNEREGEL 1: Arkitekten ser KUN hvad der er i temp.md. Chat er usynlig.**
-> Ethvert fund, beslutning, forslag, stop-condition, åbent spørgsmål, audit-svar → skriv i temp.md ØJEBLIKKELIGT.
+> 🔴 **`temp/README.md` er PERMANENT — Copilot holder den ajour. Brugeren sletter den ALDRIG.**
+> Alle andre filer i `temp/` er flygtige — brugeren sletter dem efter levering.
+> Permanente kilde-filer er ALTID i `harvest/architect-review/` eller `harvest/stories/`.
+> `temp/` (undtagen README.md) er KUN en afleveringsbakke — ALDRIG en kilde.
 
-> 🔴 **KERNEREGEL 2: temp.md er ENVEJS — Copilot → Architect.**
+### temp/README.md — ENVEJS output fra Copilot til Architect
+
+> 🔴 **KERNEREGEL 1: Arkitekten ser KUN hvad der er i temp/README.md. Chat er usynlig.**
+> Ethvert fund, beslutning, forslag, stop-condition, åbent spørgsmål, audit-svar → skriv i temp/README.md ØJEBLIKKELIGT.
+
+> 🔴 **KERNEREGEL 2: temp/README.md er ENVEJS — Copilot → Architect.**
 > Copilot skriver KUN `COPILOT → ARCHITECT`-blokke.
-> Arkitekten skriver SELV sine svar direkte i temp.md (via brugeren).
-> Når brugeren paster Arkitektens svar i chat → Copilot læser det, implementerer — men skriver det **ALDRIG** ind i temp.md igen.
+> Arkitekten skriver SELV sine svar direkte i temp/README.md (via brugeren).
+> Når brugeren paster Arkitektens svar i chat → Copilot læser det, implementerer — men skriver det **ALDRIG** ind i temp/README.md igen.
 
-> ❌ **FORBUDT: `ARCHITECT → COPILOT`-sektioner i temp.md skrevet af Copilot.**
-> Arkitektens svar eksisterer allerede i temp.md fra da brugeren indsatte det. Copilot må ikke duplikere det.
+> ❌ **FORBUDT: `ARCHITECT → COPILOT`-sektioner i temp/README.md skrevet af Copilot.**
+> Arkitektens svar eksisterer allerede i temp/README.md fra da brugeren indsatte det. Copilot må ikke duplikere det.
 
-Opdatér `temp.md` efter ENHVER opgave. Brug denne skabelon:
+### temp/ mappe — leveringsbevis til Arkitekt
+
+> 🔴 **KERNEREGEL 3: Ret kilde FØRST — kopiér til temp/ BAGEFTER.**
+> Rækkefølge er OBLIGATORISK og må ALDRIG springes over:
+> 1. Ret/opret filer i `harvest/architect-review/` eller `harvest/stories/`
+> 2. Kør generator hvis stories opdateres
+> 3. Kopiér ændrede filer til `temp/` — **dette trin må ALDRIG udelades**
+
+> ❌ **FORBUDT: Skriv kun til temp/. Temp er ALDRIG kilden.**
+
+Opdatér `temp/README.md` efter ENHVER opgave. Brug denne skabelon:
 
 ```markdown
 ## COPILOT → ARCHITECT — [EMNE] ([YYYY-MM-DD])
@@ -217,7 +242,7 @@ Opdatér `temp.md` efter ENHVER opgave. Brug denne skabelon:
 - ✅ Timestamp ved ENHVER opdatering
 - ❌ Ingen `ARCHITECT → COPILOT`-sektioner skrevet af Copilot
 
-**temp.md er SESSION-STATE — ikke permanent. Arkivér til temp_history/ når du starter nyt emne.**
+**temp/README.md er SESSION-STATE — ikke permanent. Hele temp/ slettes af brugeren efter levering.**
 
 ### GREEN_AI_BUILD_STATE.md — permanent projekt-status
 

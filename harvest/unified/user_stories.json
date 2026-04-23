@@ -1,0 +1,3071 @@
+{
+  "meta": {
+    "generated_at": "2026-04-23",
+    "source": "angular_harvest_v3 + smart_harvester_v1",
+    "total_stories": 48,
+    "total_domains": 6,
+    "total_behaviors_english": 719,
+    "total_behaviors_danish": 593
+  },
+  "domains": [
+    {
+      "name": "Messaging & Communication",
+      "label_da": "Beskeder & Kommunikation",
+      "route": "/messaging",
+      "icon": "Message",
+      "nav_order": 1,
+      "description_da": "Oprettelse, afsendelse og administration af beskeder, SMS, web-beskeder og broadcast-kanaler.",
+      "story_count": 11
+    },
+    {
+      "name": "Customer & Enrollment",
+      "label_da": "Kunder & Tilmelding",
+      "route": "/customers",
+      "icon": "People",
+      "nav_order": 2,
+      "description_da": "Kundeadministration, afsender-tilmelding, kontakter og afmeldingsprocesser.",
+      "story_count": 6
+    },
+    {
+      "name": "User & Access Management",
+      "label_da": "Brugere & Adgang",
+      "route": "/admin",
+      "icon": "AdminPanelSettings",
+      "nav_order": 3,
+      "description_da": "Brugerprofiler, roller, adgangsnøgler, pakker og applikationsindstillinger.",
+      "story_count": 11
+    },
+    {
+      "name": "Address & Data",
+      "label_da": "Adresser & Data",
+      "route": "/addresses",
+      "icon": "LocationOn",
+      "nav_order": 4,
+      "description_da": "Adresseopslagning, geodata, modtagergrupper, filhåndtering og dataimport.",
+      "story_count": 10
+    },
+    {
+      "name": "Finance & Operations",
+      "label_da": "Økonomi & Drift",
+      "route": "/finance",
+      "icon": "AccountBalance",
+      "nav_order": 5,
+      "description_da": "Fakturering, accruals, HR-fravær, lønsedler og driftsprocesser.",
+      "story_count": 7
+    },
+    {
+      "name": "Analytics & Reporting",
+      "label_da": "Analyse & Rapportering",
+      "route": "/analytics",
+      "icon": "Analytics",
+      "nav_order": 6,
+      "description_da": "Benchmark-statistik, KPI-opfølgning, årsagskoder og audit-log.",
+      "story_count": 3
+    }
+  ],
+  "user_stories": [
+    {
+      "id": "US-001",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Messages",
+      "resource": "message",
+      "resource_da": "beskeder",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i beskeder, oprette beskeder og slette beskeder, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over beskeder",
+        "Brugeren kan søge og filtrere beskeder",
+        "Brugeren kan oprette ny/nye beskeder via formular",
+        "Brugeren kan slette beskeder med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/MessagesPage.razor",
+        "route": "/messaging/messages",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove message",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve message",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit message",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "82340530",
+        "29425493",
+        "0772c7de",
+        "68cfe607",
+        "2d3b7fb2",
+        "05153689",
+        "0df824d2",
+        "b7ddda45",
+        "d5c3ace7",
+        "4706fb5c",
+        "4287a7a1",
+        "a8f54d52",
+        "0c8816e5",
+        "20fe1fee",
+        "88aaefee",
+        "74b2c903",
+        "c5ed24a2",
+        "49f1cf72",
+        "b88c949f",
+        "43fe7e60",
+        "fccf3682",
+        "fd6ce802",
+        "a37e3647",
+        "71090246",
+        "ff56c05d"
+      ]
+    },
+    {
+      "id": "US-002",
+      "domain": "Customer & Enrollment",
+      "domain_da": "Kunder & Tilmelding",
+      "capability": "Manage Customers",
+      "resource": "customer",
+      "resource_da": "kunder",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i kunder, oprette kunder, redigere kunder og slette kunder, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over kunder",
+        "Brugeren kan søge og filtrere kunder",
+        "Brugeren kan oprette ny/nye kunder via formular",
+        "Brugeren kan redigere eksisterende kunder",
+        "Brugeren kan slette kunder med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/customers/CustomersPage.razor",
+        "route": "/customers/customers",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Kunder & Tilmelding",
+        "domain_route": "/customers",
+        "icon": "People",
+        "nav_order": 2
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove customer",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve customer",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can modify customer",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit customer",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update customer",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "db3db843",
+        "a041e57b",
+        "ef06acc7",
+        "192bf001",
+        "308f452f",
+        "abfd4785",
+        "1ff490e0",
+        "d657bb9b",
+        "366577dd",
+        "5d476cc2",
+        "30182f0b",
+        "e4c3f99c",
+        "9ea41ef9",
+        "0edb3e4b",
+        "1015e13c",
+        "bddd3e67",
+        "d14fda67",
+        "e8d21aca",
+        "8273c457",
+        "28225cea",
+        "120b5836",
+        "9f776ce0",
+        "2769aa59",
+        "ee89ed49",
+        "997776c9",
+        "01f0c58a",
+        "94bba6cf",
+        "c35e5cd9",
+        "face9f2c",
+        "2b13c425",
+        "a0196ddd",
+        "b3f95066"
+      ]
+    },
+    {
+      "id": "US-003",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Profiles",
+      "resource": "profile",
+      "resource_da": "profiler",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i profiler, oprette profiler, redigere profiler og slette profiler, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over profiler",
+        "Brugeren kan søge og filtrere profiler",
+        "Brugeren kan oprette ny/nye profiler via formular",
+        "Brugeren kan redigere eksisterende profiler",
+        "Brugeren kan slette profiler med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/admin/ProfilesPage.razor",
+        "route": "/admin/profiles",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove user profile",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve user profile",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit user profile",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update user profile",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "882c3ccf",
+        "1ec0222a",
+        "9294c5f3",
+        "00eb877d",
+        "052323d3",
+        "11471cf2",
+        "92a7462b",
+        "c279f3f3",
+        "7c0f81aa",
+        "a4031077",
+        "0ba2bc05",
+        "27e93879",
+        "5f1a984d",
+        "c14642a3",
+        "a89dac4d",
+        "7cdfbbc9",
+        "80cd3cb3",
+        "2daff0ef",
+        "113b54d8",
+        "7d337bc3",
+        "992de52c",
+        "9778c9d4",
+        "08c8e526",
+        "2cfaf819",
+        "03aae5d3",
+        "ce0cc43b",
+        "b106826e",
+        "413ac308"
+      ]
+    },
+    {
+      "id": "US-004",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Users",
+      "resource": "user",
+      "resource_da": "brugere",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i brugere, oprette brugere, redigere brugere og slette brugere, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over brugere",
+        "Brugeren kan søge og filtrere brugere",
+        "Brugeren kan oprette ny/nye brugere via formular",
+        "Brugeren kan redigere eksisterende brugere",
+        "Brugeren kan slette brugere med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/admin/UsersPage.razor",
+        "route": "/admin/users",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove user account",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve user account",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can modify user account",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit user account",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update user account",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "f6cba4fc",
+        "8a56deda",
+        "3072239b",
+        "b124be9d",
+        "d9bdae50",
+        "83259b63",
+        "c90cf40d",
+        "c057df06",
+        "2d4169ac",
+        "fa08ad41",
+        "5d9d6f3d",
+        "0f983d02",
+        "4e7a08ae",
+        "7e027744"
+      ]
+    },
+    {
+      "id": "US-005",
+      "domain": "Customer & Enrollment",
+      "domain_da": "Kunder & Tilmelding",
+      "capability": "Manage Senders",
+      "resource": "sender",
+      "resource_da": "afsendere",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i afsendere, oprette afsendere, redigere afsendere og slette afsendere, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over afsendere",
+        "Brugeren kan søge og filtrere afsendere",
+        "Brugeren kan oprette ny/nye afsendere via formular",
+        "Brugeren kan redigere eksisterende afsendere",
+        "Brugeren kan slette afsendere med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/customers/SendersPage.razor",
+        "route": "/customers/senders",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Kunder & Tilmelding",
+        "domain_route": "/customers",
+        "icon": "People",
+        "nav_order": 2
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove message sender",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve message sender",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can modify message sender",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit message sender",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "943b317a",
+        "3be8aef4",
+        "ace96986",
+        "d3a262b3",
+        "b1296508",
+        "ebcda3bc",
+        "1a3bb402",
+        "091f046d",
+        "fab1a523",
+        "322676dc",
+        "29a2e40a",
+        "df4f774c",
+        "f4ae2367",
+        "aa4e302a"
+      ]
+    },
+    {
+      "id": "US-006",
+      "domain": "Analytics & Reporting",
+      "domain_da": "Analyse & Rapportering",
+      "capability": "Manage Benchmarks",
+      "resource": "benchmark",
+      "resource_da": "benchmarks",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i benchmarks, oprette benchmarks, redigere benchmarks og slette benchmarks, så jeg kan få indsigt i systemaktivitet og performance.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over benchmarks",
+        "Brugeren kan søge og filtrere benchmarks",
+        "Brugeren kan oprette ny/nye benchmarks via formular",
+        "Brugeren kan redigere eksisterende benchmarks",
+        "Brugeren kan slette benchmarks med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/analytics/BenchmarksPage.razor",
+        "route": "/analytics/benchmarks",
+        "components": [
+          "MudButton",
+          "MudCard",
+          "MudChart",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination",
+          "stats-cards"
+        ]
+      },
+      "nav": {
+        "domain_label": "Analyse & Rapportering",
+        "domain_route": "/analytics",
+        "icon": "Analytics",
+        "nav_order": 6
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove performance benchmark",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve performance benchmark",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can modify performance benchmark",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit performance benchmark",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "22690410",
+        "5d4fa0e1",
+        "d2e62deb",
+        "f3f56936",
+        "39609733"
+      ]
+    },
+    {
+      "id": "US-007",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Resets",
+      "resource": "reset",
+      "resource_da": "nulstillinger",
+      "verbs": [
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg oprette nulstillinger, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren kan oprette ny/nye nulstillinger via formular"
+      ],
+      "blazor": {
+        "page": "Pages/admin/ResetsPage.razor",
+        "route": "/admin/resets",
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm"
+        ],
+        "patterns": [
+          "create-dialog"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [
+        {
+          "text": "User can create and submit password reset request",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "5faa5ae3",
+        "60f68227",
+        "e2fd06a1",
+        "73b9918c"
+      ]
+    },
+    {
+      "id": "US-008",
+      "domain": "Finance & Operations",
+      "domain_da": "Økonomi & Drift",
+      "capability": "Manage Sales",
+      "resource": "sale",
+      "resource_da": "salgsdata",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i salgsdata, oprette salgsdata, redigere salgsdata og slette salgsdata, så jeg kan holde styr på økonomi og driftsprocesser.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over salgsdata",
+        "Brugeren kan søge og filtrere salgsdata",
+        "Brugeren kan oprette ny/nye salgsdata via formular",
+        "Brugeren kan redigere eksisterende salgsdata",
+        "Brugeren kan slette salgsdata med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/finance/SalesPage.razor",
+        "route": "/finance/sales",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Økonomi & Drift",
+        "domain_route": "/finance",
+        "icon": "AccountBalance",
+        "nav_order": 5
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove sales record",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve sales record",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit sales record",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update sales record",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "bbd44d90",
+        "07bfdb1d",
+        "6d4726da",
+        "4acace27",
+        "84408042"
+      ]
+    },
+    {
+      "id": "US-009",
+      "domain": "Customer & Enrollment",
+      "domain_da": "Kunder & Tilmelding",
+      "capability": "Manage Prospects",
+      "resource": "prospect",
+      "resource_da": "salgsmuligheder",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i salgsmuligheder, oprette salgsmuligheder, redigere salgsmuligheder og slette salgsmuligheder, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over salgsmuligheder",
+        "Brugeren kan søge og filtrere salgsmuligheder",
+        "Brugeren kan oprette ny/nye salgsmuligheder via formular",
+        "Brugeren kan redigere eksisterende salgsmuligheder",
+        "Brugeren kan slette salgsmuligheder med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/customers/ProspectsPage.razor",
+        "route": "/customers/prospects",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Kunder & Tilmelding",
+        "domain_route": "/customers",
+        "icon": "People",
+        "nav_order": 2
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove potential customer",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve potential customer",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can modify potential customer",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit potential customer",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "ad6bfdb5",
+        "2d68c97a",
+        "b384677f",
+        "d017580d",
+        "27424d40",
+        "03f7babf",
+        "dcc63da5"
+      ]
+    },
+    {
+      "id": "US-010",
+      "domain": "Finance & Operations",
+      "domain_da": "Økonomi & Drift",
+      "capability": "Manage Salaries",
+      "resource": "salary",
+      "resource_da": "lønsedler",
+      "verbs": [
+        "GET"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i lønsedler, så jeg kan holde styr på økonomi og driftsprocesser.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over lønsedler",
+        "Brugeren kan søge og filtrere lønsedler"
+      ],
+      "blazor": {
+        "page": "Pages/finance/SalariesPage.razor",
+        "route": "/finance/salarys",
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Økonomi & Drift",
+        "domain_route": "/finance",
+        "icon": "AccountBalance",
+        "nav_order": 5
+      },
+      "source_behaviors": [
+        {
+          "text": "User can view and retrieve payroll period",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "d87ef38c",
+        "ed8b40e0",
+        "9690e21f",
+        "4c09a8a6",
+        "8b305266"
+      ]
+    },
+    {
+      "id": "US-011",
+      "domain": "Finance & Operations",
+      "domain_da": "Økonomi & Drift",
+      "capability": "Manage Absences",
+      "resource": "absence",
+      "resource_da": "fraværsregistreringer",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i fraværsregistreringer, oprette fraværsregistreringer, redigere fraværsregistreringer og slette fraværsregistreringer, så jeg kan holde styr på økonomi og driftsprocesser.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over fraværsregistreringer",
+        "Brugeren kan søge og filtrere fraværsregistreringer",
+        "Brugeren kan oprette ny/nye fraværsregistreringer via formular",
+        "Brugeren kan redigere eksisterende fraværsregistreringer",
+        "Brugeren kan slette fraværsregistreringer med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/finance/AbsencesPage.razor",
+        "route": "/finance/absences",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Økonomi & Drift",
+        "domain_route": "/finance",
+        "icon": "AccountBalance",
+        "nav_order": 5
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove employee absence",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve employee absence",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can modify employee absence",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit employee absence",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "a6238b8c",
+        "3f34fbf8",
+        "4313ff43",
+        "e847b60a",
+        "f22907d3"
+      ]
+    },
+    {
+      "id": "US-012",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Operationals",
+      "resource": "operational",
+      "resource_da": "driftsdata",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i driftsdata, oprette driftsdata, redigere driftsdata og slette driftsdata, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over driftsdata",
+        "Brugeren kan søge og filtrere driftsdata",
+        "Brugeren kan oprette ny/nye driftsdata via formular",
+        "Brugeren kan redigere eksisterende driftsdata",
+        "Brugeren kan slette driftsdata med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/OperationalsPage.razor",
+        "route": "/messaging/operationals",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove operational notification",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve operational notification",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit operational notification",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update operational notification",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "69d20b1d",
+        "4ecd7aa1",
+        "6800da53",
+        "d5921deb",
+        "36707fb6",
+        "650f3a03"
+      ]
+    },
+    {
+      "id": "US-013",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Manage Groups",
+      "resource": "group",
+      "resource_da": "grupper",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i grupper, oprette grupper og slette grupper, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over grupper",
+        "Brugeren kan søge og filtrere grupper",
+        "Brugeren kan oprette ny/nye grupper via formular",
+        "Brugeren kan slette grupper med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/addresses/GroupsPage.razor",
+        "route": "/addresses/groups",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove recipient group",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve recipient group",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit recipient group",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "45f4fe01",
+        "a20a4750",
+        "5dad5cda",
+        "44548bfa",
+        "79e42340",
+        "4a1bf418"
+      ]
+    },
+    {
+      "id": "US-014",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Manage Corrections",
+      "resource": "correction",
+      "resource_da": "korrektioner",
+      "verbs": [
+        "DELETE",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg oprette korrektioner og slette korrektioner, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [
+        "Brugeren kan oprette ny/nye korrektioner via formular",
+        "Brugeren kan slette korrektioner med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/addresses/CorrectionsPage.razor",
+        "route": "/addresses/corrections",
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog"
+        ]
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove address correction",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit address correction",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "f24b0325",
+        "8d511443",
+        "d6bcc2a6",
+        "4c32a733",
+        "c60dd1e3",
+        "41b3be21"
+      ]
+    },
+    {
+      "id": "US-015",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Manage Receivers",
+      "resource": "receiver",
+      "resource_da": "modtagere",
+      "verbs": [
+        "GET",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i modtagere og oprette modtagere, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over modtagere",
+        "Brugeren kan søge og filtrere modtagere",
+        "Brugeren kan oprette ny/nye modtagere via formular"
+      ],
+      "blazor": {
+        "page": "Pages/addresses/ReceiversPage.razor",
+        "route": "/addresses/receivers",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [
+        {
+          "text": "User can view and retrieve notification recipient",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit notification recipient",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "b0d091b8",
+        "5b1687f3",
+        "cbbac94f",
+        "8ba86bbe"
+      ]
+    },
+    {
+      "id": "US-016",
+      "domain": "Customer & Enrollment",
+      "domain_da": "Kunder & Tilmelding",
+      "capability": "Manage Contacts",
+      "resource": "contact",
+      "resource_da": "kontakter",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i kontakter, oprette kontakter, redigere kontakter og slette kontakter, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over kontakter",
+        "Brugeren kan søge og filtrere kontakter",
+        "Brugeren kan oprette ny/nye kontakter via formular",
+        "Brugeren kan redigere eksisterende kontakter",
+        "Brugeren kan slette kontakter med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/customers/ContactsPage.razor",
+        "route": "/customers/contacts",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Kunder & Tilmelding",
+        "domain_route": "/customers",
+        "icon": "People",
+        "nav_order": 2
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove contact person",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve contact person",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit contact person",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update contact person",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "7bf891fa",
+        "2cfea96c",
+        "8e0f04b2",
+        "210b8dd7"
+      ]
+    },
+    {
+      "id": "US-017",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Roles",
+      "resource": "role",
+      "resource_da": "roller",
+      "verbs": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i roller, oprette roller og redigere roller, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over roller",
+        "Brugeren kan søge og filtrere roller",
+        "Brugeren kan oprette ny/nye roller via formular",
+        "Brugeren kan redigere eksisterende roller"
+      ],
+      "blazor": {
+        "page": "Pages/admin/RolesPage.razor",
+        "route": "/admin/roles",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [
+        {
+          "text": "User can view and retrieve user role",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit user role",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update user role",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "fe625c9e",
+        "4ae30bfb",
+        "ef27eee0"
+      ]
+    },
+    {
+      "id": "US-018",
+      "domain": "Finance & Operations",
+      "domain_da": "Økonomi & Drift",
+      "capability": "Manage Invoices",
+      "resource": "invoice",
+      "resource_da": "fakturaer",
+      "verbs": [
+        "GET"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i fakturaer, så jeg kan holde styr på økonomi og driftsprocesser.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over fakturaer",
+        "Brugeren kan søge og filtrere fakturaer"
+      ],
+      "blazor": {
+        "page": "Pages/finance/InvoicesPage.razor",
+        "route": "/finance/invoices",
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Økonomi & Drift",
+        "domain_route": "/finance",
+        "icon": "AccountBalance",
+        "nav_order": 5
+      },
+      "source_behaviors": [
+        {
+          "text": "User can view and retrieve invoice",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "b3e93ad5",
+        "3ecc596e",
+        "6b071c13"
+      ]
+    },
+    {
+      "id": "US-019",
+      "domain": "Customer & Enrollment",
+      "domain_da": "Kunder & Tilmelding",
+      "capability": "Manage Enrollments",
+      "resource": "enrollment",
+      "resource_da": "tilmeldinger",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i tilmeldinger, oprette tilmeldinger og slette tilmeldinger, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over tilmeldinger",
+        "Brugeren kan søge og filtrere tilmeldinger",
+        "Brugeren kan oprette ny/nye tilmeldinger via formular",
+        "Brugeren kan slette tilmeldinger med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/customers/EnrollmentsPage.razor",
+        "route": "/customers/enrollments",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Kunder & Tilmelding",
+        "domain_route": "/customers",
+        "icon": "People",
+        "nav_order": 2
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove subscription",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve subscription",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit subscription",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "76510b57",
+        "5b187d8a",
+        "a1eb53e4",
+        "f26bded0"
+      ]
+    },
+    {
+      "id": "US-020",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Dynamics",
+      "resource": "dynamic",
+      "resource_da": "dynamiske felter",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i dynamiske felter, oprette dynamiske felter, redigere dynamiske felter og slette dynamiske felter, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over dynamiske felter",
+        "Brugeren kan søge og filtrere dynamiske felter",
+        "Brugeren kan oprette ny/nye dynamiske felter via formular",
+        "Brugeren kan redigere eksisterende dynamiske felter",
+        "Brugeren kan slette dynamiske felter med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/DynamicsPage.razor",
+        "route": "/messaging/dynamics",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove dynamic notification",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve dynamic notification",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit dynamic notification",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update dynamic notification",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "60864fc6",
+        "0441170c",
+        "d63a8af0",
+        "607e752d"
+      ]
+    },
+    {
+      "id": "US-021",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Manage Gdprs",
+      "resource": "gdpr",
+      "resource_da": "GDPR-håndtering",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i GDPR-håndtering, oprette GDPR-håndtering, redigere GDPR-håndtering og slette GDPR-håndtering, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over GDPR-håndtering",
+        "Brugeren kan søge og filtrere GDPR-håndtering",
+        "Brugeren kan oprette ny/nye GDPR-håndtering via formular",
+        "Brugeren kan redigere eksisterende GDPR-håndtering",
+        "Brugeren kan slette GDPR-håndtering med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/addresses/GdprsPage.razor",
+        "route": "/addresses/gdprs",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove privacy consent record",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve privacy consent record",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit privacy consent record",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update privacy consent record",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "8608d4e2",
+        "32103b21",
+        "0bb17cfe",
+        "b0062da0"
+      ]
+    },
+    {
+      "id": "US-022",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Maps",
+      "resource": "map",
+      "resource_da": "kortvisning",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i kortvisning, oprette kortvisning, redigere kortvisning og slette kortvisning, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over kortvisning",
+        "Brugeren kan søge og filtrere kortvisning",
+        "Brugeren kan oprette ny/nye kortvisning via formular",
+        "Brugeren kan redigere eksisterende kortvisning",
+        "Brugeren kan slette kortvisning med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/admin/MapsPage.razor",
+        "route": "/admin/maps",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudPaper",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "map-view",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove geographic map",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve geographic map",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit geographic map",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update geographic map",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "c7804511",
+        "ac2cca24",
+        "9816dafc",
+        "6fc7d0ef",
+        "cc2d2c9b"
+      ]
+    },
+    {
+      "id": "US-023",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Webs",
+      "resource": "web",
+      "resource_da": "web-beskeder",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i web-beskeder, oprette web-beskeder og slette web-beskeder, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over web-beskeder",
+        "Brugeren kan søge og filtrere web-beskeder",
+        "Brugeren kan oprette ny/nye web-beskeder via formular",
+        "Brugeren kan slette web-beskeder med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/WebsPage.razor",
+        "route": "/messaging/webs",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove web notification channel",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve web notification channel",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit web notification channel",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "319166c3",
+        "d90b97e3",
+        "afa2152c",
+        "b8dc2b75",
+        "eb276a12"
+      ]
+    },
+    {
+      "id": "US-024",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Sms",
+      "resource": "sms",
+      "resource_da": "SMS-beskeder",
+      "verbs": [
+        "DELETE",
+        "GET"
+      ],
+      "priority": "P2",
+      "story_da": "Som bruger vil jeg se og søge i SMS-beskeder og slette SMS-beskeder, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over SMS-beskeder",
+        "Brugeren kan søge og filtrere SMS-beskeder",
+        "Brugeren kan slette SMS-beskeder med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/SmsPage.razor",
+        "route": "/messaging/smss",
+        "components": [
+          "MudDataGrid",
+          "MudDialog",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove sms notification channel",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve sms notification channel",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "794faca6",
+        "5d9f621d",
+        "10e5396a",
+        "16485be3"
+      ]
+    },
+    {
+      "id": "US-025",
+      "domain": "Analytics & Reporting",
+      "domain_da": "Analyse & Rapportering",
+      "capability": "Manage Causes",
+      "resource": "cause",
+      "resource_da": "årsagskoder",
+      "verbs": [
+        "DELETE",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg oprette årsagskoder, redigere årsagskoder og slette årsagskoder, så jeg kan få indsigt i systemaktivitet og performance.",
+      "acceptance_criteria": [
+        "Brugeren kan oprette ny/nye årsagskoder via formular",
+        "Brugeren kan redigere eksisterende årsagskoder",
+        "Brugeren kan slette årsagskoder med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/analytics/CausesPage.razor",
+        "route": "/analytics/causes",
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog"
+        ]
+      },
+      "nav": {
+        "domain_label": "Analyse & Rapportering",
+        "domain_route": "/analytics",
+        "icon": "Analytics",
+        "nav_order": 6
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove benchmark cause",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit benchmark cause",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update benchmark cause",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "f89e4b82",
+        "21946b61",
+        "717f8646"
+      ]
+    },
+    {
+      "id": "US-026",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Manage Address",
+      "resource": "address",
+      "resource_da": "adresser",
+      "verbs": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i adresser, oprette adresser og redigere adresser, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over adresser",
+        "Brugeren kan søge og filtrere adresser",
+        "Brugeren kan oprette ny/nye adresser via formular",
+        "Brugeren kan redigere eksisterende adresser"
+      ],
+      "blazor": {
+        "page": "Pages/addresses/AddressPage.razor",
+        "route": "/addresses/addresss",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudPaper",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "map-view",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [
+        {
+          "text": "User can view and retrieve address",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit address",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can update address",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "c78fad39",
+        "2ec26ab9",
+        "9774fa58",
+        "f04eeeff"
+      ]
+    },
+    {
+      "id": "US-027",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Manage Stds",
+      "resource": "std",
+      "resource_da": "standardindstillinger",
+      "verbs": [
+        "DELETE",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg oprette standardindstillinger og slette standardindstillinger, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [
+        "Brugeren kan oprette ny/nye standardindstillinger via formular",
+        "Brugeren kan slette standardindstillinger med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/addresses/StdsPage.razor",
+        "route": "/addresses/stds",
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog"
+        ]
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "4148a712",
+        "31dd0e7a",
+        "c1a5b5f7"
+      ]
+    },
+    {
+      "id": "US-028",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Manage Localizeds",
+      "resource": "localized",
+      "resource_da": "sprogoversættelser",
+      "verbs": [
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg oprette sprogoversættelser, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [
+        "Brugeren kan oprette ny/nye sprogoversættelser via formular"
+      ],
+      "blazor": {
+        "page": "Pages/addresses/LocalizedsPage.razor",
+        "route": "/addresses/localizeds",
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm"
+        ],
+        "patterns": [
+          "create-dialog"
+        ]
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "ee1a3790",
+        "67fce266",
+        "9ab2d612"
+      ]
+    },
+    {
+      "id": "US-029",
+      "domain": "Finance & Operations",
+      "domain_da": "Økonomi & Drift",
+      "capability": "Manage Employees",
+      "resource": "employee",
+      "resource_da": "medarbejdere",
+      "verbs": [
+        "GET",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i medarbejdere og oprette medarbejdere, så jeg kan holde styr på økonomi og driftsprocesser.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over medarbejdere",
+        "Brugeren kan søge og filtrere medarbejdere",
+        "Brugeren kan oprette ny/nye medarbejdere via formular"
+      ],
+      "blazor": {
+        "page": "Pages/finance/EmployeesPage.razor",
+        "route": "/finance/employees",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Økonomi & Drift",
+        "domain_route": "/finance",
+        "icon": "AccountBalance",
+        "nav_order": 5
+      },
+      "source_behaviors": [
+        {
+          "text": "User can view and retrieve employee",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit employee",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "ec792dad",
+        "f6206ac5",
+        "60b85919",
+        "4e5d5549"
+      ]
+    },
+    {
+      "id": "US-030",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Manage Imports",
+      "resource": "import",
+      "resource_da": "dataimport",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i dataimport, oprette dataimport og slette dataimport, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over dataimport",
+        "Brugeren kan søge og filtrere dataimport",
+        "Brugeren kan oprette ny/nye dataimport via formular",
+        "Brugeren kan slette dataimport med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/addresses/ImportsPage.razor",
+        "route": "/addresses/imports",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "b3a53183",
+        "b6169161",
+        "e0d2bfe1",
+        "434c6b69"
+      ]
+    },
+    {
+      "id": "US-031",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Customers",
+      "resource": "customer",
+      "resource_da": "kunder",
+      "verbs": [
+        "GET"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i kunder, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over kunder",
+        "Brugeren kan søge og filtrere kunder"
+      ],
+      "blazor": {
+        "page": "Pages/admin/CustomersPage.razor",
+        "route": "/admin/customers",
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "cde39f7c",
+        "0369b17d",
+        "02b0c4ae"
+      ]
+    },
+    {
+      "id": "US-032",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Entries",
+      "resource": "entry",
+      "resource_da": "poster",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i poster, oprette poster og slette poster, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over poster",
+        "Brugeren kan søge og filtrere poster",
+        "Brugeren kan oprette ny/nye poster via formular",
+        "Brugeren kan slette poster med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/EntriesPage.razor",
+        "route": "/messaging/entrys",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "40e77324",
+        "42c762c3",
+        "1dc11167"
+      ]
+    },
+    {
+      "id": "US-033",
+      "domain": "Finance & Operations",
+      "domain_da": "Økonomi & Drift",
+      "capability": "Manage Drives",
+      "resource": "drive",
+      "resource_da": "fildrev",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i fildrev, oprette fildrev og slette fildrev, så jeg kan holde styr på økonomi og driftsprocesser.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over fildrev",
+        "Brugeren kan søge og filtrere fildrev",
+        "Brugeren kan oprette ny/nye fildrev via formular",
+        "Brugeren kan slette fildrev med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/finance/DrivesPage.razor",
+        "route": "/finance/drives",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Økonomi & Drift",
+        "domain_route": "/finance",
+        "icon": "AccountBalance",
+        "nav_order": 5
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "e5f010af",
+        "35a1e72f",
+        "7a8c8780"
+      ]
+    },
+    {
+      "id": "US-034",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Archiveds",
+      "resource": "archived",
+      "resource_da": "arkiverede beskeder",
+      "verbs": [
+        "GET"
+      ],
+      "priority": "P2",
+      "story_da": "Som bruger vil jeg se og søge i arkiverede beskeder, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over arkiverede beskeder",
+        "Brugeren kan søge og filtrere arkiverede beskeder"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/ArchivedsPage.razor",
+        "route": "/messaging/archiveds",
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "2a7db1a8",
+        "5348164b",
+        "fc8b4cc9",
+        "f3b6f9ed"
+      ]
+    },
+    {
+      "id": "US-035",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Receivers",
+      "resource": "receiver",
+      "resource_da": "modtagere",
+      "verbs": [
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg oprette modtagere, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren kan oprette ny/nye modtagere via formular"
+      ],
+      "blazor": {
+        "page": "Pages/admin/ReceiversPage.razor",
+        "route": "/admin/receivers",
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm"
+        ],
+        "patterns": [
+          "create-dialog"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "c5796d17",
+        "625c93a6",
+        "82133923"
+      ]
+    },
+    {
+      "id": "US-036",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Configurations",
+      "resource": "configuration",
+      "resource_da": "konfigurationer",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i konfigurationer, oprette konfigurationer og slette konfigurationer, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over konfigurationer",
+        "Brugeren kan søge og filtrere konfigurationer",
+        "Brugeren kan oprette ny/nye konfigurationer via formular",
+        "Brugeren kan slette konfigurationer med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/admin/ConfigurationsPage.razor",
+        "route": "/admin/configurations",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [
+        {
+          "text": "User can remove system configuration",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can view and retrieve system configuration",
+          "actor": "user",
+          "classification": "INFERRED"
+        },
+        {
+          "text": "User can create and submit system configuration",
+          "actor": "user",
+          "classification": "INFERRED"
+        }
+      ],
+      "source_capability_ids": [
+        "e7d16969",
+        "8b47d09e",
+        "957ebe1c",
+        "c09f40e3"
+      ]
+    },
+    {
+      "id": "US-037",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Status",
+      "resource": "status",
+      "resource_da": "statusoversigt",
+      "verbs": [
+        "GET"
+      ],
+      "priority": "P2",
+      "story_da": "Som bruger vil jeg se og søge i statusoversigt, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over statusoversigt",
+        "Brugeren kan søge og filtrere statusoversigt"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/StatusPage.razor",
+        "route": "/messaging/statuss",
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "baeea8f7",
+        "069923a3",
+        "408329f0"
+      ]
+    },
+    {
+      "id": "US-038",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Conversations",
+      "resource": "conversation",
+      "resource_da": "samtaler",
+      "verbs": [
+        "GET",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i samtaler og oprette samtaler, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over samtaler",
+        "Brugeren kan søge og filtrere samtaler",
+        "Brugeren kan oprette ny/nye samtaler via formular"
+      ],
+      "blazor": {
+        "page": "Pages/admin/ConversationsPage.razor",
+        "route": "/admin/conversations",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "24a0a194",
+        "69d5e132",
+        "ec4eac55"
+      ]
+    },
+    {
+      "id": "US-039",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Manage Ftps",
+      "resource": "ftp",
+      "resource_da": "FTP-filer",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i FTP-filer, oprette FTP-filer, redigere FTP-filer og slette FTP-filer, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over FTP-filer",
+        "Brugeren kan søge og filtrere FTP-filer",
+        "Brugeren kan oprette ny/nye FTP-filer via formular",
+        "Brugeren kan redigere eksisterende FTP-filer",
+        "Brugeren kan slette FTP-filer med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/admin/FtpsPage.razor",
+        "route": "/admin/ftps",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "26203675",
+        "0086a927",
+        "27ed93e2",
+        "2660e29f"
+      ]
+    },
+    {
+      "id": "US-040",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Warnings",
+      "resource": "warning",
+      "resource_da": "advarsler",
+      "verbs": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i advarsler, oprette advarsler og redigere advarsler, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over advarsler",
+        "Brugeren kan søge og filtrere advarsler",
+        "Brugeren kan oprette ny/nye advarsler via formular",
+        "Brugeren kan redigere eksisterende advarsler"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/WarningsPage.razor",
+        "route": "/messaging/warnings",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "3b872338",
+        "d6b1fce4",
+        "0d099ad6",
+        "1b42bf54"
+      ]
+    },
+    {
+      "id": "US-041",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Manage Weathers",
+      "resource": "weather",
+      "resource_da": "vejrdata",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "priority": "P1",
+      "story_da": "Som bruger vil jeg se og søge i vejrdata, oprette vejrdata, redigere vejrdata og slette vejrdata, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over vejrdata",
+        "Brugeren kan søge og filtrere vejrdata",
+        "Brugeren kan oprette ny/nye vejrdata via formular",
+        "Brugeren kan redigere eksisterende vejrdata",
+        "Brugeren kan slette vejrdata med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/messaging/WeathersPage.razor",
+        "route": "/messaging/weathers",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "ba76e2bb",
+        "c375f97f",
+        "00e64798",
+        "94343c94"
+      ]
+    },
+    {
+      "id": "US-042",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Manage Statstidendes",
+      "resource": "statstidende",
+      "resource_da": "statstidendeer",
+      "verbs": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg se og søge i statstidendeer, oprette statstidendeer og slette statstidendeer, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [
+        "Brugeren ser en liste over statstidendeer",
+        "Brugeren kan søge og filtrere statstidendeer",
+        "Brugeren kan oprette ny/nye statstidendeer via formular",
+        "Brugeren kan slette statstidendeer med bekræftelsesdialog"
+      ],
+      "blazor": {
+        "page": "Pages/addresses/StatstidendesPage.razor",
+        "route": "/addresses/statstidendes",
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ]
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "e86e132b",
+        "9231ad23",
+        "b7e9cb71",
+        "0113b645"
+      ]
+    },
+    {
+      "id": "US-043",
+      "domain": "Messaging & Communication",
+      "domain_da": "Beskeder & Kommunikation",
+      "capability": "Other Messaging Operations",
+      "resource": "misc",
+      "resource_da": "miscer",
+      "verbs": [],
+      "priority": "P2",
+      "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan kommunikere effektivt med kunder og modtagere.",
+      "acceptance_criteria": [],
+      "blazor": {
+        "page": "Pages/messaging/MessagingOperationsPage.razor",
+        "route": "/messaging/miscs",
+        "components": [],
+        "patterns": []
+      },
+      "nav": {
+        "domain_label": "Beskeder & Kommunikation",
+        "domain_route": "/messaging",
+        "icon": "Message",
+        "nav_order": 1
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "d1a1deca",
+        "679304af",
+        "a0e04592",
+        "32d63cad",
+        "37e586eb",
+        "b53dce20",
+        "b85e374f",
+        "e632f9a6",
+        "78c6276a",
+        "93a1b0f2",
+        "7fd11706",
+        "dad3609b",
+        "24508b6a",
+        "e499e6bb",
+        "66fa1fe2",
+        "e8e17240",
+        "948e2587",
+        "7955231e",
+        "fec2ee5b",
+        "2fe552e8",
+        "98310868",
+        "08689777",
+        "00b3d660",
+        "f67bb0ea",
+        "020341fb",
+        "9d564f24",
+        "340d6601",
+        "9f328631",
+        "415fba44",
+        "81c40599",
+        "2fa93d0a",
+        "ab3e1999",
+        "bacf8cb3",
+        "f60a73bd",
+        "d947bef7"
+      ]
+    },
+    {
+      "id": "US-044",
+      "domain": "Customer & Enrollment",
+      "domain_da": "Kunder & Tilmelding",
+      "capability": "Other Customer Operations",
+      "resource": "misc",
+      "resource_da": "miscer",
+      "verbs": [],
+      "priority": "P2",
+      "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+      "acceptance_criteria": [],
+      "blazor": {
+        "page": "Pages/customers/CustomerOperationsPage.razor",
+        "route": "/customers/miscs",
+        "components": [],
+        "patterns": []
+      },
+      "nav": {
+        "domain_label": "Kunder & Tilmelding",
+        "domain_route": "/customers",
+        "icon": "People",
+        "nav_order": 2
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "bfc42c95",
+        "e7d57635",
+        "8c617099",
+        "6e9f9ace",
+        "455f3ccd",
+        "9f96eafe",
+        "ef6af579",
+        "0611a2ae",
+        "1bb49e2c",
+        "8c1f7bf5",
+        "540411d3",
+        "fe5302a2",
+        "95a17280",
+        "1582bee7",
+        "dc8cbe64",
+        "cd8990dd",
+        "b40ea290",
+        "507c8529",
+        "732e6ef0",
+        "626f5edd",
+        "bf75db59",
+        "4ee275bf",
+        "8ee7f14d",
+        "5f01fc8a",
+        "fea11d05",
+        "ca20a303",
+        "7159f832",
+        "1d9792b7"
+      ]
+    },
+    {
+      "id": "US-045",
+      "domain": "Analytics & Reporting",
+      "domain_da": "Analyse & Rapportering",
+      "capability": "Other Analytics Operations",
+      "resource": "misc",
+      "resource_da": "miscer",
+      "verbs": [],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan få indsigt i systemaktivitet og performance.",
+      "acceptance_criteria": [],
+      "blazor": {
+        "page": "Pages/analytics/AnalyticsOperationsPage.razor",
+        "route": "/analytics/miscs",
+        "components": [],
+        "patterns": []
+      },
+      "nav": {
+        "domain_label": "Analyse & Rapportering",
+        "domain_route": "/analytics",
+        "icon": "Analytics",
+        "nav_order": 6
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "32667584",
+        "60901748",
+        "691ba404",
+        "ca1fecb9",
+        "ea0d1091",
+        "c775e84b",
+        "6b3a67f7",
+        "c658b8ec",
+        "10ec1d6e",
+        "7b186b6a",
+        "06899346",
+        "73a1c5e0",
+        "eb08f976",
+        "73319176",
+        "338a255a",
+        "1dd51cc4",
+        "c0d58a16",
+        "f2d2d8ca"
+      ]
+    },
+    {
+      "id": "US-046",
+      "domain": "Address & Data",
+      "domain_da": "Adresser & Data",
+      "capability": "Other Address Operations",
+      "resource": "misc",
+      "resource_da": "miscer",
+      "verbs": [],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan håndtere og validere adressedata korrekt.",
+      "acceptance_criteria": [],
+      "blazor": {
+        "page": "Pages/addresses/AddressOperationsPage.razor",
+        "route": "/addresses/miscs",
+        "components": [],
+        "patterns": []
+      },
+      "nav": {
+        "domain_label": "Adresser & Data",
+        "domain_route": "/addresses",
+        "icon": "LocationOn",
+        "nav_order": 4
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "06c2b0b6",
+        "069e2e0c",
+        "f71b1aa0",
+        "9baf511d",
+        "26820478",
+        "7c1324cc",
+        "b71b418b",
+        "49b50978",
+        "472fc692",
+        "eb914df3",
+        "d3b41c29",
+        "2e2800e1",
+        "6e28051c",
+        "38c1803e",
+        "d5ea684b",
+        "e8bf7ce9",
+        "d005de4d",
+        "558bf99b",
+        "7b458892",
+        "6bb7c66e",
+        "074815b1",
+        "dc597049",
+        "3f85bd3c",
+        "dcbba6c6",
+        "0a61e01e",
+        "42b57cbd",
+        "11788012",
+        "0a4d3da3",
+        "2a8cdb43",
+        "850fcd9e",
+        "ba9f6332",
+        "731c7094",
+        "b0e3095b",
+        "59630724",
+        "25395d8d",
+        "09b0cd78",
+        "92a1979d",
+        "18267c81",
+        "5560fbbb",
+        "d45a7b01",
+        "15c96838",
+        "94a8569d",
+        "d3426f48"
+      ]
+    },
+    {
+      "id": "US-047",
+      "domain": "Finance & Operations",
+      "domain_da": "Økonomi & Drift",
+      "capability": "Other Finance Operations",
+      "resource": "misc",
+      "resource_da": "miscer",
+      "verbs": [],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan holde styr på økonomi og driftsprocesser.",
+      "acceptance_criteria": [],
+      "blazor": {
+        "page": "Pages/finance/FinanceOperationsPage.razor",
+        "route": "/finance/miscs",
+        "components": [],
+        "patterns": []
+      },
+      "nav": {
+        "domain_label": "Økonomi & Drift",
+        "domain_route": "/finance",
+        "icon": "AccountBalance",
+        "nav_order": 5
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "a1a23b9d",
+        "b879a460",
+        "d7768bdd",
+        "3f965352",
+        "ee4eead5",
+        "0f8cae80",
+        "11359b7a",
+        "b95a7c50",
+        "a97cea2a",
+        "f2b15233",
+        "4ecda1a5",
+        "240ad809",
+        "1f4f6498",
+        "4889bebf",
+        "f8a8f656",
+        "9c0aca6b",
+        "860d6646",
+        "f4607a45",
+        "03a7ffe8"
+      ]
+    },
+    {
+      "id": "US-048",
+      "domain": "User & Access Management",
+      "domain_da": "Brugere & Adgang",
+      "capability": "Other User Operations",
+      "resource": "misc",
+      "resource_da": "miscer",
+      "verbs": [],
+      "priority": "P3",
+      "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+      "acceptance_criteria": [],
+      "blazor": {
+        "page": "Pages/admin/UserOperationsPage.razor",
+        "route": "/admin/miscs",
+        "components": [],
+        "patterns": []
+      },
+      "nav": {
+        "domain_label": "Brugere & Adgang",
+        "domain_route": "/admin",
+        "icon": "AdminPanelSettings",
+        "nav_order": 3
+      },
+      "source_behaviors": [],
+      "source_capability_ids": [
+        "d680ddfa",
+        "042c2a06",
+        "96b82efa",
+        "a57fe591",
+        "4ff6db3a",
+        "6861dace",
+        "7616a357",
+        "44e51031"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "business_rules": [
+    {
+      "id": "ab1d17ae",
+      "text": "An enrolled address subscription can be renamed independently of the address.",
+      "rule_type": "constraint",
+      "entity_ids": [
+        "dd7bf230"
+      ],
+      "source_capability_ids": [
+        "2ec26ab9"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.7,
+      "classification": "INFERRED"
+    },
+    {
+      "id": "13b69780",
+      "text": "Messages can only be sent through registered sender identities. Ad-hoc sending without a registered sender is not permitted.",
+      "rule_type": "access_control",
+      "entity_ids": [
+        "4c2a8fe7",
+        "e49d81a7"
+      ],
+      "source_capability_ids": [
+        "82340530",
+        "29425493",
+        "0772c7de",
+        "68cfe607",
+        "2d3b7fb2"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.75,
+      "classification": "INFERRED"
+    },
+    {
+      "id": "59c9f472",
+      "text": "A subscription is tied to a specific property address. Cancelling a subscription removes the address from future notifications.",
+      "rule_type": "lifecycle",
+      "entity_ids": [
+        "787ad0b7",
+        "dd7bf230"
+      ],
+      "source_capability_ids": [
+        "db3db843",
+        "a041e57b",
+        "ef06acc7",
+        "192bf001",
+        "308f452f"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.75,
+      "classification": "INFERRED"
+    },
+    {
+      "id": "6afc0f77",
+      "text": "Users are assigned roles that determine which features and data they can access.",
+      "rule_type": "access_control",
+      "entity_ids": [
+        "18e4f808",
+        "7bc31a95"
+      ],
+      "source_capability_ids": [
+        "882c3ccf",
+        "1ec0222a",
+        "9294c5f3",
+        "00eb877d",
+        "052323d3"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.8,
+      "classification": "INFERRED"
+    },
+    {
+      "id": "cec0d9a8",
+      "text": "Financial records such as invoices and salary data are read-only for most users. Modifications require elevated permissions.",
+      "rule_type": "access_control",
+      "entity_ids": [
+        "e3297661",
+        "466eadd4"
+      ],
+      "source_capability_ids": [
+        "bbd44d90",
+        "07bfdb1d",
+        "6d4726da",
+        "4acace27",
+        "84408042"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.65,
+      "classification": "INFERRED"
+    },
+    {
+      "id": "61fd0b5d",
+      "text": "Benchmark data requires at least one defined cause category before benchmarks can be recorded.",
+      "rule_type": "prerequisite",
+      "entity_ids": [
+        "71117971",
+        "0f458b5e"
+      ],
+      "source_capability_ids": [
+        "22690410",
+        "5d4fa0e1",
+        "d2e62deb",
+        "f3f56936",
+        "39609733"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.7,
+      "classification": "INFERRED"
+    },
+    {
+      "id": "dc0022f3",
+      "text": "Address corrections must be validated before they are applied to the active address record.",
+      "rule_type": "constraint",
+      "entity_ids": [
+        "45cd365a",
+        "dd7bf230"
+      ],
+      "source_capability_ids": [
+        "45f4fe01",
+        "a20a4750",
+        "5dad5cda",
+        "44548bfa",
+        "79e42340"
+      ],
+      "source_flow_ids": [],
+      "source_requirement_ids": [],
+      "confidence_score": 0.7,
+      "classification": "INFERRED"
+    }
+  ],
+  "total": 7
+}

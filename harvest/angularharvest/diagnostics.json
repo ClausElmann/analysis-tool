@@ -1,0 +1,109 @@
+{
+  "generated_at": "2026-04-22T19:22:16.808734Z",
+  "weak_capabilities": {
+    "vague_grouped_caps": [
+      "Other Messaging Operations",
+      "Other Customer Operations",
+      "Other Analytics Operations",
+      "Other Address Operations",
+      "Other Finance Operations",
+      "Other User Operations"
+    ],
+    "vague_grouped_count": 6,
+    "vague_source_cap_count": 151,
+    "single_component_caps_count": 163,
+    "low_confidence_count": 0,
+    "unlinked_to_entity_count": 193
+  },
+  "ambiguous_entities": [
+    {
+      "name": "Password Reset Request",
+      "reason": "Only a single operation type (limited evidence)",
+      "operations": [
+        "create"
+      ]
+    },
+    {
+      "name": "Payroll Period",
+      "reason": "Only a single operation type (limited evidence)",
+      "operations": [
+        "view"
+      ]
+    },
+    {
+      "name": "Invoice",
+      "reason": "Only a single operation type (limited evidence)",
+      "operations": [
+        "view"
+      ]
+    }
+  ],
+  "likely_missing_rules": [
+    {
+      "capability": "Patch {update process tasks}",
+      "reason": "Mutating operation with no associated business rule"
+    },
+    {
+      "capability": "Delete {delete storage file}",
+      "reason": "Mutating operation with no associated business rule"
+    },
+    {
+      "capability": "Patch {abort termination}",
+      "reason": "Mutating operation with no associated business rule"
+    },
+    {
+      "capability": "Post {update terms and conditions}",
+      "reason": "Mutating operation with no associated business rule"
+    },
+    {
+      "capability": "Post {create in economic}",
+      "reason": "Mutating operation with no associated business rule"
+    }
+  ],
+  "likely_missing_behaviors": [
+    {
+      "group": "Other Messaging Operations",
+      "domain": "Messaging & Communication",
+      "reason": "Vague capability bucket — specific behaviors not extracted",
+      "source_count": 35
+    },
+    {
+      "group": "Other Customer Operations",
+      "domain": "Customer & Enrollment",
+      "reason": "Vague capability bucket — specific behaviors not extracted",
+      "source_count": 28
+    },
+    {
+      "group": "Other Analytics Operations",
+      "domain": "Analytics & Reporting",
+      "reason": "Vague capability bucket — specific behaviors not extracted",
+      "source_count": 18
+    },
+    {
+      "group": "Other Address Operations",
+      "domain": "Address & Data",
+      "reason": "Vague capability bucket — specific behaviors not extracted",
+      "source_count": 43
+    },
+    {
+      "group": "Other Finance Operations",
+      "domain": "Finance & Operations",
+      "reason": "Vague capability bucket — specific behaviors not extracted",
+      "source_count": 19
+    },
+    {
+      "group": "Other User Operations",
+      "domain": "User & Access Management",
+      "reason": "Vague capability bucket — specific behaviors not extracted",
+      "source_count": 8
+    }
+  ],
+  "rebuild_risks": [
+    "36 CONTAINER-type components have no captured behaviors — these represent UI interactions with no structural flow evidence",
+    "6 grouped capability buckets are vague ('Other X') — covering 151 detailed capabilities whose specific behaviors are not individually described",
+    "163 capabilities observed in only a single component — fragile tracing that may not generalize to a rebuilt system",
+    "193 detailed capabilities could not be mapped to a business entity — these represent functional areas without a clear domain concept",
+    "Domain assignment is not present on individual flows — domain classification relies entirely on capability-level grouping",
+    "Rejected outputs: 0 — these represent evidence that failed validation and may hide behaviors"
+  ]
+}

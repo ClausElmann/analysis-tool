@@ -1,0 +1,11 @@
+{
+  "source": "angular_harvest_v3",
+  "created_at": "2026-04-22T19:39:42Z",
+  "flows": 920,
+  "requirements": 561,
+  "entities": 28,
+  "domains": 6,
+  "capabilities": 416,
+  "compression_ratio": 2.21,
+  "notes": "Isolated snapshot of angular-derived structural knowledge. Intended as supplement to pre-angular domain truth."
+}

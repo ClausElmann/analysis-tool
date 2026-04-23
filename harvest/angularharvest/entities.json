@@ -1,0 +1,1384 @@
+{
+  "entities": [
+    {
+      "id": "ce26601d",
+      "name": "Customer",
+      "description": "An organization or individual using the notification service",
+      "domain": "Customer & Enrollment",
+      "operations": [
+        "create",
+        "modify",
+        "remove",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Contact Person",
+        "Message Sender",
+        "Potential Customer",
+        "Subscription"
+      ],
+      "source_capability_ids": [
+        "01f0c58a",
+        "02b0c4ae",
+        "0369b17d",
+        "0edb3e4b",
+        "1015e13c",
+        "120b5836",
+        "192bf001",
+        "1ff490e0",
+        "2769aa59",
+        "28225cea",
+        "2b13c425",
+        "30182f0b",
+        "308f452f",
+        "366577dd",
+        "5d476cc2",
+        "8273c457",
+        "94bba6cf",
+        "997776c9",
+        "9ea41ef9",
+        "9f776ce0",
+        "a0196ddd",
+        "a041e57b",
+        "abfd4785",
+        "b3f95066",
+        "bddd3e67",
+        "c35e5cd9",
+        "cde39f7c",
+        "d14fda67",
+        "d657bb9b",
+        "db3db843",
+        "e4c3f99c",
+        "e8d21aca",
+        "ee89ed49",
+        "ef06acc7",
+        "face9f2c"
+      ],
+      "source_flow_ids": [
+        "006718f0-51ee-49a1-942e-919958898d23",
+        "0114dc37-ed1d-4022-b304-0e397585a5c6",
+        "083bf438-c85f-49c3-8a1c-59d5af6f6142",
+        "095d124c-70e7-4611-a0ee-d54ffe3bc502",
+        "095d8f23-ec8f-490a-925f-46d2df4adaf2",
+        "0da1e531-3724-4be4-aea0-63f5c1c03e3a",
+        "0df8139b-f32c-4527-bdf1-5b7e818f5df4",
+        "0fda674f-f525-48fd-84c9-42e3dd33cbf3",
+        "14dbc2fd-aa47-431f-9ec8-f9d959c70e50",
+        "1c39d1fe-2081-49a5-906a-4f115471feea",
+        "1d524a36-5ee9-460c-b044-c174d3f85f82",
+        "1eb92a3d-a83c-4ff9-8bad-d2a5067f4ed0",
+        "22679d61-b6d9-4b1c-b85c-ea00edf6dadf",
+        "24aa266e-1225-421c-b532-a08c20a64f9e",
+        "2589b17a-5f0b-46ac-9425-69c576759a24",
+        "2a490a43-67fa-4f8b-85aa-b2f5c1c95cb5",
+        "2ad0e49c-8d41-4e3e-8441-8ed9cbd64b18",
+        "2ae057ee-83d5-48ab-9c92-c4ff29d79790",
+        "2e25ae0e-cd9e-4aaa-8abc-536a8088928b",
+        "3365e4e9-2f07-4ed4-ae1e-8d94d7865062",
+        "3afa3277-f452-4608-9032-f3e6cb12d496",
+        "3ebb8fef-1d40-4966-9efd-2e8ccbaadd2a",
+        "3f0c7e62-4a74-4362-8671-7646ea2c7536",
+        "403de362-6b49-4a99-9dd1-0ac327513ff0",
+        "41ac2356-361e-468f-be67-a1f694a83825",
+        "4a5e5e6d-3c15-4c88-968a-1badc28403b9",
+        "4a6666ff-faab-4208-a398-13c84b734031",
+        "4e9b5ad9-d444-4dda-b8d7-bccdc5c26904",
+        "4ffc2c14-c27c-4889-aa4e-f79e7e67c173",
+        "5212865b-a15a-44ea-82d1-090d1e792526",
+        "5e562f14-fd54-4a35-9d01-b395c6f5af03",
+        "5f917fa9-7c0d-4521-8a7c-8a97da0fe9a9",
+        "6076dba2-e77a-4ae4-ba72-3a225145962e",
+        "6addbb73-6841-4fa8-b962-cc45c431fddd",
+        "7732c382-c8d4-4866-a255-d0d8f86dce70",
+        "79afde63-9179-473e-b6b5-c255bc1ba6ac",
+        "7f0dcb65-243c-416d-bb24-f97c9cfa9f32",
+        "7f509303-eacb-4478-958e-974c9e74164a",
+        "887c3480-0ca8-4568-82f2-c4712e3b0436",
+        "90da1f7e-e072-4d17-ab35-49f12d5ab50d",
+        "91b3b088-d1d2-43b9-90ed-4570b6f95f21",
+        "92be0137-a3d8-4fa1-9a85-c9047fb94b45",
+        "931ae427-8c88-4812-8bf6-c0a358da688b",
+        "94f32362-49bf-4d20-9993-bf242a1a9dd1",
+        "98384aa6-a615-4c26-8fa3-14569144ff23",
+        "988d11de-f8d9-4360-a052-ad4b4fb5f009",
+        "a01c751f-8202-43a4-a467-ed1bf1fdc248",
+        "a2495fc1-878d-4322-9870-1b270b321227",
+        "a71ae0e1-63d1-40ff-bd44-ba454142faef",
+        "a730d501-d2b9-41e5-b6ac-040bc235f701",
+        "aeeccd08-0ccb-47cd-8bf0-32974ebb4f2e",
+        "b0dfc340-0075-48ce-ac55-d5df5fe7fb1c",
+        "b219e6b6-a0c6-46be-8615-b18f6b5b46ce",
+        "bad4b7b8-e8fd-47ea-9581-c1119d05c49f",
+        "bcc65af8-18d3-42bf-b8f8-e1171ef609b4",
+        "c0356ade-a722-4b18-833c-6380da87b501",
+        "c37bfa2f-394e-4931-a904-4755a82b5176",
+        "c61b453c-7509-44d8-9995-64bdf7c482b6",
+        "c8d1989a-a8bb-4650-8a18-766d31a03d54",
+        "cdb70f50-7542-4266-89fd-8cabc534145e",
+        "cdeeb23a-18c0-4bd9-83b8-713dc64492cd",
+        "d13f3488-b9bd-429e-be5e-90e14bef4558",
+        "d264ea20-dc19-4dea-ad14-05fc3b1b685d",
+        "d9cf0da1-511e-4bc8-b6eb-6d3cfabd2e81",
+        "dad303ab-2cd1-41bc-bff1-7e965ab9034f",
+        "dde7bc46-8e5f-4d63-8529-689936dc9525",
+        "df5c587b-1353-4891-9247-c876ebbd4454",
+        "e1ce5e9a-e871-4b80-aff6-5679bfaae6b9",
+        "e2359d9c-9179-4092-a79e-32b01751608a",
+        "ecc6b13a-dc6c-48d1-9e4f-1f425b3a7421",
+        "f08df458-31e6-4d19-a1e7-101c0ff74e89",
+        "f768b9ab-c705-40b8-a10f-05f5cc53c0e3",
+        "f76dc0ea-7b32-4301-bf8f-2aa6fe484c5b",
+        "f97d0158-0372-4eba-90c1-4ca8170c3d2c",
+        "f9871bac-c996-4cde-8984-1e5aaa642f2c",
+        "f9988855-ece5-4b40-a4d3-72f942e41c83",
+        "fa21fa84-8c1e-4392-a2ac-e82588188660",
+        "fd316acf-4ce7-4299-b9cc-92ee43fcc3ba"
+      ],
+      "frequency": 78
+    },
+    {
+      "id": "4c2a8fe7",
+      "name": "Message",
+      "description": "A notification or communication sent to recipients",
+      "domain": "Messaging & Communication",
+      "operations": [
+        "create",
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Dynamic Notification",
+        "Operational Notification",
+        "SMS Notification Channel",
+        "Web Notification Channel"
+      ],
+      "source_capability_ids": [
+        "05153689",
+        "0772c7de",
+        "0c8816e5",
+        "0df824d2",
+        "20fe1fee",
+        "29425493",
+        "2d3b7fb2",
+        "4287a7a1",
+        "43fe7e60",
+        "4706fb5c",
+        "49f1cf72",
+        "68cfe607",
+        "71090246",
+        "74b2c903",
+        "82340530",
+        "88aaefee",
+        "a37e3647",
+        "a8f54d52",
+        "b7ddda45",
+        "b88c949f",
+        "c5ed24a2",
+        "d5c3ace7",
+        "fccf3682",
+        "fd6ce802",
+        "ff56c05d"
+      ],
+      "source_flow_ids": [
+        "000dc523-648d-4c6c-b3c0-4c8eb96caa01",
+        "117d2c46-56b3-4cb8-a12c-2977e548a0df",
+        "140678ef-e74f-4e45-8df1-a01f8d88cbf3",
+        "15eb4428-f8bb-4993-88c6-29fb3814f3e6",
+        "17478842-3506-408c-8f82-77ca0ba6ddde",
+        "195b310e-0481-4edd-a210-20933d33ad1f",
+        "1a5e6db6-b3a7-4d3f-b202-9fb5ff27ffd8",
+        "1d9fb931-e883-4745-beab-63a6cf5eb440",
+        "22f0f07e-9e83-4d06-bd84-93149d4185b7",
+        "278450fc-77a5-4681-8443-63a7cad94917",
+        "290ed0f6-6613-4e08-a854-3947b57b4686",
+        "295ea532-0435-4547-a2a1-38e49782990f",
+        "2981a2b7-05b4-486e-935e-2ee538a22dd7",
+        "318c6100-8150-4bef-b288-9b7246d04328",
+        "32ca0820-5bd3-4573-85b3-a4d148eed4e6",
+        "355dfd4f-adb8-4a31-8990-bd44a7b443f6",
+        "3e45370d-88f2-407d-a059-e73ee5e70373",
+        "4005e27b-a9d3-42ec-bfc2-8635114fcfcf",
+        "463e2d95-9c44-474d-bbf8-968cc01768f8",
+        "52bee451-8866-479a-95ae-13af1c0bf3ee",
+        "54406608-c1d0-4abb-9007-baba4530720b",
+        "560dfc45-35eb-4946-a327-2567dc386726",
+        "57e89e0f-51b4-4584-9f25-1ea1a975232c",
+        "5912f9c0-4391-4b91-a2d6-2c560695dafd",
+        "5b1bf084-b2dd-4d52-a629-2eb0dc1565aa",
+        "5e385533-cd18-4ae8-a8ab-3486b20b6e8d",
+        "6004ca28-cde7-41aa-a4b8-9b7cf0fefe52",
+        "603a2849-09b3-470f-b797-0f40b99ff4d8",
+        "62f2fd79-f637-4f31-968e-dd92fbe9efb4",
+        "6c9d70f4-700d-41ee-ba6a-2deb40b72ab5",
+        "6d00fc2a-ff67-47f4-9202-8f0d63fb449b",
+        "7b6d6fb3-68a8-4fe4-9e05-41f2ddef5523",
+        "7e19fbea-9844-4343-8c93-ba9b1078117a",
+        "83fc072b-ada1-430a-ad7f-0a74b71b0080",
+        "8528255d-f1d3-4170-a31c-271f125b334a",
+        "86723e9f-a1e2-44e2-90ae-351c3b46fd2c",
+        "868a14b9-95e5-49cc-a6c6-3c366732f17f",
+        "8940aea8-6c91-4cb3-b163-792794baaab0",
+        "89976168-ab3f-4a3e-9196-bbc41fb453c9",
+        "8b21f11e-9ee1-4c5c-92cb-b3f38e98df57",
+        "8b4328e8-c46d-4e59-98dd-bec898c3ad21",
+        "8c0723c9-ccc6-440d-ae41-d573ac3fc514",
+        "8c823f50-714f-4c02-a363-6fbff42c8e8a",
+        "8df8a130-e125-48cd-9c81-fdb17673eeca",
+        "8e3ba43a-2464-4e01-9ce6-e17f8f72e850",
+        "911856b6-96ea-4c7f-b61a-167d791a26d9",
+        "93a7e4b0-a4d9-4201-8545-a6c48b79360f",
+        "9a5390ce-4456-4c8a-b64c-0f6b7d3ede97",
+        "9ca24412-c0e9-4074-b084-58e88021ebb8",
+        "9eb407ba-081b-4d26-a0c0-805c7c5d050f",
+        "a7dee1f1-5c76-4aea-8325-ba0887c2a57b",
+        "a89ea42e-f85d-4a52-b534-90b10cecd3e9",
+        "a8ce02ba-24d2-4482-aabc-390fac67b247",
+        "aade80d8-347c-4d9e-98d8-f41043fc4d25",
+        "ac0afbf6-04da-4e08-b308-255469c03066",
+        "b2c33f12-eb0a-4f1b-83c2-079eeefc55d1",
+        "b88c44ec-b173-43a3-abeb-627913d2e574",
+        "c3a7923d-1275-454a-9c42-4c4568150674",
+        "c76f130d-9435-4837-aa42-9e4a7c6e4754",
+        "cd3edd8d-0fac-41b1-b46e-0adc9bd92d89",
+        "e063ee12-51e4-40a2-9589-673458246cd9",
+        "e7b5c933-260e-4df1-ab8e-d849435eb40d",
+        "e8319b74-3272-46e6-be62-ff21583fb797",
+        "ec7632a8-a254-4ad9-8af6-d37ee64ec9f8",
+        "ec970841-8faa-4009-99c7-8de6589e279a",
+        "f180a131-1102-4129-b20a-3358c27313eb",
+        "f2f588ba-a9ce-4efd-9eab-b5bb2b943cba",
+        "f49bd734-6ad7-4325-87cb-95ad4059e5c7",
+        "f794a083-dd7e-4dd5-b07a-09e0893bf84f",
+        "f9684b76-ec61-440e-b7cc-b6ab395aa349",
+        "fa26f62d-b3b9-4227-9495-fa4f19accbcd",
+        "fb68fa6e-8135-492f-970e-57aa7ea6a769"
+      ],
+      "frequency": 72
+    },
+    {
+      "id": "90b1f665",
+      "name": "User Profile",
+      "description": "Personal settings and information for a user account",
+      "domain": "User & Access Management",
+      "operations": [
+        "create",
+        "remove",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Geographic Map",
+        "Password Reset Request",
+        "User Account",
+        "User Role"
+      ],
+      "source_capability_ids": [
+        "00eb877d",
+        "03aae5d3",
+        "052323d3",
+        "08c8e526",
+        "0ba2bc05",
+        "113b54d8",
+        "11471cf2",
+        "1ec0222a",
+        "27e93879",
+        "2cfaf819",
+        "2daff0ef",
+        "413ac308",
+        "5f1a984d",
+        "7c0f81aa",
+        "7cdfbbc9",
+        "7d337bc3",
+        "80cd3cb3",
+        "882c3ccf",
+        "9294c5f3",
+        "92a7462b",
+        "9778c9d4",
+        "992de52c",
+        "a4031077",
+        "a89dac4d",
+        "b106826e",
+        "c14642a3",
+        "c279f3f3",
+        "ce0cc43b"
+      ],
+      "source_flow_ids": [
+        "01b5d66e-7304-462b-a80e-0f332ba5fd75",
+        "02667e56-db97-4f84-8d66-523158375f35",
+        "03461c21-787b-42c6-b487-c0dbb92ca0ad",
+        "04ca8303-7dc5-4101-ae9a-68292c03df2e",
+        "078f341b-26fc-4c4e-b3dd-92bc5a9397ce",
+        "07eea54d-81e3-4674-b39d-953769ef8ac6",
+        "1012cc79-0bbb-4dce-9367-aa2d710d0ace",
+        "18cb9343-fd96-4208-a458-dde555834757",
+        "1a679ecb-e760-4ea2-89e6-7854a8998365",
+        "1eff7fc9-8300-4dcc-9d22-3bb33b67d04d",
+        "244e8732-3aa6-46ad-bfb7-5cc008431cc1",
+        "25d78682-e93a-4a9c-baab-64613acc36b3",
+        "28f2142a-d3e1-409a-ad85-4b6a4bea5bd3",
+        "2c40b1a7-75a7-4457-8ae4-d7dc63eadd7d",
+        "2eac4a0d-86f5-406a-9d3a-7914dc04b831",
+        "2fa94877-d361-4ee9-b7a0-2fe4babc3ebb",
+        "34173cbb-c6bb-472c-81a2-7d3f5f0d23d0",
+        "4d8624d1-d1b8-4e63-bfbc-7c651ed4c573",
+        "550206f0-2130-4957-95ff-f0b0cd8ac684",
+        "59f6c47e-4e7f-40a6-9775-b822a793a93a",
+        "5c475ba5-f781-4c03-ae6a-bbb8a23a1959",
+        "5c64f2b9-6d2f-4e46-9107-de42aca14a41",
+        "5c9dc62a-6326-4a96-937f-b311cb3f186b",
+        "67155848-601d-4eab-9f2e-bccace0083c2",
+        "69886fad-dcde-49db-9a85-7db38098ed72",
+        "6c3008bb-5d3e-4ebd-8c74-0ffbc25f8175",
+        "6f68d0b6-3df0-4a85-854a-3b3933c75242",
+        "70600f27-ed8f-43ac-9b01-07b1e666cae1",
+        "72821b6e-5371-4f03-aae7-ad72a81fc059",
+        "7cc6d67e-ba4b-4de9-adf1-058f81b752b1",
+        "804d388a-a3b7-42c2-aab3-da67b81f5aa5",
+        "898c5948-8f83-4605-a7db-72451be4f2a0",
+        "89b16300-6123-4bc8-8249-edb13a7ef3b8",
+        "8d2eeaf7-7ec6-4a94-a59d-99b2bfcf4970",
+        "8d94d691-4079-4a1c-8d79-aae3a19f0a1a",
+        "8dd1bfaa-e485-4663-b304-8e318610143c",
+        "920442e9-b44e-45dc-bf64-e6944421766b",
+        "9849f5b8-8b4c-41be-b4e1-224312397ad6",
+        "98e0aa66-4540-435d-b4ed-d84d8976287b",
+        "98e7901c-7832-4b6d-96ed-5c20ebc96b03",
+        "999b8225-fe9a-4310-8aa3-562bb80e57e8",
+        "a05c6649-3cab-4c75-989f-790b73a142fe",
+        "a2897e77-cf1d-4655-bf4c-bbd1fe422daa",
+        "a4343f44-88a4-4e2b-ae12-4cd4a0ac2715",
+        "a4b4efd4-067d-4ce4-8969-fd3c5009d4bd",
+        "a62c408d-ab4a-45c7-8f6e-7eafda7a53de",
+        "ab0ae188-be13-43dd-aad3-7a75d54c63c8",
+        "b7a66012-8e55-41c3-a270-43b566e63be0",
+        "b9935655-1433-4335-afb1-1577ad88b834",
+        "bb19a036-6b23-4d0d-8375-488c1181705d",
+        "c4f6657e-c14a-444d-94b6-0f68920dfde8",
+        "c7952124-e573-45dc-8e55-15c469ad42ef",
+        "c8cb378e-afa8-4358-901a-11235d243628",
+        "ce40ba29-8346-4255-a96f-59fc86da1165",
+        "cf8e8d91-3426-4bb5-963a-2eea41c150ab",
+        "d4851159-1b25-4f0a-9251-dd7aff18e119",
+        "d5cb22a8-d1e3-4113-ae2f-55d2af2f6ba2",
+        "d7058b0e-9131-42f2-90a7-48939be3ba61",
+        "d8da3096-ece7-4702-bfae-a7c4d3ccd278",
+        "e0eb31a7-f831-4c86-a036-f9fa5dcf0578",
+        "e33b6811-0734-403d-9e27-42edc347b462",
+        "e78b8128-33f4-497e-80a9-4a12056b242a",
+        "e98a0dee-5ce2-4514-9ed2-c89eb41623c6",
+        "eaafda48-e961-44bc-9954-23b830c707fa",
+        "eadea859-6bac-4060-814e-739def9a5079",
+        "efe8c0a6-83b9-46a6-b043-fbf7ea6f4a39",
+        "f89e53dc-a8be-45d5-967d-ef36e79245d8",
+        "f8b9b898-066a-4e5b-9c56-fd0dea2f8224"
+      ],
+      "frequency": 68
+    },
+    {
+      "id": "18e4f808",
+      "name": "User Account",
+      "description": "A registered user with roles and access permissions",
+      "domain": "User & Access Management",
+      "operations": [
+        "create",
+        "modify",
+        "remove",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Geographic Map",
+        "Password Reset Request",
+        "User Profile",
+        "User Role"
+      ],
+      "source_capability_ids": [
+        "0f983d02",
+        "2d4169ac",
+        "3072239b",
+        "4e7a08ae",
+        "5d9d6f3d",
+        "7e027744",
+        "83259b63",
+        "8a56deda",
+        "b124be9d",
+        "c057df06",
+        "c90cf40d",
+        "d9bdae50",
+        "f6cba4fc",
+        "fa08ad41"
+      ],
+      "source_flow_ids": [
+        "09289f46-c515-46fe-96ba-a89ec9774feb",
+        "0cc85ea9-004f-4c42-b863-bb58c5fa094b",
+        "16f27169-241f-4912-a18d-e0d502bb7ab2",
+        "1a028c76-b2c2-479a-956f-7ea86867d68c",
+        "1fbb1b97-8169-407c-a266-3eac7b8e3e28",
+        "353aad89-4409-4434-ac17-991d0539d5f5",
+        "3a429e19-62fb-429a-8183-9b6a0e6dbf64",
+        "42984d17-8a9d-4b6f-98a4-b2071f4b85bb",
+        "43d9bbb4-86b1-47a1-b6ea-f756836b34ff",
+        "4c86a6d7-5ceb-4db0-aa0f-ce1a3ce88ed2",
+        "4dc08e17-80ce-4dcf-a9bc-53661e530442",
+        "5bd32cef-a03c-4158-947c-c0a956b8adc3",
+        "5f4fc947-bbce-4dbf-ada0-5456a60c892f",
+        "6dd5d445-64e7-485a-803b-927a465d6ec0",
+        "79d9f6d3-0427-4479-ac3d-6d8b052ef9a5",
+        "7ae43290-6d9d-4e46-b510-09489e73323a",
+        "7b420824-1431-4ec9-93fd-58e48938f09c",
+        "7c573b87-4654-4c13-bca1-60391b58a427",
+        "7f70b8ff-7e2e-466a-9658-35c8d208cf84",
+        "80422630-9d55-4c01-9a5b-0cef6b133bf1",
+        "8903afd3-a04e-4595-9bfd-2116146e8007",
+        "8cd5db46-a264-44d5-83c9-4062ad7593ae",
+        "8e4ee3e0-6fe4-453c-98aa-340a6eb5c234",
+        "8eaecf7a-74fd-4bc0-b914-9c93e0e9d525",
+        "944f1c73-4ae5-445d-a9a0-e6f93e529e8d",
+        "9b0bdeb8-af18-4e2b-9ec3-de7f4ddb512f",
+        "9ea1ff06-1fc8-4b5f-969f-2e9796d45ff2",
+        "a72b366a-6d74-4fc5-8350-e36523b23f52",
+        "abfa4cd4-be7c-4b79-ab1e-64c8368f4a02",
+        "b014261e-cb52-48b4-98b6-f6ea669d1f0b",
+        "b2a990c8-aff3-45c9-b780-aa4f569779d9",
+        "c2f9f106-37cb-445e-94e3-d45f1968dd64",
+        "d6c35190-26d4-4e6c-8cbf-0d46d5c0b2fa",
+        "e2dd4a53-a65b-4549-9bcd-19b714f1470d",
+        "f33d17ee-b9f5-4699-b186-12d09add151d",
+        "f4f9e903-9b70-40bd-986d-4ae4657161e8",
+        "f8a000c7-a945-47f8-98f3-1c4b7452611b",
+        "fae6dac0-3924-4b2b-bd52-a8a8add01501",
+        "fb8e2d66-4240-45a6-af24-9a4da428301a"
+      ],
+      "frequency": 39
+    },
+    {
+      "id": "e49d81a7",
+      "name": "Message Sender",
+      "description": "A registered identity authorized to send notifications",
+      "domain": "Customer & Enrollment",
+      "operations": [
+        "create",
+        "modify",
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Contact Person",
+        "Customer",
+        "Potential Customer",
+        "Subscription"
+      ],
+      "source_capability_ids": [
+        "091f046d",
+        "1a3bb402",
+        "29a2e40a",
+        "322676dc",
+        "3be8aef4",
+        "943b317a",
+        "aa4e302a",
+        "ace96986",
+        "b1296508",
+        "d3a262b3",
+        "df4f774c",
+        "ebcda3bc",
+        "f4ae2367",
+        "fab1a523"
+      ],
+      "source_flow_ids": [
+        "01cf4c26-71a1-43a5-b606-eca1f3170b81",
+        "1221b64e-8baa-4624-afba-004e00edffc0",
+        "228db158-060a-4443-9c7d-49b6daebf08b",
+        "328456a5-0d93-4927-94c3-ddfce3e6e3dd",
+        "355f7dad-4d59-42e8-9791-ade419274097",
+        "3e29be9e-bc67-4ecb-9622-ed427f60f842",
+        "53fcba67-2b75-4683-8f4d-abc18ff92c82",
+        "58f923f7-66a9-497c-bf0c-572fe4349b7e",
+        "5e699b03-e4c6-456b-9893-9ff0d546999c",
+        "5f6fc345-c672-4378-a1b7-5bfd380ebf84",
+        "7546c8a8-47d6-499e-b5db-5fea2c5b2b69",
+        "9ac5dcc7-cd2a-4058-98b2-2e0f62ae4ea9",
+        "a379fe42-d29a-4da0-b6cd-ae820e27341d",
+        "b9094121-0432-4238-b103-30cd5172b233",
+        "bd732801-519e-462e-81da-c4ac37ad99a0",
+        "c49fd3e3-e514-4440-b9c8-949512c94951",
+        "d6c263d5-41d0-4d86-8c14-aeb619d9d784",
+        "ea71cc11-75de-4f1b-9520-b140c7ebd52a",
+        "ef28736c-3933-4253-8d2c-5e465793ebc5",
+        "f45c2bc8-c21c-4a0f-b878-961ae25d7bdd"
+      ],
+      "frequency": 20
+    },
+    {
+      "id": "71117971",
+      "name": "Performance Benchmark",
+      "description": "A reference standard used to measure supplier performance",
+      "domain": "Analytics & Reporting",
+      "operations": [
+        "create",
+        "modify",
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Benchmark Cause"
+      ],
+      "source_capability_ids": [
+        "22690410",
+        "39609733",
+        "5d4fa0e1",
+        "d2e62deb",
+        "f3f56936"
+      ],
+      "source_flow_ids": [
+        "1d0180cf-2871-4166-9215-6900e17b4bb8",
+        "38a9cf36-b53c-4227-a15a-d7fc026d2efe",
+        "3be0cfa7-b91d-424d-9b38-fa93c51b9113",
+        "3f8d7fda-f316-4fe5-90e0-94f79c6e041e",
+        "409829bf-5bbe-4a2d-9bab-88d5a9ed17d0",
+        "4ae451e0-9461-465e-aaa1-c206569abc2c",
+        "4b0f8b37-8793-46c3-b993-80dcfd2a688f",
+        "4bd823f4-b5cb-446f-9f80-c5eca9120d31",
+        "73ee524e-88d7-44f9-afe1-1bf4025ba5ca",
+        "869a6ded-0a35-40de-bdb9-a373ea90d546",
+        "9345175f-5244-4256-a7d1-ffc6e396eeb6",
+        "944330a9-4d41-4cd5-80fb-d324521fdb3b",
+        "b0f32995-80af-41e5-89e3-caa25ff3d451",
+        "d2684241-9f40-463f-98c4-f478c446a287",
+        "d866738c-e0c2-4491-86b9-c5152b8b497b",
+        "e4d16180-834e-4542-a7d7-148fa8e1cf99",
+        "e7eaf8aa-c838-44e7-82e1-1073f43cf00a",
+        "f1692cfe-e28c-4ebe-9fe5-67b26dc4111d"
+      ],
+      "frequency": 18
+    },
+    {
+      "id": "1eeba4cf",
+      "name": "Password Reset Request",
+      "description": "A request by a user to regain access to their account",
+      "domain": "User & Access Management",
+      "operations": [
+        "create"
+      ],
+      "related_entities": [
+        "Geographic Map",
+        "User Account",
+        "User Profile",
+        "User Role"
+      ],
+      "source_capability_ids": [
+        "5faa5ae3",
+        "60f68227",
+        "73b9918c",
+        "e2fd06a1"
+      ],
+      "source_flow_ids": [
+        "099f8456-590c-4e1b-b1e4-64c065c51230",
+        "0dac0305-db9d-46ce-ae14-248253ca43c5",
+        "14547337-862b-4469-a1c5-dba400bc7db9",
+        "163a4ecf-7962-4c70-b88a-2f7f07f8e542",
+        "1d1b4d40-686a-4e54-8405-ac0ee312550b",
+        "2cf9009c-4c96-4da9-a4c5-6a269b72247c",
+        "2f453567-8544-4c1e-82f3-3c9f10369b1b",
+        "5b86f97b-6749-47c1-a3dc-f274d8e25a1f",
+        "7ba1e96c-c5c8-4c74-9ccf-276dcbe063a2",
+        "b0229eeb-2018-4635-bba0-532c442120c9",
+        "b4bf8923-d393-4f35-8fb4-95c8f11a5f54",
+        "b7d95bfd-cb66-4401-9281-93658728e951",
+        "b94b7d90-a23b-4892-b084-287cf186ca04",
+        "e360120d-5b67-4580-951c-8abf520e432f",
+        "f0e4028c-d3a9-49ff-b5f6-cc0485151153",
+        "fb926ee2-c200-47c0-93df-7bfe44b5d04c",
+        "ffe6ced8-7ff4-4a2b-8607-076a8df82365"
+      ],
+      "frequency": 17
+    },
+    {
+      "id": "aa90cfb5",
+      "name": "Sales Record",
+      "description": "Financial sales information for a customer account",
+      "domain": "Finance & Operations",
+      "operations": [
+        "create",
+        "remove",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Employee",
+        "Employee Absence",
+        "Invoice",
+        "Payroll Period"
+      ],
+      "source_capability_ids": [
+        "07bfdb1d",
+        "4acace27",
+        "6d4726da",
+        "84408042",
+        "bbd44d90"
+      ],
+      "source_flow_ids": [
+        "10c4ba9a-bf84-4c3d-8048-d7369a8e81ca",
+        "12054d19-0f98-47a5-bf25-aef09ee844bd",
+        "16cf8f18-ae43-463e-b69f-24518ba4a880",
+        "298c5c44-ae19-469a-8cc2-ef73af81de35",
+        "421e070c-1fef-42ea-8eaa-8df2e1a88014",
+        "430e6fb3-1794-42b3-a16d-b6861c396246",
+        "49c704ca-ab1c-401e-a00a-0b1c2bdf11e7",
+        "5a18258c-f5dc-4bf0-8e46-b9f574646a0a",
+        "683d553b-49d6-4666-b025-9a4f919e5384",
+        "764beb7a-8902-4eea-8b44-5abb7e4aad9e",
+        "ac586e70-31aa-4986-a22c-8ffbd0d22886",
+        "cef2685d-4a7a-4160-b96a-3a4e6ad546aa",
+        "d5f9cda7-a1bc-4be1-a3ca-17e6add56683",
+        "e3715c2b-ea4b-46cf-a05d-7926a886cae1",
+        "e7eb2f59-2444-4565-9989-fe040fcddb83",
+        "f187db62-b8fa-40d2-9296-544a6fee7530",
+        "f731a1e2-b5c0-4787-becf-494046459030"
+      ],
+      "frequency": 17
+    },
+    {
+      "id": "f6c94b89",
+      "name": "Potential Customer",
+      "description": "A candidate in the customer acquisition process",
+      "domain": "Customer & Enrollment",
+      "operations": [
+        "create",
+        "modify",
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Contact Person",
+        "Customer",
+        "Message Sender",
+        "Subscription"
+      ],
+      "source_capability_ids": [
+        "03f7babf",
+        "27424d40",
+        "2d68c97a",
+        "ad6bfdb5",
+        "b384677f",
+        "d017580d",
+        "dcc63da5"
+      ],
+      "source_flow_ids": [
+        "109f215f-c0af-4551-8738-204bd74940bf",
+        "17ebc30d-dbc5-4e75-ac7c-5ed4a7302d55",
+        "1f252446-b292-4a2e-8e98-ad3bbc817e3d",
+        "4bd34437-9033-433b-9321-e75cf94c5f97",
+        "58e44ba5-cce9-4dfa-8753-573cf06ea144",
+        "7fdfc160-d58d-4156-a918-2af75454d743",
+        "8292bc96-6dbb-4474-af0a-c6fd6721a584",
+        "96b97e60-435e-4222-8065-78109fd1de28",
+        "a9edf089-edf8-443d-be74-9e71f6699245",
+        "b48861f6-508d-4b03-838e-66379ab623dc",
+        "b559593f-92bb-47ac-906e-cc76ee7ca9e1",
+        "c2f2e263-2d1c-4034-b94a-7620844a93e1",
+        "c878d331-702b-48c5-8ea0-dd29a54cbe14",
+        "e161ce8c-cac6-495b-9ad6-7a9e84ef6988",
+        "e7cfd656-7d75-428f-9d95-3686a6f27bcf",
+        "ed6c8804-bd3f-4b21-8c9f-f46396083974",
+        "f5ed646d-3793-4537-9426-6c5a500e0617"
+      ],
+      "frequency": 17
+    },
+    {
+      "id": "e3297661",
+      "name": "Payroll Period",
+      "description": "Compensation records for an employee for a given period",
+      "domain": "Finance & Operations",
+      "operations": [
+        "view"
+      ],
+      "related_entities": [
+        "Employee",
+        "Employee Absence",
+        "Invoice",
+        "Sales Record"
+      ],
+      "source_capability_ids": [
+        "4c09a8a6",
+        "8b305266",
+        "9690e21f",
+        "d87ef38c",
+        "ed8b40e0"
+      ],
+      "source_flow_ids": [
+        "139cb923-5d71-4242-b8dc-91701b0bcbe8",
+        "17347f41-3cd2-4b9c-8411-d0b094ffef82",
+        "279d9261-778a-495c-b97b-9317e4bb4efa",
+        "46bf4872-5ebc-4bd2-9833-e82b1d093741",
+        "6b9f3d39-3368-42e4-8d20-be43eec8f556",
+        "84302ec5-7e39-420c-9de6-ec7d3768eb55",
+        "90fbe56d-b4dd-4b01-a536-b997314661e6",
+        "9529eb39-e360-45b5-9fcb-278c01c012f8",
+        "a5b1f1ed-f161-4526-a711-fcc958d590a3",
+        "abccf92d-f750-4771-ba01-d042c40c655f",
+        "bf0f97be-eb39-444d-b2a9-e815faade24e",
+        "c4a963ce-f44c-406c-a13e-ba56b3a68e81",
+        "c8707a0c-b7c7-4972-badf-1fd0b39827f0",
+        "ca8f5c6d-77c9-4685-bfb1-81bd12281cac",
+        "cf15f3ea-90fe-454e-bdf8-420f2753e3ce",
+        "d27dcec4-282d-4a6a-8665-f1b82a7de866",
+        "def878ff-3612-4d2b-bf02-d6d14a6b4ac1"
+      ],
+      "frequency": 17
+    },
+    {
+      "id": "8fdcdf56",
+      "name": "Notification Recipient",
+      "description": "An individual or address set up to receive notifications",
+      "domain": "Address & Data",
+      "operations": [
+        "create",
+        "view"
+      ],
+      "related_entities": [
+        "Address",
+        "Address Correction",
+        "Privacy Consent Record",
+        "Recipient Group"
+      ],
+      "source_capability_ids": [
+        "5b1687f3",
+        "625c93a6",
+        "82133923",
+        "8ba86bbe",
+        "b0d091b8",
+        "c5796d17",
+        "cbbac94f"
+      ],
+      "source_flow_ids": [
+        "18c5ebf2-aade-49f5-a080-c8a67be0ab41",
+        "2466fd7a-c6ab-41fb-a453-ec3576e9140e",
+        "33fc3787-1a3a-4d9f-9861-62a6ecbdf592",
+        "3f91211b-8139-4057-a1af-2e4cb1a3db45",
+        "4abf8c72-7dfa-4833-aef9-dbc86a5996e4",
+        "5dbcdc78-1a43-4609-b2d1-d3a48f9f8404",
+        "7681ba35-897b-4dfb-9335-b5382cf28677",
+        "93295413-23fe-404e-81c7-7af7c9abf212",
+        "96ce6def-85a3-42c9-9416-91951e3c0160",
+        "9eaebe19-42ac-45a6-bed2-0c5a5913a732",
+        "af082dd2-3630-47b0-891d-049638258264",
+        "b4c770ae-1427-4639-ba98-2615acd7d378",
+        "b8625392-fb43-4763-9cf6-ad98725d6198",
+        "d21e4d40-590f-4a1b-858a-c044f505f4c0",
+        "e5199faa-43c5-4c76-a826-12c246a8e1cb"
+      ],
+      "frequency": 15
+    },
+    {
+      "id": "624e82f8",
+      "name": "Employee Absence",
+      "description": "A recorded leave period for a member of staff",
+      "domain": "Finance & Operations",
+      "operations": [
+        "create",
+        "modify",
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Employee",
+        "Invoice",
+        "Payroll Period",
+        "Sales Record"
+      ],
+      "source_capability_ids": [
+        "3f34fbf8",
+        "4313ff43",
+        "a6238b8c",
+        "e847b60a",
+        "f22907d3"
+      ],
+      "source_flow_ids": [
+        "0fdb364e-2467-4ad5-955b-aa17c624905f",
+        "10c4cbdc-b4ec-4072-a4ac-2580542b629e",
+        "26db6b3f-cd26-40bc-bb86-55c74339c3d9",
+        "34d22076-67a4-42f6-9c90-384f72a0e509",
+        "39d8d952-1bce-4626-b084-648637c0ad8c",
+        "3b32d785-1e70-4e6c-a0d2-286f829be0ee",
+        "438bf6f6-7e02-4f2a-9c18-f31c311ea6fb",
+        "474a6074-5d9e-4c43-8d84-e2ac31eaf78b",
+        "4c0507d5-801e-4580-a1e3-0b6a92fbee04",
+        "776127aa-1650-4beb-9fb2-4b2830e86a17",
+        "972f2bba-b377-4134-b672-bb5ff1f6097a",
+        "9c12ea16-6d6d-427e-a846-0c3ea1b91f6a",
+        "c75afb53-b351-4bb4-89af-3351a7fe2d7b",
+        "f6404273-4396-40a8-b0dc-ef5c1755d457"
+      ],
+      "frequency": 14
+    },
+    {
+      "id": "fdf66f2b",
+      "name": "Operational Notification",
+      "description": "A system-triggered notification for operational events",
+      "domain": "Messaging & Communication",
+      "operations": [
+        "create",
+        "remove",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Dynamic Notification",
+        "Message",
+        "SMS Notification Channel",
+        "Web Notification Channel"
+      ],
+      "source_capability_ids": [
+        "36707fb6",
+        "4ecd7aa1",
+        "650f3a03",
+        "6800da53",
+        "69d20b1d",
+        "d5921deb"
+      ],
+      "source_flow_ids": [
+        "067d3afa-5c29-4e21-8a86-114a4156949a",
+        "156e8511-542e-4c84-9f63-d605632914d3",
+        "248af55b-6f5f-4b49-8d78-062689c1d4c7",
+        "33b4831c-3dfc-407d-aeee-adf992bb8397",
+        "4a5e4114-0390-408f-b951-ae7b22fc73da",
+        "6acf8ecc-40bf-4acf-acd1-44cb03dd3b44",
+        "715ee4e9-94cd-462d-83ed-5ed9934750dc",
+        "86b87045-3cfd-4142-8294-efb2c0cf37b2",
+        "a2a66f78-2036-4428-a61e-58e6e14c3064",
+        "b1dc7200-77c1-4e38-b1f0-72eea94ac86e",
+        "bacfd021-1e22-4c1b-bcce-2ac4448c39cc",
+        "cbe3357d-2f03-480e-9195-5ae9a05d5023",
+        "f1838979-cfd7-46c6-859a-82b6ab0de088",
+        "ffc42334-ea6e-4ce5-9aef-ef60e7957b5f"
+      ],
+      "frequency": 14
+    },
+    {
+      "id": "0cc99d42",
+      "name": "Recipient Group",
+      "description": "A named collection of notification recipients",
+      "domain": "Address & Data",
+      "operations": [
+        "create",
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Address",
+        "Address Correction",
+        "Notification Recipient",
+        "Privacy Consent Record"
+      ],
+      "source_capability_ids": [
+        "44548bfa",
+        "45f4fe01",
+        "4a1bf418",
+        "5dad5cda",
+        "79e42340",
+        "a20a4750"
+      ],
+      "source_flow_ids": [
+        "12437856-6beb-472d-982e-ffa1f500ddde",
+        "171b1ae7-127e-40bb-b2e5-e3c65223204d",
+        "45f6e29f-0af1-42c3-a581-cefcac99ef16",
+        "46e72fd7-badb-4012-a8cc-1c7c3f49a234",
+        "492d6231-aa55-4e73-9cc5-7eeb18ced562",
+        "5ea59314-bc1d-4bfb-9b45-63061d907b3d",
+        "72cf9c69-11d9-4c25-ad3a-227e0d15ed96",
+        "797d967b-c3e7-4a62-be8e-78370ddb3408",
+        "7a7ac335-8612-4fca-83c4-fc0d90200669",
+        "7b0d39ba-bf59-4478-adb3-03b6d60325d6",
+        "aa381106-a1fd-44f7-96c9-d804475c0e24",
+        "d4b3d1db-ed0f-46a0-a350-f8d2805066d9",
+        "d76c01b2-08c2-4102-8fd4-6a0eca8f9933"
+      ],
+      "frequency": 13
+    },
+    {
+      "id": "45cd365a",
+      "name": "Address Correction",
+      "description": "A validated correction applied to an address entry",
+      "domain": "Address & Data",
+      "operations": [
+        "create",
+        "remove"
+      ],
+      "related_entities": [
+        "Address",
+        "Notification Recipient",
+        "Privacy Consent Record",
+        "Recipient Group"
+      ],
+      "source_capability_ids": [
+        "41b3be21",
+        "4c32a733",
+        "8d511443",
+        "c60dd1e3",
+        "d6bcc2a6",
+        "f24b0325"
+      ],
+      "source_flow_ids": [
+        "301cf903-7636-482b-9a57-ef52f1b6c910",
+        "3890bb90-a800-4fab-a69b-ab15ffcf803f",
+        "3e26780f-bfe6-48a9-96aa-2c0cfb777279",
+        "944bd435-7e64-46f7-95d7-dfc3e3505fad",
+        "9c9881fe-584b-469a-a562-ced8164d4361",
+        "a1d9a846-79ff-4aec-a891-0b7ce7cf0b41",
+        "c02a81c0-f06d-4d74-90fa-4d3897925e87",
+        "c5ac4624-d772-4ae8-b34e-6eefb411b3c6",
+        "d53f84e1-cdbb-4e37-a158-bb102dc1dea4",
+        "d8c18a59-b329-481b-84b7-f75be41720e6",
+        "e15650a7-d2c7-490c-9135-31bece1d2918",
+        "e21c35ec-6137-4968-9b64-7ba9ece3a40b"
+      ],
+      "frequency": 12
+    },
+    {
+      "id": "790a8c9d",
+      "name": "Contact Person",
+      "description": "A named individual associated with a customer or address",
+      "domain": "Customer & Enrollment",
+      "operations": [
+        "create",
+        "remove",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Customer",
+        "Message Sender",
+        "Potential Customer",
+        "Subscription"
+      ],
+      "source_capability_ids": [
+        "210b8dd7",
+        "2cfea96c",
+        "7bf891fa",
+        "8e0f04b2"
+      ],
+      "source_flow_ids": [
+        "11b5ddca-a690-498f-b9a3-0dbad657b185",
+        "151c1f03-558c-4432-9690-99046fd34473",
+        "282c78f0-1b67-4970-be7b-99fa3d516bf7",
+        "6da705cf-0dcb-4e4d-baa0-e007a6ce5dbc",
+        "8fc44693-0725-4dca-b50c-50ea4e5ef6b2",
+        "9303c5e2-c24e-4456-a937-caa24055be66",
+        "a1456a11-d0c9-4a87-8ad1-58f53971df66",
+        "d71b81bc-a547-4d32-bb08-c8e70a35634b",
+        "debc00ac-4dc8-4664-8164-19321120b06a",
+        "fffa9690-4a38-47ad-805c-8c0502d57325"
+      ],
+      "frequency": 10
+    },
+    {
+      "id": "7bc31a95",
+      "name": "User Role",
+      "description": "A permission role determining what a user can access",
+      "domain": "User & Access Management",
+      "operations": [
+        "create",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Geographic Map",
+        "Password Reset Request",
+        "User Account",
+        "User Profile"
+      ],
+      "source_capability_ids": [
+        "4ae30bfb",
+        "ef27eee0",
+        "fe625c9e"
+      ],
+      "source_flow_ids": [
+        "02b510c8-cb40-4c49-aff1-bbdba5d5f229",
+        "379c833d-1344-4744-a820-2aec79a62f7f",
+        "37f6912b-6cd6-4594-9ac4-cc5eb6e06507",
+        "64ab8241-6cdf-4e2a-84be-98d3ab4463f3",
+        "9a309646-c164-49e4-905b-f33656dfb60b",
+        "9ed6f139-2e6e-4310-88c4-5aa1de12285c",
+        "a1365e8b-3308-405f-a169-8d1c70d36e4d",
+        "e89f0b4d-1a9e-4f93-9898-2f1b964b2364",
+        "f1849273-d61f-4974-b614-85d3714840cf"
+      ],
+      "frequency": 9
+    },
+    {
+      "id": "466eadd4",
+      "name": "Invoice",
+      "description": "A financial billing document issued to a customer",
+      "domain": "Finance & Operations",
+      "operations": [
+        "view"
+      ],
+      "related_entities": [
+        "Employee",
+        "Employee Absence",
+        "Payroll Period",
+        "Sales Record"
+      ],
+      "source_capability_ids": [
+        "3ecc596e",
+        "6b071c13",
+        "b3e93ad5"
+      ],
+      "source_flow_ids": [
+        "065ae9f2-6b8a-41aa-b4d7-66bcabd40cff",
+        "16195caa-c043-4b84-85e4-92e1657044e4",
+        "182d0459-d558-4943-857c-bfcbf60a72df",
+        "25d14dff-ba93-4abb-938b-3f30d770a070",
+        "6cbffdcd-efa4-42c9-8253-99554166e690",
+        "e1bb2b8e-49a8-4148-8e63-5b5f45997fbc",
+        "e885523b-3d1a-48f5-bb2a-f7a25bfd339f",
+        "f3c8b6c0-9f92-4b18-abc2-fda73f2b9a22",
+        "fa671bef-f667-403a-bc09-1abc28ae72ea"
+      ],
+      "frequency": 9
+    },
+    {
+      "id": "787ad0b7",
+      "name": "Subscription",
+      "description": "A property or address enrolled to receive notifications",
+      "domain": "Customer & Enrollment",
+      "operations": [
+        "create",
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Contact Person",
+        "Customer",
+        "Message Sender",
+        "Potential Customer"
+      ],
+      "source_capability_ids": [
+        "5b187d8a",
+        "76510b57",
+        "a1eb53e4",
+        "f26bded0"
+      ],
+      "source_flow_ids": [
+        "44f7d96d-c549-44b7-b68b-a4ff7ddd4a0b",
+        "62e842fa-b312-48b1-870d-68b9ea4ea04b",
+        "63ac7be1-4d0a-428a-98b7-a774a2331449",
+        "cac740ad-c2fc-4798-8fbd-6be209703fe8",
+        "d0fc8d58-f091-434d-bbed-6b4635d4a7c3",
+        "e9d9bd3a-c506-4f1a-9004-6cf64ba4230c",
+        "eac1ebf9-f960-4331-8bba-9ade4a720bd6",
+        "f83f65a9-0dd6-4f45-9233-c5a06428b30a",
+        "f99115bb-137b-4ba6-b23c-513ee83afe32"
+      ],
+      "frequency": 9
+    },
+    {
+      "id": "08fdd27c",
+      "name": "Dynamic Notification",
+      "description": "A personalized notification generated from live data",
+      "domain": "Messaging & Communication",
+      "operations": [
+        "create",
+        "remove",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Message",
+        "Operational Notification",
+        "SMS Notification Channel",
+        "Web Notification Channel"
+      ],
+      "source_capability_ids": [
+        "0441170c",
+        "607e752d",
+        "60864fc6",
+        "d63a8af0"
+      ],
+      "source_flow_ids": [
+        "562b4634-4442-44c1-af51-51c6e0d0bbf6",
+        "5dae68cf-43ca-415d-bbc3-6c53439e750d",
+        "6248c122-27ea-4653-adb4-340eb6f76952",
+        "7df11812-ed90-4d32-9b49-47ad5f42a36f",
+        "93cbd24c-7a53-4bb4-9638-6d9a967578cd",
+        "a3441a6c-9e9f-42c2-8baf-7c01a4edf5d5",
+        "bafb3c84-47eb-4ffb-b45e-99f962eb0b10",
+        "dfb95d7b-c851-4667-9f23-255c28536972",
+        "ff943261-f94e-4268-a6db-4e1b9a9df2dc"
+      ],
+      "frequency": 9
+    },
+    {
+      "id": "b8513093",
+      "name": "Privacy Consent Record",
+      "description": "A record of GDPR consent for a contact or address",
+      "domain": "Address & Data",
+      "operations": [
+        "create",
+        "remove",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Address",
+        "Address Correction",
+        "Notification Recipient",
+        "Recipient Group"
+      ],
+      "source_capability_ids": [
+        "0bb17cfe",
+        "32103b21",
+        "8608d4e2",
+        "b0062da0"
+      ],
+      "source_flow_ids": [
+        "063bc244-c98c-434a-bf94-8978425577be",
+        "08340547-8d58-4807-8361-6a43fb9bdb65",
+        "14ad5323-ab23-467e-8d97-6893ab15b86a",
+        "17bfa3a5-c992-4723-96f1-5ec50dac39e4",
+        "26cc76a3-075e-47c0-8b95-62ed1231036f",
+        "6940a8b5-92a7-4eb7-9fae-253265b50dfb",
+        "727516c4-d201-4a1c-9e79-2040ac6f8d94",
+        "de8b967c-80ef-4ff9-a48f-f2e543f27c63",
+        "f4b5ae5d-cee9-48ca-acfb-e9fa9e848597"
+      ],
+      "frequency": 9
+    },
+    {
+      "id": "e0409b2b",
+      "name": "Geographic Map",
+      "description": "An interactive map used for address-based operations",
+      "domain": "User & Access Management",
+      "operations": [
+        "create",
+        "remove",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Password Reset Request",
+        "User Account",
+        "User Profile",
+        "User Role"
+      ],
+      "source_capability_ids": [
+        "6fc7d0ef",
+        "9816dafc",
+        "ac2cca24",
+        "c7804511",
+        "cc2d2c9b"
+      ],
+      "source_flow_ids": [
+        "0eb2b251-8c6a-4bab-8517-2173f40b767a",
+        "22bb3a50-5ac4-476c-925a-75440e5708ed",
+        "59345271-5cc0-4696-a571-3568115246d4",
+        "5d673177-2f47-49a4-9aa6-3d5ff46f6b9f",
+        "7f1481e6-9d1a-4be4-8180-7ef8f912b3cb",
+        "85e51d52-e8e3-4fb1-81b5-ceef96747803",
+        "a1ed5c1d-e260-4f94-b0cd-5536d52347f0",
+        "dfaf8e35-d885-419b-bb3f-fe6723683ace",
+        "f43019fb-ea4a-4970-9ea7-3cc226f34e83"
+      ],
+      "frequency": 9
+    },
+    {
+      "id": "6e80efc9",
+      "name": "Web Notification Channel",
+      "description": "A web-based channel for delivering notifications",
+      "domain": "Messaging & Communication",
+      "operations": [
+        "create",
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Dynamic Notification",
+        "Message",
+        "Operational Notification",
+        "SMS Notification Channel"
+      ],
+      "source_capability_ids": [
+        "319166c3",
+        "afa2152c",
+        "b8dc2b75",
+        "d90b97e3",
+        "eb276a12"
+      ],
+      "source_flow_ids": [
+        "29210153-b329-434e-9ef5-6989b19c588e",
+        "5689ea22-09ab-445e-8136-0a6706cd2826",
+        "62e91efb-da6d-4411-92f0-4e50a8da4ced",
+        "7b2c9062-a994-4907-814d-5bda38fbed37",
+        "85941c13-92a4-4a79-8af2-814f75c24e62",
+        "8ffb8e2e-e437-4ed7-9869-38d9523baf4e",
+        "9e43e62b-f5be-4843-9a38-016096953c85",
+        "bc4a086c-fd74-4022-89b9-56370623906f",
+        "d3748f62-6248-4aed-991b-550afe635d24"
+      ],
+      "frequency": 9
+    },
+    {
+      "id": "1d20e932",
+      "name": "SMS Notification Channel",
+      "description": "A text message delivery channel",
+      "domain": "Messaging & Communication",
+      "operations": [
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Dynamic Notification",
+        "Message",
+        "Operational Notification",
+        "Web Notification Channel"
+      ],
+      "source_capability_ids": [
+        "10e5396a",
+        "16485be3",
+        "5d9f621d",
+        "794faca6"
+      ],
+      "source_flow_ids": [
+        "326bc76b-2292-4bf6-a5b2-3913a87554dc",
+        "40345f61-9824-4d5c-99bb-fdf4a648e4ac",
+        "6055c5b6-3e08-4dee-851d-4fb97ae525ef",
+        "6c257d90-cd33-4ede-ad4b-dc18678526e7",
+        "6f7418d5-090d-44bf-ac05-b7bd6ae07f5f",
+        "a1822622-8fd1-4237-bd3f-48049375720f",
+        "d1183fff-2166-4eb9-a9a6-2a2ba06e6408",
+        "ebc9ebfd-a83e-47e5-8821-94c50bef42da",
+        "fb3f99f6-31dd-40b9-8f24-e1cabdd2c39d"
+      ],
+      "frequency": 9
+    },
+    {
+      "id": "0f458b5e",
+      "name": "Benchmark Cause",
+      "description": "A categorized reason associated with a benchmark",
+      "domain": "Analytics & Reporting",
+      "operations": [
+        "create",
+        "remove",
+        "update"
+      ],
+      "related_entities": [
+        "Performance Benchmark"
+      ],
+      "source_capability_ids": [
+        "21946b61",
+        "717f8646",
+        "f89e4b82"
+      ],
+      "source_flow_ids": [
+        "68e7b888-2d92-4160-8f8d-7bb3f1758712",
+        "7e70dc6e-1e05-438e-a17e-eb577e9f0741",
+        "a28ff947-2ef7-4f62-961a-5276fcb4faea",
+        "a857c59d-9dd0-4d8d-8b35-96e23d2805a1",
+        "aa9acbf7-39e4-4968-9586-e5247c917c1e",
+        "ad9a26a2-18e8-4f1a-8fba-77e9fc76dd09",
+        "bf091b2d-c6ac-40bf-aba3-2d1426352097",
+        "f55dc6ad-67da-41d6-bef8-595a306ad4c8"
+      ],
+      "frequency": 8
+    },
+    {
+      "id": "dd7bf230",
+      "name": "Address",
+      "description": "A registered property address used for notification delivery",
+      "domain": "Address & Data",
+      "operations": [
+        "create",
+        "update",
+        "view"
+      ],
+      "related_entities": [
+        "Address Correction",
+        "Notification Recipient",
+        "Privacy Consent Record",
+        "Recipient Group"
+      ],
+      "source_capability_ids": [
+        "2ec26ab9",
+        "9774fa58",
+        "c78fad39",
+        "f04eeeff"
+      ],
+      "source_flow_ids": [
+        "061d459f-33a8-4df2-822f-c56bed7c9b02",
+        "0e282e2f-0180-4831-a099-0a45d7ea7d9b",
+        "1321a2d4-8d04-4bc5-82ab-4fc7ae3afba1",
+        "3e9fb5a0-fd2c-421f-b17d-a35b5ed1c20c",
+        "84206d27-a99d-4d58-95eb-41dd6ab03c44",
+        "a78f63c3-d0ed-41c5-9676-09fdae4bc3e8",
+        "ca7c5826-6452-45d3-93bb-e62477d49ebe",
+        "ebd4b892-420d-49aa-82eb-9773d33d4e3b"
+      ],
+      "frequency": 8
+    },
+    {
+      "id": "f8c8b903",
+      "name": "Employee",
+      "description": "A member of staff belonging to a customer organization",
+      "domain": "Finance & Operations",
+      "operations": [
+        "create",
+        "view"
+      ],
+      "related_entities": [
+        "Employee Absence",
+        "Invoice",
+        "Payroll Period",
+        "Sales Record"
+      ],
+      "source_capability_ids": [
+        "4e5d5549",
+        "60b85919",
+        "ec792dad",
+        "f6206ac5"
+      ],
+      "source_flow_ids": [
+        "305feb93-67cc-4fff-9e6e-4636fcc73d8d",
+        "62660aa5-e714-41e5-becb-1ca8b185593a",
+        "7292cf6e-ed2a-4d85-a9ce-10e1c579e5dc",
+        "7667dba6-0603-4de6-9f88-d94ba5957406",
+        "7e864e2a-5f77-4345-a0be-d6e5c211b7e8",
+        "9146d72b-6098-41f0-ad6b-6171837b60c6",
+        "ba14f59f-d989-4be9-b126-6b75e04a7f9c"
+      ],
+      "frequency": 7
+    },
+    {
+      "id": "9b685fec",
+      "name": "System Configuration",
+      "description": "A saved configuration setting for the system or a user",
+      "domain": "User & Access Management",
+      "operations": [
+        "create",
+        "remove",
+        "view"
+      ],
+      "related_entities": [
+        "Password Reset Request",
+        "User Account",
+        "User Profile",
+        "User Role"
+      ],
+      "source_capability_ids": [
+        "8b47d09e",
+        "957ebe1c",
+        "c09f40e3",
+        "e7d16969"
+      ],
+      "source_flow_ids": [
+        "07761d41-dd71-424d-a063-78c1275207fe",
+        "1115d2a0-82d4-4191-92c0-b6e176f0a6ab",
+        "24791555-cf63-4549-b6b2-5f1f8e80a8b0",
+        "6c222809-7eda-4ed4-90da-36daf0f1a98b",
+        "be91fb4d-b693-45dd-8b36-1e83ccfb8a8b"
+      ],
+      "frequency": 5
+    }
+  ],
+  "total": 28
+}

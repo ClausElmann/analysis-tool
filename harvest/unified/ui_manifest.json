@@ -1,0 +1,1952 @@
+{
+  "meta": {
+    "generated_at": "2026-04-23",
+    "total_stories": 48,
+    "total_pages": 48,
+    "total_domains": 6
+  },
+  "navigation": [
+    {
+      "domain": "Messaging & Communication",
+      "label_da": "Beskeder & Kommunikation",
+      "route_prefix": "/messaging",
+      "icon": "Message",
+      "nav_order": 1,
+      "pages": [
+        {
+          "story_id": "US-001",
+          "label_da": "Beskeder",
+          "route": "/messaging/messages",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-012",
+          "label_da": "Driftsdata",
+          "route": "/messaging/operationals",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-020",
+          "label_da": "Dynamiske felter",
+          "route": "/messaging/dynamics",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-023",
+          "label_da": "Web-beskeder",
+          "route": "/messaging/webs",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-032",
+          "label_da": "Poster",
+          "route": "/messaging/entrys",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-040",
+          "label_da": "Advarsler",
+          "route": "/messaging/warnings",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-041",
+          "label_da": "Vejrdata",
+          "route": "/messaging/weathers",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-024",
+          "label_da": "Sms-beskeder",
+          "route": "/messaging/smss",
+          "icon": null,
+          "priority": "P2"
+        },
+        {
+          "story_id": "US-034",
+          "label_da": "Arkiverede beskeder",
+          "route": "/messaging/archiveds",
+          "icon": null,
+          "priority": "P2"
+        },
+        {
+          "story_id": "US-037",
+          "label_da": "Statusoversigt",
+          "route": "/messaging/statuss",
+          "icon": null,
+          "priority": "P2"
+        },
+        {
+          "story_id": "US-043",
+          "label_da": "Miscer",
+          "route": "/messaging/miscs",
+          "icon": null,
+          "priority": "P2"
+        }
+      ]
+    },
+    {
+      "domain": "Customer & Enrollment",
+      "label_da": "Kunder & Tilmelding",
+      "route_prefix": "/customers",
+      "icon": "People",
+      "nav_order": 2,
+      "pages": [
+        {
+          "story_id": "US-002",
+          "label_da": "Kunder",
+          "route": "/customers/customers",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-005",
+          "label_da": "Afsendere",
+          "route": "/customers/senders",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-009",
+          "label_da": "Salgsmuligheder",
+          "route": "/customers/prospects",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-016",
+          "label_da": "Kontakter",
+          "route": "/customers/contacts",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-019",
+          "label_da": "Tilmeldinger",
+          "route": "/customers/enrollments",
+          "icon": null,
+          "priority": "P1"
+        },
+        {
+          "story_id": "US-044",
+          "label_da": "Miscer",
+          "route": "/customers/miscs",
+          "icon": null,
+          "priority": "P2"
+        }
+      ]
+    },
+    {
+      "domain": "User & Access Management",
+      "label_da": "Brugere & Adgang",
+      "route_prefix": "/admin",
+      "icon": "AdminPanelSettings",
+      "nav_order": 3,
+      "pages": [
+        {
+          "story_id": "US-003",
+          "label_da": "Profiler",
+          "route": "/admin/profiles",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-004",
+          "label_da": "Brugere",
+          "route": "/admin/users",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-007",
+          "label_da": "Nulstillinger",
+          "route": "/admin/resets",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-017",
+          "label_da": "Roller",
+          "route": "/admin/roles",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-022",
+          "label_da": "Kortvisning",
+          "route": "/admin/maps",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-031",
+          "label_da": "Kunder",
+          "route": "/admin/customers",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-035",
+          "label_da": "Modtagere",
+          "route": "/admin/receivers",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-036",
+          "label_da": "Konfigurationer",
+          "route": "/admin/configurations",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-038",
+          "label_da": "Samtaler",
+          "route": "/admin/conversations",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-039",
+          "label_da": "Ftp-filer",
+          "route": "/admin/ftps",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-048",
+          "label_da": "Miscer",
+          "route": "/admin/miscs",
+          "icon": null,
+          "priority": "P3"
+        }
+      ]
+    },
+    {
+      "domain": "Address & Data",
+      "label_da": "Adresser & Data",
+      "route_prefix": "/addresses",
+      "icon": "LocationOn",
+      "nav_order": 4,
+      "pages": [
+        {
+          "story_id": "US-013",
+          "label_da": "Grupper",
+          "route": "/addresses/groups",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-014",
+          "label_da": "Korrektioner",
+          "route": "/addresses/corrections",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-015",
+          "label_da": "Modtagere",
+          "route": "/addresses/receivers",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-021",
+          "label_da": "Gdpr-håndtering",
+          "route": "/addresses/gdprs",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-026",
+          "label_da": "Adresser",
+          "route": "/addresses/addresss",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-027",
+          "label_da": "Standardindstillinger",
+          "route": "/addresses/stds",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-028",
+          "label_da": "Sprogoversættelser",
+          "route": "/addresses/localizeds",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-030",
+          "label_da": "Dataimport",
+          "route": "/addresses/imports",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-042",
+          "label_da": "Statstidendeer",
+          "route": "/addresses/statstidendes",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-046",
+          "label_da": "Miscer",
+          "route": "/addresses/miscs",
+          "icon": null,
+          "priority": "P3"
+        }
+      ]
+    },
+    {
+      "domain": "Finance & Operations",
+      "label_da": "Økonomi & Drift",
+      "route_prefix": "/finance",
+      "icon": "AccountBalance",
+      "nav_order": 5,
+      "pages": [
+        {
+          "story_id": "US-008",
+          "label_da": "Salgsdata",
+          "route": "/finance/sales",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-010",
+          "label_da": "Lønsedler",
+          "route": "/finance/salarys",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-011",
+          "label_da": "Fraværsregistreringer",
+          "route": "/finance/absences",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-018",
+          "label_da": "Fakturaer",
+          "route": "/finance/invoices",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-029",
+          "label_da": "Medarbejdere",
+          "route": "/finance/employees",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-033",
+          "label_da": "Fildrev",
+          "route": "/finance/drives",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-047",
+          "label_da": "Miscer",
+          "route": "/finance/miscs",
+          "icon": null,
+          "priority": "P3"
+        }
+      ]
+    },
+    {
+      "domain": "Analytics & Reporting",
+      "label_da": "Analyse & Rapportering",
+      "route_prefix": "/analytics",
+      "icon": "Analytics",
+      "nav_order": 6,
+      "pages": [
+        {
+          "story_id": "US-006",
+          "label_da": "Benchmarks",
+          "route": "/analytics/benchmarks",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-025",
+          "label_da": "Årsagskoder",
+          "route": "/analytics/causes",
+          "icon": null,
+          "priority": "P3"
+        },
+        {
+          "story_id": "US-045",
+          "label_da": "Miscer",
+          "route": "/analytics/miscs",
+          "icon": null,
+          "priority": "P3"
+        }
+      ]
+    }
+  ],
+  "pages_by_domain": {
+    "Messaging & Communication": [
+      {
+        "story_id": "US-001",
+        "capability": "Manage Messages",
+        "label_da": "Beskeder",
+        "route": "/messaging/messages",
+        "blazor_page": "Pages/messaging/MessagesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i beskeder, oprette beskeder og slette beskeder, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over beskeder",
+          "Brugeren kan søge og filtrere beskeder",
+          "Brugeren kan oprette ny/nye beskeder via formular",
+          "Brugeren kan slette beskeder med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-012",
+        "capability": "Manage Operationals",
+        "label_da": "Driftsdata",
+        "route": "/messaging/operationals",
+        "blazor_page": "Pages/messaging/OperationalsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i driftsdata, oprette driftsdata, redigere driftsdata og slette driftsdata, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over driftsdata",
+          "Brugeren kan søge og filtrere driftsdata",
+          "Brugeren kan oprette ny/nye driftsdata via formular",
+          "Brugeren kan redigere eksisterende driftsdata",
+          "Brugeren kan slette driftsdata med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-020",
+        "capability": "Manage Dynamics",
+        "label_da": "Dynamiske felter",
+        "route": "/messaging/dynamics",
+        "blazor_page": "Pages/messaging/DynamicsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i dynamiske felter, oprette dynamiske felter, redigere dynamiske felter og slette dynamiske felter, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over dynamiske felter",
+          "Brugeren kan søge og filtrere dynamiske felter",
+          "Brugeren kan oprette ny/nye dynamiske felter via formular",
+          "Brugeren kan redigere eksisterende dynamiske felter",
+          "Brugeren kan slette dynamiske felter med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-023",
+        "capability": "Manage Webs",
+        "label_da": "Web-beskeder",
+        "route": "/messaging/webs",
+        "blazor_page": "Pages/messaging/WebsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i web-beskeder, oprette web-beskeder og slette web-beskeder, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over web-beskeder",
+          "Brugeren kan søge og filtrere web-beskeder",
+          "Brugeren kan oprette ny/nye web-beskeder via formular",
+          "Brugeren kan slette web-beskeder med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-032",
+        "capability": "Manage Entries",
+        "label_da": "Poster",
+        "route": "/messaging/entrys",
+        "blazor_page": "Pages/messaging/EntriesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i poster, oprette poster og slette poster, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over poster",
+          "Brugeren kan søge og filtrere poster",
+          "Brugeren kan oprette ny/nye poster via formular",
+          "Brugeren kan slette poster med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-040",
+        "capability": "Manage Warnings",
+        "label_da": "Advarsler",
+        "route": "/messaging/warnings",
+        "blazor_page": "Pages/messaging/WarningsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i advarsler, oprette advarsler og redigere advarsler, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over advarsler",
+          "Brugeren kan søge og filtrere advarsler",
+          "Brugeren kan oprette ny/nye advarsler via formular",
+          "Brugeren kan redigere eksisterende advarsler"
+        ]
+      },
+      {
+        "story_id": "US-041",
+        "capability": "Manage Weathers",
+        "label_da": "Vejrdata",
+        "route": "/messaging/weathers",
+        "blazor_page": "Pages/messaging/WeathersPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i vejrdata, oprette vejrdata, redigere vejrdata og slette vejrdata, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over vejrdata",
+          "Brugeren kan søge og filtrere vejrdata",
+          "Brugeren kan oprette ny/nye vejrdata via formular",
+          "Brugeren kan redigere eksisterende vejrdata",
+          "Brugeren kan slette vejrdata med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-024",
+        "capability": "Manage Sms",
+        "label_da": "Sms-beskeder",
+        "route": "/messaging/smss",
+        "blazor_page": "Pages/messaging/SmsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "delete"
+        ],
+        "components": [
+          "MudDataGrid",
+          "MudDialog",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P2",
+        "story_da": "Som bruger vil jeg se og søge i SMS-beskeder og slette SMS-beskeder, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over SMS-beskeder",
+          "Brugeren kan søge og filtrere SMS-beskeder",
+          "Brugeren kan slette SMS-beskeder med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-034",
+        "capability": "Manage Archiveds",
+        "label_da": "Arkiverede beskeder",
+        "route": "/messaging/archiveds",
+        "blazor_page": "Pages/messaging/ArchivedsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter"
+        ],
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P2",
+        "story_da": "Som bruger vil jeg se og søge i arkiverede beskeder, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over arkiverede beskeder",
+          "Brugeren kan søge og filtrere arkiverede beskeder"
+        ]
+      },
+      {
+        "story_id": "US-037",
+        "capability": "Manage Status",
+        "label_da": "Statusoversigt",
+        "route": "/messaging/statuss",
+        "blazor_page": "Pages/messaging/StatusPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter"
+        ],
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P2",
+        "story_da": "Som bruger vil jeg se og søge i statusoversigt, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over statusoversigt",
+          "Brugeren kan søge og filtrere statusoversigt"
+        ]
+      },
+      {
+        "story_id": "US-043",
+        "capability": "Other Messaging Operations",
+        "label_da": "Miscer",
+        "route": "/messaging/miscs",
+        "blazor_page": "Pages/messaging/MessagingOperationsPage.razor",
+        "features": [],
+        "components": [],
+        "patterns": [],
+        "priority": "P2",
+        "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan kommunikere effektivt med kunder og modtagere.",
+        "acceptance_criteria": []
+      }
+    ],
+    "Customer & Enrollment": [
+      {
+        "story_id": "US-002",
+        "capability": "Manage Customers",
+        "label_da": "Kunder",
+        "route": "/customers/customers",
+        "blazor_page": "Pages/customers/CustomersPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i kunder, oprette kunder, redigere kunder og slette kunder, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over kunder",
+          "Brugeren kan søge og filtrere kunder",
+          "Brugeren kan oprette ny/nye kunder via formular",
+          "Brugeren kan redigere eksisterende kunder",
+          "Brugeren kan slette kunder med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-005",
+        "capability": "Manage Senders",
+        "label_da": "Afsendere",
+        "route": "/customers/senders",
+        "blazor_page": "Pages/customers/SendersPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i afsendere, oprette afsendere, redigere afsendere og slette afsendere, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over afsendere",
+          "Brugeren kan søge og filtrere afsendere",
+          "Brugeren kan oprette ny/nye afsendere via formular",
+          "Brugeren kan redigere eksisterende afsendere",
+          "Brugeren kan slette afsendere med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-009",
+        "capability": "Manage Prospects",
+        "label_da": "Salgsmuligheder",
+        "route": "/customers/prospects",
+        "blazor_page": "Pages/customers/ProspectsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i salgsmuligheder, oprette salgsmuligheder, redigere salgsmuligheder og slette salgsmuligheder, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over salgsmuligheder",
+          "Brugeren kan søge og filtrere salgsmuligheder",
+          "Brugeren kan oprette ny/nye salgsmuligheder via formular",
+          "Brugeren kan redigere eksisterende salgsmuligheder",
+          "Brugeren kan slette salgsmuligheder med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-016",
+        "capability": "Manage Contacts",
+        "label_da": "Kontakter",
+        "route": "/customers/contacts",
+        "blazor_page": "Pages/customers/ContactsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i kontakter, oprette kontakter, redigere kontakter og slette kontakter, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over kontakter",
+          "Brugeren kan søge og filtrere kontakter",
+          "Brugeren kan oprette ny/nye kontakter via formular",
+          "Brugeren kan redigere eksisterende kontakter",
+          "Brugeren kan slette kontakter med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-019",
+        "capability": "Manage Enrollments",
+        "label_da": "Tilmeldinger",
+        "route": "/customers/enrollments",
+        "blazor_page": "Pages/customers/EnrollmentsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P1",
+        "story_da": "Som bruger vil jeg se og søge i tilmeldinger, oprette tilmeldinger og slette tilmeldinger, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over tilmeldinger",
+          "Brugeren kan søge og filtrere tilmeldinger",
+          "Brugeren kan oprette ny/nye tilmeldinger via formular",
+          "Brugeren kan slette tilmeldinger med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-044",
+        "capability": "Other Customer Operations",
+        "label_da": "Miscer",
+        "route": "/customers/miscs",
+        "blazor_page": "Pages/customers/CustomerOperationsPage.razor",
+        "features": [],
+        "components": [],
+        "patterns": [],
+        "priority": "P2",
+        "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan administrere kundernes tilmeldingsforhold og kontaktdata.",
+        "acceptance_criteria": []
+      }
+    ],
+    "User & Access Management": [
+      {
+        "story_id": "US-003",
+        "capability": "Manage Profiles",
+        "label_da": "Profiler",
+        "route": "/admin/profiles",
+        "blazor_page": "Pages/admin/ProfilesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i profiler, oprette profiler, redigere profiler og slette profiler, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over profiler",
+          "Brugeren kan søge og filtrere profiler",
+          "Brugeren kan oprette ny/nye profiler via formular",
+          "Brugeren kan redigere eksisterende profiler",
+          "Brugeren kan slette profiler med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-004",
+        "capability": "Manage Users",
+        "label_da": "Brugere",
+        "route": "/admin/users",
+        "blazor_page": "Pages/admin/UsersPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i brugere, oprette brugere, redigere brugere og slette brugere, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over brugere",
+          "Brugeren kan søge og filtrere brugere",
+          "Brugeren kan oprette ny/nye brugere via formular",
+          "Brugeren kan redigere eksisterende brugere",
+          "Brugeren kan slette brugere med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-007",
+        "capability": "Manage Resets",
+        "label_da": "Nulstillinger",
+        "route": "/admin/resets",
+        "blazor_page": "Pages/admin/ResetsPage.razor",
+        "features": [
+          "create"
+        ],
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm"
+        ],
+        "patterns": [
+          "create-dialog"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg oprette nulstillinger, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren kan oprette ny/nye nulstillinger via formular"
+        ]
+      },
+      {
+        "story_id": "US-017",
+        "capability": "Manage Roles",
+        "label_da": "Roller",
+        "route": "/admin/roles",
+        "blazor_page": "Pages/admin/RolesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i roller, oprette roller og redigere roller, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over roller",
+          "Brugeren kan søge og filtrere roller",
+          "Brugeren kan oprette ny/nye roller via formular",
+          "Brugeren kan redigere eksisterende roller"
+        ]
+      },
+      {
+        "story_id": "US-022",
+        "capability": "Manage Maps",
+        "label_da": "Kortvisning",
+        "route": "/admin/maps",
+        "blazor_page": "Pages/admin/MapsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudPaper",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "map-view",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i kortvisning, oprette kortvisning, redigere kortvisning og slette kortvisning, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over kortvisning",
+          "Brugeren kan søge og filtrere kortvisning",
+          "Brugeren kan oprette ny/nye kortvisning via formular",
+          "Brugeren kan redigere eksisterende kortvisning",
+          "Brugeren kan slette kortvisning med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-031",
+        "capability": "Manage Customers",
+        "label_da": "Kunder",
+        "route": "/admin/customers",
+        "blazor_page": "Pages/admin/CustomersPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter"
+        ],
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i kunder, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over kunder",
+          "Brugeren kan søge og filtrere kunder"
+        ]
+      },
+      {
+        "story_id": "US-035",
+        "capability": "Manage Receivers",
+        "label_da": "Modtagere",
+        "route": "/admin/receivers",
+        "blazor_page": "Pages/admin/ReceiversPage.razor",
+        "features": [
+          "create"
+        ],
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm"
+        ],
+        "patterns": [
+          "create-dialog"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg oprette modtagere, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren kan oprette ny/nye modtagere via formular"
+        ]
+      },
+      {
+        "story_id": "US-036",
+        "capability": "Manage Configurations",
+        "label_da": "Konfigurationer",
+        "route": "/admin/configurations",
+        "blazor_page": "Pages/admin/ConfigurationsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i konfigurationer, oprette konfigurationer og slette konfigurationer, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over konfigurationer",
+          "Brugeren kan søge og filtrere konfigurationer",
+          "Brugeren kan oprette ny/nye konfigurationer via formular",
+          "Brugeren kan slette konfigurationer med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-038",
+        "capability": "Manage Conversations",
+        "label_da": "Samtaler",
+        "route": "/admin/conversations",
+        "blazor_page": "Pages/admin/ConversationsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i samtaler og oprette samtaler, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over samtaler",
+          "Brugeren kan søge og filtrere samtaler",
+          "Brugeren kan oprette ny/nye samtaler via formular"
+        ]
+      },
+      {
+        "story_id": "US-039",
+        "capability": "Manage Ftps",
+        "label_da": "Ftp-filer",
+        "route": "/admin/ftps",
+        "blazor_page": "Pages/admin/FtpsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i FTP-filer, oprette FTP-filer, redigere FTP-filer og slette FTP-filer, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over FTP-filer",
+          "Brugeren kan søge og filtrere FTP-filer",
+          "Brugeren kan oprette ny/nye FTP-filer via formular",
+          "Brugeren kan redigere eksisterende FTP-filer",
+          "Brugeren kan slette FTP-filer med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-048",
+        "capability": "Other User Operations",
+        "label_da": "Miscer",
+        "route": "/admin/miscs",
+        "blazor_page": "Pages/admin/UserOperationsPage.razor",
+        "features": [],
+        "components": [],
+        "patterns": [],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan styre brugeradgang og sikkerhed i systemet.",
+        "acceptance_criteria": []
+      }
+    ],
+    "Address & Data": [
+      {
+        "story_id": "US-013",
+        "capability": "Manage Groups",
+        "label_da": "Grupper",
+        "route": "/addresses/groups",
+        "blazor_page": "Pages/addresses/GroupsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i grupper, oprette grupper og slette grupper, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over grupper",
+          "Brugeren kan søge og filtrere grupper",
+          "Brugeren kan oprette ny/nye grupper via formular",
+          "Brugeren kan slette grupper med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-014",
+        "capability": "Manage Corrections",
+        "label_da": "Korrektioner",
+        "route": "/addresses/corrections",
+        "blazor_page": "Pages/addresses/CorrectionsPage.razor",
+        "features": [
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg oprette korrektioner og slette korrektioner, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": [
+          "Brugeren kan oprette ny/nye korrektioner via formular",
+          "Brugeren kan slette korrektioner med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-015",
+        "capability": "Manage Receivers",
+        "label_da": "Modtagere",
+        "route": "/addresses/receivers",
+        "blazor_page": "Pages/addresses/ReceiversPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i modtagere og oprette modtagere, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over modtagere",
+          "Brugeren kan søge og filtrere modtagere",
+          "Brugeren kan oprette ny/nye modtagere via formular"
+        ]
+      },
+      {
+        "story_id": "US-021",
+        "capability": "Manage Gdprs",
+        "label_da": "Gdpr-håndtering",
+        "route": "/addresses/gdprs",
+        "blazor_page": "Pages/addresses/GdprsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i GDPR-håndtering, oprette GDPR-håndtering, redigere GDPR-håndtering og slette GDPR-håndtering, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over GDPR-håndtering",
+          "Brugeren kan søge og filtrere GDPR-håndtering",
+          "Brugeren kan oprette ny/nye GDPR-håndtering via formular",
+          "Brugeren kan redigere eksisterende GDPR-håndtering",
+          "Brugeren kan slette GDPR-håndtering med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-026",
+        "capability": "Manage Address",
+        "label_da": "Adresser",
+        "route": "/addresses/addresss",
+        "blazor_page": "Pages/addresses/AddressPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudPaper",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "map-view",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i adresser, oprette adresser og redigere adresser, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over adresser",
+          "Brugeren kan søge og filtrere adresser",
+          "Brugeren kan oprette ny/nye adresser via formular",
+          "Brugeren kan redigere eksisterende adresser"
+        ]
+      },
+      {
+        "story_id": "US-027",
+        "capability": "Manage Stds",
+        "label_da": "Standardindstillinger",
+        "route": "/addresses/stds",
+        "blazor_page": "Pages/addresses/StdsPage.razor",
+        "features": [
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg oprette standardindstillinger og slette standardindstillinger, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": [
+          "Brugeren kan oprette ny/nye standardindstillinger via formular",
+          "Brugeren kan slette standardindstillinger med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-028",
+        "capability": "Manage Localizeds",
+        "label_da": "Sprogoversættelser",
+        "route": "/addresses/localizeds",
+        "blazor_page": "Pages/addresses/LocalizedsPage.razor",
+        "features": [
+          "create"
+        ],
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm"
+        ],
+        "patterns": [
+          "create-dialog"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg oprette sprogoversættelser, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": [
+          "Brugeren kan oprette ny/nye sprogoversættelser via formular"
+        ]
+      },
+      {
+        "story_id": "US-030",
+        "capability": "Manage Imports",
+        "label_da": "Dataimport",
+        "route": "/addresses/imports",
+        "blazor_page": "Pages/addresses/ImportsPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i dataimport, oprette dataimport og slette dataimport, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over dataimport",
+          "Brugeren kan søge og filtrere dataimport",
+          "Brugeren kan oprette ny/nye dataimport via formular",
+          "Brugeren kan slette dataimport med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-042",
+        "capability": "Manage Statstidendes",
+        "label_da": "Statstidendeer",
+        "route": "/addresses/statstidendes",
+        "blazor_page": "Pages/addresses/StatstidendesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i statstidendeer, oprette statstidendeer og slette statstidendeer, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over statstidendeer",
+          "Brugeren kan søge og filtrere statstidendeer",
+          "Brugeren kan oprette ny/nye statstidendeer via formular",
+          "Brugeren kan slette statstidendeer med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-046",
+        "capability": "Other Address Operations",
+        "label_da": "Miscer",
+        "route": "/addresses/miscs",
+        "blazor_page": "Pages/addresses/AddressOperationsPage.razor",
+        "features": [],
+        "components": [],
+        "patterns": [],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan håndtere og validere adressedata korrekt.",
+        "acceptance_criteria": []
+      }
+    ],
+    "Finance & Operations": [
+      {
+        "story_id": "US-008",
+        "capability": "Manage Sales",
+        "label_da": "Salgsdata",
+        "route": "/finance/sales",
+        "blazor_page": "Pages/finance/SalesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i salgsdata, oprette salgsdata, redigere salgsdata og slette salgsdata, så jeg kan holde styr på økonomi og driftsprocesser.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over salgsdata",
+          "Brugeren kan søge og filtrere salgsdata",
+          "Brugeren kan oprette ny/nye salgsdata via formular",
+          "Brugeren kan redigere eksisterende salgsdata",
+          "Brugeren kan slette salgsdata med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-010",
+        "capability": "Manage Salaries",
+        "label_da": "Lønsedler",
+        "route": "/finance/salarys",
+        "blazor_page": "Pages/finance/SalariesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter"
+        ],
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i lønsedler, så jeg kan holde styr på økonomi og driftsprocesser.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over lønsedler",
+          "Brugeren kan søge og filtrere lønsedler"
+        ]
+      },
+      {
+        "story_id": "US-011",
+        "capability": "Manage Absences",
+        "label_da": "Fraværsregistreringer",
+        "route": "/finance/absences",
+        "blazor_page": "Pages/finance/AbsencesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i fraværsregistreringer, oprette fraværsregistreringer, redigere fraværsregistreringer og slette fraværsregistreringer, så jeg kan holde styr på økonomi og driftsprocesser.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over fraværsregistreringer",
+          "Brugeren kan søge og filtrere fraværsregistreringer",
+          "Brugeren kan oprette ny/nye fraværsregistreringer via formular",
+          "Brugeren kan redigere eksisterende fraværsregistreringer",
+          "Brugeren kan slette fraværsregistreringer med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-018",
+        "capability": "Manage Invoices",
+        "label_da": "Fakturaer",
+        "route": "/finance/invoices",
+        "blazor_page": "Pages/finance/InvoicesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter"
+        ],
+        "components": [
+          "MudDataGrid",
+          "MudTextField"
+        ],
+        "patterns": [
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i fakturaer, så jeg kan holde styr på økonomi og driftsprocesser.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over fakturaer",
+          "Brugeren kan søge og filtrere fakturaer"
+        ]
+      },
+      {
+        "story_id": "US-029",
+        "capability": "Manage Employees",
+        "label_da": "Medarbejdere",
+        "route": "/finance/employees",
+        "blazor_page": "Pages/finance/EmployeesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudTextField"
+        ],
+        "patterns": [
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i medarbejdere og oprette medarbejdere, så jeg kan holde styr på økonomi og driftsprocesser.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over medarbejdere",
+          "Brugeren kan søge og filtrere medarbejdere",
+          "Brugeren kan oprette ny/nye medarbejdere via formular"
+        ]
+      },
+      {
+        "story_id": "US-033",
+        "capability": "Manage Drives",
+        "label_da": "Fildrev",
+        "route": "/finance/drives",
+        "blazor_page": "Pages/finance/DrivesPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "list-with-search",
+          "pagination"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i fildrev, oprette fildrev og slette fildrev, så jeg kan holde styr på økonomi og driftsprocesser.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over fildrev",
+          "Brugeren kan søge og filtrere fildrev",
+          "Brugeren kan oprette ny/nye fildrev via formular",
+          "Brugeren kan slette fildrev med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-047",
+        "capability": "Other Finance Operations",
+        "label_da": "Miscer",
+        "route": "/finance/miscs",
+        "blazor_page": "Pages/finance/FinanceOperationsPage.razor",
+        "features": [],
+        "components": [],
+        "patterns": [],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan holde styr på økonomi og driftsprocesser.",
+        "acceptance_criteria": []
+      }
+    ],
+    "Analytics & Reporting": [
+      {
+        "story_id": "US-006",
+        "capability": "Manage Benchmarks",
+        "label_da": "Benchmarks",
+        "route": "/analytics/benchmarks",
+        "blazor_page": "Pages/analytics/BenchmarksPage.razor",
+        "features": [
+          "list",
+          "search",
+          "filter",
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudCard",
+          "MudChart",
+          "MudDataGrid",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton",
+          "MudTextField"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog",
+          "list-with-search",
+          "pagination",
+          "stats-cards"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg se og søge i benchmarks, oprette benchmarks, redigere benchmarks og slette benchmarks, så jeg kan få indsigt i systemaktivitet og performance.",
+        "acceptance_criteria": [
+          "Brugeren ser en liste over benchmarks",
+          "Brugeren kan søge og filtrere benchmarks",
+          "Brugeren kan oprette ny/nye benchmarks via formular",
+          "Brugeren kan redigere eksisterende benchmarks",
+          "Brugeren kan slette benchmarks med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-025",
+        "capability": "Manage Causes",
+        "label_da": "Årsagskoder",
+        "route": "/analytics/causes",
+        "blazor_page": "Pages/analytics/CausesPage.razor",
+        "features": [
+          "create",
+          "edit",
+          "delete"
+        ],
+        "components": [
+          "MudButton",
+          "MudDialog",
+          "MudForm",
+          "MudIconButton"
+        ],
+        "patterns": [
+          "confirm-delete-dialog",
+          "create-dialog",
+          "edit-dialog"
+        ],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg oprette årsagskoder, redigere årsagskoder og slette årsagskoder, så jeg kan få indsigt i systemaktivitet og performance.",
+        "acceptance_criteria": [
+          "Brugeren kan oprette ny/nye årsagskoder via formular",
+          "Brugeren kan redigere eksisterende årsagskoder",
+          "Brugeren kan slette årsagskoder med bekræftelsesdialog"
+        ]
+      },
+      {
+        "story_id": "US-045",
+        "capability": "Other Analytics Operations",
+        "label_da": "Miscer",
+        "route": "/analytics/miscs",
+        "blazor_page": "Pages/analytics/AnalyticsOperationsPage.razor",
+        "features": [],
+        "components": [],
+        "patterns": [],
+        "priority": "P3",
+        "story_da": "Som bruger vil jeg arbejde med miscer, så jeg kan få indsigt i systemaktivitet og performance.",
+        "acceptance_criteria": []
+      }
+    ]
+  },
+  "shared_components": [
+    {
+      "name": "AppDataGrid",
+      "path": "Shared/DataGrid/AppDataGrid.razor",
+      "wraps": "MudDataGrid",
+      "purpose": "Standard list-view med søgning og paging"
+    },
+    {
+      "name": "ConfirmDeleteDialog",
+      "path": "Shared/Dialogs/ConfirmDeleteDialog.razor",
+      "wraps": "MudDialog",
+      "purpose": "Standardiseret sletbekræftelse"
+    },
+    {
+      "name": "BaseFormDialog",
+      "path": "Shared/Dialogs/BaseFormDialog.razor",
+      "wraps": "MudDialog + MudForm",
+      "purpose": "Opret/redigér dialog ramme"
+    },
+    {
+      "name": "AppSnackbar",
+      "path": "Shared/Feedback/AppSnackbar.razor",
+      "wraps": "MudSnackbar",
+      "purpose": "Centraliseret success/error feedback"
+    }
+  ]
+}
