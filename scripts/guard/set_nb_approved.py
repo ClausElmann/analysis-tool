@@ -1,15 +1,21 @@
 """
 set_nb_approved.py — The ONLY authorized way to set state = "N-B APPROVED".
 
+Single source of truth for gate is check_analysis_gate.py.
+set_nb_approved.py must not duplicate or diverge.
+
 Flow:
-  1. Run check_analysis_gate.py
-  2. If FAIL → print block reason, append event to temp/README.md, exit(1)
-  3. If PASS → write {"state": "N-B APPROVED"} to build_state.json
+  1. Delegate entirely to check_analysis_gate.py
+  2. If gate returns 0 (PASS) → write {"state": "N-B APPROVED"} to build_state.json
+  3. If gate returns != 0 (FAIL) → append N-B BLOCKED event, exit(1)
 
 FORBIDDEN:
   - Direct writes to build_state.json
   - Bypassing this script
   - Manual overrides
+  - Reimplementing gate logic
+  - Reading domain_state.json
+  - Any validation outside check_analysis_gate.py
 
 Usage:
   python scripts/guard/set_nb_approved.py
@@ -33,34 +39,44 @@ def append_readme(event: str) -> None:
 
 
 def main() -> int:
-    # Step 1 — run analysis gate
+    # Delegate entirely to check_analysis_gate.py — no logic here
     result = subprocess.run(
         [sys.executable, str(ANALYSIS_GATE)],
         capture_output=True,
         text=True,
     )
     output = result.stdout.strip()
+    print(output)
 
     if result.returncode != 0:
-        # Extract coverage lines from gate output for reporting
         lines = output.splitlines()
         block_lines = "\n".join(f"  - {l}" for l in lines if l.startswith("  BLOCK") or "FAIL" in l or "%" in l)
-
         event = (
             f"## COPILOT → ARCHITECT — N-B BLOCKED ({date.today()})\n\n"
-            f"- reason: analysis gate failed\n"
+            f"- reason: analysis gate FAIL\n"
             f"{block_lines}"
         )
-        print(f"N-B APPROVAL DENIED:\n{output}")
         append_readme(event)
+        print("N-B APPROVAL DENIED")
         return 1
 
-    # Step 2 — gate passed, write approved state
+    # Gate passed — write state
     BUILD_STATE_FILE.write_text(
         json.dumps({"state": "N-B APPROVED"}, indent=2) + "\n",
         encoding="utf-8",
     )
-    print(f"N-B APPROVED — build_state.json updated.")
+    print("N-B APPROVED — build_state.json updated.")
+    append_readme(
+        f"## COPILOT → ARCHITECT — N-B APPROVED ({date.today()})\n\n"
+        f"- analysis gate: PASS\n"
+        f"- build_state.json: state = N-B APPROVED"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+
     append_readme(
         f"## COPILOT → ARCHITECT — N-B APPROVED ({date.today()})\n\n"
         f"- analysis gate: PASS\n"

@@ -1,0 +1,38 @@
+{
+  "last_verified": "2026-04-23T00:00:00Z",
+  "system_status": "BLOCKED",
+
+  "current_phase": "N-A",
+
+  "domains": {
+    "customer_administration": "DONE",
+    "message_wizard": "BLOCKED",
+    "message_management": "PENDING"
+  },
+
+  "current_slice": "message_wizard",
+
+  "gate": {
+    "flows_verified": 1.0,
+    "requirements_verified": 1.0,
+    "domain_coverage_global": 0.26,
+    "entities": 1.0,
+    "behaviors": 1.0,
+    "flows": 1.0,
+    "business_rules": 1.0,
+    "passed": false,
+    "block_reason": "domain_coverage_global 10/38 = 26% < 90% required for N-B approval"
+  },
+
+  "next_action": "Architect: provide domain_state.json key(s) for message_wizard capability, OR authorize domain-scoped N-B approval with mapped keys",
+
+  "notes": {
+    "customer_administration": "N-B APPROVED — build_state.json state=N-B APPROVED, 7/7 tests pass",
+    "message_wizard": "N-A analysis complete — 13 flows verified (ServiceAlert.Web controller), N-B blocked on domain coverage gate",
+    "message_management": "N-A split defined — flows catalogued, backend controllers not yet scanned (AdministrationController, SearchController, OperationalController)",
+    "gate_script": "scripts/guard/check_analysis_gate.py — supports --domains and --capability flags",
+    "common_guard": "scripts/guard/common_guard.py — fail_with_reset() enforced, CAPABILITY_DOMAIN_MAP registered for manage_customer only"
+  },
+
+  "reset_required": false
+}
