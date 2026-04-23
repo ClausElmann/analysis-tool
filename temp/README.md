@@ -11,8 +11,40 @@
 
 ```
 mode: BUILD_READY
-status: WAVE 1 — UI Foundation afventer implementering
+status: WAVE 1 — UI Foundation IN PROGRESS
 ```
+
+---
+
+## SESSION MODE
+
+```
+PROTOKOL ACTIVE
+Role: Executor (not architect)
+Build gate: N-B APPROVED required
+Guess: FORBIDDEN → UNKNOWN
+Initiative: FORBIDDEN
+Output: §COPILOT → ARCHITECT (facts only, file+method+line)
+```
+
+---
+
+## RUNTIME STATE
+
+**COMPONENT BUILT: AppDataGrid — READY FOR REVIEW**
+
+Fil: `green-ai/src/GreenAi.Api/Components/Shared/DataGrid/AppDataGrid.razor`
+
+- `@typeparam TItem` — generisk
+- `Items` (IEnumerable<TItem>) — data-parameter
+- `Columns` (RenderFragment?) — column-definitioner fra parent
+- `OnEdit` / `OnDelete` (EventCallback<TItem>) — row actions
+- `IsLoading` (bool) — loading-indikator via MudDataGrid.Loading
+- MudDataGrid: Pageable (10/side), SortMode.Multiple, Hover, Striped
+- Ingen backend-kald — dummy data tilladt fra parent
+- Følger ui_blueprints.md LOCKED + build_execution_protocol.md NO GUESS
+
+**NÆSTE:** `Shared/Dialogs/ConfirmDeleteDialog.razor`
 
 ---
 
