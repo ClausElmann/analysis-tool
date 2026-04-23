@@ -15,6 +15,14 @@ Usage:
   python scripts/harvest/generate_ui_masterplan.py --dry-run
 """
 
+# ─── BUILD GATE (non-bypassable) ────────────────────────────────────────────
+import subprocess as _sp, sys as _sys, pathlib as _pl
+_guard = _pl.Path(__file__).resolve().parents[2] / "scripts" / "guard" / "check_build_gate.py"
+if _sp.run([_sys.executable, str(_guard)], check=False).returncode != 0:
+    print("BUILD BLOCKED — guard returned BLOCK. See harvest/architect-review/build_state.json")
+    _sys.exit(1)
+# ─────────────────────────────────────────────────────────────────────────────
+
 import argparse
 import json
 from pathlib import Path
