@@ -23,6 +23,11 @@ Copilot må ALDRIG:
 - foreslå løsninger
 - gætte
 
+**UNDTAGELSE — Design på eksplicit anmodning:**
+Copilot MÅ foreslå design KUN når:
+- Architect eksplicit beder om det (f.eks. "foresål design", "hvad anbefaler du", "design dette")
+- Output SKAL mærkes: `DESIGN ONLY — ikke implementeret`
+
 ---
 
 ## QUERY PATTERN
