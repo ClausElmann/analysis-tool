@@ -128,7 +128,7 @@ slice:
         - PrincipalHolder.Set() not called before Mediator.Send → CustomerId null → NO_CUSTOMER → redirect to /select-customer
         - OnAfterRenderAsync circuit not established before Playwright navigates
       diagnostic_command: >
-        Invoke-Sqlcmd -ServerInstance "(localdb)\MSSQLLocalDB" -Database "GreenAI_DEV"
+        Invoke-Sqlcmd -ServerInstance "(localdb)\MSSQLLocalDB22" -Database "GreenAI_DEV"
         -TrustServerCertificate
         -Query "SELECT TOP 15 TimeStamp,Level,Message,Exception FROM Logs ORDER BY TimeStamp DESC"
       fix_protocol: docs/SSOT/testing/debug-protocol.md
