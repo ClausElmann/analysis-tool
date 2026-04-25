@@ -109,7 +109,7 @@ Mangler ét punkt → rapportér gap → STOP build på den story.
 Hvis session-hukommelse ryger, læs i denne rækkefølge:
 1. `docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md` — roller, regler, modes
 2. `docs/GREEN_AI_BUILD_STATE.md` — projekt-status
-3. `temp/README.md` — aktuel state + RUNTIME STATE
+3. `temp/TEMP.md` — aktuel state + RUNTIME STATE
 4. `harvest/architect-review/build_order.md` — WAVE-rækkefølge
 5. `harvest/architect-review/ui_blueprints.md` — execution patterns
 

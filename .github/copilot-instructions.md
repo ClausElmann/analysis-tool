@@ -7,7 +7,7 @@ Kald disse 3 reads automatisk, uanset hvad brugeren skriver:
 
 1. `read_file docs/COPILOT-GREENAI-AND-ANALYSE-TOOL-ONBOARDING.md`
 2. `read_file docs/GREEN_AI_BUILD_STATE.md`
-3. `read_file temp/README.md`
+3. `read_file temp/TEMP.md`
 
 Derefter svar på brugerens besked med fuld kontekst.
 
@@ -15,14 +15,14 @@ Derefter svar på brugerens besked med fuld kontekst.
 
 **COPILOT MÅ ALDRIG GÆTTE — ALT HAR ROD I LAYER 0-KILDER**
 
-**temp/README.md STØRRELSE — PROAKTIV RYDNING:**
-Efter enhver opgave: tjek om temp/README.md > 500 linjer. Hvis ja — ryd automatisk:
+**temp/TEMP.md STØRRELSE — PROAKTIV RYDNING:**
+Efter enhver opgave: tjek om temp/TEMP.md > 500 linjer. Hvis ja — ryd automatisk:
 - Slet: implementerede planer, afsluttede RESULT-blokke, gamle Wave-rapporter
 - Behold: seneste `COPILOT → ARCHITECT` (åbne spørgsmål), uimplementerede direktiver, token-header
 - Mål: < 200 linjer efter rydning
 
-**TEMP/ MAPPE — UNDTAGELSE: README.md er PERMANENT:**
-- `temp/README.md` er PERMANENT — brugeren sletter den ALDRIG. Copilot holder den ajour.
+**TEMP/ MAPPE — UNDTAGELSE: TEMP.md er PERMANENT:**
+- `temp/TEMP.md` er PERMANENT — brugeren sletter den ALDRIG. Copilot holder den ajour.
 - Alle andre filer i `temp/` er flygtige — brugeren sletter dem efter levering
 - Permanente kilde-filer er i `harvest/architect-review/` og `harvest/stories/`
 

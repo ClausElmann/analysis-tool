@@ -182,23 +182,23 @@ Et flow er KUN gyldigt når ALLE fire felter er dokumenteret:
 
 ### temp/ mappe — leveringszone til Arkitekt
 
-> 🔴 **`temp/README.md` er PERMANENT — Copilot holder den ajour. Brugeren sletter den ALDRIG.**
+> 🔴 **`temp/TEMP.md` er PERMANENT — Copilot holder den ajour. Brugeren sletter den ALDRIG.**
 > Alle andre filer i `temp/` er flygtige — brugeren sletter dem efter levering.
 > Permanente kilde-filer er ALTID i `harvest/architect-review/` eller `harvest/stories/`.
-> `temp/` (undtagen README.md) er KUN en afleveringsbakke — ALDRIG en kilde.
+> `temp/` (undtagen TEMP.md) er KUN en afleveringsbakke — ALDRIG en kilde.
 
-### temp/README.md — ENVEJS output fra Copilot til Architect
+### temp/TEMP.md — ENVEJS output fra Copilot til Architect
 
-> 🔴 **KERNEREGEL 1: Arkitekten ser KUN hvad der er i temp/README.md. Chat er usynlig.**
-> Ethvert fund, beslutning, forslag, stop-condition, åbent spørgsmål, audit-svar → skriv i temp/README.md ØJEBLIKKELIGT.
+> 🔴 **KERNEREGEL 1: Arkitekten ser KUN hvad der er i temp/TEMP.md. Chat er usynlig.**
+> Ethvert fund, beslutning, forslag, stop-condition, åbent spørgsmål, audit-svar → skriv i temp/TEMP.md ØJEBLIKKELIGT.
 
-> 🔴 **KERNEREGEL 2: temp/README.md er ENVEJS — Copilot → Architect.**
+> 🔴 **KERNEREGEL 2: temp/TEMP.md er ENVEJS — Copilot → Architect.**
 > Copilot skriver KUN `COPILOT → ARCHITECT`-blokke.
-> Arkitekten skriver SELV sine svar direkte i temp/README.md (via brugeren).
-> Når brugeren paster Arkitektens svar i chat → Copilot læser det, implementerer — men skriver det **ALDRIG** ind i temp/README.md igen.
+> Arkitekten skriver SELV sine svar direkte i temp/TEMP.md (via brugeren).
+> Når brugeren paster Arkitektens svar i chat → Copilot læser det, implementerer — men skriver det **ALDRIG** ind i temp/TEMP.md igen.
 
-> ❌ **FORBUDT: `ARCHITECT → COPILOT`-sektioner i temp/README.md skrevet af Copilot.**
-> Arkitektens svar eksisterer allerede i temp/README.md fra da brugeren indsatte det. Copilot må ikke duplikere det.
+> ❌ **FORBUDT: `ARCHITECT → COPILOT`-sektioner i temp/TEMP.md skrevet af Copilot.**
+> Arkitektens svar eksisterer allerede i temp/TEMP.md fra da brugeren indsatte det. Copilot må ikke duplikere det.
 
 ### temp/ mappe — leveringsbevis til Arkitekt
 
@@ -210,7 +210,7 @@ Et flow er KUN gyldigt når ALLE fire felter er dokumenteret:
 
 > ❌ **FORBUDT: Skriv kun til temp/. Temp er ALDRIG kilden.**
 
-Opdatér `temp/README.md` efter ENHVER opgave. Brug denne skabelon:
+Opdatér `temp/TEMP.md` efter ENHVER opgave. Brug denne skabelon:
 
 ```markdown
 ## COPILOT → ARCHITECT — [EMNE] ([YYYY-MM-DD])
@@ -242,7 +242,7 @@ Opdatér `temp/README.md` efter ENHVER opgave. Brug denne skabelon:
 - ✅ Timestamp ved ENHVER opdatering
 - ❌ Ingen `ARCHITECT → COPILOT`-sektioner skrevet af Copilot
 
-**temp/README.md er SESSION-STATE — ikke permanent. Hele temp/ slettes af brugeren efter levering.**
+**temp/TEMP.md er SESSION-STATE — ikke permanent. Hele temp/ slettes af brugeren efter levering.**
 
 ### GREEN_AI_BUILD_STATE.md — permanent projekt-status
 

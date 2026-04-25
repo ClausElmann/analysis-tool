@@ -1,5 +1,5 @@
 import re
-with open("temp/README.md", encoding="utf-8") as f:
+with open("temp/TEMP.md", encoding="utf-8") as f:
     content = f.read()
 gateway_marker = "## COPILOT \u2192 ARCHITECT \u2014 ANALYSIS TOOL AS GATEWAY (2026-04-23)"
 build_marker = "## COPILOT \u2192 ARCHITECT \u2014 BUILD EXECUTION PROTOCOL (2026-04-23)"
@@ -13,7 +13,7 @@ gateway_ref = gateway_marker + "\n\n> **PERMANENT SSOT \u2014 se:** `harvest/arc
 build_ref = build_marker + "\n\n> **PERMANENT SSOT \u2014 se:** `harvest/architect-review/build_execution_protocol.md` (LOCKED)\n\n---\n\n"
 content = content.replace(gateway_section, gateway_ref)
 content = content.replace(build_section, build_ref)
-with open("temp/README.md", "w", encoding="utf-8") as f:
+with open("temp/TEMP.md", "w", encoding="utf-8") as f:
     f.write(content)
 print("Done")
 print(f"New file length: {len(content)}")

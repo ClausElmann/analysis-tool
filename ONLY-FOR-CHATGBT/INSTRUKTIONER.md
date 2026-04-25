@@ -51,7 +51,7 @@ Hvis én fejler → STOP
 ## SESSION START (KRITISK)
 ALTID:
 
-1. Læs temp/README.md
+1. Læs temp/TEMP.md
 2. Find:
    - current state
    - current wave
