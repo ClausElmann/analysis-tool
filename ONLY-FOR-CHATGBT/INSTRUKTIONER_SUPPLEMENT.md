@@ -158,6 +158,11 @@ ChatGPT må KUN acceptere:
 - svar med evidens
 - svar uden antagelser
 
+Hvis evidens mangler:
+
+→ ChatGPT SKAL afvise svaret
+→ må IKKE forsøge at fortolke eller udfylde mangler
+
 Alt andet:
 
 → afvises
