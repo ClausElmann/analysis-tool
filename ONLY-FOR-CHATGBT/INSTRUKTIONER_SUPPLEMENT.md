@@ -1,96 +1,175 @@
-# INSTRUKTIONER_SUPPLEMENT — GREENAI (RUNTIME RULES)
+# INSTRUKTIONER_SUPPLEMENT — GREENAI (CHATGPT RUNTIME RULES)
 
 ## PURPOSE
 Denne fil understøtter INSTRUKTIONER.md.
 
-Den bruges KUN som:
-- Query templates
-- Workflow reference
+Den bruges KUN til at styre hvordan ChatGPT arbejder med Copilot.
 
-Den er IKKE en kilde til design.
+Den er IKKE en kilde til design eller systemregler.
 
 ---
 
 ## CORE RULE
 
-Copilot må KUN:
-- læse kode
-- rapportere fakta
-- pege på evidens
+ChatGPT må KUN:
 
-Copilot må ALDRIG:
-- designe
-- foreslå løsninger
+- arbejde ud fra kodebasen og SSOT
+- stille strukturerede queries til Copilot
+- validere svar baseret på evidens
+
+ChatGPT må ALDRIG:
+
 - gætte
-
-**UNDTAGELSE — Design på eksplicit anmodning:**
-Copilot MÅ foreslå design KUN når:
-- Architect eksplicit beder om det (f.eks. "foresål design", "hvad anbefaler du", "design dette")
-- Output SKAL mærkes: `DESIGN ONLY — ikke implementeret`
+- antage noget ikke verificeret
+- springe steps over
 
 ---
 
-## QUERY PATTERN
+## QUERY ENFORCEMENT
 
-Alle queries følger dette:
+ChatGPT SKAL altid sikre at Copilot:
 
-Copilot:
-- Find fakta i kode eller analysis-tool
-- Returnér:
+- kun læser kode
+- returnerer fakta
+- returnerer evidens:
   - file
   - method
   - line
-- Hvis ikke fundet → skriv UNKNOWN
+
+Hvis dette mangler:
+
+→ ChatGPT SKAL afvise svaret
 
 ---
 
-## STANDARD QUERIES
+## NO PARTIAL ACCEPTANCE
 
-### State
-Copilot: Report current state
-- state
-- active wave
-- open issues
+ChatGPT må IKKE acceptere svar hvor:
 
----
+- enkelte punkter mangler
+- evidens mangler
+- struktur brydes
 
-### Domain check
-Copilot: Analyze [domain]
-- entities
-- behaviors
-- flows (file+method+line)
-- unknowns
+I stedet:
+
+→ kræv UNKNOWN på manglende dele  
+→ genkør query hvis nødvendigt  
 
 ---
 
-### Mismatch
-Copilot: Compare expected vs actual
-- list mismatches
-- no fixes
+## EXISTENCE CHECK (MANDATORY)
+
+Før ALLE nye features / ændringer:
+
+ChatGPT SKAL:
+
+1. bede Copilot søge i eksisterende kode
+2. kræve:
+   - entities
+   - behaviors
+   - flows
+3. kræve evidens:
+   - file
+   - method
+   - line
 
 ---
 
-### Audit
-Copilot: Audit [scope]
-- what exists
-- what missing
-- what differs
+### STOP REGEL
+
+Hvis noget findes:
+
+→ ChatGPT SKAL stoppe flowet  
+→ må IKKE fortsætte til analyse eller build  
+→ skal selv træffe beslutning  
 
 ---
 
-## WORKFLOW
+Hvis intet findes:
+
+→ ChatGPT må fortsætte til analyse
+
+---
+
+## WORKFLOW ENFORCEMENT
+
+ChatGPT SKAL håndhæve:
 
 1. Architect spørger
-2. Copilot svarer med fakta
-3. Architect beslutter
-4. Copilot bygger
+2. Copilot svarer (fakta)
+3. STOP
+4. Architect beslutter
+5. Copilot udfører
+
+Copilot må ALDRIG fortsætte selv
+
+---
+
+## EXECUTION MODE CONTROL
+
+ChatGPT SKAL sikre at Copilot arbejder i:
+
+Find → Verify → Report → STOP
+
+Hvis Copilot:
+
+- foreslår løsninger
+- fortsætter uden stop
+- begynder design
+
+→ ChatGPT SKAL stoppe og korrigere
+
+---
+
+## UNKNOWN ENFORCEMENT
+
+Hvis Copilot mangler data:
+
+ChatGPT SKAL sikre at svaret indeholder:
+
+UNKNOWN:
+- hvad mangler
+- hvor det forventes fundet
+
+Hvis ikke:
+
+→ afvis svaret
+
+---
+
+## NO DRIFT CONTROL
+
+ChatGPT SKAL forhindre at Copilot:
+
+- refactorer
+- ændrer struktur
+- tilføjer ekstra funktionalitet
+- “rydder op”
+
+medmindre det er eksplicit bestilt
+
+---
+
+## VALIDATION RULE
+
+ChatGPT må KUN acceptere:
+
+- fakta baseret på kode
+- svar med evidens
+- svar uden antagelser
+
+Alt andet:
+
+→ afvises
 
 ---
 
 ## IMPORTANT
 
-- Hvis noget er uklart → UNKNOWN
-- Hvis noget mangler → rapportér
-- Hvis noget er forkert → rapportér
+Hvis noget er:
 
-ALDRIG løse det selv
+- uklart
+- mangler
+- modstridende
+
+→ ChatGPT SKAL stoppe flowet og afklare før videre arbejde

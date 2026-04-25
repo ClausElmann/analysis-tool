@@ -1,110 +1,3 @@
-## §GOVERNANCE SOURCE
-
-```
-governance_source     = /shared/GOVERNANCE.md
-onboarding_contract   = /shared/ONBOARDING.md
-
-rule: temp.md er execution state ONLY
-      alle regler findes i GOVERNANCE.md
-      Copilot må KUN arbejde hvis onboarding_status = PASSED
-```
-
----
-
-## §CHANGE PROOF — 2026-04-25 (GOVERNANCE GOLD RULES)
-
-```
-files_changed  : 1
-  ~ c:\Udvikling\shared\GOVERNANCE.md   (4 sektioner tilføjet: §13-§16)
-lines_added    : ~60
-build_status   : N/A (doc only)
-warnings       : 0
-
-sektioner tilføjet:
-  §13 SUPERSEDED PROTOCOL
-  §14 EXECUTION VS GOVERNANCE
-  §15 DUPLICATE HANDLING
-  §16 RESET REQUIREMENT
-```
-
----
-
-## §SSOT VALIDATION — 2026-04-25
-
-```
-SCAN RESULT:
-
-DUPLICATES FOUND (7):
-  analysis-tool/docs/GREENAI/GOVERNANCE.md   → stubbed → ref /shared/GOVERNANCE.md
-  analysis-tool/docs/GREENAI/WORKFLOW.md     → stubbed → ref /shared/GOVERNANCE.md
-  analysis-tool/docs/GREENAI/PROTOCOL.md     → stubbed → ref /shared/GOVERNANCE.md
-  analysis-tool/docs/GREENAI/GATE.md         → stubbed → ref /shared/GOVERNANCE.md
-  analysis-tool/docs/GREENAI/ONBOARDING.md   → stubbed → ref /shared/ONBOARDING.md
-  green-ai/ai-governance/08_SSOT_EXECUTION_PROTOCOL.md → stubbed → ref /shared/GOVERNANCE.md
-  green-ai/ai-governance/07_AUDIT_PING_PONG_PROTOCOL.md → stubbed → ref /shared/GOVERNANCE.md
-
-DOMAIN-SPECIFIC (kept — not governance):
-  green-ai/docs/GREENAI/ARCHITECT_RULES.md
-  green-ai/docs/GREENAI/ENFORCEMENT_PATTERNS.md
-  green-ai/docs/GREENAI/ANTI_PATTERNS.md
-  green-ai/ai-governance/01_ARCHITECTURE_GUIDE.md
-  green-ai/ai-governance/02_FEATURE_TEMPLATE.md
-
-SSOT FILES (authoritative):
-  /shared/GOVERNANCE.md   ✅ CREATED
-  /shared/ONBOARDING.md   ✅ EXISTS
-
-ssot_status = CLEAN
-reset_ready = YES
-```
-
----
-
-## §CHANGE PROOF — 2026-04-25 (GLOBAL ONBOARDING SSOT)
-
-```
-files_changed  : 3
-  + c:\Udvikling\shared\ONBOARDING.md             (CREATED)
-  ~ c:\Udvikling\analysis-tool\temp\TEMP.md        (reference updated)
-  ~ c:\Udvikling\green-ai\temp\TEMP.md             (reference added)
-changes_count  : 3
-build_status   : N/A (doc only)
-warnings       : 0
-onboarding_contract = /shared/ONBOARDING.md (SSOT — gælder begge repos)
-```
-
----
-
-## §ONBOARDING — 2026-04-25
-
-```
-SSOT loaded : /docs/GREENAI/GOVERNANCE.md ✅
-
-ROLE LOCK:
-  COPILOT  : finder fakta / returnerer file+method+line / UNKNOWN hvis ikke fundet / ingen design
-  ARCHITECT: tager alle beslutninger / godkender build
-
-EXECUTION MODE : Find → Verify → Report → STOP ✅
-UNKNOWN PROTOCOL : STOP + UNKNOWN: hvad mangler + hvor det forventes fundet ✅
-NO DRIFT : ingen refactor / rename / ekstra ændringer ✅
-
-HARD QUIZ:
-  1. Data mangler          → STOP + UNKNOWN
-  2. Foreslå løsninger     → NEJ
-  3. Returnér fra kode     → file / method / line
-  4. Må bygge              → KUN efter N-B APPROVED fra Architect
-  5. Gate fejler           → BUILD FORBUDT
-  6. Må ændre scope        → NEJ
-  7. Min rolle             → fakta-finder
-  8. Architect rolle       → beslutnings-tager
-  9. CHANGE PROOF          → files_changed / changes_count / tests_passed / build_status / warnings
-  10. STOP condition       → data mangler / evidens mangler / konflikt / state mangler
-
-onboarding_status = PASSED
-```
-
----
-
 ## §STATE SNAPSHOT — 2026-04-25
 
 ```
@@ -125,35 +18,181 @@ slices_in_progress : NONE
 system_state       : DONE 🔒 — GREENAI CORE COMPLETE
 analysis_status    : PARTIALLY VERIFIED
 confidence_level   : VERIFIED (file+method level)
+
+known_gaps:
+  HIGH-01: UI recovery visibility — ingen auto-refresh/polling, retry kun på detalje-siden
+  EP-01:   ENFORCEMENT_PATTERNS.md stale doc (kode er korrekt — ikke runtime-problem)
 ```
 
 ---
 
-## §KNOWN GAPS (åbne — ikke i scope)
+## §CHANGE PROOF — seneste (2026-04-25, GOVERNANCE GOLD RULES)
 
-### HIGH-01 — UI recovery visibility
 ```
-STATUS: PARTIALLY ADDRESSED ⚠️
-GAP: Ingen auto-refresh / polling. Ingen liste-alert ved failed job.
-     Retry kun på detalje-siden — ikke fra MessageWizard UI.
-```
-
-### EP-01 — Doc discrepancy (ENFORCEMENT_PATTERNS.md)
-```
-STATUS: GOVERNANCE MISMATCH ⚠️
-Kode er KORREKT. Kun doc er forkert (stale fra mediated_execution_sticky_bypass_fix).
-Impact: dokumentationsforvirring — IKKE runtime sikkerhedsproblem.
+files_changed  : 1
+  ~ c:\Udvikling\shared\GOVERNANCE.md   (4 sektioner tilføjet: §13-§16)
+lines_added    : ~60
+build_status   : N/A (doc only)
+warnings       : 0
 ```
 
 ---
 
-## §ARCHITECT DECISION — 2026-04-25
+## §ANALYZE — GET CURRENT USER PROFILE — 2026-04-25
+
+MODE: N-A
 
 ```
-- GreenAI CORE er færdig og låst
-- Analysis layer er IKKE blocker
-- Mangler i analysis: flow line numbers / rule enforcement binding / global domain coverage
-- Ingen rebuild. Ingen kodeændringer.
+1. ENTITY
+   Interface : src/GreenAi.Api/SharedKernel/Auth/ICurrentUser.cs
+               interface ICurrentUser
+               fields: UserId, CustomerId, ProfileId, LanguageId, Email,
+                       IsImpersonating, OriginalUserId, IsAuthenticated
+
+   Impl      : src/GreenAi.Api/SharedKernel/Auth/HttpContextCurrentUser.cs
+               sealed class HttpContextCurrentUser : ICurrentUser
+               source: JWT claims via ClaimsPrincipal
+               HTTP  → IHttpContextAccessor.HttpContext.User
+               Blazor → BlazorPrincipalHolder (set by component before Mediator.Send)
+
+   Response  : src/GreenAi.Api/Features/Auth/Me/MeResponse.cs
+               sealed record MeResponse(UserId, CustomerId, ProfileId, LanguageId,
+                                        Email, IsImpersonating, OriginalUserId)
+
+2. BEHAVIOR
+   file   : src/GreenAi.Api/Features/Auth/Me/MeHandler.cs
+   method : MeHandler.Handle(MeQuery, CancellationToken)  line 13
+   logic  : reads ICurrentUser properties → maps to MeResponse → Result<MeResponse>.Ok(response)
+            NO DB query — pure JWT claim read
+
+   UI:
+   file   : src/GreenAi.Api/Components/Pages/UserSelfService/UserProfilePage.razor
+   method : OnAfterRenderAsync(bool firstRender)  line ~102
+   call   : PrincipalHolder.Set(authState.User) → Mediator.Send(new MeQuery())
+
+3. FLOW
+   Endpoint : src/GreenAi.Api/Features/Auth/Me/MeEndpoint.cs
+              MeEndpoint.Map  line 10
+              GET /api/auth/me — .RequireAuthorization()
+
+   Query    : src/GreenAi.Api/Features/Auth/Me/MeQuery.cs  line 7
+              sealed record MeQuery : IRequest<Result<MeResponse>>
+
+   Handler  : src/GreenAi.Api/Features/Auth/Me/MeHandler.cs
+              Handle  line 13 → ICurrentUser → Result<MeResponse>.Ok
+
+4. BUSINESS RULES
+   RULE 1 : UserId.Value > 0 when IsAuthenticated
+            enforced: ICurrentUser.cs (contract) + HttpContextCurrentUser.cs line 47 (throws)
+   RULE 2 : CustomerId.Value never 0
+            enforced: ICurrentUser.cs (contract) + HttpContextCurrentUser.cs line 52 (throws)
+   RULE 3 : ProfileId.Value > 0 for IRequireProfile requests
+            enforced: src/GreenAi.Api/SharedKernel/Pipeline/RequireProfileBehavior.cs
+   RULE 4 : MeQuery does NOT carry IRequireProfile — only requires IsAuthenticated
+            evidence: MeQuery.cs line 7 (no IRequireProfile marker)
+   RULE 5 : Blazor must call BlazorPrincipalHolder.Set before Mediator.Send
+            enforced: HttpContextCurrentUser.cs line 33-34 (throws if no principal)
+   RULE 6 : No DB query for Me read
+            evidence: MeHandler.cs — no IDbSession injected
+```
+
+---
+
+## §EXISTENCE CHECK — USER PROFILE READ — 2026-04-25
+
+MODE: N-A
+
+```
+1. ENTITIES
+
+   ICurrentUser (interface)
+     file : src/GreenAi.Api/SharedKernel/Auth/ICurrentUser.cs
+     fields: UserId, CustomerId, ProfileId, LanguageId, Email,
+             IsImpersonating, OriginalUserId, IsAuthenticated
+
+   HttpContextCurrentUser (implementation)
+     file : src/GreenAi.Api/SharedKernel/Auth/HttpContextCurrentUser.cs
+     type : sealed class HttpContextCurrentUser : ICurrentUser
+     source: JWT ClaimsPrincipal (HTTP: IHttpContextAccessor / Blazor: BlazorPrincipalHolder)
+
+   MeResponse (read model)
+     file : src/GreenAi.Api/Features/Auth/Me/MeResponse.cs
+     type : sealed record MeResponse(UserId, CustomerId, ProfileId, LanguageId,
+                                     Email, IsImpersonating, OriginalUserId)
+
+   ProfileSummary (profile list item)
+     file : src/GreenAi.Api/SharedKernel/Auth/ProfileSummary.cs
+     type : sealed record ProfileSummary(int ProfileId, string DisplayName)
+
+   ProfileRecord (auth / select profile)
+     file : src/GreenAi.Api/Features/Auth/SelectProfile/SelectProfileRepository.cs  line 13
+     used in: SelectProfileRepository.GetAvailableProfilesAsync
+
+   DB tables: [dbo].[Profiles], [dbo].[ProfileUserMappings], [dbo].[UserCustomerMemberships]
+
+2. BEHAVIORS
+
+   Me read (current user identity from JWT — NO DB)
+     file   : src/GreenAi.Api/Features/Auth/Me/MeHandler.cs
+     method : MeHandler.Handle  line 13
+     source : ICurrentUser → MeResponse
+
+   Update user display name
+     file   : src/GreenAi.Api/Features/UserSelfService/UpdateUser/UpdateUserHandler.cs
+     method : UpdateUserHandler.Handle  line 19
+     sql    : UpdateUserDisplayName.sql → UPDATE [dbo].[Profiles] SET DisplayName WHERE Id = @ProfileId
+
+   Update user language
+     file   : src/GreenAi.Api/Features/UserSelfService/UpdateUser/UpdateUserHandler.cs
+     method : UpdateUserHandler.Handle  line 23
+     sql    : UpdateUserLanguage.sql → UPDATE [dbo].[UserCustomerMemberships] SET LanguageId
+
+   Select profile (auth flow)
+     file   : src/GreenAi.Api/Features/Auth/SelectProfile/SelectProfileHandler.cs
+     method : SelectProfileHandler.Handle  line 25
+     repo   : SelectProfileRepository.GetAvailableProfilesAsync
+     sql    : GetAvailableProfiles.sql → SELECT FROM Profiles JOIN ProfileUserMappings
+              WHERE UserId = @UserId AND CustomerId = @CustomerId
+
+3. FLOWS
+
+   GET /api/auth/me (read identity)
+     file   : src/GreenAi.Api/Features/Auth/Me/MeEndpoint.cs  line 10
+     query  : MeQuery → MeHandler.Handle → Result<MeResponse>.Ok
+     auth   : .RequireAuthorization()
+
+   PUT /api/user/update (write display name / language)
+     file   : src/GreenAi.Api/Features/UserSelfService/UpdateUser/UpdateUserEndpoint.cs  line 10
+     command: UpdateUserCommand → UpdateUserHandler.Handle → DB
+     auth   : .RequireAuthorization() + IRequireProfile (pipeline enforced)
+
+   Blazor UI load (UserProfilePage)
+     file   : src/GreenAi.Api/Components/Pages/UserSelfService/UserProfilePage.razor
+     method : OnAfterRenderAsync  line ~102
+     flow   : PrincipalHolder.Set → MeQuery → _email
+              JWT claims fallback for _displayName, _role, _memberSince
+     save   : SaveAsync → UpdateUserCommand(_displayName, null)
+
+4. AUTH / CONTEXT
+
+   HttpContextCurrentUser reads from:
+     HTTP   : IHttpContextAccessor.HttpContext.User (Bearer token claims)
+     Blazor : BlazorPrincipalHolder.Current (set by component before Mediator.Send)
+     file   : src/GreenAi.Api/SharedKernel/Auth/HttpContextCurrentUser.cs  line 33-34
+
+   Claims used:
+     GreenAiClaims.Sub          → UserId           line 47
+     GreenAiClaims.CustomerId   → CustomerId        line 52
+     GreenAiClaims.ProfileId    → ProfileId         line 57
+     GreenAiClaims.LanguageId   → LanguageId        line 62
+     GreenAiClaims.Email        → Email             line 67
+     GreenAiClaims.ImpersonatedUserId → IsImpersonating / OriginalUserId  line 72-79
+
+   Pipeline enforcement:
+     IRequireProfile → RequireProfileBehavior
+       file: src/GreenAi.Api/SharedKernel/Pipeline/RequireProfileBehavior.cs
+     IRequireAuthentication → AuthorizationBehavior
+       file: src/GreenAi.Api/SharedKernel/Pipeline/AuthorizationBehavior.cs
 ```
 
 ---
@@ -161,33 +200,5 @@ Impact: dokumentationsforvirring — IKKE runtime sikkerhedsproblem.
 ## §COPILOT → ARCHITECT — Åbne spørgsmål
 
 *Ingen åbne spørgsmål pt.*
-
----
-
-## §ONBOARDING PROOF — 2026-04-25 (SESSION)
-
-```
-1. GOVERNANCE.md
-   file: c:\Udvikling\analysis-tool\shared\GOVERNANCE.md
-   rules (copy):
-     §1: "Hvis state mangler → STOP"
-     §3: "Hvis én metric fejler → BUILD FORBUDT"
-     §7: "Data mangler → STOP / Evidens mangler → STOP / Rækkefølge brydes → STOP"
-
-2. ONBOARDING.md
-   file: c:\Udvikling\analysis-tool\shared\ONBOARDING.md
-   fail_conditions (copy):
-     1. "Foreslår design uden eksplicit ordre"
-     2. "Starter build uden N-B APPROVED"
-     3. "Returnerer svar uden file/method/line (hvor evidens forventes)"
-
-3. execution_file
-   source: c:\Udvikling\analysis-tool\shared\GOVERNANCE.md §EXECUTION FILE (line 179)
-   value:  C:\Udvikling\analysis-tool\temp\TEMP.md
-
-4. UNKNOWN: ingen — alle 3 punkter fundet med evidens
-
-onboarding_status = PASSED
-```
 
 ---
