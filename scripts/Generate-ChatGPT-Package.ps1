@@ -50,7 +50,11 @@ $harvestOutputCount = 0
     $hSrc = Join-Path $atRoot $_
     if (Test-Path $hSrc) {
         Get-ChildItem -Path $hSrc -Recurse -File | Where-Object {
-            $atExcludeExts -notcontains $_.Extension.ToLower()
+            $f = $_
+            if ($atExcludeExts -contains $f.Extension.ToLower()) { return $false }
+            # Ekskludér angular\raw\ — kun normalized output med i ZIP
+            if ($f.FullName -like '*\harvest\angular\raw\*') { return $false }
+            return $true
         } | ForEach-Object {
             $rel  = $_.FullName.Substring($atRoot.Length + 1)
             $dest = Join-Path "$tmp\analysis-tool" $rel

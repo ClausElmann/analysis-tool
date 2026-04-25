@@ -7,7 +7,7 @@
 **Migration level:** V087
 **Tests:** Alle tests PASS (inkl. StandardReceiversRuntimeProofTests 5/5, DeliveryRuntimeProofTests 6/6, LoggingRuntimeProofTests 3/3) — 0 errors, 0 warnings
 **Build:** 0 errors, 0 warnings
-**DB:** `GreenAI_DEV` på `(localdb)\MSSQLLocalDB`  
+**DB:** `GreenAI_DEV` på `(localdb)\MSSQLLocalDB22`  
 **App:** `http://localhost:5057` — start: `dotnet run --project src/GreenAi.Api`
 
 ---

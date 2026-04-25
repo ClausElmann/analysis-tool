@@ -368,7 +368,7 @@ Regler: ✅ Kun godkendt scope ✅ 0 warnings ✅ Tests med kode ❌ Ingen kode-
 ### Green-AI Stack
 - .NET 10 / C# 13, Blazor Server, Dapper, MediatR, FluentValidation
 - Serilog → [dbo].[Logs], xUnit v3, NSubstitute
-- DB: `GreenAI_DEV` på `(localdb)\MSSQLLocalDB`
+- DB: `GreenAI_DEV` på `(localdb)\MSSQLLocalDB22`
 - App: `http://localhost:5057`
 - Migrations: `V0XX_Navn.sql` — kørte manuelt
 
