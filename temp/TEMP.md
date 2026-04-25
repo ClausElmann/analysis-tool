@@ -163,3 +163,31 @@ Impact: dokumentationsforvirring — IKKE runtime sikkerhedsproblem.
 *Ingen åbne spørgsmål pt.*
 
 ---
+
+## §ONBOARDING PROOF — 2026-04-25 (SESSION)
+
+```
+1. GOVERNANCE.md
+   file: c:\Udvikling\analysis-tool\shared\GOVERNANCE.md
+   rules (copy):
+     §1: "Hvis state mangler → STOP"
+     §3: "Hvis én metric fejler → BUILD FORBUDT"
+     §7: "Data mangler → STOP / Evidens mangler → STOP / Rækkefølge brydes → STOP"
+
+2. ONBOARDING.md
+   file: c:\Udvikling\analysis-tool\shared\ONBOARDING.md
+   fail_conditions (copy):
+     1. "Foreslår design uden eksplicit ordre"
+     2. "Starter build uden N-B APPROVED"
+     3. "Returnerer svar uden file/method/line (hvor evidens forventes)"
+
+3. execution_file
+   source: c:\Udvikling\analysis-tool\shared\GOVERNANCE.md §EXECUTION FILE (line 179)
+   value:  C:\Udvikling\analysis-tool\temp\TEMP.md
+
+4. UNKNOWN: ingen — alle 3 punkter fundet med evidens
+
+onboarding_status = PASSED
+```
+
+---
